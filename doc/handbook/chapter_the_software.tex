@@ -1,0 +1,390 @@
+\chapter{The Software}
+\label{chap:The Software}
+
+This chapter introduces the AIT QKD Software and sketches the main parts: the qkd library, the modules, the node and the tools. It describes the roles of the core software components shipped with the AIT QKD Software.
+
+\section{Overview}
+\label{sec:Overview}
+
+The AIT Software has evolved into a quite complex software package. The actual number of LOC\footnote{Lines of Code} is rather small compared to user interaction centric software. The complexity stems from having multithreaded, multiproccess applications running on rather ``exotic'' and new hardware with hard time constrains counting in the range of milliseconds.
+
+\medskip
+
+The overall goals of the AIT Software are:
+\begin{itemize}
+
+    \item A full-fledged QKD system.
+
+    \item Hardware agnostic.
+
+    \item Extensible.
+
+    \item Open.
+
+\end{itemize}
+
+\medskip
+
+Figure \ref{fig:qkd-architecture} depicts the main segments of the AIT Software architecture. In this picture both instances, Alice and Bob, are shown. The architecture consists of:
+
+\begin{itemize}
+
+    \item \textbf{Quantum Event}: this item covers Alice QKD-Device  and Bob QKD-Device respectively. This includes all the detectors, photon-emitters, TTMs, etc. which are necessary to create coincidence tables on both sides.
+
+    \item \textbf{The QKD-Stack}: this item does the sifting, error correction, confirmation, and privacy amplification. The input is the coincidence table - the raw key - of Alice (or Bob respectively) and it generates finally a shared secret key.
+
+    \item \textbf{The QKD Network}: whereas the QKD Stack has the means to create a shared secret key, the QKD Network will take this key and provides techniques to store and use these keys afterwards. Main keywords in this area are KeyStore, Crypto-Engine and Q3P\footnote{Quantum Point-to-Point-Protocol}.
+
+    \item \textbf{DBus Management}: this entity sums up all software pieces, which are necessary to draw values from the system (like QBER) and to react to it. It contains configuration files, bash scripts, and up to graphical user interfaces (GUI). Having DBus interfaces available throughout the whole system further 3$^{rd}$ party integration tools and applications of administrative nature are possible.
+
+\end{itemize}
+
+\medskip
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.45,keepaspectratio=true]{./gfx/qkd-architecture.png}
+    \caption{AIT QKD Software Archtitecture}
+    \label{fig:qkd-architecture}
+\end{figure}
+
+\medskip
+
+Discussing every item of figure \ref{fig:qkd-architecture} will extend the ``software'' frame of this handbook. Concentrating on the software leaves these aspects: the QKD Stack, the QKD Network and the QKD Management. All these three parts interact on a single QKD node in a QKD network. 
+
+\bigskip
+
+These steps are done when \emph{creating a key} within the QKD Stack:
+
+\medskip
+
+\textbf{1.} \emph{Quantum Event Acquisition}: at first we have to get a grip on the quantum events. The AIT systems do expect here a coincidence table which is compared with the peer. In a \textbf{presifting} phase (not depicted in figure \ref{fig:qkd-architecture}) a very first step in creating a raw key is achieved. Especially this step may differ from system to system. If non-AIT hardware is used, then this is the place to modify or extend existing QKD modules.
+
+\medskip
+
+Note: due to the nature of the underlaying quantum hardware and the theoretical restrictions it imposes also other modules have to change. E.g. error correction designed for DV-QKD\footnote{Discrete Variables QKD} is not applicable for CV-QKD\footnote{Continuous Variables QKD}. However, such error correction can be introduced and integrated.
+
+\medskip
+
+\textbf{2.} \emph{Sifting}: This stage covers the incoming raw key data into a ``sifted'' key. It is here where the most prominent QKD algorithm - BB84 - is run.
+
+\medskip
+
+\textbf{3.} \emph{Error Correction}: The sifted key does have errors. These might have been introduced by an eavesdropper though - more likely - by rather not accurate or very sensitive hardware and/or simply environment influences. Modern error correction codes are run here, which do leak at least some information to an observer.
+
+\medskip
+
+\textbf{4.} \emph{Confirmation}: Some error correction algorithms relay on stochastic processes. So there are cases where a key is meant to be corrected even when still errors remain in the corrected key. To overcome this situation an additional confirmation step is done to ensure key equality at both sides.
+
+\medskip
+
+\textbf{5.} \emph{Privacy Amplification}: At the error correction stage and during confirmation some information about the current key may have leaked to the public and therefore tampers the integrity of the key's security aspect. Circumventing any knowledge an attacker may have gained by observing the public communication between Alice and Bob so far the Privacy Amplification reduces the key information to render any public bits useless.
+
+\medskip
+
+\textbf{6.} \emph{Key Storing}: After the Privacy Amplification (and when the exchanged information between both parties has been proven authentic) Alice and Bob do share a secret key. In order to use this key it has to be stored and administered. This is the responsibility of the Q3P Link, which is already part of the QKD Network.
+
+\bigskip
+
+\emph{Using the key} and as such providing benefit to a user is the endeavor of the QKD Network:
+
+\medskip
+
+\textbf{7.} As key creation is a sophisticated task creating keys at a rather low rate, quantum keys are scarce. So they are buffered until a concrete \textbf{key demand} originates at one side. In the figure \ref{fig:qkd-architecture} this is shown as Alice wants to send Bob a message.
+
+\medskip
+
+\textbf{8.} The message is receipted at a Q3P node which figures the routing of the message within a QKD network. It has to address the correct peer node.
+
+\medskip
+
+\textbf{9.} Once the correct peer node has been identified the cryptographic algorithms by means of the Crypto Engine of the node are applied on the message. This includes but is not limited to one-time-pad cypher and according information theoretic secure authentication. Then the now encrypted and authenticated message is transfered across public, potentially hostile environment to the peer node.
+
+\medskip
+
+\textbf{10.} The message is now encrypted and authenticated (in this order) and travels across networks to the target node. Hence, Usually at key creation the Quantum Detectors do share a single communication channel - the quantum channel - at which the quantum events are created and detected. This may not be true to the classical channel used here. Any number of intermediate network entities like routers and switches are possible here.
+
+\medskip
+
+\textbf{11.} The target Q3P node does apply the cryptographic algorithms in reverse thus revealing the original message.
+
+\medskip
+
+\textbf{12.} The target Q3P node identifies the target user machine and sends the message to Bob's computer.
+
+\medskip
+
+\textbf{13.} Bob reads the message of Alice.
+
+\medskip
+
+This is but one scenario having the Q3P nodes as ingress and egress routers information theoretically connecting networks. Other ideas use a ``key pump'': having the Q3P nodes spilling out the generated keys in sync on both sides and using these quantum keys for some new applications.
+
+\section{The Reference Machine}
+\label{sec:The Reference Machine}
+
+The target platform of the AIT QKD Software is Linux. In more details: the AIT currently host binary packages for a \textbf{Debian\footnote{\url{http://www.debian.org/}} 7.0 ``Wheezy'' amd64}\footnote{At the time of writing the Wheezy release of Debian is in beta stage, testing.} installations. The AIT concentrates its efforts to be compliant with this distribution, since it is
+
+\begin{itemize}
+
+    \item widespread. Debian seems to be quiet famous and the root of many other Linux distributions like Ubuntu, Mint and others, and
+    
+    \item Debian is rather conservative when it comes to package version politics. The Debian stable branch contains software which should have been long and throughly tested in the past. In turn, if it does run on Debian it should probably run on most other Linux distributions as well. Thus lowering unusual requirements in the AIT software dependency tree.
+    
+\end{itemize}
+
+However, the AIT creates the software for other distributions and machines as well. Among these are Ubuntu 12.10 32/64 Bit, Gentoo or even ARM based Debian. If you are in need of such and do not want to build the software on your own, feel free to contact the AIT QKD team.
+
+
+\section{Binary Repositories}
+\label{sec:Binary Repositories}
+
+The AIT provides an APT\footnote{Debian's \textit{A}dvanced \textit{P}ackaging \textit{T}ool: a nice frontend to \texttt{dpkg}.} repository which enables the users to quick and easily install the AIT QKD Software. These APT repositories might be used by Debian installations but also by Debian derived Linux distributions like Ubuntu.
+
+\medskip
+
+Due to management policy and company and security restrictions we only provide HTTPS access to our APT repository. Therefore one has to enable HTTPS connectivity for his local apt installation. This is done with\footnote{The leading \texttt{\#} states that you should issue this command as root. A leading \texttt{\$} hints that you may type this command as normal user also.}
+
+\begin{minipage}{0.9\textwidth}
+\bigskip
+\begin{verbatim}
+# apt-get install apt-transport-https
+\end{verbatim}
+\medskip
+\end{minipage}
+
+Once you have the ability to draw packages via HTTPS from any repository, you should add the AIT APT repository servers to your \texttt{/etc/apt/sources.list}. Be sure that this file contains at least a line like this:
+
+\begin{minipage}{0.9\textwidth}
+\bigskip
+\begin{verbatim}
+deb https://USER:PASSWORD@sqt.ait.ac.at/debian wheezy main
+\end{verbatim}
+\medskip
+\end{minipage}
+
+The line above contains your user and password\footnote{One must register in order to get access to our software site. See chapter \ref{sec:Obtaining the Software}.} of the AIT QKD Software repository. Please substitute the fields USER and PASSWORD with your own account data. As these values are typed in plain you should limit access to the \texttt{/etc/apt/sources.list} file with
+
+\begin{minipage}{0.9\textwidth}
+\bigskip
+\begin{verbatim}
+# chmod 0700 /etc/apt/sources.list
+# chown root:root /etc/apt/sources.list
+\end{verbatim}
+\medskip
+\end{minipage}
+
+We use GnuPG to sign our software packages. In order to verify consistency and authenticity of our packages you have to install the gnupg Debian Wheezy package. The AIT QKD Software repository Public Key ID is \textbf{\texttt{0B193E13}}. Use \texttt{gpg --recv-keys} to import our key into the local GnuPG keyring database and \texttt{apt-key} add to add the key to you apt installation.
+
+\begin{minipage}{0.9\textwidth}
+\bigskip
+\begin{verbatim}
+# apt-get install gnupg
+# gpg --keyserver subkeys.pgp.net --recv-keys 0B193E13
+# gpg -a --export 0B193E13 | apt-key add -
+\end{verbatim}
+\medskip
+\end{minipage}
+
+All these steps up to now are for the very first setup and configuration for the Debian package management system. In the following commands are described which lets you periodically - as well as for the first time - install and update your AIT QKD Software installation.
+
+\medskip
+
+Run apt-get update to populate your local database with new AIT QKD Software package definitions.
+
+\begin{minipage}{0.9\textwidth}
+\bigskip
+\begin{verbatim}
+# apt-get update
+\end{verbatim}
+\medskip
+\end{minipage}
+
+Finally install the AIT QKD suite by
+
+\begin{minipage}{0.9\textwidth}
+\bigskip
+\begin{verbatim}
+# apt-get install qkd
+\end{verbatim}
+\medskip
+\end{minipage}
+
+Once you had installed the AIT QKD Software package via \texttt{apt-get} simply updating and upgrading your system should be sufficient:
+
+\begin{minipage}{0.9\textwidth}
+\bigskip
+\begin{verbatim}
+# apt-get update
+# apt-get upgrade
+\end{verbatim}
+\medskip
+\end{minipage}
+
+
+
+\section{Download the Source}
+\label{sec:Download the Source}
+
+The AIT QKD Software can be downloaded via GIT\footnote{GIT is a version control system which can be installed freely from \url{http://git-scm.com/}} or directly as source code packages from the AIT SQT Software Platform: \url{https://sqt.ait.ac.at/software}. 
+
+\medskip
+
+The public available GIT repository is located at:
+
+\begin{center}
+\texttt{http://sqt.ait.ac.at/git/qkd-public.git}
+\end{center}
+
+Having git installed, to obtain the sources you open up a shell prompt and type:
+
+\begin{minipage}{0.9\textwidth}
+\bigskip
+\begin{verbatim}
+$ git clone http://sqt.ait.ac.at/git/qkd-public.git
+\end{verbatim}
+\medskip
+\end{minipage}
+
+\medskip
+
+This will clone the public available AIT QKD repository on your local machine. It holds the latest stable release the AIT offers. Hence, this repository is \textit{read-only}, you are not able to push or commit any changes you make to this location. 
+
+\medskip
+
+Refer to more detailed GIT documentation on how to keep up-to-date with the development.
+
+
+\section{Compilation}
+\label{sec:Compilation}
+
+Once the source code has been downloaded it can be compiled by the use of CMake. The AIT uses this build tool throughout all projects and packages to build the software and to create the packages.
+
+\medskip
+
+Building the software is easy: step into the prepared build folder, invoke the cmake tool and call make. Starting from cloning the repository this yields in an ideal scene:
+
+\begin{minipage}{0.9\textwidth}
+\bigskip
+\begin{verbatim}
+$ git clone http://sqt.ait.ac.at/git/qkd-public.git
+Cloning into 'qkd-public'...
+$ cd qkd-public/
+$ ls -l
+total 192
+-rw-r--r--  1 dyle dyle 10725 Feb  5 15:49 CMakeLists.txt
+-rw-r--r--  1 dyle dyle 76361 Nov 29 14:02 Doxyfile
+-rw-r--r--  1 dyle dyle 18092 Nov 29 14:02 LICENSE-GPL-v2.txt
+-rw-r--r--  1 dyle dyle 26530 Nov 29 14:02 LICENSE-LGPL-v2.1.txt
+-rw-r--r--  1 dyle dyle  2822 Feb  5 15:37 README
+-rw-r--r--  1 dyle dyle  5145 Feb  5 15:37 baseinc.h
+drwxr-xr-x  6 dyle dyle  4096 Feb  5 15:37 bin
+drwxr-xr-x 10 dyle dyle  4096 Feb  6 14:09 build
+drwxr-xr-x  2 dyle dyle  4096 Nov 29 14:02 cmake
+-rw-r--r--  1 dyle dyle  2581 Feb  5 15:37 config.h.in
+drwxr-xr-x  3 dyle dyle  4096 Feb  5 17:59 doc
+drwxr-xr-x  4 dyle dyle  4096 Nov 29 14:02 etc
+drwxr-xr-x  7 dyle dyle  4096 Feb  6 13:08 examples
+drwxr-xr-x  3 dyle dyle  4096 Nov 29 14:02 include
+drwxr-xr-x  8 dyle dyle  4096 Feb  5 15:37 lib
+drwxr-xr-x  3 dyle dyle  4096 Nov 29 14:02 share
+drwxr-xr-x  6 dyle dyle  4096 Feb  5 15:37 tested
+$ cd build/
+$ cmake ..
+[... lot of CMake output ...]
+$ make
+\end{verbatim}
+\medskip
+\end{minipage}
+
+The cmake command will fail if it does not find approbate software installments. At a base minimum these are:
+
+\begin{itemize}
+
+    \item gcc and g++ at least version 4.6.3
+    \item boost at least version 1.49
+    \item OpenSSL
+    \item UUID
+    \item CMake
+    \item GMP
+    \item 0MQ (Zero Message Queue) version 2.2 (NOT version 3)
+    \item Qt4 at least version 4.4
+    \item Qwt5
+    \item Doxygen
+
+\end{itemize}
+
+\clearpage
+
+On a Debian 7.0 Wheezy system these dependencies can be pulled in by these commands (as root):
+
+\begin{minipage}{0.9\textwidth}
+\bigskip
+\begin{verbatim}
+# apt-get install build-essential g++ gcc 
+# apt-get install libboost-all-dev libssl-dev uuid-dev 
+# apt-get install cmake libssl-dev uuid-dev  
+# apt-get install libgmp3-dev libzmq-dev libdbus-1-dev libqt4-dev 
+# apt-get install libqwt5-qt4-dev doxygen 
+\end{verbatim}
+\medskip
+\end{minipage}
+
+If you are going to build this handbook as well, you have to get a \TeX{} instance also containing the \texttt{pdflatex} tool. Please check your current distribution for details on how to install such software package.
+
+\medskip
+
+The AIT QKD software builds with very rigid compiler settings. But even if the compilation and linkage succeeds there will be still runtime errors ahead. To avoid a great number of these and make the software more resilient the AIT created a series of automated test cases with you can start \textit{optionally}. You run these tests by ``making the test'' target from within the \texttt{build} folder.
+
+\begin{minipage}{0.9\textwidth}
+\bigskip
+\begin{verbatim}
+$ make test
+\end{verbatim}
+\medskip
+\end{minipage}
+
+This will trigger an exhaustive number of checks of the newly built software. Some test cases have to be manually downloaded. This is especially true for presifting tests since we use real time-tagging tables. Such tables likely extend 100 MB with ease and we do not ship this unnecessarily.
+
+\medskip
+
+If a test fails you can always run the single test alone and extract more information about what has failed. If so, please contact the AIT QKD team to help you figuring out why a certain test failed on your machine.
+
+\medskip
+
+To install the yet compiled software you should call the command below from within the \texttt{build} folder:
+
+\begin{minipage}{0.9\textwidth}
+\bigskip
+\begin{verbatim}
+$ sudo make install
+\end{verbatim}
+\medskip
+\end{minipage}
+
+Note however that this will install the compiled AIT QKD software under \texttt{/usr/local} and \textbf{not} under \texttt{/usr} as usual. Beware that mixing binary installments under \texttt{/usr} and locally compiled ones under \texttt{/usr/local} sure leads to confusion and errors.
+
+\medskip
+
+To circumvent installing the software in \texttt{/usr/local} but rather in \texttt{/usr} you can create Debian installation packages with:
+
+\begin{minipage}{0.9\textwidth}
+\bigskip
+\begin{verbatim}
+$ make package
+\end{verbatim}
+\medskip
+\end{minipage}
+
+within the \texttt{build} folder. This will generate a texttt{qkd\_0.10.1\_amd64.deb}\footnote{or something similar named. This depends on the concrete version and whether you do this on a Debian-like machine}. Afterwards you simply
+
+\begin{minipage}{0.9\textwidth}
+\bigskip
+\begin{verbatim}
+$ sudo dpkg --install qkd_0.10.1_amd64.deb
+\end{verbatim}
+\medskip
+\end{minipage}
+
+which will place the installment into \texttt{/usr}.
+

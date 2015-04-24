@@ -1,0 +1,161 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-q3pd-modules
+# 
+# This is a test file.
+#
+# TEST: test the q3pd modules method
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+
+# ------------------------------------------------------------
+
+# init test environment
+test_init
+
+# zap previous database
+rm -rf "${DB_ALICE_2_BOB}" &> /dev/null
+rm -rf "${DB_BOB_2_ALICE}" &> /dev/null
+
+# start both nodes
+q3pd_start "alice" --debug || exit $?
+q3pd_start "bob" --debug || exit $?
+
+while :; do
+    ( qkd_qdbus | grep at.ac.ait.q3p.node-alice &> /dev/null ) && break;
+done
+while :; do
+    ( qkd_qdbus | grep at.ac.ait.q3p.node-bob &> /dev/null) && break;
+done
+
+# launch alice
+qkd_qdbus at.ac.ait.q3p.node-alice /Node create_link "alice_to_bob" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob open_db "file://${DB_ALICE_2_BOB}" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob inject_url "file://${SHARED_SECRET_FILE}" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob org.freedesktop.DBus.Properties.Set at.ac.ait.q3p.link master "true" &> /dev/null
+
+# launch bob
+qkd_qdbus at.ac.ait.q3p.node-bob /Node create_link "bob_to_alice" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice open_db "file://${DB_BOB_2_ALICE}" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice inject_url "file://${SHARED_SECRET_FILE}" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice org.freedesktop.DBus.Properties.Set at.ac.ait.q3p.link slave "true" &> /dev/null
+
+# check for key presence
+KEYS_ALICE=$(qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob/CommonStore charge)
+KEYS_BOB=$(qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice/CommonStore charge)
+if [ "${KEYS_ALICE}" -lt "100" ]; then
+    echo "Not enough (<100) keys on alice side"
+    q3pd_stop "alice"
+    q3pd_stop "bob"
+    exit 1
+fi
+if [ "${KEYS_BOB}" -lt "100" ]; then
+    echo "Not enough (<100) keys on bob side"
+    q3pd_stop "alice"
+    q3pd_stop "bob"
+    exit 1
+fi
+
+# both should listen
+qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob listen "tcp://127.0.0.1:10011" "${SHARED_SECRET}" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice listen "tcp://127.0.0.1:10021" "${SHARED_SECRET}" &> /dev/null
+
+# let alice connect
+qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob connect "tcp://127.0.0.1:10021" "${SHARED_SECRET}" &> /dev/null
+
+# give both some time to handshake and warm up
+sleep 1
+
+# see if have a connection
+CONNECTED_ALICE=$(qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob connected)
+CONNECTED_BOB=$(qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice connected)
+if [ "${CONNECTED_ALICE}" != "true" ]; then
+    echo "alice failed to connect to bob"
+    q3pd_stop "alice"
+    q3pd_stop "bob"
+    exit 1
+fi
+if [ "${CONNECTED_BOB}" != "true" ]; then
+    echo "bob failed to connect to alice"
+    q3pd_stop "alice"
+    q3pd_stop "bob"
+    exit 1
+fi
+
+# now start some modules in the background
+${TEST_BASE}/bin/qkd-cat &> /dev/null &
+${TEST_BASE}/bin/qkd-cat &> /dev/null &
+${TEST_BASE}/bin/qkd-tee &> /dev/null &
+${TEST_BASE}/bin/qkd-tee &> /dev/null &
+${TEST_BASE}/bin/qkd-tee &> /dev/null &
+${TEST_BASE}/bin/qkd-ping --debug --run 1> /dev/null 2>> qkd-ping_debug_1.txt &
+${TEST_BASE}/bin/qkd-ping --bob --run 1> /dev/null 2>> qkd-ping_debug_2.txt &
+${TEST_BASE}/bin/qkd-ping --debug --bob --connect "tcp://127.0.0.1:6999" --run 1> p.txt 2>> qkd-ping_debug_3.txt &
+sleep 2
+
+# the modules
+MODULES=$(qkd_qdbus | grep at.ac.ait.qkd.module)
+for m in ${MODULES}; do
+    echo "Setting some hint to MODULE: ${m}"
+    qkd_qdbus ${m} /Module Set at.ac.ait.qkd.module hint "This is a hint"
+done
+
+# ask alice node about present modules
+qkd_qdbus at.ac.ait.q3p.node-alice /Node modules > alice-modules.present
+
+# kick the pid in the second column
+sed -i "s/;[0-9]*;/;/" alice-modules.present
+
+# clean up any running instance
+test_cleanup
+
+# generated expected output
+cat > alice-modules.expected << EOF
+cat;0;alice;default;This is a hint;;;;stdout://;
+cat;0;alice;default;This is a hint;;;;stdout://;
+ping;2;alice;default;This is a hint;;tcp://127.0.0.1:6789;;stdout://;
+ping;2;alice;default;This is a hint;tcp://127.0.0.1:6789;;;stdout://;
+ping;2;alice;default;This is a hint;tcp://127.0.0.1:6999;;;stdout://;
+tee;0;alice;default;This is a hint;;;stdin://;stdout://;
+tee;0;alice;default;This is a hint;;;stdin://;stdout://;
+tee;0;alice;default;This is a hint;;;stdin://;stdout://;
+EOF
+
+# compare result to good
+diff -q alice-modules.present alice-modules.expected &> /dev/null
+RESULT_OK=$?
+if [ "${RESULT_OK}" != "0" ]; then
+    echo "listening of modules failed"
+    exit 1
+fi
+echo "listening of modules ok"
+
+# state that test ok
+echo "=== TEST SUCCESS ==="

@@ -1,0 +1,10 @@
+[Unit]
+Description=QKD D-Bus Message Bus
+Requires=qkd-dbus.socket
+
+[Service]
+ExecStart=/usr/bin/dbus-daemon --config-file=/etc/dbus-1/qkd.conf --address=unix:path=%t/dbus/qkd_bus_socket --nofork --nopidfile --systemd-activation
+ExecReload=/usr/bin/dbus-send --print-reply --session --type=method_call --dest=org.freedesktop.DBus / org.freedesktop.DBus.ReloadConfig
+
+[Install]
+WantedBy=default.target

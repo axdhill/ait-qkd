@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>main_widget</class>
+ <widget class="QFrame" name="main_widget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>698</width>
+    <height>424</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Frame</string>
+  </property>
+  <property name="statusTip">
+   <string>Start a module</string>
+  </property>
+  <property name="frameShape">
+   <enum>QFrame::StyledPanel</enum>
+  </property>
+  <property name="frameShadow">
+   <enum>QFrame::Raised</enum>
+  </property>
+  <layout class="QVBoxLayout" name="cLyMain" stretch="0,0">
+   <item>
+    <widget class="QSplitter" name="cSpMain">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <widget class="QWidget" name="cWdNorth" native="true">
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QLabel" name="cLbModules">
+         <property name="statusTip">
+          <string>Current known QKD modules in the system</string>
+         </property>
+         <property name="text">
+          <string>&amp;Modules:</string>
+         </property>
+         <property name="buddy">
+          <cstring>cTvModules</cstring>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTreeWidget" name="cTvModules">
+         <property name="statusTip">
+          <string>All modules found in the current system</string>
+         </property>
+         <property name="verticalScrollBarPolicy">
+          <enum>Qt::ScrollBarAlwaysOn</enum>
+         </property>
+         <property name="editTriggers">
+          <set>QAbstractItemView::NoEditTriggers</set>
+         </property>
+         <property name="showDropIndicator" stdset="0">
+          <bool>false</bool>
+         </property>
+         <property name="alternatingRowColors">
+          <bool>true</bool>
+         </property>
+         <property name="rootIsDecorated">
+          <bool>false</bool>
+         </property>
+         <property name="uniformRowHeights">
+          <bool>true</bool>
+         </property>
+         <property name="sortingEnabled">
+          <bool>true</bool>
+         </property>
+         <property name="animated">
+          <bool>true</bool>
+         </property>
+         <property name="allColumnsShowFocus">
+          <bool>true</bool>
+         </property>
+         <property name="columnCount">
+          <number>6</number>
+         </property>
+         <column>
+          <property name="text">
+           <string notr="true">1</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string notr="true">2</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string notr="true">3</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string notr="true">4</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string notr="true">5</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string notr="true">6</string>
+          </property>
+         </column>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QStackedWidget" name="cStModules">
+      <property name="statusTip">
+       <string>Module information</string>
+      </property>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="cLyButtons" stretch="0,2,0,0,0,0,1,0">
+     <item>
+      <widget class="QLabel" name="cLbPipeline">
+       <property name="statusTip">
+        <string>QKD Pipleine to start/stop</string>
+       </property>
+       <property name="text">
+        <string>Pipeline:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="cCbPipeline">
+       <property name="statusTip">
+        <string>QKD Pipleine to start/stop</string>
+       </property>
+       <property name="editable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cBtnPipeline">
+       <property name="maximumSize">
+        <size>
+         <width>32</width>
+         <height>32</height>
+        </size>
+       </property>
+       <property name="statusTip">
+        <string>Select QKD Pipeline config file</string>
+       </property>
+       <property name="text">
+        <string>...</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="cBtnPipelineStart">
+       <property name="statusTip">
+        <string>Start QKD Pipeline</string>
+       </property>
+       <property name="text">
+        <string>...</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="cBtnPipelineStop">
+       <property name="statusTip">
+        <string>Stop QKD Pipeline</string>
+       </property>
+       <property name="text">
+        <string>...</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cBtnModule">
+       <property name="statusTip">
+        <string>Load and start a module</string>
+       </property>
+       <property name="text">
+        <string>Start Module</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="cSpButtons">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cBtnQuit">
+       <property name="statusTip">
+        <string>Terminate module managerer</string>
+       </property>
+       <property name="text">
+        <string>&amp;Quit</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>cTvModules</tabstop>
+  <tabstop>cCbPipeline</tabstop>
+  <tabstop>cBtnPipeline</tabstop>
+  <tabstop>cBtnPipelineStart</tabstop>
+  <tabstop>cBtnPipelineStop</tabstop>
+  <tabstop>cBtnModule</tabstop>
+  <tabstop>cBtnQuit</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

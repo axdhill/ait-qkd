@@ -1,0 +1,76 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-enkey
+# 
+# This is a test file.
+#
+# TEST: test the QKD enkey module
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+
+# ------------------------------------------------------------
+
+# init test environment
+test_init
+
+# zap previous keys
+rm -rf enkey_keys.* &> /dev/null
+
+# create blob
+dd if=/dev/urandom of=blob.alice bs=1024 count=32
+
+# truncate previous debug out
+echo -n > enkey_debug.alice
+
+# pipeline config
+PIPELINE_CONFIG="file://${TEST_BASE}/test/test-data/pipeline.conf"
+
+# start the modules - for the enkey we are using the same keys in the first round
+( ${TEST_BASE}/bin/qkd-enkey --run --debug --config ${PIPELINE_CONFIG} --file "blob.alice" 1> enkey_keys.alice 2>> enkey_debug.alice ) &
+
+# wait until the modules did it's work
+sleep 1
+wait_stalled enkey
+
+# check expected with actual result
+xxd -ps -g 1 blob.alice | while read LINE; do echo -n ${LINE}; done > enkey_expected
+${TEST_BASE}/bin/qkd-key-dump enkey_keys.alice | grep 'data:' | sed "s/\t *data: *\t//" | while read LINE; do echo -n ${LINE}; done > enkey_actual
+
+diff -q enkey_expected enkey_actual
+if [ "$?" != "0" ]; then
+    echo "enkey created different result - failed"
+    exit 1
+fi
+echo "enkey blob'ed - ok"
+
+
+# state that test ok
+echo "=== TEST SUCCESS ==="
+
+exit 0

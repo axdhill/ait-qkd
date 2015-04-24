@@ -1,0 +1,163 @@
+#include "baseinc.h"
+
+// this is currentl Linux only code
+//       there is TUN/TAP support on other operating
+//       systems like Mac OSX ...
+
+#include <linux/if.h>
+#include <linux/if_tun.h>
+#include <sys/ioctl.h>
+
+// Qt
+#include <QtCore/QSocketNotifier>
+
+#include "qkd/q3p/engine.h"
+#include "qkd/q3p/nic.h"
+#include "qkd/utility/debug.h"
+#include "qkd/utility/syslog.h"
+
+using namespace qkd::q3p;
+
+
+// ------------------------------------------------------------
+// decl
+
+
+/**
+ * the nic pimpl
+ */
+class qkd::q3p::nic_instance::nic_data {
+    
+    
+public:
+    
+    
+    /**
+     * ctor
+     */
+    nic_data() { };
+    
+    
+    int nFD;                    /**< tun tab file descriptor */
+    QByteArray cRecvBuffer;     /**< receive buffer */
+    QFile cTunTapFile;          /**< tun tap "file" */
+    
+    std::thread cThread;        /**< the reader thread */
+};
+
+
+// ------------------------------------------------------------
+// code
+
+
+/**
+ * ctor
+ * 
+ * @param   cEngine     the parent engine
+ * @throws  mq_no_engine
+ */
+nic_instance::nic_instance(qkd::q3p::engine_instance * cEngine) : QObject(), m_c
+Engine(cEngine) {
+    
+    // engine
+    if (!m_cEngine) throw qkd::q3p::nic_instance::nic_no_engine();
+    
+    // pimpl
+    d = boost::shared_ptr<qkd::q3p::nic_instance::nic_data>(new qkd::q3p::nic_in
+stance::nic_data());    
+    d->nFD = 0;
+    
+    // get up q3pX
+    init_tun();
+}
+
+
+/**
+ * dtor
+ */
+nic_instance::~nic_instance() {
+    
+    // close the TUN/TAP device
+    close(d->nFD);
+}
+
+
+void r(int fd) {
+    
+    uint64_t nSize;
+    char cBuffer[1024 * 16];
+    while ((nSize = read(fd, cBuffer, 8096)) > 0 ) {
+        fprintf(stderr, "%s: received a vpn message\n", __func__);
+    }
+    
+   fprintf(stderr, "reader thread gone\n");
+}
+
+
+/**
+ * data is ready on the TUN/TAP
+ */
+void nic_instance::ready_read() {
+    
+std::cout << "nic_instance::ready_read" << std::endl;
+}
+
+
+/**
+ * get up the tun (from tun/tap) device
+ */
+void nic_instance::init_tun() {
+    
+    // open /dev/net/tun
+    d->nFD = open("/dev/net/tun", O_RDWR);
+    if (d->nFD < 0) {
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "could not access /dev/net/tun: " << 
+strerror(errno);
+        return;
+    }
+    
+    // make an ioctl on the file descriptor with IFF_TUN set
+    struct ifreq cIFReq;
+    memset(&cIFReq, 0, sizeof(cIFReq));
+    cIFReq.ifr_flags = IFF_TUN;
+    
+    // prepare the name
+    strncpy(cIFReq.ifr_name, "q3p%d", IFNAMSIZ);
+    
+    // create the device
+    if (ioctl(d->nFD, TUNSETIFF, (void *)&cIFReq) == -1) {
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "could not create TUN device: " << st
+rerror(errno);
+        close(d->nFD);
+        d->nFD = 0;
+        return;
+    }
+    
+    // we are up
+    m_sName = cIFReq.ifr_name;
+    
+    // tell environemnt
+    emit device_ready(QString::fromStdString(m_sName));
+    qkd::utility::syslog::info() << "created TUN device: " << m_sName;
+    
+    // create the notifier system
+//     d->cTunTapFile.open(d->nFD, QIODevice::ReadOnly, QFile::DontCloseHandle);
+//     connect(&d->cTunTapFile, SIGNAL(readyRead()), SLOT(ready_read()));
+    d->cThread = std::thread(r, d->nFD);
+}
+
+
+/**
+ * write data to the device, thus sending it to the kernel
+ * 
+ * @param   cData       the data to write
+ */
+void nic_instance::write(qkd::utility::memory cData) {
+    
+    // don't write if we ain't got an interface
+    if (d->nFD <= 0) {
+        if (qkd::utility::debug::enabled()) qkd::utility::debug() << "failed to 
+write " << cData.size() << " bytes to TUN/TAP: no device present.";
+        return;
+    }
+}

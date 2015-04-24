@@ -1,0 +1,117 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-q3pd-config
+# 
+# This is a test file.
+#
+# TEST: test the q3pd config file ability
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+
+# ------------------------------------------------------------
+
+# init test environment
+test_init
+
+# zap previous database
+rm -rf "${DB_ALICE_2_BOB}" &> /dev/null
+rm -rf "${DB_BOB_2_ALICE}" &> /dev/null
+
+# main
+q3pd_start "alice" --debug || exit $?
+q3pd_start "bob" --debug || exit $?
+
+# start alice and bob, inject a database and stop them in order to have a good
+# common store to test with later on
+
+# create alice
+qkd_qdbus at.ac.ait.q3p.node-alice /Node create_link 'alice_to_bob' &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob open_db "file://${DB_ALICE_2_BOB}" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob inject_url "file://${SHARED_SECRET_FILE}" &> /dev/null
+
+# create bob
+qkd_qdbus at.ac.ait.q3p.node-bob /Node create_link 'bob_to_alice' &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice open_db "file://${DB_BOB_2_ALICE}" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice inject_url "file://${SHARED_SECRET_FILE}" &> /dev/null
+
+# stop both nodes
+q3pd_stop "alice" || exit $?
+q3pd_stop "bob" || exit $?
+
+# here the real test starts
+echo "common stores prepared"
+
+# remove default test-config files
+rm -rf ${TEST_BASE}/q3pd_alice.config &> /dev/null
+rm -rf ${TEST_BASE}/q3pd_bob.config &> /dev/null
+
+# copy config files
+mkdir -p ${TEST_BASE}/bin/share/q3p &> /dev/null
+cp ${TEST_BASE}/test/q3p/alice.conf ${TEST_BASE}/bin/share/q3p/alice.conf  
+cp ${TEST_BASE}/test/q3p/bob.conf ${TEST_BASE}/bin/share/q3p/bob.conf
+
+# start both nodes
+echo "start alice"
+${TEST_BASE}/bin/q3pd/q3pd --config ${TEST_BASE}/bin/share/q3p/alice.conf --debug alice 2>>q3pd_${RANDOM}.stderr &
+sleep 1
+echo "started"
+
+echo "start bob"
+${TEST_BASE}/bin/q3pd/q3pd --config ${TEST_BASE}/bin/share/q3p/bob.conf --debug bob 2>>q3pd_${RANDOM}.stderr &
+sleep 1
+echo "started"
+
+# remove the config files (not to disturb further tests)
+rm  ${TEST_BASE}/bin/share/q3p/alice.conf  
+rm  ${TEST_BASE}/bin/share/q3p/bob.conf
+rm -rf ${TEST_BASE}/bin/share/q3p &> /dev/null
+
+# check for connection
+CONNECTED_ALICE=$(qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob connected)
+CONNECTED_BOB=$(qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice connected)
+if [ "${CONNECTED_ALICE}" != "true" ]; then
+    echo "alice failed to connect to bob"
+    q3pd_stop "alice"
+    q3pd_stop "bob"
+    exit 1
+fi
+if [ "${CONNECTED_BOB}" != "true" ]; then
+    echo "bob failed to connect to alice"
+    q3pd_stop "alice"
+    q3pd_stop "bob"
+    exit 1
+fi
+
+# stop both nodes
+q3pd_stop "alice" || exit $?
+q3pd_stop "bob" || exit $?
+
+# state that test ok
+echo "=== TEST SUCCESS ==="

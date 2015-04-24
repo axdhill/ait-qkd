@@ -1,0 +1,80 @@
+\documentclass[11pt,oneside,a4paper]{article}
+\usepackage[top=2cm, left=2cm, right=2cm, bottom=2cm]{geometry}
+\usepackage{color}
+\usepackage{pdfpages}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{listings}
+\usepackage[british]{babel}
+\usepackage{bold-extra}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{caption}
+\usepackage[pdfborder={0 0 0}]{hyperref}
+\usepackage{amsmath}
+
+\emergencystretch=3cm
+
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{4}
+
+\lstset{
+  breaklines=true,
+  breakindent=0pt,
+  basicstyle=\small\ttfamily,
+  language=C++
+}
+
+\begin{document}
+\title{QKD-Simulate - Documentation}
+\author{Program Authors: \\
+  \\
+  Oliver Maurhart \\
+  Mario Kahn \\
+  Philipp Grabenweger \\
+  \\
+  Documentation Author: \\
+  \\
+  Philipp Grabenweger
+}
+\date{September 2013}
+\maketitle
+
+\newpage
+
+\begin{abstract}
+This document describes the design principles, program internals and underlying physical and mathematical models of the QKD-Simulate program. Its purpose is to provide an insight into the concepts of program design and enable the reader to change or enhance the program's functionality.
+\end{abstract}
+
+\newpage
+\tableofcontents
+
+\listoffigures
+
+\listoftables
+
+\newpage
+\input{overview}
+
+\newpage
+\input{concepts}
+
+\newpage
+\input{outline}
+
+\newpage
+\input{components}
+
+\newpage
+\input{gui}
+
+\newpage
+\input{references}
+
+\newpage
+\appendix
+\addcontentsline{toc}{section}{Appendices}
+
+\input{extensions}
+
+\end{document}

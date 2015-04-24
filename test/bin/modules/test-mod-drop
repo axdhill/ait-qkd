@@ -1,0 +1,99 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-drop
+# 
+# This is a test file.
+#
+# TEST: test the QKD drop module
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2013-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+
+# ------------------------------------------------------------
+
+# init test environment
+test_init
+
+# zap previous keys
+rm -rf cat_keys.* &> /dev/null
+
+KEYS_TO_PROCESS="10000"
+${TEST_BASE}/bin/qkd-key-gen --size 64 --keys ${KEYS_TO_PROCESS} cat_keys
+
+# truncate previous debug out
+echo -n > drop_debug.alice
+
+# fix pipeline config
+cat ${TEST_BASE}/test/test-data/pipeline.conf | grep -v "^cat.alice.url_pipe_out" | grep -v "^cat.bob.url_pipe_out" > drop.config
+echo "cat.alice.url_pipe_out = ipc:///tmp/qkd/drop.alice.in" >> drop.config
+echo "cat.bob.url_pipe_out = ipc:///tmp/qkd/drop.bob.in" >> drop.config
+
+# start two pipelines
+PIPELINE_CONFIG="drop.config"
+
+# start the modules - we are just usinfg alice
+( ${TEST_BASE}/bin/qkd-cat --run --config ${PIPELINE_CONFIG} --file "cat_keys.alice" ) &
+( ${TEST_BASE}/bin/qkd-drop --debug --run --config ${PIPELINE_CONFIG} 1> drop_keys.alice 2>> drop_debug.alice ) &
+
+# wait until the modules are up
+while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module.drop | wc -l)" = "0" ]; do
+    echo "waiting for the pipeline to ignite ..."
+    sleep 1
+done
+
+# wait until all keys have been processed
+sleep 1
+wait_stalled cat drop
+echo "keys droped"
+
+# count remaining keys
+set -x
+REMAINING_KEYS=$(${TEST_BASE}/bin/qkd-key-dump drop_keys.alice | grep '^key' | wc -l)
+DROPPED_KEYS=$((${KEYS_TO_PROCESS} - ${REMAINING_KEYS}))
+echo "dropped ${DROPPED_KEYS}"
+
+# as this is a stochastic process we loose some precision 
+# with a drop ration of 20% we have an expectation of 2000 keys
+# as this is a binomial distritbution we also expect +/- variance
+# of 10000 * 0.2 * 0.8 = 1600 keys
+if [ "${DROPPED_KEYS}" -lt "400" ]; then
+    echo "dropped less keys - failed"
+    exit 1
+fi
+if [ "${DROPPED_KEYS}" -gt "3600" ]; then
+    echo "dropped more keys - failed"
+    exit 1
+fi
+
+# stop machines
+test_cleanup
+
+# state that test ok
+echo "=== TEST SUCCESS ==="
+

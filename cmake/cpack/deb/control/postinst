@@ -1,0 +1,82 @@
+#!/bin/sh
+
+# ------------------------------------------------------------
+# postinst
+#
+# post installation script run
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2012, 2013 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+# fail on error
+set -e
+
+# setup "qkd" group
+groupadd --force --system qkd
+
+# create system folders
+mkdir -p /var/log/qkd &> /dev/null
+mkdir -p /var/lib/q3p &> /dev/null
+sync
+
+# fix group ownership of system folder
+chown --silent root:qkd /var/log/qkd
+chown --silent root:qkd /var/lib/q3p
+
+# fix permissions
+chmod 770 /var/log/qkd
+chmod 770 /var/lib/q3p
+
+# set group of installed programs
+chgrp --silent qkd /usr/bin/q3pd
+test -e /usr/bin/q3p-keystore-dump          &&  chgrp --silent qkd /usr/bin/q3p-keystore-dump
+test -e /usr/bin/q3p-mq-reader              &&  chgrp --silent qkd /usr/bin/q3p-mq-reader
+test -e /usr/bin/qkd-auth                   &&  chgrp --silent qkd /usr/bin/qkd-auth
+test -e /usr/bin/qkd-bb84                   &&  chgrp --silent qkd /usr/bin/qkd-bb84
+test -e /usr/bin/qkd-buffer                 &&  chgrp --silent qkd /usr/bin/qkd-buffer
+test -e /usr/bin/qkd-cascade                &&  chgrp --silent qkd /usr/bin/qkd-cascade
+test -e /usr/bin/qkd-cat                    &&  chgrp --silent qkd /usr/bin/qkd-cat
+test -e /usr/bin/qkd-confirmation           &&  chgrp --silent qkd /usr/bin/qkd-confirmation
+test -e /usr/bin/qkd-dekey                  &&  chgrp --silent qkd /usr/bin/qkd-dekey
+test -e /usr/bin/qkd-drop                   &&  chgrp --silent qkd /usr/bin/qkd-drop
+test -e /usr/bin/qkd-enkey                  &&  chgrp --silent qkd /usr/bin/qkd-enkey
+test -e /usr/bin/qkd-error-estimation       &&  chgrp --silent qkd /usr/bin/qkd-error-estimation
+test -e /usr/bin/qkd-gui                    &&  chgrp --silent qkd /usr/bin/qkd-gui
+test -e /usr/bin/qkd-key-dump               &&  chgrp --silent qkd /usr/bin/qkd-key-dump
+test -e /usr/bin/qkd-key-gen                &&  chgrp --silent qkd /usr/bin/qkd-key-gen
+test -e /usr/bin/qkd-ping                   &&  chgrp --silent qkd /usr/bin/qkd-ping
+test -e /usr/bin/qkd-privacy-amplification  &&  chgrp --silent qkd /usr/bin/qkd-privacy-amplification
+test -e /usr/bin/qkd-reorder                &&  chgrp --silent qkd /usr/bin/qkd-reorder
+test -e /usr/bin/qkd-simulate               &&  chgrp --silent qkd /usr/bin/qkd-simulate
+test -e /usr/bin/qkd-tee                    &&  chgrp --silent qkd /usr/bin/qkd-tee
+test -e /usr/bin/qkd-throttle               &&  chgrp --silent qkd /usr/bin/qkd-throttle
+test -e /usr/bin/qkd-view                   &&  chgrp --silent qkd /usr/bin/qkd-view
+
+# fix permission on sample configurations
+chown root:qkd /etc/qkd/sample-pipeline.conf
+chmod 640 /etc/qkd/sample-pipeline.conf
+chown root:qkd /etc/q3p/sample.conf
+chmod 640 /etc/q3p/sample.conf
+
+# grant net-admin rights to the q3pd to run TUN/TAP devices
+setcap 'cap_net_admin+ep' /usr/bin/q3pd
+setcap -q -v 'cap_net_admin+ep' /usr/bin/q3pd

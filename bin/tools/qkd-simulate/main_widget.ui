@@ -1,0 +1,1462 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>main_widget</class>
+ <widget class="QFrame" name="main_widget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>977</width>
+    <height>667</height>
+   </rect>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QLCDNumber{
+	color: rgb(100, 100, 100);
+    background-color: rgb(255, 255, 255);
+}</string>
+  </property>
+  <property name="frameShape">
+   <enum>QFrame::StyledPanel</enum>
+  </property>
+  <property name="frameShadow">
+   <enum>QFrame::Raised</enum>
+  </property>
+  <layout class="QHBoxLayout" name="cLyMain" stretch="0,0">
+   <item>
+    <layout class="QVBoxLayout" name="cLySettings">
+     <item>
+      <widget class="QGroupBox" name="cGrpQuantumChannel">
+       <property name="title">
+        <string>Core quantum channel settings</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <layout class="QHBoxLayout" name="cLyCoreSettings">
+          <item>
+           <widget class="QGroupBox" name="cGrpSource">
+            <property name="title">
+             <string>Source</string>
+            </property>
+            <layout class="QGridLayout" name="cLyGeneral">
+             <item row="9" column="5">
+              <widget class="QLabel" name="cLbSimEndTimeUnit">
+               <property name="text">
+                <string>us</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="5">
+              <widget class="QLabel" name="cLbFiberAbsorptionCoeffUnit">
+               <property name="text">
+                <string>dB/km</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0">
+              <widget class="QLabel" name="cLbFiberAbsorptionCoeff">
+               <property name="statusTip">
+                <string>Absorbtion rate per kilometer</string>
+               </property>
+               <property name="text">
+                <string>Fiber absorbtion:</string>
+               </property>
+               <property name="buddy">
+                <cstring>cEdFiberAbsorptionCoeff</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="cLbSourcePhotonRate">
+               <property name="statusTip">
+                <string>Rate of photons per second</string>
+               </property>
+               <property name="text">
+                <string>Photon rate:</string>
+               </property>
+               <property name="buddy">
+                <cstring>cEdSourcePhotonRate</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="1">
+              <widget class="QLineEdit" name="cEdFiberAbsorptionCoeff">
+               <property name="statusTip">
+                <string>Absorbtion rate per kilometer</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="cLbFiberLength">
+               <property name="statusTip">
+                <string>Length of fiber in kilometers</string>
+               </property>
+               <property name="text">
+                <string>Fiber length:</string>
+               </property>
+               <property name="buddy">
+                <cstring>cEdFiberLength</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="5" colspan="2">
+              <widget class="QLabel" name="cLbSourcePhotonRateUnit">
+               <property name="text">
+                <string>1/s</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="5">
+              <widget class="QLabel" name="cLbMultiPhotonRateUnit">
+               <property name="text">
+                <string>1/s</string>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="1">
+              <widget class="QLineEdit" name="cEdNoisePhotonRate">
+               <property name="statusTip">
+                <string>Noise photons per second</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="1">
+              <widget class="QLineEdit" name="cEdMultiPhotonRate">
+               <property name="statusTip">
+                <string>Multi photons per second</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="5">
+              <widget class="QLabel" name="cLbFiberLengthUnit">
+               <property name="text">
+                <string>km</string>
+               </property>
+              </widget>
+             </item>
+             <item row="9" column="0">
+              <widget class="QLabel" name="cLbSimEndTime">
+               <property name="statusTip">
+                <string>Endtime of simulation per round in microsecond</string>
+               </property>
+               <property name="text">
+                <string>Simulation time:</string>
+               </property>
+               <property name="buddy">
+                <cstring>cEdSimEndTime</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="7" column="0">
+              <widget class="QLabel" name="cLbSyncStandDeviation">
+               <property name="statusTip">
+                <string>Standard deviation for the detection time in nanoseconds</string>
+               </property>
+               <property name="text">
+                <string>Sync detection time
+standard deviation:</string>
+               </property>
+               <property name="buddy">
+                <cstring>cEdSyncStandDeviation</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="8" column="0">
+              <widget class="QLabel" name="cLbSourceSigErrProb">
+               <property name="statusTip">
+                <string>Source signal error probability</string>
+               </property>
+               <property name="text">
+                <string>Signal error
+probability:</string>
+               </property>
+               <property name="buddy">
+                <cstring>cEdSourceSigErrProb</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="7" column="5">
+              <widget class="QLabel" name="cLbSyncStandDeviationUnit">
+               <property name="text">
+                <string>ns</string>
+               </property>
+              </widget>
+             </item>
+             <item row="8" column="5">
+              <widget class="QLabel" name="cLbSourceSigErrProbUnit">
+               <property name="text">
+                <string>%</string>
+               </property>
+              </widget>
+             </item>
+             <item row="8" column="1">
+              <widget class="QLineEdit" name="cEdSourceSigErrProb">
+               <property name="statusTip">
+                <string>Source signal error probability</string>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="5">
+              <widget class="QLabel" name="cLbNoisePhotonRateUnit">
+               <property name="text">
+                <string>1/s</string>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="0">
+              <widget class="QLabel" name="cLbNoisePhotonRate">
+               <property name="statusTip">
+                <string>Noise photons per second</string>
+               </property>
+               <property name="text">
+                <string>Noise photon rate:</string>
+               </property>
+               <property name="buddy">
+                <cstring>cEdNoisePhotonRate</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="7" column="1">
+              <widget class="QLineEdit" name="cEdSyncStandDeviation">
+               <property name="statusTip">
+                <string>Standard deviation for the detection time in nanoseconds</string>
+               </property>
+              </widget>
+             </item>
+             <item row="9" column="1">
+              <widget class="QLineEdit" name="cEdSimEndTime">
+               <property name="statusTip">
+                <string>Endtime of simulation per round in microsecond</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="0">
+              <widget class="QLabel" name="cLbMultiPhotonRate">
+               <property name="statusTip">
+                <string>Multi photons per second</string>
+               </property>
+               <property name="text">
+                <string>Multi photon rate:</string>
+               </property>
+               <property name="buddy">
+                <cstring>cEdMultiPhotonRate</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="cEdFiberLength">
+               <property name="statusTip">
+                <string>Length of fiber in kilometers</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="cEdSourcePhotonRate">
+               <property name="statusTip">
+                <string>Rate of photons per second</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="cGrpAlice">
+            <property name="title">
+             <string>Alice Detector</string>
+            </property>
+            <layout class="QGridLayout" name="cLyAlice">
+             <item row="6" column="1">
+              <widget class="QLabel" name="cLbDetTimeStndDeviationAlice">
+               <property name="statusTip">
+                <string>Detection time standard deviation in nanoseconds</string>
+               </property>
+               <property name="text">
+                <string>Detection time 
+standard deviation:</string>
+               </property>
+               <property name="buddy">
+                <cstring>cEdDetTimeStndDeviationAlice</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLabel" name="cLbDistanceIndepLossAlice">
+               <property name="statusTip">
+                <string>Detector loss, distance independent</string>
+               </property>
+               <property name="text">
+                <string>Distance 
+Independent loss:</string>
+               </property>
+               <property name="buddy">
+                <cstring>cEdDistanceIndepLossAlice</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="3">
+              <widget class="QLabel" name="cLbTimeSlotDelayAliceUnit">
+               <property name="text">
+                <string>ns</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="3">
+              <widget class="QLabel" name="cLbDetectionEffAliceUnit">
+               <property name="text">
+                <string>%</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QLabel" name="cLbDetectionEffAlice">
+               <property name="statusTip">
+                <string>Detector efficiency</string>
+               </property>
+               <property name="text">
+                <string>Efficiency:</string>
+               </property>
+               <property name="buddy">
+                <cstring>cEdDetectionEffAlice</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="2">
+              <widget class="QLineEdit" name="cEdTimeSlotWidthAlice">
+               <property name="statusTip">
+                <string>Timeslot width in nanosecond</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="1">
+              <widget class="QLabel" name="cLbDetDarkCountRateAlice">
+               <property name="statusTip">
+                <string>Detector dark count rate per second</string>
+               </property>
+               <property name="text">
+                <string>Dark count rate:</string>
+               </property>
+               <property name="buddy">
+                <cstring>cEdDetDarkCountRateAlice</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="7" column="3">
+              <widget class="QLabel" name="cLbDetTimeDelayAliceUnit">
+               <property name="text">
+                <string>ns</string>
+               </property>
+              </widget>
+             </item>
+             <item row="7" column="2">
+              <widget class="QLineEdit" name="cEdDetTimeDelayAlice">
+               <property name="statusTip">
+                <string>Detection time delay in nanoseconds</string>
+               </property>
+              </widget>
+             </item>
+             <item row="7" column="1">
+              <widget class="QLabel" name="cLbDetTimeDelayAlice">
+               <property name="statusTip">
+                <string>Detection time delay in nanoseconds</string>
+               </property>
+               <property name="text">
+                <string>Detection delay:</string>
+               </property>
+               <property name="buddy">
+                <cstring>cEdDetTimeDelayAlice</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="9" column="3">
+              <widget class="QLabel" name="cLbTableSizeAliceUnit">
+               <property name="text">
+                <string>bytes</string>
+               </property>
+              </widget>
+             </item>
+             <item row="8" column="1">
+              <widget class="QLabel" name="cLbDetDownTimeAlice">
+               <property name="statusTip">
+                <string>Detector down time in nanoseconds</string>
+               </property>
+               <property name="text">
+                <string>Detector down time:</string>
+               </property>
+               <property name="buddy">
+                <cstring>cEdDetDownTimeAlice</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="2">
+              <widget class="QLineEdit" name="cEdTimeSlotDelayAlice">
+               <property name="statusTip">
+                <string>Timeslot delay in nanoseconds</string>
+               </property>
+              </widget>
+             </item>
+             <item row="8" column="3">
+              <widget class="QLabel" name="cLbDetDownTimeAliceUnit">
+               <property name="text">
+                <string>ns</string>
+               </property>
+              </widget>
+             </item>
+             <item row="8" column="2">
+              <widget class="QLineEdit" name="cEdDetDownTimeAlice">
+               <property name="statusTip">
+                <string>Detector down time in nanoseconds</string>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="1">
+              <widget class="QLabel" name="cLbTimeSlotDelayAlice">
+               <property name="statusTip">
+                <string>Timeslot delay in nanoseconds</string>
+               </property>
+               <property name="text">
+                <string>Timeslot delay:</string>
+               </property>
+               <property name="buddy">
+                <cstring>cEdTimeSlotDelayAlice</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="3">
+              <widget class="QLabel" name="cLbDistanceIndepLossAliceUnit">
+               <property name="text">
+                <string>dB</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="3">
+              <widget class="QLabel" name="cLbDetDarkCountRateAliceUnit">
+               <property name="text">
+                <string>1/s</string>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="2">
+              <widget class="QLineEdit" name="cEdDetTimeStndDeviationAlice">
+               <property name="statusTip">
+                <string>Detection time standard deviation in nanoseconds</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="2">
+              <widget class="QLineEdit" name="cEdDistanceIndepLossAlice">
+               <property name="statusTip">
+                <string>Detector loss, distance independent</string>
+               </property>
+              </widget>
+             </item>
+             <item row="9" column="2">
+              <widget class="QLineEdit" name="cEdTableSizeAlice">
+               <property name="statusTip">
+                <string>Event table size in bytes (1 Byte == 2 events)</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="3">
+              <widget class="QLabel" name="cLbTimeSlotWidthAliceUnit">
+               <property name="text">
+                <string>ns</string>
+               </property>
+              </widget>
+             </item>
+             <item row="9" column="1">
+              <widget class="QLabel" name="cLbTableSizeAlice">
+               <property name="statusTip">
+                <string>Event table size in bytes (1 Byte == 2 events)</string>
+               </property>
+               <property name="text">
+                <string>Event table size:</string>
+               </property>
+               <property name="buddy">
+                <cstring>cEdTableSizeAlice</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="1">
+              <widget class="QLabel" name="cLbTimeSlotWidthAlice">
+               <property name="statusTip">
+                <string>Timeslot width in nanosecond</string>
+               </property>
+               <property name="text">
+                <string>Timeslot width:</string>
+               </property>
+               <property name="buddy">
+                <cstring>cEdTimeSlotWidthAlice</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="2">
+              <widget class="QLineEdit" name="cEdDetectionEffAlice">
+               <property name="statusTip">
+                <string>Detector efficiency</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="2">
+              <widget class="QLineEdit" name="cEdDetDarkCountRateAlice">
+               <property name="statusTip">
+                <string>Detector dark count rate per second</string>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="3">
+              <widget class="QLabel" name="cLbDetTimeStndDeviationAliceUnit">
+               <property name="text">
+                <string>ns</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="cGrpBob">
+            <property name="title">
+             <string>Bob Detector</string>
+            </property>
+            <layout class="QGridLayout" name="cLyBob">
+             <item row="8" column="0">
+              <widget class="QLabel" name="cLbTableSizeBob">
+               <property name="statusTip">
+                <string>Event table size in bytes (1 Byte == 2 events)</string>
+               </property>
+               <property name="text">
+                <string>Event table size:</string>
+               </property>
+               <property name="buddy">
+                <cstring>cEdTableSizeBob</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="2">
+              <widget class="QLabel" name="cLbTimeSlotWidthBobUnit">
+               <property name="text">
+                <string>ns</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="cLbDistanceIndepLossBob">
+               <property name="statusTip">
+                <string>Detector loss, distance independent</string>
+               </property>
+               <property name="text">
+                <string>Distance 
+Independent loss:</string>
+               </property>
+               <property name="buddy">
+                <cstring>cEdDistanceIndepLossBob</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="1">
+              <widget class="QLineEdit" name="cEdDetTimeStndDeviationBob">
+               <property name="statusTip">
+                <string>Detection time standard deviation in nanoseconds</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="1">
+              <widget class="QLineEdit" name="cEdTimeSlotWidthBob">
+               <property name="statusTip">
+                <string>Timeslot width in nanosecond</string>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="2">
+              <widget class="QLabel" name="cLbDetTimeDelayBobUnit">
+               <property name="text">
+                <string>ns</string>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="0">
+              <widget class="QLabel" name="cLbDetTimeDelayBob">
+               <property name="statusTip">
+                <string>Detection time delay in nanoseconds</string>
+               </property>
+               <property name="text">
+                <string>Detection delay:</string>
+               </property>
+               <property name="buddy">
+                <cstring>cEdDetTimeDelayBob</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2">
+              <widget class="QLabel" name="cLbDistanceIndepLossBobUnit">
+               <property name="text">
+                <string>dB</string>
+               </property>
+              </widget>
+             </item>
+             <item row="7" column="1">
+              <widget class="QLineEdit" name="cEdDetDownTimeBob">
+               <property name="statusTip">
+                <string>Detector down time in nanoseconds</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0">
+              <widget class="QLabel" name="cLbTimeSlotWidthBob">
+               <property name="statusTip">
+                <string>Timeslot width in nanosecond</string>
+               </property>
+               <property name="text">
+                <string>Timeslot width:</string>
+               </property>
+               <property name="buddy">
+                <cstring>cEdTimeSlotWidthBob</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="7" column="0">
+              <widget class="QLabel" name="cLbDetDownTimeBob">
+               <property name="statusTip">
+                <string>Detector down time in nanoseconds</string>
+               </property>
+               <property name="text">
+                <string>Detector down time:</string>
+               </property>
+               <property name="buddy">
+                <cstring>cEdDetDownTimeBob</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="cLbDetectionEffBob">
+               <property name="statusTip">
+                <string>Detector efficiency</string>
+               </property>
+               <property name="text">
+                <string>Efficiency:</string>
+               </property>
+               <property name="buddy">
+                <cstring>cEdDetectionEffBob</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="cLbDetDarkCountRateBob">
+               <property name="statusTip">
+                <string>Detector dark count rate per second</string>
+               </property>
+               <property name="text">
+                <string>Dark count rate:</string>
+               </property>
+               <property name="buddy">
+                <cstring>cEdDetDarkCountRateBob</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="2">
+              <widget class="QLabel" name="cLbDetTimeStndDeviationBobUnit">
+               <property name="text">
+                <string>ns</string>
+               </property>
+              </widget>
+             </item>
+             <item row="7" column="2">
+              <widget class="QLabel" name="cLbDetDownTimeBobUnit">
+               <property name="text">
+                <string>ns</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="2">
+              <widget class="QLabel" name="cLbDetectionEffBobUnit">
+               <property name="text">
+                <string>%</string>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="0">
+              <widget class="QLabel" name="cLbDetTimeStndDeviationBob">
+               <property name="statusTip">
+                <string>Detection time standard deviation in nanoseconds</string>
+               </property>
+               <property name="text">
+                <string>Detection time 
+standard deviation:</string>
+               </property>
+               <property name="buddy">
+                <cstring>cEdDetTimeStndDeviationBob</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="0">
+              <widget class="QLabel" name="cLbTimeSlotDelayBob">
+               <property name="statusTip">
+                <string>Timeslot delay in nanoseconds</string>
+               </property>
+               <property name="text">
+                <string>Timeslot delay:</string>
+               </property>
+               <property name="buddy">
+                <cstring>cEdTimeSlotDelayBob</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="1">
+              <widget class="QLineEdit" name="cEdDetTimeDelayBob">
+               <property name="statusTip">
+                <string>Detection time delay in nanoseconds</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="1">
+              <widget class="QLineEdit" name="cEdTimeSlotDelayBob">
+               <property name="statusTip">
+                <string>Timeslot delay in nanoseconds</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="2">
+              <widget class="QLabel" name="cLbDetDarkCountRateBobUnit">
+               <property name="text">
+                <string>1/s</string>
+               </property>
+              </widget>
+             </item>
+             <item row="8" column="2">
+              <widget class="QLabel" name="cLbTableSizeBobUnit">
+               <property name="text">
+                <string>bytes</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QLineEdit" name="cEdDetDarkCountRateBob">
+               <property name="statusTip">
+                <string>Detector dark count rate per second</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="2">
+              <widget class="QLabel" name="cLbTimeSlotDelayBobUnit">
+               <property name="text">
+                <string>ns</string>
+               </property>
+              </widget>
+             </item>
+             <item row="8" column="1">
+              <widget class="QLineEdit" name="cEdTableSizeBob">
+               <property name="statusTip">
+                <string>Event table size in bytes (1 Byte == 2 events)</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="cEdDistanceIndepLossBob">
+               <property name="statusTip">
+                <string>Detector loss, distance independent</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="cEdDetectionEffBob">
+               <property name="statusTip">
+                <string>Detector efficiency</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="cGrSimulatorSettings">
+       <property name="title">
+        <string>Common simulation settings</string>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="QGroupBox" name="cGrpGeneralOptions">
+          <property name="title">
+           <string>General Options</string>
+          </property>
+          <layout class="QVBoxLayout" name="cLyGeneralOptions">
+           <item>
+            <widget class="QCheckBox" name="cCkMultPhotSim">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="statusTip">
+              <string>Enable multi photon rate simulation</string>
+             </property>
+             <property name="text">
+              <string>Multi photon simulation</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="cCkSyncPulse">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="statusTip">
+              <string>Pulse synchronization (Event tables) or free running (TTM timestamps)</string>
+             </property>
+             <property name="text">
+              <string>Synchronization pulse simulation</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="cCkTransmLoss">
+             <property name="statusTip">
+              <string>Transmission loss simulation</string>
+             </property>
+             <property name="text">
+              <string>Transmission loss simulation</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="cCkLoopSimulation">
+             <property name="statusTip">
+              <string>Run single simulation round or infinite</string>
+             </property>
+             <property name="text">
+              <string>Loop Simulation</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="cGrpAliceBobOptions">
+          <property name="title">
+           <string>Detector Options</string>
+          </property>
+          <layout class="QGridLayout" name="cLyAliceBobOptions">
+           <item row="2" column="0">
+            <widget class="QLabel" name="cLbDarkCounts">
+             <property name="statusTip">
+              <string>Detector dark counts simulation</string>
+             </property>
+             <property name="text">
+              <string>Dark counts simulation:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="cLbWaitForAllDetectors">
+             <property name="statusTip">
+              <string>Wait for all detection elements to be ready</string>
+             </property>
+             <property name="text">
+              <string>Wait for all detection 
+elements to be ready</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="2">
+            <widget class="QCheckBox" name="cCkWaitForSyncInitiatorBob">
+             <property name="statusTip">
+              <string>Wait for sync initiator to be ready - Bob side</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="2">
+            <widget class="QCheckBox" name="cCkWaitForAllDetectorsBob">
+             <property name="statusTip">
+              <string>Wait for all detection elements to be ready - Bob side</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="cLbWaitForSyncInitiator">
+             <property name="statusTip">
+              <string>Wait for sync initiator to be ready</string>
+             </property>
+             <property name="text">
+              <string>Wait for sync initiator 
+to be ready</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QCheckBox" name="cCkJitterSimAlice">
+             <property name="statusTip">
+              <string>Enable detector time delay and jitter for Alice</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="cLbJitterSim">
+             <property name="statusTip">
+              <string>Enable detector time delay and jitter</string>
+             </property>
+             <property name="text">
+              <string>Detection time delay 
+and jitter simulation:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="2">
+            <widget class="QCheckBox" name="cCkDetLossBob">
+             <property name="statusTip">
+              <string>Detector loss simulation for Bob</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QCheckBox" name="cCkDarkCountsAlice">
+             <property name="statusTip">
+              <string>Detector dark counts simulation for Alice</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QLabel" name="cLbAliceBobOptionHeaderBob">
+             <property name="text">
+              <string>Bob</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1">
+            <widget class="QCheckBox" name="cCkWaitForAllDetectorsAlice">
+             <property name="statusTip">
+              <string>Wait for all detection elements to be ready - Alice side</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="cLbDetLoss">
+             <property name="statusTip">
+              <string>Detector loss simulation</string>
+             </property>
+             <property name="text">
+              <string>Detection loss simulation:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="2">
+            <widget class="QCheckBox" name="cCkJitterSimBob">
+             <property name="statusTip">
+              <string>Enable detector time delay and jitter for Bob</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QCheckBox" name="cCkWaitForSyncInitiatorAlice">
+             <property name="statusTip">
+              <string>Wait for sync initiator to be ready - Alice side</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QCheckBox" name="cCkDetLossAlice">
+             <property name="statusTip">
+              <string>Detector loss simulation for Alice</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="2">
+            <widget class="QCheckBox" name="cCkDarkCountsBob">
+             <property name="statusTip">
+              <string>Detector dark counts simulation for Bob</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLabel" name="cLbAliceBobOptionHeaderAlice">
+             <property name="text">
+              <string>Alice</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="cLyOutput">
+          <item>
+           <widget class="QGroupBox" name="cGrpOutputFreeRunning">
+            <property name="title">
+             <string>Output Free Running Options</string>
+            </property>
+            <layout class="QGridLayout" name="gridLayout">
+             <item row="3" column="3">
+              <widget class="QLineEdit" name="cEdFreeFileBob">
+               <property name="statusTip">
+                <string>Bob TTM file</string>
+               </property>
+               <property name="text">
+                <string>ttm.bob</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1" colspan="2">
+              <widget class="QLineEdit" name="cEdFreeUDPAlice">
+               <property name="statusTip">
+                <string>Alice TTM listen address &quot;Host:Port&quot;</string>
+               </property>
+               <property name="text">
+                <string>127.0.0.1:3001</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0">
+              <widget class="QRadioButton" name="cRdFreeFile">
+               <property name="statusTip">
+                <string>Write TTM values to file</string>
+               </property>
+               <property name="text">
+                <string>File:</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QRadioButton" name="cRdFreeUDP">
+               <property name="statusTip">
+                <string>Send TTM values via UDP packets</string>
+               </property>
+               <property name="text">
+                <string>UDP:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="4">
+              <widget class="QPushButton" name="cBtnFreeFileBob">
+               <property name="statusTip">
+                <string>Select Bob TTM file</string>
+               </property>
+               <property name="text">
+                <string>...</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="2">
+              <widget class="QPushButton" name="cBtnFreeFileAlice">
+               <property name="statusTip">
+                <string>Select Alice TTM file</string>
+               </property>
+               <property name="text">
+                <string>...</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="3" colspan="2">
+              <widget class="QLineEdit" name="cEdFreeUDPBob">
+               <property name="statusTip">
+                <string>Bob TTM listen address &quot;Host:Port&quot;</string>
+               </property>
+               <property name="text">
+                <string>127.0.0.1:3002</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="1">
+              <widget class="QLineEdit" name="cEdFreeFileAlice">
+               <property name="statusTip">
+                <string>Alice TTM file</string>
+               </property>
+               <property name="text">
+                <string>ttm.alice</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1" colspan="2">
+              <widget class="QLabel" name="cLbFreeAlice">
+               <property name="text">
+                <string>Alice</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="3" colspan="2">
+              <widget class="QLabel" name="cLbFreeBob">
+               <property name="text">
+                <string>Bob</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="cGrpOutputEventTable">
+            <property name="title">
+             <string>Output Event Table Options</string>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_2">
+             <item row="1" column="0">
+              <widget class="QRadioButton" name="cRdEventPipe">
+               <property name="statusTip">
+                <string>Send Keystream values into pipe</string>
+               </property>
+               <property name="text">
+                <string>Pipe:</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1" colspan="2">
+              <widget class="QLineEdit" name="cEdEventPipeAlice">
+               <property name="statusTip">
+                <string>Alice Pipe URL</string>
+               </property>
+               <property name="text">
+                <string>ipc:///bb84.alice.in</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="3" colspan="2">
+              <widget class="QLineEdit" name="cEdEventPipeBob">
+               <property name="statusTip">
+                <string>Bib Pipe URL</string>
+               </property>
+               <property name="text">
+                <string>ipc:///bb84.bob.in</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QRadioButton" name="cRdEventFile">
+               <property name="statusTip">
+                <string>Write Keystream values to file</string>
+               </property>
+               <property name="text">
+                <string>File:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QLineEdit" name="cEdEventFileAlice">
+               <property name="statusTip">
+                <string>Alice Keystream File</string>
+               </property>
+               <property name="text">
+                <string>events.alice</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="2">
+              <widget class="QPushButton" name="cBtnEventFileAlice">
+               <property name="statusTip">
+                <string>Select Alice Keystream File</string>
+               </property>
+               <property name="text">
+                <string>...</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="3">
+              <widget class="QLineEdit" name="cEdEventFileBob">
+               <property name="statusTip">
+                <string>Bob Keystream File</string>
+               </property>
+               <property name="text">
+                <string>events.bob</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="4">
+              <widget class="QPushButton" name="cBtnEventFileBob">
+               <property name="statusTip">
+                <string>Select Bob Keystream File</string>
+               </property>
+               <property name="text">
+                <string>...</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="3" colspan="2">
+              <widget class="QLabel" name="cLbEventBob">
+               <property name="text">
+                <string>Bob</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1" colspan="2">
+              <widget class="QLabel" name="cLbEventAlice">
+               <property name="text">
+                <string>Alice</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="cLbWarning">
+       <property name="text">
+        <string>Don't change values or checkbox settings while the simulation is running!</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="cSpSettings">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="cLyProgress">
+       <item>
+        <widget class="QLabel" name="cLbProgress">
+         <property name="statusTip">
+          <string>Simulation progress for a single round</string>
+         </property>
+         <property name="text">
+          <string>Simulation progress:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QProgressBar" name="cPbProgress">
+         <property name="statusTip">
+          <string>Simulation progress for a single round</string>
+         </property>
+         <property name="value">
+          <number>24</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="cLbRound">
+         <property name="statusTip">
+          <string>Current simulation round</string>
+         </property>
+         <property name="text">
+          <string>Round:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLCDNumber" name="cLcdRound">
+         <property name="statusTip">
+          <string>Current simulation round</string>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::Panel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Sunken</enum>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QVBoxLayout" name="cLyButtons">
+     <item>
+      <widget class="QPushButton" name="cBtnAbout">
+       <property name="statusTip">
+        <string>Show QKD Simulator version</string>
+       </property>
+       <property name="text">
+        <string>About</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cBtnDefault">
+       <property name="statusTip">
+        <string>Load default values</string>
+       </property>
+       <property name="text">
+        <string>Default</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cBtnLoad">
+       <property name="statusTip">
+        <string>Load settings from file</string>
+       </property>
+       <property name="text">
+        <string>Load</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cBtnSave">
+       <property name="statusTip">
+        <string>Save settings to file</string>
+       </property>
+       <property name="text">
+        <string>Save</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cBtnStart">
+       <property name="statusTip">
+        <string>Start simulation</string>
+       </property>
+       <property name="text">
+        <string>Start</string>
+       </property>
+       <property name="default">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cBtnStop">
+       <property name="statusTip">
+        <string>Stop simulation</string>
+       </property>
+       <property name="text">
+        <string>Stop</string>
+       </property>
+       <property name="default">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cBtnDumpParameters">
+       <property name="statusTip">
+        <string>Write current internal settings to file (for debug)</string>
+       </property>
+       <property name="text">
+        <string>Dump Parameters</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="cSpButtons">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cBtnQuit">
+       <property name="statusTip">
+        <string>Quit application</string>
+       </property>
+       <property name="text">
+        <string>Quit</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>cEdSourcePhotonRate</tabstop>
+  <tabstop>cEdFiberLength</tabstop>
+  <tabstop>cEdFiberAbsorptionCoeff</tabstop>
+  <tabstop>cEdMultiPhotonRate</tabstop>
+  <tabstop>cEdNoisePhotonRate</tabstop>
+  <tabstop>cEdSyncStandDeviation</tabstop>
+  <tabstop>cEdSourceSigErrProb</tabstop>
+  <tabstop>cEdSimEndTime</tabstop>
+  <tabstop>cEdDistanceIndepLossAlice</tabstop>
+  <tabstop>cEdDetectionEffAlice</tabstop>
+  <tabstop>cEdDetDarkCountRateAlice</tabstop>
+  <tabstop>cEdTimeSlotWidthAlice</tabstop>
+  <tabstop>cEdTimeSlotDelayAlice</tabstop>
+  <tabstop>cEdDetTimeStndDeviationAlice</tabstop>
+  <tabstop>cEdDetTimeDelayAlice</tabstop>
+  <tabstop>cEdDetDownTimeAlice</tabstop>
+  <tabstop>cEdTableSizeAlice</tabstop>
+  <tabstop>cEdDistanceIndepLossBob</tabstop>
+  <tabstop>cEdDetectionEffBob</tabstop>
+  <tabstop>cEdDetDarkCountRateBob</tabstop>
+  <tabstop>cEdTimeSlotWidthBob</tabstop>
+  <tabstop>cEdTimeSlotDelayBob</tabstop>
+  <tabstop>cEdDetTimeStndDeviationBob</tabstop>
+  <tabstop>cEdDetTimeDelayBob</tabstop>
+  <tabstop>cEdDetDownTimeBob</tabstop>
+  <tabstop>cEdTableSizeBob</tabstop>
+  <tabstop>cCkMultPhotSim</tabstop>
+  <tabstop>cCkSyncPulse</tabstop>
+  <tabstop>cCkTransmLoss</tabstop>
+  <tabstop>cCkLoopSimulation</tabstop>
+  <tabstop>cCkJitterSimAlice</tabstop>
+  <tabstop>cCkJitterSimBob</tabstop>
+  <tabstop>cCkDarkCountsAlice</tabstop>
+  <tabstop>cCkDarkCountsBob</tabstop>
+  <tabstop>cCkDetLossAlice</tabstop>
+  <tabstop>cCkDetLossBob</tabstop>
+  <tabstop>cCkWaitForSyncInitiatorAlice</tabstop>
+  <tabstop>cCkWaitForSyncInitiatorBob</tabstop>
+  <tabstop>cCkWaitForAllDetectorsAlice</tabstop>
+  <tabstop>cCkWaitForAllDetectorsBob</tabstop>
+  <tabstop>cRdFreeUDP</tabstop>
+  <tabstop>cEdFreeUDPAlice</tabstop>
+  <tabstop>cEdFreeUDPBob</tabstop>
+  <tabstop>cRdFreeFile</tabstop>
+  <tabstop>cEdFreeFileAlice</tabstop>
+  <tabstop>cBtnFreeFileAlice</tabstop>
+  <tabstop>cEdFreeFileBob</tabstop>
+  <tabstop>cBtnFreeFileBob</tabstop>
+  <tabstop>cRdEventPipe</tabstop>
+  <tabstop>cEdEventPipeAlice</tabstop>
+  <tabstop>cEdEventPipeBob</tabstop>
+  <tabstop>cRdEventFile</tabstop>
+  <tabstop>cEdEventFileAlice</tabstop>
+  <tabstop>cBtnEventFileAlice</tabstop>
+  <tabstop>cEdEventFileBob</tabstop>
+  <tabstop>cBtnEventFileBob</tabstop>
+  <tabstop>cBtnAbout</tabstop>
+  <tabstop>cBtnDefault</tabstop>
+  <tabstop>cBtnLoad</tabstop>
+  <tabstop>cBtnSave</tabstop>
+  <tabstop>cBtnStart</tabstop>
+  <tabstop>cBtnStop</tabstop>
+  <tabstop>cBtnDumpParameters</tabstop>
+  <tabstop>cBtnQuit</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

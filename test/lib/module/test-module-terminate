@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-module-terminate
+# 
+# This is a test file.
+#
+# TEST: test the qkd module terminate after some keys
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+
+
+# ------------------------------------------------------------
+
+# kill any test-terminate-module instances
+pkill -ef "${TEST_BASE}/test/lib/test-terminate-module" &> /dev/null
+
+# kick any previous output
+rm -f "test-terminate-module.output" &> /dev/null
+
+# start the module in the background and dump the result 
+${TEST_BASE}/test/lib/test-terminate-module &> "test-terminate-module.output" 
+
+KEYS_PROCESSED=$(grep '^key forward' test-terminate-module.output | wc -l)
+if [ "${KEYS_PROCESSED}" != "10" ]; then
+    echo "failed to terminate after 10 keys"
+    exit 1
+fi
+echo "module terminated after 10 keys successfully - ok"
+

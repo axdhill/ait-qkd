@@ -1,0 +1,309 @@
+AIT QKD R10 Samples
+===================
+
+This folder contains some full featured QKD example source code to help developers to get familiar with the AIT QKD software.
+
+All samples do share the same requirements as building the AIT QKD RX software. That is:
+
+    - gcc and g++ at least version 4.6.3
+    - boost at least version 1.49
+    - OpenSSL
+    - UUID
+    - CMake
+    - GMP
+    - 0MQ (Zero Message Queue) version 2.2 (NOT version 3)
+    - Qt4 at least version 4.4
+    - Qwt5
+    - Doxygen
+
+You can get these by copy-paste the line below into a shell with root privileges if you are running on a decent linux distribution (*) - mind the leading shell prompt '#':
+
+    # apt-get install build-essential g++ gcc libboost-all-dev libssl-dev uuid-dev cmake libssl-dev uuid-dev cmake libgmp3-dev libzmq-dev libdbus-1-dev libqt4-dev libqwt5-qt4-dev doxygen 
+
+
+(*) Debian Wheezy that is. Any distribution below that is not.
+
+
+The examples herein:
+--------------------
+
+
+The examples as created as a series, going from a very basic simple demo to more and more complex tasks.
+
+
+- module-1:
+  ---------
+
+    The very skeleton of an AIT QKD module.
+
+    This module just sets "Hello World!" as a new "QKD key" and streams it out to the very next module which is supposed to listen on stdout.
+    
+    Switch into the module-1 folder and type:
+    
+        $ cd module-1
+        $ ./compile.sh
+        
+    If everything is present on your machine then this should have created a module-1 binary. Now "run" the module by invoking it. However, as the key is pushed to stdout, we redirect this "key" into a file.
+    
+        $ ./module-1 > key
+    
+    You can view the content of the "key"-file with the hexdump utility like this:
+    
+        $ hexdump -C key
+        
+    This will reveal a lot of data before the actual key bits ("Hello World!"). These are the key-meta data consisting of key-id, disclosed bits, error bits and more.
+    
+    The purpose of this is the show the very minimal requirements to create a QKD module. You are free to pick up the build environment (CMakeLists.txt, etc.) to enforce your own QKD module. And replace the module's work with something meaningful.
+
+    Also the build system used is very, very minimal: a pure one-liner in the compile.sh file. This is very error-prune but shows what libraries and include files are used as a very minimal constraint in building AIT QKD applications.
+
+    
+- module-2: 
+  ---------
+
+    This is the very same as module-1 but in a more elaborated fashion: better design, modularity and extensibility by using CMake. It goes like this:
+
+        $ cd module-2
+        $ cd build
+        $ cmake ..
+        $ make
+        
+    If everything is fine, you start the module with
+    
+        $ bin/module-2 > key
+        
+    This should yield pretty much the same result as module-1.
+    
+    
+- module-3: 
+  ---------
+
+    This module really interacts with a previous module by reading specifying "stdin://" as module read url. The module then counts the bits set in the given key by converting the key material to a bigint, which allows direct bit manipulations.
+    
+        $ cd module-3
+        $ cd build
+        $ cmake ..
+        $ make
+    
+    Now, this module does need some input keys to work on. Here the qkd-key-gen tool comes handy. It creates some pseudo-QKD keys for debugging purpose. Create a set of keys as files "input_keys.alice" and "input_keys.bob".
+    
+        $ cd build
+        $ qkd-key-gen input_keys
+        qkd key generation setting: 
+                file:              input_keys
+                keys:              10
+                size:              1024
+                rate:              0.05
+                exact:             0
+                zero:              0
+                set error bits:    0
+                dislosed bit rate: 0
+                quantum:           0
+        created key #1
+        created key #2
+        created key #3
+        created key #4
+        created key #5
+        created key #6
+        created key #7
+        created key #8
+        created key #9
+        created key #10
+        $ ls -1 input_keys*
+        input_keys.alice
+        input_keys.bob
+
+
+    In order to start a mini QKD pipeline with this module you have to keep these items in mind:
+    
+        - the module reads keys from stdin
+        - the module writes keys to stdout
+        - the module passes the calculated values from the "process()" method to stderr
+        
+
+    Therefore you should launch this tiny pipeline like this:        
+        
+        $ cd build
+        $ cat input_keys.alice | bin/module-3 1> module_keys
+        key id: 1 length of key (bytes): 1024 bits set: 4047 ratio: 49.4019%
+        key id: 2 length of key (bytes): 1024 bits set: 4007 ratio: 48.9136%
+        key id: 3 length of key (bytes): 1024 bits set: 4065 ratio: 49.6216%
+        key id: 4 length of key (bytes): 1024 bits set: 4156 ratio: 50.7324%
+        key id: 5 length of key (bytes): 1024 bits set: 4093 ratio: 49.9634%
+        key id: 6 length of key (bytes): 1024 bits set: 4084 ratio: 49.8535%
+        key id: 7 length of key (bytes): 1024 bits set: 4103 ratio: 50.0854%
+        key id: 8 length of key (bytes): 1024 bits set: 4087 ratio: 49.8901%
+        key id: 9 length of key (bytes): 1024 bits set: 4156 ratio: 50.7324%
+        key id: 10 length of key (bytes): 1024 bits set: 4085 ratio: 49.8657%
+
+    The command bit by bit:
+    
+        cat input_keys.alice            <--- dump the content of the file of input_keys.alice to stdout
+        bin/module-3 1> module_keys     <--- run module-3 but redirect any stdout to a file called "module_keys"
+    
+    You should note two things yet:
+    
+        1. The file content of input_keys.alice and module_keys has to be totally equivalent:
+        
+        $ md5sum input_keys.alice module_keys 
+        d917f454ccc4d5af5bf2b83583a010ca  input_keys.alice
+        d917f454ccc4d5af5bf2b83583a010ca  module_keys        
+        
+        so the module didn't change any key value (yet).
+        
+        2. The program hangs! - Well, sorta. In fact, the module is still waiting for the next key. But as there ain't one we might tell the program to stop.
+        
+        Naturally you could type now <CTRL>-C on the keyboard, which hard kills the module. But the module is already listened on you local DBus. So we go for a more elegant solution: telling the module to quit via DBus. For this we first have to get the DBus name of the module:
+        
+        This is done by querying the DBus and filtering the output on anything which smells like an AIT QKD module:
+        
+        $ qdbus | grep module
+         at.ac.ait.qkd.module.my-module-17757
+         
+        From this you can skim over the available DBus objects and methods:
+        
+        $ qdbus at.ac.ait.qkd.module.my-module-17757 /Module
+        property read double at.ac.ait.qkd.module.bits_per_second_in
+        property read double at.ac.ait.qkd.module.bits_per_second_out
+        property readwrite bool at.ac.ait.qkd.module.debug
+        property read QString at.ac.ait.qkd.module.description
+        property read qulonglong at.ac.ait.qkd.module.disclosed_bits_incoming
+        property read qulonglong at.ac.ait.qkd.module.disclosed_bits_outgoing
+        property read qulonglong at.ac.ait.qkd.module.error_bits_incoming
+        property read qulonglong at.ac.ait.qkd.module.error_bits_outgoing
+        property readwrite QString at.ac.ait.qkd.module.hint
+        property read QString at.ac.ait.qkd.module.id
+        property read qulonglong at.ac.ait.qkd.module.key_bits_incoming
+        property read qulonglong at.ac.ait.qkd.module.key_bits_outgoing
+        property read qulonglong at.ac.ait.qkd.module.keys_incoming
+        property read qulonglong at.ac.ait.qkd.module.keys_outgoing
+        property read double at.ac.ait.qkd.module.keys_per_second_in
+        property read double at.ac.ait.qkd.module.keys_per_second_out
+        property read QString at.ac.ait.qkd.module.organisation
+        property readwrite QString at.ac.ait.qkd.module.pipeline
+        property read uint at.ac.ait.qkd.module.process_id
+        property read QString at.ac.ait.qkd.module.process_image
+        property readwrite QString at.ac.ait.qkd.module.random_url
+        property readwrite qulonglong at.ac.ait.qkd.module.role
+        property read QString at.ac.ait.qkd.module.role_name
+        property read qulonglong at.ac.ait.qkd.module.start_time
+        property read qulonglong at.ac.ait.qkd.module.state
+        property read QString at.ac.ait.qkd.module.state_name
+        property readwrite qulonglong at.ac.ait.qkd.module.timeout
+        property read qulonglong at.ac.ait.qkd.module.type
+        property read QString at.ac.ait.qkd.module.type_name                                                                                        
+        property readwrite QString at.ac.ait.qkd.module.url_listen                                                                                  
+        property readwrite QString at.ac.ait.qkd.module.url_peer                                                                                    
+        property readwrite QString at.ac.ait.qkd.module.url_pipe_in                                                                                 
+        property readwrite QString at.ac.ait.qkd.module.url_pipe_out                                                                                
+        method Q_NOREPLY void at.ac.ait.qkd.module.configure(QString sConfigURL)                                                                    
+        method Q_NOREPLY void at.ac.ait.qkd.module.pause()                                                                                          
+        method Q_NOREPLY void at.ac.ait.qkd.module.resume()                                                                                         
+        method Q_NOREPLY void at.ac.ait.qkd.module.run(QString sPipeIn, QString sPipeOut, QString sListen)                                          
+        method Q_NOREPLY void at.ac.ait.qkd.module.terminate()                                                                                      
+        signal void at.ac.ait.qkd.module.terminated()                                                                                               
+        method QDBusVariant org.freedesktop.DBus.Properties.Get(QString interface_name, QString property_name)                                      
+        method QVariantMap org.freedesktop.DBus.Properties.GetAll(QString interface_name)                                                           
+        method void org.freedesktop.DBus.Properties.Set(QString interface_name, QString property_name, QDBusVariant value)                          
+        method QString org.freedesktop.DBus.Introspectable.Introspect()                                                                             
+        method QString org.freedesktop.DBus.Peer.GetMachineId()                                                                                     
+        method void org.freedesktop.DBus.Peer.Ping()        
+    
+
+        We let the module terminate by calling the "at.ac.ait.qkd.module.terminate()" method on the object like this:
+        
+        $ qdbus at.ac.ait.qkd.module.my-module-17757 /Module terminate
+        
+        This shuts down the module gracefully.
+        
+        [Note: there is not a single DBus specific code line in the sample code. This all comes for free and out-of-the box!]
+        
+
+- module-4: 
+  ---------
+
+    This example already contains cross network module interaction. We hard coded the local TCP port 23017 for this. The idea of the example is:
+    
+        - create some pseudo keys
+        - read in the keys and do as module-3
+        - PLUS: create a local MD5 checksum
+        - send my local MD5 checksum to the peer
+        - receive the MD5 checksum from the peer
+        - put both checksums in the output
+        
+    As for module-3 you should have created some pseudo keys. However, you have now 2 pipelines to start: one for Alice and one for Bob. So open up 2 command shells and type (assuming you pre-created the pseudo-QKD keys with the help of qkd-key-gen as above in module 3):
+    
+        for alice:
+        
+        $ cd build
+        $ cat input_keys.alice | bin/module-4 1> keys.alice
+        
+        for bob on the second shell:
+        
+        $ cd build
+        $ cat input_keys.bob | bin/module-4 -b 1> keys.bob
+        
+    Note the "-b" at the command prompt at the module-4 which enables the module to differ between the Alice and bob instance.
+    
+    Once both modules are up and running - btw: the sequence which one you start first is irrelevant - you should see some output like this, Alice version:
+    
+    
+        $ cat input_keys.alice | bin/module-4 1> keys.alice    
+        I am alice key id: 1 length of key (bytes): 1024 bits set: 4133 ratio: 50.4517% my MD5 sum: 106c7ddf201a737e1e7ef2c90ce10cf5 peer's MD5 sum: 60493778722c031a5907ebba83c13990
+        I am alice key id: 2 length of key (bytes): 1024 bits set: 4121 ratio: 50.3052% my MD5 sum: 2c92c2151431d216b10fbb78a2c98ce5 peer's MD5 sum: 308f9db33f1c1f43f2cc67cf4d9c54c5
+        I am alice key id: 3 length of key (bytes): 1024 bits set: 4066 ratio: 49.6338% my MD5 sum: 2be35938cc90f4a9bcf037a1956185ef peer's MD5 sum: cb9cba9b2dc424944895b5bceaaf5cc8
+        I am alice key id: 4 length of key (bytes): 1024 bits set: 4070 ratio: 49.6826% my MD5 sum: 6ade12a17fc7b7fdddac06aeb93f7bca peer's MD5 sum: 2c9cec581f70326b7c707483f3e09fde
+        I am alice key id: 5 length of key (bytes): 1024 bits set: 4164 ratio: 50.8301% my MD5 sum: 5be21a7e5969b579c2470fe0c703ab42 peer's MD5 sum: 9ce664d2f0308dd81e93b6a782cbde78
+        I am alice key id: 6 length of key (bytes): 1024 bits set: 4054 ratio: 49.4873% my MD5 sum: 83d2b75cea68b0e64d6b7d5aef723a3d peer's MD5 sum: 7a94cda07b4f097baa03ed2422c40409
+        I am alice key id: 7 length of key (bytes): 1024 bits set: 4126 ratio: 50.3662% my MD5 sum: 4baa2db83222309aa3c07e81bba7ddf2 peer's MD5 sum: 18c8d4a5b699221518724f2bd7aa06ca
+        I am alice key id: 8 length of key (bytes): 1024 bits set: 4090 ratio: 49.9268% my MD5 sum: f2d11d9c3d546dc73eacf8f24c6e70ea peer's MD5 sum: eea7b00b30e9476b4252a2fb92950262
+        I am alice key id: 9 length of key (bytes): 1024 bits set: 4051 ratio: 49.4507% my MD5 sum: 161acc558b59f4a3da10eac711ce666f peer's MD5 sum: 8f75c5396a18e5a2d04126b79ec7b5e3
+        I am alice key id: 10 length of key (bytes): 1024 bits set: 4154 ratio: 50.708% my MD5 sum: 011a3d47ed971e571baa17625cf81c59 peer's MD5 sum: 44db1e4a857ae2ecdda4e682cc99dc03        
+
+    And both modules waiting for further input as in example module-3.
+        
+
+- module-5
+  ---------
+
+    This extends module 4 by DBus features: give the last calculated local MD5 checksum value on demand. Once you compiled the sources and started both pipelines like in the module-4 example you can query the modules system-wide for their latest local calculated MD5 checksum.
+    
+        First, look at the DBus where our modules are:
+    
+        $ qdbus | grep -i my-module
+         at.ac.ait.qkd.module.my-module-21346
+         at.ac.ait.qkd.module.my-module-21352
+
+                 
+        Then query the latest MD5 checksum:
+        
+        $ qdbus at.ac.ait.qkd.module.my-module-21346 /Module last_md5
+        15cb51d2a0f66ff2ef5b1eefc697cf6b
+        $ qdbus at.ac.ait.qkd.module.my-module-21352 /Module last_md5
+        d3818a2a0767cbbbabca53856d81237c        
+
+    
+    Compared to module-4 very few changes have been applied to the actual source code. However, the CMakeLists.txt file changed a lot.
+    
+    With this project template you may create any QKD post processing module at will, including direct DBus support with properties and DBus method invocations as well. We refer to the concrete AIT module implementation for further samples how to create more elaborated DBus calls and methods.
+
+    
+Hint: for ease of learning we recommend to run a diff from module to module to clearly see what has changed, added or deleted from sample to sample.
+
+For any further questions feel free to look at our website: http://sqt.ait.ac.at/software.        
+                                
+    
+License
+-------
+
+The QKD library (libqkd) is licensed under the GNU LGPL 2.1. All other stuff including binaries is licensed under the GNU GPL 2. The main folder holds copies of each license text.
+
+
+
+    
+(C)opyright 2013 AIT Austrian Instiute of Technology
+
+Oliver Maurhart
+oliver.maurhart@ait.ac.at
+http://ait.ac.at
+https://sqt.ait.ac.at/software

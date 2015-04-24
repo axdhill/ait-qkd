@@ -1,0 +1,112 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-confirmation
+# 
+# This is a test file.
+#
+# TEST: test the QKD confirmation module
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+
+# ------------------------------------------------------------
+
+# init test environment
+test_init
+
+# zap previous keys
+#rm -rf cat_keys.* &> /dev/null
+
+# create keys
+KEYS_TO_PROCESS="10"                
+${TEST_BASE}/bin/qkd-key-gen --size 4096 --keys ${KEYS_TO_PROCESS} cat_keys
+
+# truncate previous debug out
+echo -n > confirmation_debug.alice
+echo -n > confirmation_debug.bob
+
+# fix pipeline config
+cat ${TEST_BASE}/test/test-data/pipeline.conf | grep -v "^cat.alice.url_pipe_out" | grep -v "^cat.bob.url_pipe_out" > confirmation.config
+echo "cat.alice.url_pipe_out = ipc:///tmp/qkd/confirmation.alice.in" >> confirmation.config
+echo "cat.bob.url_pipe_out = ipc:///tmp/qkd/confirmation.bob.in" >> confirmation.config
+
+# start two pipelines
+PIPELINE_CONFIG="confirmation.config"
+
+# start the modules - for the confirmation we are using the same keys in the first round
+( ${TEST_BASE}/bin/qkd-cat --run --config ${PIPELINE_CONFIG} --file "cat_keys.alice" ) &
+( ${TEST_BASE}/bin/qkd-cat --bob --run --config ${PIPELINE_CONFIG} --file "cat_keys.alice" ) &
+( ${TEST_BASE}/bin/qkd-confirmation --debug --run --config ${PIPELINE_CONFIG} 1> confirmation_keys.alice 2>> confirmation_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-confirmation --debug --bob --run --config ${PIPELINE_CONFIG} 1> confirmation_keys.bob 2>> confirmation_debug.bob ) &
+
+# wait until the modules are up
+while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module.confirmation | wc -l)" = "0" ]; do
+    echo "waiting for the pipeline to ignite ..."
+    sleep 1
+done
+
+# wait until all keys have been processed
+sleep 1
+wait_stalled cat confirmation
+echo "got keys"
+
+# clean up the generated debug output
+grep "^confirmation.*ok$" confirmation_debug.alice > confirmation_debug.alice.out
+grep "^confirmation.*ok$" confirmation_debug.bob > confirmation_debug.bob.out
+
+# result must be the same on for both
+if [ ! -s confirmation_keys.alice ]; then
+    echo "alice has not pushed keys"
+    exit 1
+fi
+if [ ! -s confirmation_keys.bob ]; then
+    echo "bob has not pushed keys"
+    exit 1
+fi
+diff -q confirmation_debug.alice.out confirmation_debug.bob.out
+if [ "$?" != "0" ]; then
+    echo "result of qkd-confirmation differ"
+    exit 1
+fi
+
+# we must have KEYS_TO_PROCESS lines
+if [ "$(wc -l confirmation_debug.alice.out | awk '{ print $1 }')" != "${KEYS_TO_PROCESS}" ]; then
+    echo "not all keys have been confirmed"
+    exit 1
+fi
+
+echo "qkd-confirmation work for equal keys"
+
+# stop machines
+test_cleanup
+
+# state that test ok
+echo "=== TEST SUCCESS ==="
+
+exit 0

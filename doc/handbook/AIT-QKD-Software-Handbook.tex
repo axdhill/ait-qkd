@@ -1,0 +1,77 @@
+\documentclass[a4paper,10pt]{book}
+\usepackage[utf8x]{inputenc}
+\usepackage{a4wide}
+\usepackage{graphicx}
+\usepackage{eurosym}
+\usepackage{latexsym}
+\usepackage{textcomp}
+\usepackage{hyperref}
+\usepackage{fancybox}
+\usepackage{microtype}
+\usepackage{listings}
+
+\hypersetup{
+    pdftitle={The AIT QKD Software Handbook},
+    pdfauthor={Oliver Maurhart},
+    pdfsubject={Guide to the AIT QKD Software Framework},
+    pdfkeywords={AIT} {QKD} {Quantum} {Cryptography} {SECOQC} {Cascade} {LDPC} {BB84},
+    colorlinks=true,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=blue,
+    urlcolor=blue
+}
+
+
+\def\secondpage{\clearpage\null\vfill
+\pagestyle{empty}
+\begin{minipage}[b]{0.9\textwidth}
+\footnotesize\raggedright
+%\setlength{\parskip}{0.5\baselineskip}
+Copyright \copyright\ 2013 AIT Austrian Institute of Technology GmbH.
+
+\bigskip
+
+This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License. To view a copy of this license, visit \url{http://creativecommons.org/licenses/by-nc-sa/3.0} or send a letter to Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
+\end{minipage}
+\vspace*{2\baselineskip}
+\cleardoublepage
+\pagestyle{headings}
+}
+
+
+\makeatletter
+\g@addto@macro{\maketitle}{\secondpage}
+\makeatother
+
+
+\begin{document}
+
+\title{The AIT QKD Software Handbook}
+\author{Oliver Maurhart\\
+AIT Austrian Institute of Technology\\
+\texttt{oliver.maurhart@ait.ac.at}}
+
+\maketitle
+
+\tableofcontents
+
+\include{chapter_introduction}
+
+\include{chapter_the_software}
+
+\include{chapter_qkd_stack}
+
+\include{chapter_qkd_network}
+
+\include{chapter_qkd_gui}
+
+\include{chapter_tools}
+
+\include{chapter_api}
+
+\include{chapter_how_to}
+
+\include{appendix}
+
+\end{document}

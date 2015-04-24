@@ -1,0 +1,78 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-dekey
+# 
+# This is a test file.
+#
+# TEST: test the QKD dekey module
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+# ------------------------------------------------------------
+
+# init test environment
+test_init
+
+# zap previous keys
+rm -rf enkey_keys.* &> /dev/null
+rm -rf dekey_keys.* &> /dev/null
+
+# create blob
+dd if=/dev/urandom of=blob.alice bs=1024 count=32
+
+# truncate previous debug out
+echo -n > enkey_debug.alice
+echo -n > dekey_debug.alice
+
+# pipeline config
+PIPELINE_CONFIG="file://${TEST_BASE}/test/test-data/pipeline.conf"
+
+# start the modules - for the enkey we are using the same keys in the first round
+( ${TEST_BASE}/bin/qkd-enkey --debug --run --config ${PIPELINE_CONFIG} --file "blob.alice" 2>>  enkey_debug.alice | ${TEST_BASE}/bin/qkd-dekey --debug --run --config ${PIPELINE_CONFIG} --file "blobed.alice" 1> /dev/null 2>>  dekey_debug.alice ) &
+
+# wait until the modules did their work
+sleep 1
+wait_stalled enkey dekey
+
+# check expected with actual result
+diff -q blob.alice blobed.alice
+if [ "$?" != "0" ]; then
+    echo "dekey created different result - failed"
+    exit 1
+fi
+echo "dekey blob'ed - ok"
+
+
+# state that test ok
+echo "=== TEST SUCCESS ==="
+
+# end all processes
+test_cleanup
+
+exit 0

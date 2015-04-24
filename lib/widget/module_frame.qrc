@@ -1,0 +1,13 @@
+<RCC>
+  <qresource prefix="/">
+    <file>res/module_peer.png</file>
+    <file>res/module_pipe_in.png</file>
+    <file>res/module_pipe_out.png</file>
+    <file>res/media-playback-pause.png</file>
+    <file>res/media-playback-start.png</file>
+    <file>res/media-playback-stop.png</file>
+    <file>res/module.png</file>
+    <file>res/alice.png</file>
+    <file>res/bob.png</file>
+  </qresource>
+</RCC>

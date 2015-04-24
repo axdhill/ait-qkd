@@ -1,0 +1,140 @@
+#!/bin/sh
+
+# ------------------------------------------------------------
+# q3p-inject
+#
+# inject some key data into a runnin q3pd
+#
+# Synopsis:
+#
+#       q3p-inject [-h|-?|--help] NODE LINK FILE
+#
+# with
+#
+#       --help          showing some help
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+# 
+# Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This file is part of the AIT QKD Software Suite.
+#
+# The AIT QKD Software Suite is free software: you can redistribute 
+# it and/or modify it under the terms of the GNU General Public License 
+# as published by the Free Software Foundation, either version 3 of 
+# the License, or (at your option) any later version.
+# 
+# The AIT QKD Software Suite is distributed in the hope that it will 
+# be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with the AIT QKD Software Suite. 
+# If not, see <http://www.gnu.org/licenses/>.
+# ------------------------------------------------------------
+
+# arguments
+ROLE=""
+DEBUG=""
+
+while [ "${1}" != "" ]; do
+
+    # deal with the options
+    case "${1}" in
+
+        -?|-h|--help)
+            echo "q3p-inject - inject some keys into a running Q3P Link/KeyStore."
+            echo
+            echo "USAGE: q3p-inject [OPTION] NODE LINK FILE"
+            echo 
+            echo "with OPTION been:"
+            echo "  -h|--help       this page"
+            echo
+            echo "This program will inject some keys into a running KeyStore."
+            echo "It needs these things:"
+            echo
+            echo "  - NODE          the id of the node"
+            echo
+            echo "  - LINK          name of the link"      
+            echo
+            echo "  - FILE          a file. This file is treated as-is key matrial."
+            echo
+            echo "Hence, this command does *inject* the keys into an already"
+            echo "running Q3P Link/KeyStore. These keys are *NOT* negotiated."
+            echo
+            echo "You are responsible to inject the key material on both sides."
+            echo "This program is meant to deploy pre shared secret keys."
+            echo
+            exit 0
+            ;;
+
+        -*|--*)
+            echo "Unknown option: ${1}"
+            exit 1
+            ;;
+            
+        *) 
+            break
+            ;;
+        
+    esac
+    
+    shift
+    
+done
+
+# get the role
+NODE="${1}"
+LINK="${2}"
+FILE="${3}"
+
+# sanity checks
+if [ -z "${NODE}" ]; then
+    echo "No node given. Bailing out."
+    echo "Type --help for help."
+    exit 1
+fi
+if [ -z "${LINK}" ]; then
+    echo "No link given. Bailing out."
+    echo "Type --help for help."
+    exit 1
+fi
+if [ -z "${FILE}" ]; then
+    echo "No path to key material given. Bailing out."
+    echo "Type --help for help."
+    exit 1
+fi
+
+# expand file name
+FILE=$(readlink -f ${FILE})
+if [ ! -f "${FILE}" ]; then
+    echo "tried to access file '${3}' but failed ..."
+    exit 1
+fi
+
+# check for node
+qdbus | grep at.ac.ait.q3p.node-${NODE} &> /dev/null
+if [ "$?" != "0" ]; then
+    echo "failed to find node '${NODE}' on the DBus ... is this node started?"
+    exit 1
+fi
+
+# check for link
+qdbus at.ac.ait.q3p.node-${NODE} | grep "/Link/${LINK}" &> /dev/null
+if [ "$?" != "0" ]; then
+    echo "failed to find link '${LINK}' at the node ... has this link been created?"
+    exit 1
+fi
+
+# lets go
+echo "injecting ..."
+qdbus at.ac.ait.q3p.node-${NODE} /Link/${LINK} inject_url "file://${FILE}" 
+if [ "${?}" != "0" ]; then
+    echo "injecting keys into q3p key-store failed :("
+    exit 1
+fi
+echo "file://${FILE} injected into link '${LINK}' on node '${NODE}'."

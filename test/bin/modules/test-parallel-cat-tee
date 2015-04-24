@@ -1,0 +1,128 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-ipc-cat-tee
+# 
+# This is a test file.
+#
+# TEST: test the a pipeline of 1 cat and NUMBER_TEE tee 
+#       interconnected via ipc://
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+echo $$
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+
+# ------------------------------------------------------------
+
+# init test environment
+test_init
+
+# number of qkd-cat modules in the pipe
+NUMBER_KEYS=1000
+NUMBER_CAT=5
+
+# zap previous debug output
+echo -n > tee_debug.alice
+
+# zap previous keys
+rm -rf cat-keys.* &> /dev/null
+
+# create keys
+FIRST_ID=1
+for i in $(seq 1 ${NUMBER_CAT}); do
+    ${TEST_BASE}/bin/qkd-key-gen --id ${FIRST_ID} --keys=${NUMBER_KEYS} cat-keys-${i}
+    FIRST_ID=$((${FIRST_ID} + ${NUMBER_KEYS}))
+done
+
+# remove the bob key variant (would be confusing)
+rm -f cat-keys-*.bob &> /dev/null
+
+# start the tee module in the background
+( ${TEST_BASE}/bin/qkd-tee --debug 1> tee_keys.alice 2>> tee_debug.alice & )
+
+# start the modules in the background
+for i in $(seq 1 ${NUMBER_CAT}); do
+    ( ${TEST_BASE}/bin/qkd-cat --debug --file cat-keys-${i}.alice 2>> cat_debug_${i}.alice ) & 
+done
+
+# wait until the modules are up
+while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module | wc -l)" != "$((${NUMBER_CAT} + 1))" ]; do
+    echo "waiting for the modules to come online ..."
+    sleep 1
+done
+echo "modules created"
+
+# start tee module full fucntional
+MODULE_TEE=$(bin/qkd-view | grep tee | awk '{ print $3; }')
+qkd_qdbus ${MODULE_TEE} /Module set_urls "ipc:///tmp/qkd/tee.in" "stdout://" "" ""
+qkd_qdbus ${MODULE_TEE} /Module run 
+qkd_qdbus ${MODULE_TEE} /Module resume
+echo "tee started ..."
+
+# launch cat modules
+bin/qkd-view | grep cat | awk '{ print $3; }' | while read MODULE_CAT; do
+    qkd_qdbus ${MODULE_CAT} /Module set_urls "" "ipc:///tmp/qkd/tee.in" "" ""
+    qkd_qdbus ${MODULE_CAT} /Module run 
+    qkd_qdbus ${MODULE_CAT} /Module resume
+done
+
+# wait until done
+sleep 1
+wait_stalled cat tee
+
+# check results
+rm cat_total_keys
+for i in $(seq 1 ${NUMBER_CAT}); do
+    cat cat-keys-${i}.alice >> cat_total_keys
+done
+bin/qkd-key-dump cat_total_keys | grep "^key #" > cat_ids
+bin/qkd-key-dump tee_keys.alice | grep "^key #" > tee_ids
+
+# we have a +1 if the tee_id *does* actually differ!
+# this means: this was real parallellization with keys out-of-order!! yeah!
+diff -q cat_ids tee_ids &> /dev/null
+if [ "$?" = "1" ]; then
+    echo "keys have been really parallelized. nice ... =)"
+fi
+
+# created sorted key id files
+sort cat_ids > cat_ids_sorted
+sort tee_ids > tee_ids_sorted
+
+# final - real - check
+diff -q cat_ids_sorted tee_ids_sorted &> /dev/null
+if [ "$?" != "0" ]; then
+    echo "WOHA! Parallized result differs from intended input. =(  - failed"
+    exit 1
+fi
+
+# enforce cleansing
+test_cleanup
+
+# state that test ok
+echo "=== TEST SUCCESS ==="

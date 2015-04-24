@@ -1,0 +1,1356 @@
+\section{Components of the QKD Simulator}
+\label{sec:comp}
+
+In this section, the components of the QKD simulator are described in greater detail. It should be mentioned that the descriptions in this section neither cover all aspects of the components' implementations in the C++11 code nor follow these implementations rigorously, but have the intention to provide a simplified breakdown of the components' functions.
+
+\subsection{\texttt{channel}}
+\label{subsec:comp_channel}
+
+\textbf{Short description:}\\
+This components simulates the quantum channel. \\
+\\
+\textbf{Defined in files:}\\
+\texttt{channel/channel.h}\\
+\texttt{channel/channel.cpp}\\
+\\
+\textbf{Properties:}
+\begin{lstlisting}
+double m_nStndSyncDeviation;    /**< Standard deviation for the Gaussian
+                                     sync signal stored in unit [ns], 
+                                     range [0-100 ns] */
+double m_nTimeslotCenterShift;  /**< timeslot center shift in [ns] */
+\end{lstlisting}
+\noindent
+\textbf{Subcomponents:}
+\begin{lstlisting}
+channel_event_manager m_cManager;           /**< the channel event manager */
+photon_pair_manager m_cPhotonPairManager;  /**< the photon pair manager */
+detector * m_cDetectorAlice;               /**< alice detector */
+detector * m_cDetectorBob;                 /**< bob detector */
+fiber m_cFiber;                            /**< the transmission medium */
+source m_cSource;                          /**< quantum source */
+ttm m_ttm;                                 /**< the TTM module */
+\end{lstlisting}
+\noindent
+\textbf{Component behaviour for parameter configuration:}
+\begin{itemize}
+
+\item If the \texttt{m\_nStndSyncDeviation} property is changed to value \texttt{nStndDeviation}, then the following changes happen:
+
+\begin {itemize}
+
+\item \texttt{m\_cDetectorBob->m\_cSyncPulseReceiver.m\_nJitter} is set to \texttt{nStndDeviation}
+
+\item \texttt{m\_cDetectorBob->m\_cSyncPulseReceiver.m\_nDelay} is set to \texttt{5.0 * nStndDeviation}
+
+\item \texttt{update\_delay\_times()} is called
+
+\end {itemize}
+
+\item If the \texttt{m\_nTimeslotCenterShift} property is changed, then \texttt{update\_delay\_times()} is called.
+
+\item Behaviour of \texttt{update\_delay\_times()}:
+
+\begin{itemize}
+
+\item If the simulation is in \textit{free running mode}, \texttt{m\_cFiber.m\_cDelayLine.m\_nDelayTime} and \texttt{m\_cFiber.m\_cDelayLineSync.m\_nDelayTime} are set to 0
+
+\item If the simulation is not in \textit{free running mode}, a \texttt{double} variable \texttt{delay} is calculated as \\
+\\
+\texttt{delay = 5.0 * m\_nStndSyncDeviation + 0.5 * m\_cDetectorBob->time\_slot\_width() + m\_nTimeslotCenterShift;}\\
+\\
+and \texttt{m\_cFiber.m\_cDelayLine.m\_nDelayTime} is set to \texttt{max(delay, 0.0)} and \texttt{m\_cFiber.m\_cDelayLineSync.m\_nDelayTime} is set to \texttt{max(-delay, 0.0)}
+
+\end{itemize}
+
+\end{itemize}
+\noindent
+\textbf{Component behaviour during simulation:}\\
+Event forwarding is performed according to Table \ref{tab:comp_channel_evfwd}.
+
+\begin{table}[H]
+\begin{tabular}{ | l | l || l | l | p{4cm} | }
+\hline
+\multicolumn{1}{|c|}{\textbf{Event type}} & \multicolumn{1}{c||}{\textbf{Source}} & \multicolumn{1}{c|}{\textbf{Destination}} & \multicolumn{1}{c|}{\textbf{new priority}} & \multicolumn{1}{c|}{\textbf{new \texttt{m\_cData} values}} \\
+\hline \hline
+\texttt{photon} & \texttt{m\_cSource} & \texttt{m\_cDetectorAlice} &  & \\
+\cline{3-5}
+ & & \texttt{m\_cFiber} & \texttt{subnormal} & \\
+\cline{2-5}
+ & \texttt{m\_cFiber} & \texttt{m\_cDetectorBob} & & \\
+\hline
+\texttt{detector\_pulse} & \texttt{m\_cDetectorAlice} & \texttt{m\_cTTM} & & \texttt{m\_bAlice = true;} \\
+\cline{2-5}
+ & \texttt{m\_cDetectorBob} & \texttt{m\_cTTM} & & \texttt{m\_bAlice = false;} \\
+\hline
+\texttt{sync\_pulse} & \texttt{m\_cDetectorAlice}  & \texttt{m\_cFiber} & & \\
+\cline{2-5}
+ & \texttt{m\_cFiber}  & \texttt{m\_cDetectorBob} & & \\
+\hline
+\end{tabular}
+\caption{Event forwarding in the \texttt{channel} component}
+\label{tab:comp_channel_evfwd}
+\end{table}
+
+\subsubsection{\texttt{detector}}
+\label{subsubsec:comp_detector}
+
+\textbf{Short description:}\\
+This component simulates the BB84 detector module.\\
+\\
+\textbf{Defined in files:}\\
+\texttt{channel/detector.h}\\
+\texttt{channel/detector.cpp}\\
+\\
+\textbf{Properties:}
+\begin{lstlisting}
+bool m_bAlice;                     /**< state if we are alice */
+bool m_bDarkCounts;                /**< dark counts enabled */
+detection_mode m_eDetectionMode;   /**< detection mode for this detector */
+double m_nDarkCountRate;           /**< dark count rate in 1/s */
+double m_nDownTime;                /**< down time in ns */
+double m_nEfficiency;              /**< efficiency [0 - 1] */
+uint64_t m_nEventTableSize;        /**< event table size in bytes */
+bool m_bJitter;                    /**< jitter enabled */
+bool m_bLoss;                      /**< loss enabled */
+double m_nLossRate;                /**< distance independent loss in 
+                                        dB/km */
+double m_nPhotonTimeDelay;         /**< photon detection time delay in ns */
+double m_nPhotonTimeStndDeviation; /**< photon time standard deviation 
+                                        in ns */
+double m_nTimeSlotWidth;           /**< time slot width == coincidence
+                                        window in ns */
+\end{lstlisting}
+\noindent
+\textbf{Subcomponents:}
+\begin{lstlisting}
+detector_optics m_cDetectorOptics;             /**<the detector optics */
+detection_element m_cDetectionElementH;       /**< detection element for
+                                                    horizontal polarization */
+detection_element m_cDetectionElementV;       /**< detection element for
+                                                    vertical polarization */
+detection_element m_cDetectionElementP;       /**< detection element for
+                                                    "plus" polarization */
+detection_element m_cDetectionElementM;       /**< detection element for
+                                                    "minus" polarization */
+event_buffer m_cEventBuffer;                   /**< event buffer */
+sync_pulse_generator * m_cSyncPulseGenerator; /**< sync pulse generator
+                                                    (only used at Alice's
+                                                    side) */
+sync_pulse_receiver * m_cSyncPulseReceiver;   /**< sync pulse receiver
+                                                    (only used at Bob's
+                                                    side) */
+window_generator m_cWindowGenerator;           /**< window generator */
+\end{lstlisting}
+\noindent
+\\
+The \texttt{m\_eDetectionMode} property must be set to one of the constants defined in \texttt{channel/detector/detection\_modes.h} (see Listing \ref{lst:detection_mode}).
+
+\begin{lstlisting}[caption={Definition of the \texttt{detection\_mode} enumeration type}, captionpos=b, label={lst:detection_mode}]
+enum struct detection_mode {
+    free_running,        /**< detector is free running (no sync pulse
+                              generation/receive, only TTM records) */
+    sync,                /**< sync pulse generation/receive irrespective of
+                              detector down times */
+    sync_initiator_ready /**< mode valid only for Alice side: sync pulse
+                              generation, but only if last sync pulse initiator is not down anymore */,
+    sync_all_ready       /**< meaning at Alice side: sync pulse generation,
+                              but only if no detection element is down.
+                           *  meaning at Bob side:   sync pulse receive, but
+                              if one or more detection elements are down, a zero entry is stored in event buffer */
+};
+\end{lstlisting}
+\noindent
+\textbf{Component behaviour for parameter configuration:}
+\begin{itemize}
+
+\item If the \texttt{m\_bDarkCounts} or \texttt{m\_nDarkCountRate} property is changed, \texttt{update\_dark\_count\_rate()} is called.
+
+\item If the \texttt{m\_eDetectionMode} parameter is changed, the following steps are performed:
+
+\begin{itemize}
+
+\item If the \texttt{m\_bAlice} property is \texttt{true} or \texttt{m\_eDetectionMode} is set to \texttt{free\_running}, the \texttt{m\_init\_enabled} property of
+all four \texttt{detection\_element} subcomponents is set to \texttt{true}, otherwise, it is set to \texttt{false}.
+
+\item If the \texttt{m\_bAlice} property is \texttt{true}, \texttt{m\_cSyncPulseGenerator->\-m\_eDetectionMode} is set to the new \texttt{m\_eDetectionMode} value, otherwise, \texttt{m\_cSyncPulseReceiver->\-m\_eDetectionMode} is set to the new \texttt{m\_eDetectionMode} value.
+
+\end{itemize}
+
+\item If the \texttt{m\_bLoss}, \texttt{m\_nDownTime}, \texttt{m\_nEfficiency} or \texttt{m\_nLossRate} property is changed, \texttt{update\_detection\_loss()} is called.
+
+\item If the \texttt{m\_nEventTableSize} property is changed, \texttt{m\_event\_buffer.m\_nBufferSize} is updated to the new value.
+
+\item If the \texttt{m\_bJitter}, \texttt{m\_nPhotonTimeDelay} or \texttt{m\_nPhotonTimeStndDeviation} property is changed, \texttt{update\_jitter()} is called.
+
+\item If the \texttt{m\_nTimeSlotWidth} property is changed, \texttt{m\_window\_generator.m\_window\_width} is updated to the new value.
+
+\item Behaviour of \texttt{update\_dark\_count\_rate()}:
+
+\begin{itemize}
+
+\item If \texttt{m\_bDarkCounts} is \texttt{true}, the \texttt{m\_nDarkCountRate} property of all four \texttt{detection\_element} subcomponents is set to \texttt{m\_nDarkCountRate}
+
+\item If \texttt{m\_bDarkCounts} is \texttt{false}, the \texttt{m\_nDarkCountRate} property of all four \texttt{detection\_element} subcomponents is set to 0
+
+\end{itemize}
+
+\item Behaviour of \texttt{update\_detection\_loss()}:
+
+\begin{itemize}
+
+\item If \texttt{m\_bLoss} is \texttt{true}, the \texttt{m\_nLoss} property of the \texttt{m\_cDetectorOptics} subcomponent is set to \texttt{m\_nLossRate}, the \texttt{m\_nEfficiency} property of the \texttt{m\_cDetectorOptics} subcomponent is set to \texttt{m\_nEfficiency}, and the \texttt{m\_bDown\_time} of all four \texttt{detection\_element} subcomponents is set to \texttt{m\_nDownTime}.
+
+\item If \texttt{m\_bLoss} is \texttt{false}, the \texttt{m\_nLoss} property of the \texttt{m\_cDetectorOptics} subcomponent is set to 0, the \texttt{m\_nEfficiency} property of the \texttt{m\_cDetectorOptics} subcomponent is set to 1, and the \texttt{m\_bDown\_time} of all four \texttt{detection\_element} subcomponents is set to 0.
+
+\end{itemize}
+
+\item Behaviour of \texttt{update\_jitter()}:
+
+\begin{itemize}
+
+\item If \texttt{m\_bJitter} is \texttt{true}, for all four \texttt{detection\_element} subcomponents the \texttt{m\_nDelay} property is set to \texttt{m\_nPhotonTimeDelay}, and the \texttt{m\_nJitter} property is set to \texttt{m\_nPhotonTimeStndDeviation}.
+
+\item If \texttt{m\_bJitter} is \texttt{false}, for all four \texttt{detection\_element} subcomponents the \texttt{m\_nDelay} and \texttt{m\_nJitter} properties are set to 0.
+
+\end{itemize}
+
+\end{itemize}
+\noindent
+\textbf{Component behaviour during simulation:}\\
+This component does event forwarding as described in Table \ref{tab:comp_detector_evfwd}.
+
+\begin{footnotesize}
+\begin{longtable}[H]{ | m{1.2cm} | m{1.9cm} | m{1.2cm} | l | m{1.5cm} || m{1.8cm} | m{1.4cm} | m{1.2cm} | m{1.7cm} | }
+\captionsetup{font=normalsize}
+\hline
+  \multicolumn{1}{| >{\centering}p{1cm}<{\centering} |}{\textbf{Event} \par \textbf{type}} & 
+  \multicolumn{1}{c|}{\textbf{Source}} & 
+  \multicolumn{1}{ >{\centering}p{1.2cm}<{\centering} |}{\textbf{free} \par \textbf{running}} &
+  \multicolumn{1}{c|}{\textbf{\texttt{m\_bAlice}}} &
+  \multicolumn{1}{ >{\centering}p{1.5cm}<{\centering} ||}{\textbf{Incoming} \par \textbf{\texttt{m\_cData}}} & 
+  \multicolumn{1}{c|}{\textbf{Destination}} & 
+  \multicolumn{1}{ >{\centering}p{1.4cm}<{\centering} |}{\textbf{New type}} & 
+  \multicolumn{1}{ >{\centering}p{1.2cm}<{\centering} |}{\textbf{New} \par \textbf{priority}} & 
+  \multicolumn{1}{ >{\centering}p{1.7cm}<{\centering} |}{\textbf{New} \par \textbf{\texttt{m\_cData}}} \\
+\hline \hline
+  \texttt{down\_end} &
+  \texttt{m\_cDetectionElementH} &
+  \texttt{false} &
+  \texttt{false} &
+  &
+  \texttt{m\_cSyncPulseReceiver} &
+  &
+  &
+  \texttt{m\_phs =} \par \texttt{horizontal;} \\
+\cline{4-9}
+  & 
+  & 
+  & 
+  \texttt{true} & 
+  & 
+  \texttt{m\_cSyncPulseGenerator} & 
+  & 
+  & 
+  \texttt{m\_phs =} \par \texttt{horizontal;} \\ 
+\cline{2-9}
+  &
+  \texttt{m\_cDetectionElementV} &
+  \texttt{false} &
+  \texttt{false} &
+  &
+  \texttt{m\_cSyncPulseReceiver} &
+  &
+  &
+  \texttt{m\_phs =} \par \texttt{vertical;} \\
+\cline{4-9}
+  & 
+  & 
+  & 
+  \texttt{true} & 
+  &
+  \texttt{m\_cSyncPulseGenerator} & 
+  & 
+  & 
+  \texttt{m\_phs =} \par \texttt{vertical;} \\
+\cline{2-9}
+  &
+  \texttt{m\_cDetectionElementP} &
+  \texttt{false} &
+  \texttt{false} &
+  &
+  \texttt{m\_cSyncPulseReceiver} &
+  &
+  &
+  \texttt{m\_phs =} \par \texttt{plus;} \\
+\cline{4-9}
+  &
+  &
+  &
+  \texttt{true} &
+  &
+  \texttt{m\_cSyncPulseGenerator} &
+  &
+  &
+  \texttt{m\_phs =} \par \texttt{plus;} \\
+\cline{2-9}
+  &
+  \texttt{m\_cDetectionElementM} &
+  \texttt{false} &
+  \texttt{false} &
+  &
+  \texttt{m\_cSyncPulseReceiver} &
+  &
+  &
+  \texttt{m\_phs =} \par \texttt{minus;} \\
+\cline{4-9}
+  &
+  &
+  &
+  \texttt{true} &
+  &
+  \texttt{m\_cSyncPulseGenerator} &
+  &
+  &
+  \texttt{m\_phs =} \par \texttt{minus;} \\
+  
+\hline
+
+  \texttt{photon} &
+  parent &
+  &
+  &
+  &
+  \texttt{m\_detector\_} \par \texttt{optics} &
+  &
+  \texttt{normal} &
+  \\
+\cline{2-9}
+  &
+  \texttt{m\_detector\_} \par \texttt{optics} &
+  &
+  &
+  \texttt{m\_phs ==} \par \texttt{horizontal} &
+  \texttt{m\_cDetectionElementH} &
+  &
+  &
+  \\
+\cline{5-9}
+  &
+  &
+  &
+  &
+  \texttt{m\_phs ==} \par \texttt{vertical} &
+  \texttt{m\_cDetectionElementV} &
+  &
+  &
+  \\
+\cline{5-9}
+  &
+  &
+  &
+  &
+  \texttt{m\_phs ==} \par \texttt{plus} &
+  \texttt{m\_cDetectionElementP} &
+  &
+  &
+  \\
+\cline{5-9}
+  &
+  &
+  &
+  &
+  \texttt{m\_phs ==} \par \texttt{minus} &
+  \texttt{m\_cDetectionElementM} &
+  &
+  &
+  \\
+  
+\hline
+
+  \texttt{pulse} &
+  \texttt{m\_cDetectionElementH} &
+  \texttt{false} &
+  &
+  &
+  \texttt{m\_cEventBuffer} &
+  \texttt{detector\_} \par \texttt{pulse} &
+  &
+  \texttt{m\_phs =} \par \texttt{horizontal;} \\
+\cline{4-9}
+  &
+  &
+  &
+  \texttt{false} &
+  &
+  \texttt{m\_cSyncPulseReceiver} &
+  \texttt{detector\_} \par \texttt{pulse} &
+  \texttt{high} &
+  \texttt{m\_phs =} \par \texttt{horizontal;} \\
+\cline{4-9}
+  &
+  &
+  &
+  \texttt{true} &
+  &
+  \texttt{m\_cSyncPulseGenerator} &
+  \texttt{detector\_} \par \texttt{pulse} &
+  \texttt{high} &
+  \texttt{m\_phs =} \par \texttt{horizontal;} \\
+\cline{3-9}
+  &
+  &
+  \texttt{true} &
+  &
+  &
+  parent &
+  \texttt{detector\_} \par \texttt{pulse} &
+  &
+  \texttt{m\_phs =} \par \texttt{horizontal;} \\
+\cline{2-9}
+  &
+  \texttt{m\_cDetectionElementV} &
+  \texttt{false} &
+  &
+  &
+  \texttt{m\_cEventBuffer} &
+  \texttt{detector\_} \par \texttt{pulse} &
+  &
+  \texttt{m\_phs =} \par \texttt{vertical;} \\
+\cline{4-9}
+  &
+  &
+  &
+  \texttt{false} &
+  &
+  \texttt{m\_cSyncPulseReceiver} &
+  \texttt{detector\_} \par \texttt{pulse} &
+  \texttt{high} &
+  \texttt{m\_phs =} \par \texttt{vertical;} \\
+\cline{4-9}
+  &
+  &
+  &
+  \texttt{true} &
+  &
+  \texttt{m\_cSyncPulseGenerator} &
+  \texttt{detector\_} \par \texttt{pulse} &
+  \texttt{high} &
+  \texttt{m\_phs =} \par \texttt{vertical;} \\
+\cline{3-9}
+  &
+  &
+  \texttt{true} &
+  &
+  &
+  parent &
+  \texttt{detector\_} \par \texttt{pulse} &
+  &
+  \texttt{m\_phs =} \par \texttt{vertical;} \\
+\cline{2-9}
+  &
+  \texttt{m\_cDetectionElementP} &
+  \texttt{false} &
+  &
+  &
+  \texttt{m\_cEventBuffer} &
+  \texttt{detector\_} \par \texttt{pulse} &
+  &
+  \texttt{m\_phs =} \par \texttt{plus;} \\
+\cline{4-9}
+  &
+  &
+  &
+  \texttt{false} &
+  &
+  \texttt{m\_cSyncPulseReceiver} &
+  \texttt{detector\_} \par \texttt{pulse} &
+  \texttt{high} &
+  \texttt{m\_phs =} \par \texttt{plus;} \\
+\cline{4-9}
+  &
+  &
+  &
+  \texttt{true} &
+  &
+  \texttt{m\_cSyncPulseGenerator} &
+  \texttt{detector\_} \par \texttt{pulse} &
+  \texttt{high} &
+  \texttt{m\_phs =} \par \texttt{plus;} \\
+\cline{3-9}
+  &
+  &
+  \texttt{true} &
+  &
+  &
+  parent &
+  \texttt{detector\_} \par \texttt{pulse} &
+  &
+  \texttt{m\_phs =} \par \texttt{plus;} \\
+\cline{2-9}
+  &
+  \texttt{m\_cDetectionElementM} &
+  \texttt{false} &
+  &
+  &
+  \texttt{m\_cEventBuffer} &
+  \texttt{detector\_} \par \texttt{pulse} &
+  &
+  \texttt{m\_phs =} \par \texttt{minus;} \\
+\cline{4-9}
+  &
+  &
+  &
+  \texttt{false} &
+  &
+  \texttt{m\_cSyncPulseReceiver} &
+  \texttt{detector\_} \par \texttt{pulse} &
+  \texttt{high} &
+  \texttt{m\_phs =} \par \texttt{minus;} \\
+\cline{4-9}
+  &
+  &
+  &
+  \texttt{true} &
+  &
+  \texttt{m\_cSyncPulseGenerator} &
+  \texttt{detector\_} \par \texttt{pulse} &
+  \texttt{high} &
+  \texttt{m\_phs =} \par \texttt{minus;} \\
+\cline{3-9}
+  &
+  &
+  \texttt{true} &
+  &
+  &
+  parent &
+  \texttt{detector\_} \par \texttt{pulse} &
+  &
+  \texttt{m\_phs =} \par \texttt{minus;} \\
+  
+\hline
+
+  \texttt{sync\_} \par \texttt{pulse} &
+  parent &
+  &
+  \texttt{false} &
+  &
+  \texttt{m\_cSyncPulseReceiver} &
+  &
+  &
+  \\
+\cline{2-9}
+  &
+  \texttt{m\_cSyncPulseReceiver} &
+  &
+  \texttt{false} &
+  &
+  \texttt{m\_cWindowGenerator} &
+  &
+  &
+  \\
+\cline{2-9}
+  &
+  &
+  &
+  \texttt{true} &
+  &
+  parent &
+  &
+  &
+  \\
+\cline{6-9}
+  &
+  &
+  &
+  &
+  &
+  \texttt{m\_cWindowGenerator} &
+  &
+  \texttt{high} &
+  \\
+  
+\hline
+
+  \texttt{sync\_} \par \texttt{pulse\_} \par \texttt{bad} &
+  \texttt{m\_cSyncPulseReceiver} &
+  &
+  &
+  &
+  \texttt{m\_cWindowGenerator} &
+  &
+  &
+  \\
+\cline{2-9}
+  &
+  \texttt{m\_cWindowGenerator} &
+  &
+  &
+  &
+  \texttt{m\_cEventBuffer} &
+  &
+  &
+  \\
+  
+\hline
+
+  \texttt{window\_} \par \texttt{end} &
+  &
+  &
+  &
+  &
+  \texttt{m\_cEventBuffer} &
+  &
+  &
+  \\
+\cline{4-9}
+  &
+  &
+  &
+  \texttt{false} &
+  &
+  \texttt{m\_cDetectionElementH} &
+  \texttt{disable} &
+  &
+  \\
+\cline{6-9}
+  &
+  &
+  &
+  &
+  &
+  \texttt{m\_cDetectionElementV} &
+  \texttt{disable} &
+  &
+  \\
+\cline{6-9}
+  &
+  &
+  &
+  &
+  &
+  \texttt{m\_cDetectionElementP} &
+  \texttt{disable} &
+  &
+  \\
+\cline{6-9}
+  &
+  &
+  &
+  &
+  &
+  \texttt{m\_cDetectionElementM} &
+  \texttt{disable} &
+  &
+  \\
+\cline{4-9}
+  &
+  &
+  &
+  \texttt{true} &
+  &
+  \texttt{m\_cSyncPulseGenerator} &
+  &
+  &
+  \\
+  
+\hline
+
+  \texttt{window\_} \par \texttt{end\_bad} &
+  &
+  &
+  &
+  &
+  \texttt{m\_cEventBuffer} &
+  &
+  &
+  \\
+\cline{6-9}
+  &
+  &
+  &
+  &
+  &
+  \texttt{m\_cDetectionElementH} &
+  \texttt{disable} &
+  &
+  \\
+\cline{6-9}
+  &
+  &
+  &
+  &
+  &
+  \texttt{m\_cDetectionElementV} &
+  \texttt{disable} &
+  &
+  \\
+\cline{6-9}
+  &
+  &
+  &
+  &
+  &
+  \texttt{m\_cDetectionElementP} &
+  \texttt{disable} &
+  &
+  \\
+\cline{6-9}
+  &
+  &
+  &
+  &
+  &
+  \texttt{m\_cDetectionElementM} &
+  \texttt{disable} &
+  &
+  \\
+  
+\hline
+
+  \texttt{window\_} \par \texttt{start} &
+  &
+  &
+  &
+  &
+  \texttt{m\_cEventBuffer} &
+  &
+  &
+  \\
+\cline{4-9}
+  &
+  &
+  &
+  \texttt{false} &
+  &
+  \texttt{m\_cDetectionElementH} &
+  \texttt{enable} &
+  &
+  \\
+\cline{6-9}
+  &
+  &
+  &
+  &
+  &
+  \texttt{m\_cDetectionElementV} &
+  \texttt{enable} &
+  &
+  \\
+\cline{6-9}
+  &
+  &
+  &
+  &
+  &
+  \texttt{m\_cDetectionElementP} &
+  \texttt{enable} &
+  &
+  \\
+\cline{6-9}
+  &
+  &
+  &
+  &
+  &
+  \texttt{m\_cDetectionElementM} &
+  \texttt{enable} &
+  &
+  \\
+\hline
+\caption{Event forwarding in the \texttt{detector} component}
+\label{tab:comp_detector_evfwd}
+\end{longtable}
+\end{footnotesize}
+
+\paragraph{\texttt{detection\_element}}
+\label{par:comp_detector_detelem}
+\noindent \\
+\\
+\textbf{Short description:}\\
+This component simulates the single photon detection element.\\
+\\
+\textbf{Defined in files:}\\
+\texttt{channel/detector/detection\_element.h}\\
+\texttt{channel/detector/detection\_element.cpp}\\
+\\
+\textbf{Properties:}
+\begin{lstlisting}
+double   m_nDarkCountRate;  /**< dark count rate in 1/s */
+double   m_nDelay;          /**< delay in ns */
+bool     m_bDown;           /**< states whether this detection element is
+                                 down */
+double   m_nDownTime;       /**< down time in ns */
+bool     m_bEnabled;        /**< states whether this detection element is
+                                 enabled */
+bool     m_bInitEnabled;    /**< states whether this detection element is
+                                 enabled at initialization */
+double   m_nJitter;         /**< jitter in ns */
+\end{lstlisting}
+\noindent
+\textbf{Component behaviour during simulation:}
+\begin{itemize}
+
+\item When an \texttt{init} event is received, \texttt{m\_bDown} is set to \texttt{false}, \texttt{m\_bEnabled} is set to \texttt{m\_init\_enabled}, and \texttt{add\_next\_dark\_count\_event()} is called.
+
+\item When an \texttt{enable} event is received, \texttt{m\_bEnabled} is set to \texttt{true}.
+
+\item When a \texttt{disable} event is received, \texttt{m\_bEnabled} is set to \texttt{false}.
+
+\item When a \texttt{photon} event is received and at this time \texttt{m\_bEnabled} is \texttt{true} and \texttt{m\_bDown} is \texttt{false}, a new event of type \texttt{detect} is created and sent to this component, with the event time set to occur after some delay time \texttt{td}, that is calculated as the sum of \texttt{m\_nDelay} plus a random value of Gaussian distribution with mean value 0 and standard deviation \texttt{m\_nJitter}, but \texttt{td} is constrained to be non-negative - if it is negative, the jitter random value is ``reshuffled'' until \texttt{td} is non-negative.
+
+\item When a \texttt{detect} event is received and at this time \texttt{m\_bEnabled} is \texttt{true} and \texttt{m\_bDown} is \texttt{false}, a new event of type \texttt{pulse} is created and sent to the parent event handler, with the new event's \texttt{m\_cData.m\_detect\_time} member set to the current simulation time and the \texttt{m\_cData.m\_bDown} member set to \texttt{true} if \texttt{m\_bDown\_time} is greater than 0 or to \texttt{false} otherwise.
+
+Additionally, if \texttt{m\_bDown\_time} is greater than 0, \texttt{m\_bDown} is set to \texttt{true}, and a new event of type \texttt{down\_end} with \texttt{superhigh} priority is created and sent to this component, with its event time set to occur after a waiting time according to \texttt{m\_bDown\_time}.
+
+\item When a \texttt{dark\_count} event is received, \texttt{add\_next\_dark\_count\_event()} is called to set the next dark count event, and then the same steps are performed as described for the case that a \texttt{detect} event is received.
+
+\item When a \texttt{down\_end} event is received, \texttt{m\_bDown} is set to \texttt{false}, and a new event of type \texttt{down\_end} and of \texttt{superhigh} priority is created and sent to the parent event handler.
+
+\item Behaviour of \texttt{add\_next\_dark\_count\_event()}:
+
+\begin{itemize}
+
+\item If \texttt{m\_nDarkCountRate} is greater than 0, a new event of type \texttt{dark\_count} with \texttt{m\_destination} set to this component is created, with the event time set to occur after some waiting period that is calculated at random using an exponential distribution with a mean value according to the \texttt{m\_nDarkCountRate} value.
+
+\end{itemize}
+
+\end{itemize}
+
+\paragraph{\texttt{detector\_optics}}
+\label{par:comp_detector_detopt}
+\noindent \\
+\\
+\textbf{Short description:}\\
+This component simulates the optical components of the BB84 detection module.\\
+\\
+\textbf{Defined in files:}\\
+\texttt{channel/detector/detector\_optics.h}\\
+\texttt{channel/detector/detector\_optics.cpp}\\
+\\
+\textbf{Properties:}
+\begin{lstlisting}
+bool   m_bAlice;              /**< states whether this detector_optics object
+                                  is at Alice side */
+double m_nDetectProbability;  /**< combined probability for photon detection
+                                  [0 - 1] */
+double m_nEfficiency;         /**< detection efficiency [0 - 1] */
+double m_nLoss;               /**< loss in dB */
+\end{lstlisting}
+\noindent
+\textbf{Component behaviour for parameter configuration:}
+\begin{itemize}
+
+\item If the \texttt{m\_nEfficiency} or \texttt{m\_nLoss} property is changed, \texttt{update\_detect\_probability()} is called.
+
+\item Behaviour of \texttt{update\_detect\_probability()}:
+
+\begin{itemize}
+
+\item \texttt{m\_detect\_probability} is set to\\
+\texttt{m\_nEfficiency * pow(10.0, -m\_nLoss / 10.0)}\\
+where \texttt{pow} is the power function defined in \texttt{<cmath>}.
+
+\end{itemize}
+
+\end{itemize}
+\noindent
+\textbf{Component behaviour during simulation:}\\
+Whenever the component receives an event \texttt{ev} of type \texttt{photon}, the following steps are performed, where \texttt{php} is a reference to the \texttt{photon\_pair} identified by \texttt{ev.m\_cData.m\_php\_id}:
+\begin{enumerate}
+
+\item Two pointers of type \texttt{photon\_state*} with names \texttt{phs\_here} and \texttt{phs\_there} are created. If \texttt{m\_bAlice} is \texttt{true}, they are set as follows:\\
+\\
+\texttt{phs\_here = \&(php.m\_eStateA);\\
+phs\_there = \&(php.m\_eStateB);}\\
+\\
+otherwise, if \texttt{m\_bAlice} is \texttt{false}, they are set as:\\
+\\
+\texttt{phs\_here = \&(php.m\_eStateB);\\
+phs\_there = \&(php.m\_eStateA);}\\
+
+\item If \texttt{*phs\_here != absorbed}, the photon travelling to the ``here'' side will be detected with a probability of \texttt{m\_detect\_probability}, and in the case of detection, the following steps are performed:
+
+\begin{enumerate}
+
+\item A detected polarisation state for the ``here'' side is chosen randomly depending on \texttt{*phs\_here}, with probabilities for the different polarisations as shown in Table \ref{tab:comp_detector_detopt_prob}. The reason for the detection probabilities to be as shown in this table is that the H/V or P/M basis is chosen for measurement at random with equal probability, as already described in section \ref{sec:overview}.
+
+\item A new event of type \texttt{photon} with its \texttt{m\_cData.m\_phs} member set according to the detected polarisation state is sent to the parent event handler.
+
+\item If \texttt{*phs\_here} is equal to \texttt{entangled}, then \texttt{*phs\_there} is set with a probability of \texttt{(1.0 - php.entanglement\_error)} to the polarisation state orthogonal to that detected for the ``here'' side, or in the other case (of probability \texttt{php.entanglement\_error}) it is set to the same polarisation as detected for the ``here'' side.
+
+\end{enumerate}
+
+\item \texttt{*phs\_here} is set to \texttt{absorbed} state. If then \texttt{*phs\_there} is also \texttt{absorbed}, the photon pair is removed from the \texttt{photon\_pair\_manager}'s photon pair map.
+
+\end{enumerate}
+
+\begin{table}[H]
+\begin{tabular}{ | c | c | c | c | c | }
+\hline
+  \textbf{\texttt{*phs\_here}} & \multicolumn{4}{c|}{\textbf{detected polarisation}} \\
+\cline{2-5}
+   & \textbf{\texttt{horizontal}} & \textbf{\texttt{vertical}} & \textbf{\texttt{plus}} & \textbf{\texttt{minus}} \\
+\hline \hline
+  \texttt{nonpolarized} & 0.25 & 0.25 & 0.25 & 0.25 \\
+\hline
+  \texttt{entangled} & 0.25 & 0.25 & 0.25 & 0.25 \\
+\hline
+  \texttt{horizontal} & 0.5 & 0 & 0.25 & 0.25 \\
+\hline
+  \texttt{vertical} & 0 & 0.5 & 0.25 & 0.25 \\
+\hline
+  \texttt{plus} & 0.25 & 0.25 & 0.5 & 0 \\
+\hline
+  \texttt{minus} & 0.25 & 0.25 & 0 & 0.5 \\
+\hline
+\end{tabular}
+\caption{Detection probabilities for different photon polarisations}
+\label{tab:comp_detector_detopt_prob}
+\end{table}
+
+\paragraph{\texttt{event\_buffer}}
+\label{par:comp_detector_evb}
+\noindent \\
+\\
+\textbf{Short description:}\\
+This component stores photon events in a latch and further the latch contents in a key buffer.\\
+\\
+\textbf{Defined in files:}\\
+\texttt{channel/detector/event\_buffer.h}\\
+\texttt{channel/detector/event\_buffer.cpp}\\
+\\
+\textbf{Properties:}
+\begin{lstlisting}
+unsigned char * m_cBuffer;       /**< event buffer */
+uint64_t        m_nBufferSize;   /**< size of event buffer in bytes */
+bool            m_det_latch[4];  /**< latch for detector events (0 = H, 
+                                      1 = V, 2 = P, 3 = M) */
+bool            m_bNextHigh;     /**< states whether the next event entry
+                                      should go into the high half-byte */
+uint64_t        m_nNextIndex;    /**< index of next event entry in buffer */
+bool            m_bWindowOpen;   /**< states whether a sync window is
+                                      currently open */
+\end{lstlisting}
+\noindent
+\textbf{Component behaviour for parameter configuration:}\\
+When the \texttt{m\_nBufferSize} property is changed to a new value, the \texttt{event\_buffer} frees any memory that has been previously allocated for the \texttt{m\_cBuffer}, and then dynamically allocates new memory of size \texttt{m\_nBufferSize} bytes for the \texttt{m\_cBuffer} key buffer.\\
+\\
+\noindent
+\textbf{Component behaviour during simulation:}\\
+\begin{itemize}
+
+\item When an \texttt{init} event is received, \texttt{m\_cBuffer[i]} is set to zero for \texttt{i} = 0 to \texttt{m\_nBufferSize - 1}, \texttt{m\_next\_high} is set to \texttt{true}, \texttt{m\_next\_index} is set to 0, and \texttt{m\_bWindowOpen} is set to \texttt{false}.
+
+\item When a \texttt{window\_start} event is received, the following steps are performed:
+
+\begin{enumerate}
+
+\item If \texttt{m\_bWindowOpen} is \texttt{true}, \texttt{write\_event()} is called.
+
+\item \texttt{m\_det\_latch[i]} is set to \texttt{false} for \texttt{i} = 0 to 3.
+
+\item \texttt{m\_bWindowOpen} is set to \texttt{true}.
+
+\end{enumerate}
+
+\item When a \texttt{detector\_pulse} event \texttt{ev} is received and \texttt{m\_bWindowOpen} is \texttt{true}, \texttt{m\_det\_latch[det\_ind]} is set to \texttt{true} where \texttt{det\_ind} is chosen depending on \texttt{ev.m\_cData.m\_phs} as shown in Table \ref{tab:com_detector_syncpgen}.
+
+\item When a \texttt{window\_end} event is received and \texttt{m\_bWindowOpen} is \texttt{true}, \texttt{write\_event()} is called and \texttt{m\_bWindowOpen} is set to \texttt{false}.
+
+\item When a \texttt{window\_end\_bad} event is received, the following steps are performed:
+
+\begin{enumerate}
+
+\item If \texttt{m\_bWindowOpen} is \texttt{true}, \texttt{write\_event()} is called and \texttt{m\_bWindowOpen} is set to \texttt{false}.
+
+\item \texttt{m\_det\_latch[i]} is set to \texttt{false} for \texttt{i} = 0 to 3.
+
+\item \texttt{write\_event()} is called.
+
+\end{enumerate}
+
+\item When a \texttt{sync\_pulse\_bad} event is received, \texttt{m\_det\_latch[i]} is set to \texttt{false} for \texttt{i} = 0 to 3, and \texttt{write\_event()} is called.
+
+\item Behaviour of \texttt{write\_event()}:
+
+\begin{itemize}
+
+\item If \texttt{m\_next\_index} is smaller than \texttt{m\_nBufferSize}, the contents of \texttt{m\_det\_latch} are stored either in the high half-byte of \texttt{m\_cBuffer[m\_next\_index]} if \texttt{m\_next\_high} is \texttt{true} or in the low half-byte of \texttt{m\_cBuffer[m\_next\_index]} if \texttt{m\_next\_high} is \texttt{false}. In doing this, \texttt{m\_det\_latch[3]} is always stored in the highest bit, \texttt{m\_det\_latch[2]} in the second highest bit, \texttt{m\_det\_latch[1]} in the third highest bit and \texttt{m\_det\_latch[0]} in the lowest bit of the specific half-byte of \texttt{m\_cBuffer[m\_next\_index]}.
+
+\end{itemize}
+
+\end{itemize}
+
+\paragraph{\texttt{sync\_pulse\_generator}}
+\label{par:comp_detector_syncpgen}
+\noindent \\
+\\
+\textbf{Short description:}\\
+This component generates synchronisation pulses.\\
+\\
+\textbf{Defined in files:}\\
+\texttt{channel/detector/sync\_pulse\_generator.h}\\
+\texttt{channel/detector/sync\_pulse\_generator.cpp}\\
+\\
+\textbf{Properties:}
+\begin{lstlisting}
+detection_mode m_eDetectionMode; /**< the detection mode in which the
+                                      detector at Alice side is running */
+bool m_bDetReady;                /**< states whether the detection elements
+                                      are ready so that the next sync pulse is allowed to be generated */
+bool m_bDown[4];                 /**< stores the down states of the four
+                                      detection elements (0 = H, 1 = V, 2 = P, 3 = M) */
+unsigned int m_nSyncInitiator;   /**< stores the index of the detection
+                                      element that initiated the last sync pulse */
+bool m_wndg_ready;               /**< states whether the window generator is
+                                      ready so that the next sync pulse is allowed to be generated */
+\end{lstlisting}
+\noindent
+\textbf{Component behaviour during simulation:}
+\begin{itemize}
+
+\item When an \texttt{init} event is received, \texttt{m\_det\_ready} and \texttt{m\_wndg\_ready} are initialised to \texttt{true} and \texttt{m\_bDown[i]} is initialised to \texttt{false} for \texttt{i} = 0 to 3.
+
+\item When a \texttt{detector\_pulse} event \texttt{ev} is received, the following steps are performed:
+
+\begin{enumerate}
+
+\item An \texttt{unsigned int} variable \texttt{det\_ind} is set to a value depending on the event's \texttt{m\_cData.m\_phs} member as specified in Table \ref{tab:com_detector_syncpgen}.
+
+\item If \texttt{m\_det\_ready} and \texttt{m\_wndg\_ready} both are \texttt{true}, the following steps are performed:
+
+\begin{enumerate}
+
+\item A new \texttt{sync\_pulse} event with \texttt{high} priority is created and added to the parent event handler.
+
+\item The \texttt{m\_wndg\_ready} is set to \texttt{false}, because the newly generated sync pulse event will cause the \texttt{window\_generator} to open a new window, and the \texttt{m\_wndg\_ready} should now be \texttt{false} to indicate that the \texttt{window\_generator} is busy now.
+
+\item If \texttt{m\_eDetectionMode} is equal to \texttt{sync\_initiator\_ready} and \texttt{ev.m\_cData.m\_bDown} is \texttt{true}, \texttt{m\_sync\_initiator} is set to \texttt{det\_ind} and \texttt{m\_det\_ready} is set to \texttt{false} (to indicate that the \texttt{detection\_element} that initiated the sync pulse is now down, and the \texttt{sync\_pulse\_generator} is therefore currently not ready to generate a new sync pulse).
+
+\end{enumerate}
+
+\item If \texttt{ev.m\_cData.m\_bDown} is \texttt{true}, \texttt{m\_bDown[det\_ind]} is set to \texttt{true} to indicate that the specific \texttt{detection\_element} is now down. If, in this case, additionally \texttt{m\_eDetectionMode} is equal to \texttt{sync\_all\_ready}, then \texttt{m\_det\_ready} is set to \texttt{false} (to indicate that the \texttt{sync\_pulse\_generator} is currently not ready to generate a new sync pulse, because one of the detection elements is down).
+
+\end{enumerate}
+
+\item When a \texttt{down\_end} event is received, the following steps are performed:
+
+\begin{enumerate}
+
+\item An \texttt{unsigned int} variable \texttt{det\_ind} is set to a value depending on the event's \texttt{m\_cData.m\_phs} member as specified in Table \ref{tab:com_detector_syncpgen}.
+
+\item \texttt{m\_bDown[det\_ind]} is set to \texttt{false} (to indicate that the specific \texttt{detection\_element} is now ready again).
+
+\item If \texttt{m\_eDetectionMode} is equal to \texttt{sync\_initiator\_ready} and \texttt{det\_ind} is equal to \texttt{m\_sync\_initiator}, \texttt{m\_det\_ready} is set to \texttt{true} (because the \texttt{detection\_element} that initiated the sync pulse is now ready again, and the \texttt{sync\_pulse\_generator} is therefore ready to generate a new sync pulse).
+
+\item If \texttt{m\_eDetectionMode} is equal to \texttt{sync\_all\_ready}, \texttt{m\_det\_ready} is assigned the expression\\
+\texttt{(!m\_bDown[0]) \&\& (!m\_bDown[1]) \&\& (!m\_bDown[2]) \&\& (!m\_bDown[3])}\\
+so that it becomes \texttt{true} if all four \texttt{detection\_element}s are ready, or \texttt{false} otherwise.
+
+\end{enumerate}
+
+\item When a \texttt{window\_end} event is received, \texttt{m\_wndg\_ready} is set to \texttt{true} to indicate that the \texttt{window\_generator} has closed its window and is now ready to open a new window.
+
+\end{itemize}
+
+\begin{table}[H]
+\begin{tabular}{| c | c |}
+\hline
+  \textbf{\texttt{m\_cData.m\_phs}} & \textbf{\texttt{det\_ind}} \\
+\hline
+  \texttt{horizontal} & 0 \\
+\hline
+  \texttt{vertical} & 1 \\
+\hline
+  \texttt{plus} & 2 \\
+\hline
+  \texttt{minus} & 3 \\
+\hline
+\end{tabular}
+\caption{Relation of \texttt{det\_ind} to \texttt{m\_cData.m\_phs}}
+\label{tab:com_detector_syncpgen}
+\end{table}
+
+\paragraph{\texttt{sync\_pulse\_receiver}}
+\label{par:comp_detector_syncprcv}
+\noindent \\
+\\
+\textbf{Short description:}\\
+This component receives and detects synchronisation pulses.\\
+\\
+\textbf{Defined in files:}\\
+\texttt{channel/detector/sync\_pulse\_receiver.h}\\
+\texttt{channel/detector/sync\_pulse\_receiver.cpp}\\
+\\
+\textbf{Properties:}
+\begin{lstlisting}
+double m_nDelay;                 /**< delay time in ns */
+detection_mode m_eDetectionMode; /**< the detection mode in which the
+                                      detector at Bob side is running */
+bool m_bDown[4];                 /**< stores the down states of the four
+                                      detection elements (0 = H, 1 = V, 2 = P, 3 = M) */
+double m_nJitter;                /**< jitter standard deviation in ns */
+\end{lstlisting}
+\noindent
+\textbf{Component behaviour during simulation:}
+\begin{itemize}
+
+\item When an \texttt{init} event is received, \texttt{m\_bDown[i]} is initialised to \texttt{false} for \texttt{i} = 0 to 3.
+
+\item When a \texttt{detector\_pulse} event \texttt{ev} is received and \texttt{ev.m\_cData.m\_bDown} is \texttt{true}, \texttt{m\_bDown[det\_ind]} is set to \texttt{true}, where \texttt{det\_ind} is selected depending on \texttt{ev.m\_cData.m\_phs} as shown in Table \ref{tab:com_detector_syncpgen}.
+
+\item When a \texttt{down\_end} event \texttt{ev} is received, \texttt{m\_bDown[det\_ind]} is set to \texttt{false}, where \texttt{det\_ind} is selected depending on \texttt{ev.m\_cData.m\_phs} as shown in Table \ref{tab:com_detector_syncpgen}.
+
+\item When a \texttt{sync\_pulse} event coming from the parent event handler is received, a new event of type \texttt{sync\_pulse} is created and sent to this component, with the event time set to occur after some delay time \texttt{td}, that is calculated as the sum of \texttt{m\_nDelay} plus a random value of Gaussian distribution with mean value 0 and standard deviation \texttt{m\_nJitter}, but \texttt{td} is constrained to be non-negative - if it is negative, the jitter random value is ``reshuffled'' until \texttt{td} is non-negative.
+
+\item When a \texttt{sync\_pulse} event coming from this component is received, if it is the case that \texttt{m\_eDetectionMode} is equal to \texttt{sync\_all\_ready} and \texttt{m\_bDown[i]} is \texttt{true} for some \texttt{i} in the range from 0 to 3, a new event of type \texttt{sync\_pulse\_bad} is sent to the parent event handler - otherwise, a new event of type \texttt{sync\_pulse} is sent to the parent event handler.
+
+\end{itemize}
+
+\paragraph{\texttt{window\_generator}}
+\label{par:comp_detector_wndgen}
+\noindent \\
+\\
+\textbf{Short description:}\\
+This component simulates a window generator.\\
+\\
+\textbf{Defined in files:}\\
+\texttt{channel/detector/window\_generator.h}\\
+\texttt{channel/detector/window\_generator.cpp}\\
+\\
+\textbf{Properties:}
+\begin{lstlisting}
+bool     m_wnd_active;        /**< states whether the window generator is
+                                   currently outputting a window */
+ch_ev_id m_window_end_ev_id;  /**< channel event identifier of window_end
+                                   event in case it has been set */
+double   m_window_width;      /**< window width in ns */
+\end{lstlisting}
+\noindent
+\textbf{Component behaviour during simulation:}
+\begin{itemize}
+
+\item If an \texttt{init} event is received, \texttt{m\_wnd\_active} is set to \texttt{false}.
+
+\item If a \texttt{sync\_pulse} event is received, the following steps are performed:
+
+\begin{enumerate}
+
+\item If \texttt{m\_wnd\_active} is \texttt{true}, the event identified by \texttt{m\_window\_end\_ev\_id} (that is the previously set \texttt{window\_end} event) is removed from the \texttt{channel\_event\_manager}'s event queue.
+
+\item \texttt{m\_wnd\_active} is set to \texttt{true}.
+
+\item A new \texttt{window\_end} event of \texttt{superhigh} priority is created and sent to this component, where the event time is set to occur after a waiting time according to the value of \texttt{m\_window\_width}. The identifier of the newly created event is stored in \texttt{m\_window\_end\_ev\_id}.
+
+\item A new \texttt{window\_start} event of \texttt{high} priority is created and sent to the parent event handler.
+
+\end{enumerate}
+
+\item If a \texttt{sync\_pulse\_bad} event is received while \texttt{m\_wnd\_active} is \texttt{true}, the following steps are performed:
+
+\begin{enumerate}
+
+\item The event identified by \texttt{m\_window\_end\_ev\_id} (that is the previously set \texttt{window\_end} event) is removed from the \texttt{channel\_event\_manager}'s event queue.
+
+\item \texttt{m\_wnd\_active} is set to \texttt{false}.
+
+\item A new \texttt{window\_end\_bad} event of \texttt{superhigh} priority is created and sent to the parent event handler.
+
+\end{enumerate}
+
+\item If a \texttt{sync\_pulse\_bad} event is received while \texttt{m\_wnd\_active} is \texttt{false}, a new \texttt{sync\_pulse\_bad} event is created and sent to the parent event handler.
+
+\item If a \texttt{window\_end} event is received, \texttt{m\_wnd\_active} is set to \texttt{false}, and the event is forwarded to the parent event handler.
+
+\end{itemize}
+
+\subsubsection{\texttt{fiber}}
+\label{subsubsec:comp_fiber}
+
+\textbf{Short description:}\\
+This component simulates the transmission fiber for photons and the sync pulse.\\
+\\
+\textbf{Defined in files:}\\
+\texttt{channel/fiber.h}\\
+\texttt{channel/fiber.cpp}\\
+\\
+\textbf{Properties:}
+\begin{lstlisting}
+double m_nAbsorptionCoefficient;  /**< absorption coefficient in dB/km */
+double m_nLength;                 /**< length of the fiber in km */
+bool m_bLoss;                     /**< transmission loss */
+\end{lstlisting}
+\noindent
+\textbf{Subcomponents:}
+\begin{lstlisting}
+delay_line m_delay_line;                   /**< the photon delay line */
+delay_line m_delay_line_sync;              /**< the sync pulse delay line */
+fiber_quantum m_fiber_quantum;             /**< the quantum optical fiber */
+fiber_sync m_fiber_sync;                   /**< the sync transmission 
+                                                fiber */
+noise_photon_source m_noise_photon_source; /**< the noise photon source */
+\end{lstlisting}
+\noindent
+\textbf{Component behaviour for parameter configuration:}
+\begin{itemize}
+
+\item If \texttt{m\_nLength} is changed, the new value is also set for the \texttt{m\_length} property of \texttt{m\_fiber\_quantum}.
+
+\item If \texttt{m\_nAbsorptionCoefficient} or \texttt{m\_bLoss} are changed, the \texttt{m\_absorption\_coefficient} property of \texttt{m\_fiber\_quantum} is also updated accordingly: If \texttt{m\_bLoss} is \texttt{true}, \texttt{m\_absorption\_coefficient} of the \texttt{m\_fiber\_quantum} is set to \texttt{m\_nAbsorptionCoefficient}. If \texttt{m\_bLoss} is \texttt{false}, \texttt{m\_absorption\_coefficient} of the \texttt{m\_fiber\_quantum} is set to 0.
+\end{itemize}
+\noindent
+\textbf{Component behaviour during simulation:}\\
+This component does event forwarding as described in Table \ref{tab:comp_fiber_evfwd}.
+
+\begin{table}[H]
+\begin{tabular}{ | l | l || l | }
+\hline
+\multicolumn{1}{|c|}{\textbf{Event type}} & \multicolumn{1}{c||}{\textbf{Source}} & \multicolumn{1}{c|}{\textbf{Destination}} \\
+\hline \hline
+\texttt{photon} & parent & \texttt{m\_fiber\_quantum} \\
+\cline{2-3}
+ & \texttt{m\_fiber\_quantum} & \texttt{m\_cDelayLine} \\
+\cline{2-3}
+ & \texttt{m\_noise\_photon\_source} & \texttt{m\_cDelayLine} \\
+\cline{2-3}
+ & \texttt{m\_cDelayLine} & parent \\
+\hline
+\texttt{sync\_pulse} & parent & \texttt{m\_fiber\_sync} \\
+\cline{2-3}
+ & \texttt{m\_fiber\_sync} & \texttt{m\_cDelayLineSync} \\
+\cline{2-3}
+ & \texttt{m\_cDelayLineSync} & parent \\
+\hline
+\end{tabular}
+\caption{Event forwarding in the \texttt{fiber} component}
+\label{tab:comp_fiber_evfwd}
+\end{table}
+
+\paragraph{\texttt{delay\_line}}
+\noindent \\
+\\
+\textbf{Short description:}\\
+This component simulates the delay line for photons or sync pulses.\\
+\\
+\textbf{Defined in files:}\\
+\texttt{channel/fiber/delay\_line.h}\\
+\texttt{channel/fiber/delay\_line.cpp}\\
+\\
+\textbf{Properties:}\\
+\begin{lstlisting}
+double m_delay_time; /**< delay time in ns */
+\end{lstlisting}
+\noindent
+\textbf{Component behaviour during simulation:}\\
+Whenever the \texttt{delay\_line} receives an event of type \texttt{photon} or \texttt{sync\_pulse}, it forwards the event to its parent event handler, but with the \texttt{m\_time} member of the event increased according to the \texttt{m\_nDelayTime} member set for the \texttt{delay\_line}.
+
+\paragraph{\texttt{fiber\_quantum}}
+\noindent \\
+\\
+\textbf{Short description:}\\
+This component simulates the quantum transmission fiber.\\
+\\
+\textbf{Defined in files:}\\
+\texttt{channel/fiber/fiber\_quantum.h}\\
+\texttt{channel/fiber/fiber\_quantum.cpp}\\
+\\
+\textbf{Properties:}\\
+\begin{lstlisting}
+double m_absorption_coefficient;    /**< absorption coefficient in dB/km */
+double m_length;                    /**< fiber length in km */
+double m_transmission_probability;  /**< probability of photon not getting 
+                                        absorbed during transmission
+                                        [0 - 1] */
+\end{lstlisting}
+\noindent
+\textbf{Component behaviour for parameter configuration:}
+\begin{itemize}
+
+\item If the \texttt{m\_absorption\_coefficient} or \texttt{m\_length} property is changed, \\
+\texttt{update\_transmission\_probability()} is called.
+
+\item Behaviour of \texttt{update\_transmission\_probability()}:
+
+\begin{itemize}
+
+\item \texttt{m\_transmission\_probability} is set to\\
+\texttt{pow(10.0, -m\_length * m\_absorption\_coefficient / 10.0)}\\
+where \texttt{pow} is the power function defined in header \texttt{<cmath>}.
+
+\end{itemize}
+
+\end{itemize}
+\noindent
+\textbf{Component behaviour during simulation:}\\
+Whenever the \texttt{fiber\_quantum} receives a \texttt{photon} event, with a probability of \texttt{m\_transmission\_probability} it forwards the event to its parent event handler, or in the other case, it sets the \texttt{m\_eStateB} member of the \texttt{photon\_pair} identified by the \texttt{m\_cData.m\_php\_id} member of the incoming event to \texttt{absorbed}, and if then \texttt{m\_eStateA} of the \texttt{photon\_pair} is also \texttt{absorbed}, the \texttt{fiber\_quantum} removes the \texttt{photon\_pair} from the \texttt{photon\_pair\_manager}'s photon pair map.
+
+\paragraph{\texttt{fiber\_sync}}
+\noindent \\
+\\
+\textbf{Short description:}\\
+This component simulates the sync pulse transmission fiber.\\
+\\
+\textbf{Defined in files:}\\
+\texttt{channel/fiber/fiber\_sync.h}\\
+\texttt{channel/fiber/fiber\_sync.cpp}\\
+\\
+\textbf{Component behaviour during simulation:}\\
+Whenever the \texttt{fiber\_sync} receives a \texttt{sync\_pulse} event, it forwards the event to its parent event handler.
+
+\paragraph{\texttt{noise\_photon\_source}}
+\noindent \\
+\\
+\textbf{Short description:}\\
+This component simulates the noise photons interspersed into the quantum fiber.\\
+\\
+\textbf{Defined in files:}\\
+\texttt{channel/fiber/noise\_photon\_source.h}\\
+\texttt{channel/fiber/noise\_photon\_source.cpp}\\
+\\
+\textbf{Properties:}
+\begin{lstlisting}
+double m_noise_photon_rate; /**< noise photon rate in 1/s */
+\end{lstlisting}
+\noindent
+\textbf{Component behaviour during simulation:}\\
+According to the specified noise photon rate (stored in \texttt{m\_noise\_photon\_rate} member), the \texttt{noise\_photon\_source} generates photon pairs, in which an exponentially distributed time between consecutive photon pair generation events is simulated. Whenever a photon pair is generated, the following steps are performed:
+
+\begin{enumerate}
+
+\item A new \texttt{photon\_pair} object is created. The \texttt{m\_eStateA} member is set to \texttt{absorbed} and \texttt{m\_eStateB} is set to \texttt{nonpolarized}.
+
+\item The new \texttt{photon\_pair} is inserted into the \texttt{photon\_pair\_manager}'s photon pair map. In doing so, a unique identifier (ID) is assigned to the photon pair.
+
+\item The \texttt{noise\_photon\_source} generates a new \texttt{photon} event, whose \texttt{m\_cData.m\_php\_id} member is set to the ID of the new photon pair, and sends this event to its parent event handler.
+
+\end{enumerate}
+
+
+\subsubsection{\texttt{source}}
+
+\textbf{Short description:}\\
+This component simulates the EPR source.\\
+\\
+\textbf{Defined in files:}\\
+\texttt{channel/source.h}\\
+\texttt{channel/source.cpp}\\
+\\
+\textbf{Properties:}
+\begin{lstlisting}
+double m_nPhotonRate;             /**< photon rate in 1/s */
+double m_nSignalErrorProbablity;  /**< signal/error probability [0-1] */
+\end{lstlisting}
+\noindent
+\textbf{Component behaviour during simulation:}\\
+According to the specified photon rate (stored in \texttt{m\_nPhotonRate} member), the \texttt{source} generates photon pairs, in which an exponentially distributed time between consecutive photon pair generation events is simulated. Whenever a photon pair is generated, the following steps are performed:
+
+\begin{enumerate}
+
+\item A new \texttt{photon\_pair} object is created. The \texttt{m\_eStateA} and \texttt{m\_eStateB} members are set to \texttt{photon\_state::entangled}, and the \texttt{entanglement\_error} member is set to the \texttt{m\_nSignalErrorProbablity} property of the \texttt{source}.
+
+\item The new \texttt{photon\_pair} is inserted into the \texttt{photon\_pair\_manager}'s photon pair map. In doing so, a unique identifier (ID) is assigned to the photon pair.
+
+\item The \texttt{source} generates a new \texttt{photon} event, whose \texttt{m\_cData.m\_php\_id} member is set to the ID of the new photon pair, and sends this event to its parent event handler.
+
+\end{enumerate}

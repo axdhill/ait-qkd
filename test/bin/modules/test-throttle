@@ -1,0 +1,223 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-throttle
+# 
+# This is a test file.
+#
+# TEST: test the qkd throttle module
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+
+# ------------------------------------------------------------
+
+# init test environment
+test_init
+
+# we need the GNU console based calculator bc
+which bc &> /dev/null
+if [ "$?" != "0" ]; then
+    echo "GNU console calculator 'bc' not found. Please install one from http://www.gnu.org/software/bc/bc.html"
+    exit 1
+fi
+
+# zap previous keys
+rm -rf throttle-keys.* &> /dev/null
+
+# create keys
+#    10 keys
+#  2000 bits each
+# 20000 bits total
+${TEST_BASE}/bin/qkd-key-gen --keys=10 --size=250 throttle-keys
+
+# ---- test: maximum of 5000 bps ----
+
+
+# some info about what we are doing
+echo "test: throttle to 5000 bps --> minimum of 4 seconds needed for all keys (20000 bits in total)"
+
+# start the qkd-throttle module in the background 
+# with stdin:// and with maximum of 5000 bps
+( cat throttle-keys.alice | ${TEST_BASE}/bin/qkd-throttle --debug --bits 5000 1> keys.throttled 2>> throttle_debug.bps ) &
+sleep 1
+
+# pick the module
+MODULE_SERVICE=$(qkd_qdbus | grep at.ac.ait.qkd.module.throttle)
+if [ "${MODULE_SERVICE}" = "" ]; then
+    echo "failed to start throttle QKD module"
+    exit 1
+fi
+
+# set stdin and stdout for the module
+qkd_qdbus ${MODULE_SERVICE} /Module set_urls "stdin://" "stdout://" "" ""
+qkd_qdbus ${MODULE_SERVICE} /Module run
+PIPE_IN=$(qkd_qdbus ${MODULE_SERVICE} /Module url_pipe_in)
+
+# check if these URLs hold
+if [ "${PIPE_IN}" != "stdin://" ]; then
+    echo "failed to set stdin:// as pipe in"
+    exit 1
+fi
+
+# let the module fullfill the job
+THROTTLE_TIMING=$( { time (
+
+    # failed signal file
+    rm -f failed &> /dev/null
+    
+    qkd_qdbus ${MODULE_SERVICE} /Module resume
+    sleep 1
+
+    # wait until all keys have been written
+    while :; do
+
+        # get number of keys written
+        KEYS_WRITTEN=$(qkd_qdbus ${MODULE_SERVICE} /Module keys_outgoing)
+        if [ "$?" != "0" ]; then
+            echo "failed to read number of keys written"
+            echo "throttle failed" > failed
+            exit 1
+        fi
+        
+        # when 10 keys are written we are done
+        if [ "${KEYS_WRITTEN}" -ge "10" ]; then
+            break;
+        fi
+        
+        sleep 1
+    done
+); } 2>&1 ) 
+
+# terminate the module
+qkd_qdbus ${MODULE_SERVICE} /Module terminate
+
+# check if the test failed
+if [ -f failed ]; then 
+    echo "throttle test failed"
+    rm -f failed &> /dev/null
+    exit 1
+fi
+
+# get the real seconds used
+THROTTLE_SECONDS=$(echo "${THROTTLE_TIMING}" | grep "^real" | awk '{ print $2; }' | cut -d 'm' -f 2 | cut -d 's' -f 1)
+
+# check if this number is greater or equal to 3.0
+# hint: the given bps or kps are maxmimum amount, if we have less
+# key material we are finished earlier, but for 20000 bits
+# with 5000 bps we must have at least 3 secs
+THROTTLE_OK=$(echo "${THROTTLE_SECONDS} >= 3.0" | bc)
+if [ "${THROTTLE_OK}" != "1" ]; then
+    echo "seconds used for thottle is '${THROTTLE_SECONDS}' which is not greater or equal to 4.0 (as it should): test failed"
+    exit 1
+fi
+echo "throttle for max bits per seconds ok"
+
+
+# ---- test: maximum of 1 key per second ----
+
+
+# some info about what we are doing
+echo "test: throttle to 1 key per second --> minimum of 10 seconds needed for all keys"
+
+# start the qkd-throttle module in the background 
+# with stdin:// and with maximum of 4000 bps
+( cat throttle-keys.alice | ${TEST_BASE}/bin/qkd-throttle --debug --keys 1 1> keys.throttled 2>> throttle_debug.kps) &
+sleep 1
+
+# pick the module
+MODULE_SERVICE=$(qkd_qdbus | grep at.ac.ait.qkd.module.throttle)
+if [ "${MODULE_SERVICE}" = "" ]; then
+    echo "failed to start throttle QKD module"
+    exit 1
+fi
+
+# set stdin and stdout for the module
+qkd_qdbus ${MODULE_SERVICE} /Module set_urls "stdin://" "stdout://" "" ""
+qkd_qdbus ${MODULE_SERVICE} /Module run
+PIPE_IN=$(qkd_qdbus ${MODULE_SERVICE} /Module url_pipe_in)
+
+# check if these URLs hold
+if [ "${PIPE_IN}" != "stdin://" ]; then
+    echo "failed to set stdin:// as pipe in"
+    exit 1
+fi
+
+# let the module fullfill the job
+THROTTLE_TIMING=$( { time (
+
+    # failed signal file
+    rm -f failed &> /dev/null
+    
+    qkd_qdbus ${MODULE_SERVICE} /Module resume
+    sleep 1
+
+    # wait until all keys have been written
+    while :; do
+
+        # get number of keys written
+        KEYS_WRITTEN=$(qkd_qdbus ${MODULE_SERVICE} /Module keys_outgoing)
+        if [ "$?" != "0" ]; then
+            echo "failed to read number of keys written"
+            echo "throttle failed" > failed
+            exit 1
+        fi
+        
+        # when 10 keys are written we are done
+        if [ "${KEYS_WRITTEN}" -ge "10" ]; then
+            break;
+        fi
+        
+        sleep 1
+    done
+); } 2>&1 ) 
+
+# terminate the module
+qkd_qdbus ${MODULE_SERVICE} /Module terminate
+
+# check if the test failed
+if [ -f failed ]; then 
+    echo "throttle test failed"
+    rm -f failed &> /dev/null
+    exit 1
+fi
+
+# get the real seconds used
+THROTTLE_SECONDS=$(echo "${THROTTLE_TIMING}" | grep "^real" | awk '{ print $2; }' | cut -d 'm' -f 2 | cut -d 's' -f 1)
+
+# check if this number is greater or equal to 10.0
+THROTTLE_OK=$(echo "${THROTTLE_SECONDS} >= 10.0" | bc)
+if [ "${THROTTLE_OK}" != "1" ]; then
+    echo "seconds used for thottle is '${THROTTLE_SECONDS}' which is not greater or equal to 10.0 (as it should): test failed"
+    exit 1
+fi
+echo "throttle for max keys per seconds ok"
+
+# state that test ok
+echo "=== TEST SUCCESS ==="
+

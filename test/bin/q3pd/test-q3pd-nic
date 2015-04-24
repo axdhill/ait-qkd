@@ -1,0 +1,154 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-q3pd-nic
+# 
+# This is a test file.
+#
+# TEST: test the q3pd nic facility
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+
+# ------------------------------------------------------------
+
+# init test environment
+test_init
+
+# check if q3pd has CAP_NET_ADMIN capabilities set
+if [ "$(/sbin/getcap -vr ${TEST_BASE}/bin/q3pd/q3pd | grep 'cap_net_admin+ep' | wc -l)" != "1" ]; then
+    echo "CAP_NET_ADMIN capability missing on ${TEST_BASE}/bin/q3pd/q3pd"
+    echo "can't test NIC without this permission."
+    echo "please issue a:"
+    echo "      $ sudo setcap cap_net_admin=ep ${TEST_BASE}/bin/q3pd/q3pd"
+    exit 1
+fi
+
+# zap previous database
+rm -rf "${DB_ALICE_2_BOB}" &> /dev/null
+rm -rf "${DB_BOB_2_ALICE}" &> /dev/null
+
+# start both nodes
+q3pd_start "alice" --debug || exit $?
+q3pd_start "bob" --debug || exit $?
+
+while :; do
+    ( qkd_qdbus | grep at.ac.ait.q3p.node-alice &> /dev/null ) && break;
+done
+while :; do
+    ( qkd_qdbus | grep at.ac.ait.q3p.node-bob &> /dev/null) && break;
+done
+
+# launch alice
+qkd_qdbus at.ac.ait.q3p.node-alice /Node create_link "alice_to_bob" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob open_db "file://${DB_ALICE_2_BOB}" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob inject_url "file://${SHARED_SECRET_FILE}" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob org.freedesktop.DBus.Properties.Set at.ac.ait.q3p.link master "true" &> /dev/null
+
+# launch bob
+qkd_qdbus at.ac.ait.q3p.node-bob /Node create_link "bob_to_alice" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice open_db "file://${DB_BOB_2_ALICE}" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice inject_url "file://${SHARED_SECRET_FILE}" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice org.freedesktop.DBus.Properties.Set at.ac.ait.q3p.link slave "true" &> /dev/null
+
+# check for key presence
+KEYS_ALICE=$(qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob/CommonStore charge)
+KEYS_BOB=$(qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice/CommonStore charge)
+if [ "${KEYS_ALICE}" -lt "100" ]; then
+    echo "Not enough (<100) keys on alice side"
+    exit 1
+fi
+if [ "${KEYS_BOB}" -lt "100" ]; then
+    echo "Not enough (<100) keys on bob side"
+    exit 1
+fi
+
+# both should listen
+qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob listen "tcp://127.0.0.1:10011" "${SHARED_SECRET}" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice listen "tcp://127.0.0.1:10021" "${SHARED_SECRET}" &> /dev/null
+
+# let alice connect
+qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob connect "tcp://127.0.0.1:10021" "${SHARED_SECRET}" &> /dev/null
+
+# get up interfaces
+NIC_ALICE=$(qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob/NIC name)
+NIC_BOB=$(qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice/NIC name)
+echo "NIC_ALICE: ${NIC_ALICE}"
+if [ "${NIC_ALICE}" = "" ]; then
+    echo "Failed to get alice NIC. Permissions set?"
+    echo "If not EXECUTE: $ sudo setcap cap_net_admin=ep q3pd"
+    q3pd_stop "alice" || exit $?
+    q3pd_stop "bob" || exit $?
+    exit 1
+fi
+echo "NIC_BOB: ${NIC_BOB}"
+if [ "${NIC_BOB}" = "" ]; then
+    echo "Failed to get bob NIC. Permissions set?"
+    echo "If not EXECUTE: $ sudo setcap cap_net_admin=ep q3pd"
+    q3pd_stop "alice" || exit $?
+    q3pd_stop "bob" || exit $?
+    exit 1
+fi
+
+# setup addresses and configure "network"
+NIC_IP_ALICE="10.81.39.121"
+NIC_IP_BOB="10.81.39.122"
+sudo ip addr change ${NIC_IP_ALICE} dev ${NIC_ALICE}
+sudo ip addr change ${NIC_IP_BOB} dev ${NIC_BOB}
+sudo ip link set dev ${NIC_ALICE} mtu 65535
+sudo ip link set dev ${NIC_BOB} mtu 65535
+sudo ip link set dev ${NIC_ALICE} up
+sudo ip link set dev ${NIC_BOB} up
+sudo ip route add ${NIC_IP_ALICE} via ${NIC_IP_BOB}
+sudo ip route add ${NIC_IP_BOB} via ${NIC_IP_ALICE}
+
+
+# how to test this locally?
+exit 1
+
+# # test NIC facility
+# NIC_DATA_ORG="${TEST_BASE}/test/test-data/shared-secret-long"
+# NIC_DATA_DST="${TEST_BASE}/nic-received"
+# SERVER_PORT="5678"
+# CLIENT_PORT="9012"
+# rm -f ${NIC_DATA_DST} &> /dev/null
+# 
+# # check how many 
+# diff -q ${NIC_DATA_ORG} ${NIC_DATA_DST}
+# if [ "$?" != "0" ]; then
+#     echo "send/recv data via NIC differs"
+#     exit 1
+# fi
+# echo "q3pd NIC send/recv - ok"
+
+# stop machines
+q3pd_stop "alice" || exit $?
+q3pd_stop "bob" || exit $?
+
+# state that test ok
+echo "=== TEST SUCCESS ==="

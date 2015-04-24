@@ -1,0 +1,74 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-ping
+# 
+# This is a test file.
+#
+# TEST: test the qkd-ping module for module-2-module communication
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+
+# ------------------------------------------------------------
+
+# init test environment
+test_init
+
+# remove any previous files
+echo -n > ping.alice.output
+echo -n > ping.alice.debug
+echo -n > ping.bob.output
+echo -n > ping.bob.debug
+
+# start bob in the background
+( ${TEST_BASE}/bin/qkd-ping --debug --bob --run 1> ping.bob.output 2> ping.bob.debug ) &
+
+# run alice in the forground
+${TEST_BASE}/bin/qkd-ping --debug --count 50 --sleep 100 --run 1> ping.alice.output 2> ping.alice.debug
+
+# grap both outputs, reformat and compare them
+grep -a -o '(crc32: .*)' ping.alice.output 1> ping.alice.output.crc32
+grep -a -o '(crc32: .*)' ping.bob.output 1> ping.bob.output.crc32
+
+# check if these files differ
+diff -q ping.alice.output.crc32 ping.bob.output.crc32
+if [ "$?" != "0" ]; then
+    echo "result of qkd-ping roundtrips differ"
+    exit 1
+fi
+
+echo "qkd-ping works."
+
+# clean up any running instance
+test_cleanup
+
+# state that test ok
+echo "=== TEST SUCCESS ==="
+
+exit 0

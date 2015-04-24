@@ -1,0 +1,100 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-cascade-simple
+# 
+# This is a test file.
+#
+# TEST: test the cascade simple implementation
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+
+# ------------------------------------------------------------
+
+# init test environment
+test_init
+
+# zap previous keys
+rm -rf cat_keys.* &> /dev/null
+
+# trunacte previous debug out
+echo -n > cascade_debug.alice
+echo -n > cascade_debug.bob
+
+# create keys
+KEYS_TO_PROCESS="100"
+${TEST_BASE}/bin/qkd-key-gen --size 512 --keys ${KEYS_TO_PROCESS} --rate 0.03 cat_keys
+
+# start two pipelines
+cat ${TEST_BASE}/test/test-data/pipeline.conf | grep -v "^cat.alice.url_pipe_out" | grep -v "^cat.bob.url_pipe_out" > cascade.config
+echo "cat.alice.url_pipe_out = ipc:///tmp/qkd/cascade.alice.in" >> cascade.config
+echo "cat.bob.url_pipe_out = ipc:///tmp/qkd/cascade.bob.in" >> cascade.config
+
+# start two pipelines
+PIPELINE_CONFIG="cascade.config"
+
+# start the modules
+( ${TEST_BASE}/bin/qkd-cat --run --config ${PIPELINE_CONFIG} --file "cat_keys.alice" ) &
+( ${TEST_BASE}/bin/qkd-cat --bob --run --config ${PIPELINE_CONFIG} --file "cat_keys.bob" ) &
+( ${TEST_BASE}/bin/qkd-cascade --debug --run --config ${PIPELINE_CONFIG} 1> cascade_keys.alice 2>> cascade_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-cascade --debug --bob --run --config ${PIPELINE_CONFIG} 1> cascade_keys.bob 2>> cascade_debug.bob ) &
+
+# wait until the modules are up
+while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module.cascade | wc -l)" = "0" ]; do
+    echo "waiting for the pipeline to ignite ..."
+    sleep 1
+done
+
+# wait until all keys have been processed
+sleep 1
+wait_stalled cat cascade
+echo "got keys"
+
+# stop machines
+test_cleanup
+
+# check how many 
+if [ ! -s cascade_keys.alice ]; then
+    echo "alice has not pushed keys"
+    exit 1
+fi
+if [ ! -s cascade_keys.bob ]; then
+    echo "bob has not pushed keys"
+    exit 1
+fi
+diff -q cascade_keys.alice cascade_keys.bob
+if [ "$?" != "0" ]; then
+    echo "cascade created different results - failed"
+    exit 1
+fi
+echo "cascade corrected keys - ok"
+
+# state that test ok
+echo "=== TEST SUCCESS ==="
+

@@ -1,0 +1,25 @@
+\chapter{The AIT QKD Management}
+\label{chap:The AIT QKD Management}
+
+TBD
+
+
+
+\clearpage
+
+\section{Management}
+\label{sec:Management}
+
+In order to orchestrate all QKD Modules and to react to hardware events a management mechanism has been introduced. At the core of the management facility lies the DBus\footnote{\url{http://www.freedesktop.org/wiki/Software/dbus}}.
+
+\medskip
+
+DBus is the acronym for distributed bus and is a yet another IPC\footnote{Inter Process Communication} mechanism. What sets it apart is the fact, that most of modern desktop environments on Linux like Gnome\footnote{\url{http://www.gnome.org}} and KDE\footnote{i\url{http://www.kde.org}} are heavily depending on DBus to achieve inter application data exchange and messaging in modern user centric graphic interfaces. This communication technique is therefore the de facto standard. DBus itself is maintained by the freedesktop.org foundation which is not affiliated with the AIT in any way. The widespread usage of DBus guarantees its continuity and the availability of tools, support and know-how also outside the AIT.
+
+\medskip
+
+The AIT recommends the QDbusViewer of Qt\footnote{\url{http://www.qt-project.org/}} for a quick visual browsing of available variables and values of a running QKD installation. Next is \texttt{qdbus}, part of a DBus installation. The later is a command line program which can be used in scripts to analyze and watch certain values published on the DBus like error rate, key store size, shared secret bit rate, etc.
+
+\medskip
+
+For scripting and command line the AIT recommends the \texttt{qdbus} tool which is shipped with an DBus-enabled instance of the Qt framework mentioned above.

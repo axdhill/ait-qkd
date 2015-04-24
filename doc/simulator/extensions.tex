@@ -1,0 +1,115 @@
+\section{Extension of the QKD Simulator's Functionality}
+
+The framework provided by the event and photon pair management in the QKD simulator can be used to extend its functionality by changing the implementation of some system components or adding new ones. Here are some important remarks for doing so:
+
+\begin{itemize}
+
+\item If a new system component is to be created, it must be implemented in a class that is derived from the \texttt{ch\_event\_handler} base class defined in \texttt{channel/ch\_event\_handler.h} and \texttt{channel/ch\_event\_handler.cpp}. Especially, the new component should redefine the virtual \texttt{handle\_event} function that defines the component's behaviour during the simulation by specifying how it reacts to specific events.
+
+\item If a channel event handler contains subcomponents, it should redefine the \texttt{init\_evh} function originally defined in the \texttt{ch\_event\_handler} base class, and the redefined function should always at first call the base class function by executing the line:
+\begin{lstlisting}
+this->ch_event_handler::init_evh(evh_parent, evm, phpm);
+\end{lstlisting}
+and secondly, for all subcomponents, it should call their \texttt{init\_evh} function by executing:
+\begin{lstlisting}
+subcomponentname.init_evh(this, evm, phpm);
+\end{lstlisting}
+where \texttt{subcomponentname} is to be replaced by the name of the specific subcomponent.
+
+\item All channel event handlers can use the following pointers contained in the \texttt{ch\_event\_handler} base class:
+
+\begin{itemize}
+
+\item \texttt{m\_evh\_parent} is a pointer to the parent event handler (or \texttt{nullptr} if no parent is existing).
+
+\item \texttt{m\_evm} is a pointer to the channel event manager.
+
+\item \texttt{m\_phpm} is a pointer to the photon pair manager.
+
+\end{itemize}
+
+\item If a component should create new events during the simulation, refer to section \ref{subsec:concepts_events} where the rules for newly created events and component interaction are described. Especially, it should be kept in mind that no acausal events may be created (which means that the \texttt{m\_time} member of the newly created \texttt{ch\_event} must not be set to a value smaller than \texttt{m\_evm->get\_time()} (this function call returns the current simulation time)).
+
+\item If a component needs to create or process photon pairs, refer to section \ref{subsec:concepts_photons} where the rules for photon pair creation and handling are described. Especially, it should be kept in mind that for each created \texttt{photon\_pair} object, it must be ensured that there is a channel event handler that deletes the \texttt{photon\_pair} object at the end of its usage time, because the photon pair manager does not by itself automatically delete \texttt{photon\_pair} objects.
+
+\item The \texttt{ch\_event\_manager} provides a \texttt{remove\_event} function that allows to remove an event by specifying its event ID, so that it will not be handled. However, this function should be used with care, because it has some limitations. Especially, when an event is created and afterwards removed by this function, this causes a temporal ``memory leak'' of at least 20 to 24 Byte size (or maybe some more due to overhead hidden in the internal implementations of the STL containers used by the QKD simulator) that persists until the simulation reaches the time when the originally created event would have occurred if it had not been removed. So, calling this function extremely often, especially for events that lie in far future, could in the worst case cause the main memory to be used up. In order to avoid this adverse effect, it will be necessary to change the implementation of the \texttt{ch\_event\_manager}. In particular, it seems to be necessary to write a new, more flexible implementation of a priority queue (or using a library that provides such a container) instead of using the STL library's \texttt{priority\_queue} container which regrettably doesn't seem to support random element removal.
+
+\end{itemize}
+
+\subsection{Adding Afterpulsing Simulation to the Detection Elements}
+\label{subsec:after_pulsing}
+
+\subsubsection{Derivation of the Afterpulsing Probability Distribution Function}
+
+In this section, a theoretical derivation of the afterpulse probability distribution function for the detection elements will be provided, and it will be described how this distribution function can be used as a basis for adding afterpulse simulation to the detection element's implementation.\\
+\\
+In the following derivations, a single detection element will be treated, and only the time horizon after the last down period (that followed a previous detector pulse) during which no further dark count or incident photon occurs will be considered.  
+
+Let $F_1(t)$ denote the probability that the first afterpulse occurs in the time interval $[0, t]$, where the time point $t = 0$ should be the end of the down period after the last detector pulse.
+
+For a very small time difference $\Delta t$, the probability that the first afterpulse occurs in the time interval $(t, t + \Delta t]$ is assumed to be given as
+\begin{equation}
+\label{eq:f1start}
+F_1(t+\Delta t)-F_1(t)=(1-F_1(t)) \cdot c \cdot \mathrm{exp}(-t/\tau)\,\Delta t
+\end{equation}
+where $(1-F_1(t))$ is the probability that the first afterpulse did not occur in the time interval $[0, t]$ and $c \cdot \mathrm{exp}(-t/\tau)$ is an afterpulse ``rate'' that is assumed to be proportional to the number of trapped carriers, which in turn is assumed to decay exponentially with a detrapping lifetime $\tau$ (cf. \cite[p.~2]{daSilva2011}). The product $c \cdot \mathrm{exp}(-t/\tau)\,\Delta t$ is therefore the probability that an afterpulse occurs in the time interval $(t, t + \Delta t]$ on the condition that no afterpulse occurred during the time interval $[0, t]$. The constant $c$ is proportional to the number of initially filled traps and will be determined later.
+
+Dividing both sides of Equation \ref{eq:f1start} by $\Delta t$, performing the limit $\Delta t \to 0$ and using
+\begin{equation}
+\label{eq:f1dlim}
+F_1'(t)=\lim_{\Delta t \to 0} \frac{F_1(t+\Delta t) - F_1(t)}{\Delta t}
+\end{equation}
+(where the limit is assumed to exist because Equation \ref{eq:f1start} should hold asymptotically for $\Delta t$ approaching zero) leads to the differential equation
+\begin{equation}
+\label{eq:f1de}
+F_1'(t)=(1-F_1(t)) \cdot c \cdot \mathrm{exp}(-t/\tau)
+\end{equation}
+Solving this for $F_1(t)$ and applying the initial condition $F_1(0)=0$ gives the result
+\begin{equation}
+\label{eq:f1sol}
+F_1(t)=1-\mathrm{exp}(-c \tau (1 - \mathrm{exp}(-t/\tau)))
+\end{equation}
+If it is now assumed that the detection element's dark count rate and the incident photon rate are so small that the average time between dark count or incident photon events is much greater than $\tau$, the total afterpulse probability is obtained from Equation \ref{eq:f1sol} as
+\begin{equation}
+\label{eq:ptotal}
+p_{total}=\lim_{t \to \infty} F_1(t)=1-\mathrm{exp}(-c \tau)
+\end{equation}
+because this is just the probability that the first afterpulse occurs in the time interval $[0, \infty)$, which means it is the probability that any afterpulse occurs at all. This result shows that $p_{total}$ is always strictly smaller than one. As mentioned above, Equation \ref{eq:ptotal} is only valid in the case that dark counts or incident photons are coming only very seldom during a time period in the order of magnitude of $\tau$, because if the are coming more frequently, the probability that a dark count or incident photon occurs before a possible afterpulse could occur becomes significant.
+
+Solving Equation \ref{eq:ptotal} for $c$ gives
+\begin{equation}
+\label{eq:csol}
+c=-\frac{1}{\tau}\mathrm{ln}(1-p_{total})
+\end{equation}
+
+\subsubsection{Simulation Method for Afterpulsing}
+
+The results of the previous subsection can now be used to simulate afterpulsing by application of the inverse transformation method. For this method, the inverse function of $F_1(t)$ is needed, which will be denoted as $F_1^{-1}(u)$ and is obtained by solving
+\begin{equation*}
+u=F_1(t)
+\end{equation*}
+for $t = F_1^{-1}(u)$ using Equation \ref{eq:f1sol}, which leads to
+\begin{equation}
+\label{eq:f1inv}
+F_1^{-1}(u)=-\tau\,\mathrm{ln}\left(1+\frac{\mathrm{ln}(1-u)}{c\tau}\right)
+\end{equation}
+
+The simulation algorithm now works as follows:
+
+\begin{enumerate}
+
+\item Obtain the parameters $\tau$ and $p_{total}$ from data sheets or measurements of the detection element.
+
+\item Calculate $c$ from Equation \ref{eq:csol}
+
+\item Generate a random number $u$ that is uniformly distributed in the interval $[0, 1)$.
+
+\item If $u \geq p_{total}$, no afterpulse shall be generated. However, if $u < p_{total}$, calculate $t$ using Equation~\ref{eq:f1inv} as
+\begin{equation*}
+t=F_1^{-1}(u)
+\end{equation*}
+and create an afterpulse event that occurs at time $t$ (measured relative to the end of the previous down period).
+
+\end{enumerate}
+
+The procedure described above is not complete, however, because it does not yet cover the cases that a dark count or incident photon event occurs before a previously set afterpulse event is handled, or the case that the detection element is disabled after an afterpulse event has been set. Therefore, the procedure described above is just to be seen as a basis that must be extended by additional functionality so that it can be used in the detection elements.

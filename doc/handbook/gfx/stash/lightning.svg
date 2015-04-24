@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://inkscape.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   inkscape:export-ydpi="72.000000"
+   inkscape:export-xdpi="72.000000"
+   inkscape:export-filename="/home/melzi/Pics/weather/lightning.png"
+   width="137.00000pt"
+   height="133.00000pt"
+   id="svg3103"
+   sodipodi:version="0.32"
+   inkscape:version="0.41.1"
+   sodipodi:docbase="/home/melzi/Pics/weather"
+   sodipodi:docname="lightning.svg">
+  <defs
+     id="defs3105">
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient9611">
+      <stop
+         style="stop-color:#ffc800;stop-opacity:1;"
+         offset="0"
+         id="stop9613" />
+      <stop
+         style="stop-color:#ffc800;stop-opacity:0;"
+         offset="1"
+         id="stop9615" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3211">
+      <stop
+         style="stop-color:#b4b4b4;stop-opacity:1;"
+         offset="0"
+         id="stop3213" />
+      <stop
+         style="stop-color:#f0f0f0;stop-opacity:0;"
+         offset="1"
+         id="stop3215" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient4161">
+      <stop
+         style="stop-color:#ffc800;stop-opacity:1;"
+         offset="0"
+         id="stop4163" />
+      <stop
+         style="stop-color:#ffc100;stop-opacity:0;"
+         offset="1"
+         id="stop4165" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient5079">
+      <stop
+         style="stop-color:white;stop-opacity:1;"
+         offset="0"
+         id="stop5081" />
+      <stop
+         style="stop-color:white;stop-opacity:0"
+         offset="1"
+         id="stop5083" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient5079"
+       id="linearGradient1554"
+       gradientUnits="userSpaceOnUse"
+       x1="547.49896"
+       y1="146.65633"
+       x2="555.45441"
+       y2="143.83321" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient5079"
+       id="linearGradient1556"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(57.00000,-24.00000)"
+       x1="547.49896"
+       y1="146.65633"
+       x2="555.45441"
+       y2="143.83321" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient5079"
+       id="linearGradient1558"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(57.00000,-24.00000)"
+       x1="547.49896"
+       y1="146.65633"
+       x2="555.45441"
+       y2="143.83321" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient5079"
+       id="linearGradient1560"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(57.00000,-24.00000)"
+       x1="547.49896"
+       y1="146.65633"
+       x2="555.45441"
+       y2="143.83321" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient5079"
+       id="linearGradient1562"
+       gradientUnits="userSpaceOnUse"
+       x1="547.49896"
+       y1="146.65633"
+       x2="555.45441"
+       y2="143.83321" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient5079"
+       id="linearGradient1564"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(57.00000,-24.00000)"
+       x1="547.49896"
+       y1="146.65633"
+       x2="555.45441"
+       y2="143.83321" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient5079"
+       id="linearGradient1566"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(57.00000,-24.00000)"
+       x1="547.49896"
+       y1="146.65633"
+       x2="555.45441"
+       y2="143.83321" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient5079"
+       id="linearGradient1568"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(57.00000,-24.00000)"
+       x1="547.49896"
+       y1="146.65633"
+       x2="555.45441"
+       y2="143.83321" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient9611"
+       id="linearGradient1570"
+       gradientUnits="userSpaceOnUse"
+       x1="208.62442"
+       y1="119.7196"
+       x2="208.62442"
+       y2="163.79573" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient5079"
+       id="linearGradient1572"
+       gradientUnits="userSpaceOnUse"
+       x1="847.01324"
+       y1="23.273985"
+       x2="847.01324"
+       y2="64.715645" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3211"
+       id="linearGradient1574"
+       gradientUnits="userSpaceOnUse"
+       x1="440.10486"
+       y1="613.38153"
+       x2="440.10486"
+       y2="693.25641" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient4161"
+       id="linearGradient1576"
+       gradientUnits="userSpaceOnUse"
+       x1="674.64966"
+       y1="874.65875"
+       x2="674.64966"
+       y2="954.76569" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="4.6024096"
+     inkscape:cx="83.000000"
+     inkscape:cy="83.000000"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer3"
+     inkscape:window-width="1278"
+     inkscape:window-height="944"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     showborder="false" />
+  <metadata
+     id="metadata3108">
+    <rdf:RDF
+       id="RDF30">
+      <cc:Work
+         rdf:about=""
+         id="Work32">
+        <dc:format
+           id="format34">image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage"
+           id="type36" />
+        <dc:title
+           id="title38">weather</dc:title>
+        <dc:date
+           id="date40">11.16.2006</dc:date>
+        <dc:creator
+           id="creator42">
+          <cc:Agent
+             id="Agent44">
+            <dc:title
+               id="title46">Raoul René Melcer</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <cc:license
+           rdf:resource="http://web.resource.org/cc/PublicDomain"
+           id="license48" />
+        <dc:publisher
+           id="publisher50">
+          <cc:Agent
+             id="Agent52">
+            <dc:title
+               id="title54">Raoul René Melcer</dc:title>
+          </cc:Agent>
+        </dc:publisher>
+        <dc:source
+           id="source56">melcer@gmx.ch</dc:source>
+        <dc:relation
+           id="relation58" />
+        <dc:subject
+           id="subject60">
+          <rdf:Bag
+             id="Bag62">
+            <rdf:li
+               id="li11840">thunder</rdf:li>
+            <rdf:li
+               id="li11842">lightning</rdf:li>
+            <rdf:li
+               id="li11844">weather</rdf:li>
+            <rdf:li
+               id="li11846">symbol</rdf:li>
+            <rdf:li
+               id="li11848">card</rdf:li>
+            <rdf:li
+               id="li11850">map</rdf:li>
+          </rdf:Bag>
+        </dc:subject>
+        <dc:rights
+           id="rights86">
+          <cc:Agent
+             id="Agent88">
+            <dc:title
+               id="title90">Raoul René Melcer</dc:title>
+          </cc:Agent>
+        </dc:rights>
+        <dc:identifier
+           id="identifier92">melcer@gmx.ch</dc:identifier>
+        <dc:description
+           id="description94">for weather application or map. you must deletet/hidden the groups/layers you dont use.</dc:description>
+      </cc:Work>
+      <cc:License
+         rdf:about="http://web.resource.org/cc/PublicDomain"
+         id="License96">
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/Reproduction"
+           id="permits98" />
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/Distribution"
+           id="permits100" />
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/DerivativeWorks"
+           id="permits102" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="sun"
+     inkscape:groupmode="layer"
+     id="layer1"
+     style="opacity:1;display:inline" />
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="moon"
+     style="display:inline" />
+  <g
+     inkscape:groupmode="layer"
+     id="layer3"
+     inkscape:label="cloud" />
+  <g
+     inkscape:groupmode="layer"
+     id="layer4"
+     inkscape:label="thunder"
+     style="opacity:1;display:inline">
+    <g
+       style="stroke-width:0.80000001;stroke-miterlimit:4.0000000;display:inline"
+       transform="translate(-130.8150,-14.41030)"
+       id="g2605">
+      <path
+         style="fill:#fff000;fill-opacity:1.0000000;fill-rule:evenodd;stroke:#ffc800;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1.0000000"
+         d="M 213.57143,117.00504 L 229.28571,117.00504 L 212.93750,145.32097 L 207.57818,142.22677 L 187.78457,176.51030 L 200.68269,128.37386 L 206.14194,131.52576 L 213.57143,117.00504 z "
+         id="path2607" />
+      <path
+         id="path2609"
+         d="M 214.77394,119.89818 L 224.18276,119.71960 L 211.73589,141.43114 L 207.18721,138.80496 L 193.06608,163.79573 L 202.40613,132.04739 L 207.03964,134.72254 L 214.77394,119.89818 z "
+         style="opacity:0.80000001;fill:url(#linearGradient1570);fill-opacity:1.0000000;fill-rule:evenodd;stroke:none;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1.0000000"
+         sodipodi:nodetypes="cccccccc" />
+    </g>
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer5"
+     inkscape:label="rain"
+     style="opacity:1" />
+  <g
+     inkscape:groupmode="layer"
+     id="layer6"
+     inkscape:label="rainfall" />
+  <g
+     inkscape:groupmode="layer"
+     id="layer7"
+     inkscape:label="snow"
+     style="display:inline" />
+  <g
+     inkscape:groupmode="layer"
+     id="layer8"
+     inkscape:label="sowfall"
+     style="display:inline" />
+</svg>

@@ -1,0 +1,74 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-interrupt
+# 
+# This is a test file.
+#
+# TEST: test the interrupt capability of a QKD module worker thread
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+
+# ------------------------------------------------------------
+
+# init test environment
+test_init
+
+# remove any previous files
+rm -f interrupt.* &> /dev/null
+
+# start bob ping in the background
+# this will immediately start a worker thread been blocked
+# on a recv
+( ${TEST_BASE}/bin/qkd-ping --bob --run 1> interrupt.bob ) &
+sleep 1
+
+# grab the module
+MODULE_PING=$(qkd_qdbus | grep at.ac.ait.qkd.module.ping)
+if [ "${MODULE_PING}" = "" ]; then
+    echo "failed to start QKD module: ping"
+    exit 1
+fi
+echo "startet qkd-ping module ..."
+
+# tell the module to terminate: thus triggering interrupt
+qkd_qdbus ${MODULE_PING} /Module terminate
+sleep 1
+
+# check if the module is still up
+MODULE_PING=$(qkd_qdbus | grep at.ac.ait.qkd.module.ping)
+if [ "${MODULE_PING}" != "" ]; then
+    echo "failed to interrupt and stop the module"
+    exit 1
+fi
+
+echo "interrupt works."
+
+# state that test ok
+echo "=== TEST SUCCESS ==="

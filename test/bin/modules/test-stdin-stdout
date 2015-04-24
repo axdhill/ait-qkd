@@ -1,0 +1,126 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-cascade-simple
+# 
+# This is a test file.
+#
+# TEST: test the cascade simple implementation
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+
+# ------------------------------------------------------------
+
+# init test environment
+test_init
+
+# zap previous keys
+rm -rf stdin-stdout-keys.* &> /dev/null
+
+# create keys
+${TEST_BASE}/bin/qkd-key-gen --keys=100 stdin-stdout-keys
+
+# start the qkd-tee module in the background 
+# with stdin:// and stdout:// set
+( cat stdin-stdout-keys.alice | ${TEST_BASE}/bin/qkd-tee --file "stdin-stdout-keys.charly" > stdin-stdout-keys.daisy ) &
+sleep 1
+
+# pick the module
+MODULE_SERVICE=$(qkd_qdbus | grep at.ac.ait.qkd.module.tee)
+if [ "${MODULE_SERVICE}" = "" ]; then
+    echo "failed to start tee QKD module"
+    exit 1
+fi
+echo "testing stdin-stdout on '${MODULE_SERVICE}'"
+
+# set stdin and stdout for the module
+qkd_qdbus ${MODULE_SERVICE} /Module set_urls "stdin://" "stdout://" "" ""
+qkd_qdbus ${MODULE_SERVICE} /Module run
+PIPE_IN=$(qkd_qdbus ${MODULE_SERVICE} /Module url_pipe_in)
+PIPE_OUT=$(qkd_qdbus ${MODULE_SERVICE} /Module url_pipe_out)
+
+# check if these URLs hold
+if [ "${PIPE_IN}" != "stdin://" ]; then
+    echo "failed to set stdin:// as pipe in"
+    exit 1
+fi
+if [ "${PIPE_OUT}" != "stdout://" ]; then
+    echo "failed to set stdout:// as pipe out"
+    exit 1
+fi
+
+# let the module fullfill the job
+qkd_qdbus ${MODULE_SERVICE} /Module resume
+sleep 1
+
+# wait until all keys have been written
+while :; do
+
+    # get current state of module
+    STATE_NAME=$(qkd_qdbus ${MODULE_SERVICE} /Module state_name)
+    if [ "$?" != "0" ]; then
+        echo "failed to read state_name of module"
+        exit 1
+    fi
+    if [ "${STATE_NAME}" != "running" ]; then
+        echo "module is not in state running as supposed"
+        exit 1
+    fi
+    
+    # get number of keys written
+    KEYS_WRITTEN=$(qkd_qdbus ${MODULE_SERVICE} /Module keys_outgoing)
+    if [ "$?" != "0" ]; then
+        echo "failed to read number of keys written"
+        exit 1
+    fi
+    
+    if [ "${KEYS_WRITTEN}" -ge "100" ]; then
+        break;
+    fi
+    
+    sleep 1
+done
+
+# we have read 10 keys now compare result files: all of them should have the very same MD5
+DIFFERENT_FILES=$(md5sum stdin-stdout-keys.alice stdin-stdout-keys.charly stdin-stdout-keys.daisy  | awk '{ print $1; }' | uniq | wc -l)
+if [ "${DIFFERENT_FILES}" != "1" ]; then
+    echo "qkd-tee generates flawed files"
+    exit 1
+fi
+
+# all good
+echo "qkd-tee works with stdin:// and stdout:// as expected"
+qkd_qdbus ${MODULE_SERVICE} /Module terminate
+
+# enforced cleansing
+test_cleanup
+
+# state that test ok
+echo "=== TEST SUCCESS ==="
+

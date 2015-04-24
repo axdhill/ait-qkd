@@ -1,0 +1,261 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-q3p-keystore-functions
+# 
+# This holds some functions for testing
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+shopt -s expand_aliases
+
+# --------------------------------------------------
+# define the start of our tests
+#
+
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+
+# database: key-stores
+export DB_ALICE_2_BOB="${TEST_BASE}/alice_to_bob.db"
+export DB_BOB_2_ALICE="${TEST_BASE}/bob_to_alice.db"
+
+# the shared secret
+export SHARED_SECRET=$(cat ${TEST_BASE}/test/test-data/shared-secret)
+export SHARED_SECRET_FILE="${TEST_BASE}/test/test-data/shared-secret-very-long"
+
+
+# ensure we are picking the right D-Bus
+if [ -n "${QKD_DBUS_SESSION_ADDRESS}" ]; then
+    alias qkd_qdbus='qdbus --address ${QKD_DBUS_SESSION_ADDRESS}'
+else
+    alias qkd_qdbus='qdbus'
+fi
+
+
+# --------------------------------------------------
+# ensure there is a clean environment to test
+# 
+function test_cleanup() {
+
+    # kick any running q3pd processes
+    for p in $(qkd_qdbus | grep at.ac.ait.q3p.node); do
+        PID=$(qkd_qdbus ${p} /Node process_id 2> /dev/null) && (
+            echo "found q3pd running with pid ${PID} - killing ..."
+            kill ${PID}
+        )
+    done
+    
+    # kick any running qkd modules processes
+    for p in $(qkd_qdbus | grep at.ac.ait.qkd.module); do
+        PID=$(qkd_qdbus ${p} /Module process_id 2> /dev/null) && (
+            echo "found qkd module running with pid ${PID} - killing ..."
+            kill ${PID}
+        )
+    done
+}
+
+
+# --------------------------------------------------
+# init test environment
+# 
+function test_init() {
+
+    ( 
+        cd ${TEST_BASE}/bin;
+    
+        ln -f -s modules/qkd-auth/qkd-auth;
+        ln -f -s modules/qkd-bb84/qkd-bb84;
+        ln -f -s modules/qkd-buffer/qkd-buffer;
+        ln -f -s modules/qkd-cascade/qkd-cascade;
+        ln -f -s modules/qkd-cat/qkd-cat;
+        ln -f -s modules/qkd-confirmation/qkd-confirmation;
+        ln -f -s modules/qkd-dekey/qkd-dekey;
+        ln -f -s modules/qkd-drop/qkd-drop;
+        ln -f -s modules/qkd-enkey/qkd-enkey;
+        ln -f -s modules/qkd-error-estimation/qkd-error-estimation;
+        ln -f -s modules/qkd-ping/qkd-ping;
+        ln -f -s modules/qkd-privacy-amplification/qkd-privacy-amplification;
+        ln -f -s modules/qkd-reorder/qkd-reorder;
+        ln -f -s modules/qkd-tee/qkd-tee;
+        ln -f -s modules/qkd-throttle/qkd-throttle;
+        
+        ln -f -s qkd-gui/qkd-gui qg
+        
+        # shortcut for the "shared" folder -> emulate data path
+        ln -f -s ../../share modules
+        
+        ln -f -s tools/q3p-keystore-dump/q3p-keystore-dump;
+        ln -f -s tools/q3p-mq-reader/q3p-mq-reader;
+        ln -f -s tools/qkd-key-dump/qkd-key-dump;
+        ln -f -s tools/qkd-key-gen/qkd-key-gen;
+        ln -f -s tools/qkd-pipeline/qkd-pipeline;
+        ln -f -s tools/qkd-view/qkd-view;
+        
+    )
+    
+
+    # clean up any remants of previous tests
+    test_cleanup
+}
+
+
+# --------------------------------------------------
+# ensure q3pd is started
+#
+# ${1}      id of q3pd
+# 
+function q3pd_start() {
+
+    # sanity check
+    if [ "${1}" == "" ]; then
+        echo "no ID given"
+        exit 1
+    fi
+
+    # check if the q3pd is not running already
+    qkd_qdbus | grep at.ac.ait.q3p.node-${1} &> /dev/null
+    if [ "$?" == "0" ]; then
+        echo "an instance of at.ac.ait.q3p.node-${1} is already running"
+        echo "quit this instance first"
+        exit 1
+    fi
+    
+    # ensure we always start with an empty config
+    rm -rf ${TEST_BASE}/q3pd_${1}.config &> /dev/null
+    touch ${TEST_BASE}/q3pd_${1}.config 
+    
+    # launch a Q3P KeyStore
+    ${TEST_BASE}/bin/q3pd/q3pd --config ${TEST_BASE}/q3pd_${1}.config ${*} 2>>q3pd_${1}_${RANDOM}.stderr &
+    sleep 1
+    qkd_qdbus | grep at.ac.ait.q3p.node-${1} &> /dev/null
+    if [ "$?" != "0" ]; then
+        echo "failed to start at.ac.ait.q3p.node-${1}" 
+        exit 1
+    fi
+}
+
+
+# --------------------------------------------------
+# ensure q3pd is stopped
+#
+# ${1}      id of q3pd
+# 
+function q3pd_stop() {
+
+    # sanity check
+    if [ "${1}" == "" ]; then
+        echo "no ID given"
+        exit 1
+    fi
+    
+    # remove any default config empty file
+    rm -rf ${TEST_BASE}/q3pd_${1}.config &> /dev/null
+
+    # check if the q3pd is running already
+    qkd_qdbus | grep at.ac.ait.q3p.node-${1} &> /dev/null
+    if [ "$?" != "0" ]; then
+        echo "no at.ac.ait.q3p.node-${1} running"
+        echo "start an instance first"
+        exit 1
+    fi
+
+    # terminate the q3pd
+    qkd_qdbus at.ac.ait.q3p.node-${1} /Node quit &> /dev/null
+    sleep 1
+    qkd_qdbus | grep at.ac.ait.q3p.node-${1} &> /dev/null
+    if [ "$?" != "1" ]; then
+        echo "failed to quit at.ac.ait.q3p.node-${1}" 
+        exit 1
+    fi
+}
+
+
+# --------------------------------------------------
+# wait for outgoing keys in a set of modules
+#
+# ${1}      minimum number of keys out
+# ${+}      id of modules
+# 
+function wait_keys() {
+
+    KEYS=${1}
+    shift
+    MODULE=${1}
+    while [ "${MODULE}" ]; do
+    
+        echo "waiting for module(s) '${MODULE}' to have at least ${KEYS} keys processed..."
+
+        # iterate over grep'ed qkd-view
+        ${QKD_ROOT}/bin/qkd-view --short | grep "^module: *${MODULE}" | while read LINE; do
+
+            echo "${MODULE} detected."
+
+            # collect data
+            MODULE_DBUS=$(echo "${LINE}" | awk '{ print $3; }')
+            CURRENT_KEYS_OUT=$(echo "${LINE}" | awk '{ print $5; }')
+
+            # amount of keys produced reached?
+            if [ "${CURRENT_KEYS_OUT}" -ge "${KEYS}" ]; then
+                echo "killing ${MODULE_DBUS} - current keys: ${CURRENT_KEYS_OUT}"
+                qkd_qdbus "${MODULE_DBUS}" /Module terminate > /dev/null
+            fi
+
+        done 
+
+        # check if a module is still left
+        if [ "$(${QKD_ROOT}/bin/qkd-view --short | grep "^module: *${MODULE}" | wc -l)" = "0" ]; then
+            shift
+            MODULE=${1}
+        else
+            sleep 1
+        fi
+
+    done
+}
+
+
+# --------------------------------------------------
+# wait for set stalled flag in the given list of modules
+#
+# ${+}      id of modules
+# 
+function wait_stalled() {
+
+    MODULE=${1}
+    while [ "${MODULE}" ]; do
+    
+        echo "waiting for module(s) '${MODULE}' to be stalled ..."
+        ${TEST_BASE}/bin/qkd-view --short | grep "module: *${MODULE}.*true *$" | while read LINE; do
+            qkd_qdbus $(echo ${LINE} | awk '{ print $3; }') /Module terminate > /dev/null
+        done
+        
+        NOT_STALLED=$(${TEST_BASE}/bin/qkd-view --short | grep "module: *${MODULE}.*false *$" | wc -l)
+        if [ "${NOT_STALLED}" -gt 0 ]; then
+            sleep 1
+        else
+            shift
+            MODULE=${1}
+        fi
+    done
+}
+

@@ -1,0 +1,203 @@
+\chapter{Introduction}
+\label{chap:Introduction}
+
+This chapter serves as the entry point into the AIT QKD software handbook. A very brief summary of the AIT QKD effort and success is addressed. Also legal aspects regarding licensing, obtaining, modifying and distributing the AIT QKD Software are mentioned.
+
+
+\section{History of QKD}
+\label{sec:History of QKD}
+
+The foundations of quantum cryptography are routed in fundamental quantum mechanical effects, such as the famous EPR effect (1935 - Einstein, Podolsky, Rosen at the University of Princeton, USA). These enable the simultaneous generation of two identical, absolutely random bit-sequences at two distinct locations, which are principally inaccessible to a potential eavesdropper. These sequences can be employed as key for data encryption providing the fundament for absolutely secure communication.
+
+\medskip
+
+Quantum cryptography has been the object of intense research in the last two decades. The research results demonstrate convincingly that practical secure communication based on quantum cryptography is in principle feasible and closely within reach.
+
+
+\section{The AIT and QKD}
+\label{sec:The AIT and QKD}
+
+In 2002 AIT started to work on the technical exploitation of the results of basic research in the field of quantum cryptography. In close cooperation with the University of Vienna (Prof. Anton Zeilinger) AIT focused on the engineering part of practical quantum cryptography: electronics, software and communication protocols between the partners. In 2004 AIT could demonstrate the world-wide first bank transfer secured by quantum cryptography.
+
+\medskip
+
+AIT initiated and led the EC-funded project SECOQC (Development of a Global Network for Secure Communication based on Quantum Cryptography) that aimed at technical implementation of quantum cryptography in real communication networks. The final demonstration proved that quantum cryptography in standard telecom fibers is feasible.
+
+\medskip
+
+Since then AIT participated in a number different projects to further evolve the technology. In 2010 the AIT decided to open source its QKD software. This has been regarded as a further boost of quantum key distribution, since researchers can now rely on the maturity, experience and openness of addressing software issues in this area, absolving them from the need to fumble with implementation details beyond the scope of research.
+
+\medskip
+
+The very first release which has been covered by open source licenses so far has been the AIT QKD R8 ``Planck'' in spring 2012. Still this release was quite complex and cumbersome and after an intermediate not broadly released R9 version the AIT reworked the total code base for release number 10.
+
+\section{AIT QKD R10}
+\label{sec:AIT QKD R10}
+
+This document describes the foundation of the AIT QKD Software Release number 10 as of Spring 2013. Developers and physicists can find here main concepts and all building blocks which can be combined together to create a fully working QKD environment.
+
+\medskip
+
+This ranges from (but not limited to):
+
+\begin{itemize}
+
+    \item Presifting
+
+    \item Sifting
+
+    \item Error Correction
+
+    \item Confirmation
+
+    \item Privacy Amplification
+
+    \item Key Storage
+
+    \item Key Use
+
+    \item Unconditional secure encryption of messages
+
+    \item Unconditional secure authentication of messages
+
+    \item Peer to peer communication
+
+    \item Tight operating system integration
+
+    \item Virtual network interfaces providing informational theoretic secure communication
+
+    \item Key ``pump'' by utilizing operating system message queues
+    
+    \item ... and more
+
+\end{itemize}
+
+
+\medskip
+
+The design of the AIT QKD Software is such that each module can be modified and replaced by arbitrary other implementations. The AIT gives developers tools at hand to easily draw information on the fly from a running system or completely implement a full new set of features.
+
+\medskip
+
+For instance, a completely new error correction technique can be implemented with ease leaving all other entities untouched.
+
+\medskip
+
+It is also possible to build a completely new QKD hardware and use the whole AIT QKD Software stack as-is, to be relieved from software development and system integration.
+
+\section{Changes to previous versions}
+\label{sec:Changes to previous versions}
+
+What is new to the current software release to increment a new major number and called it release 10 or simply R10? In short: \textbf{nearly everything}!
+
+\medskip
+
+On a conceptual level a lot of things changed. Below is short but limited overview:
+
+\begin{itemize}
+
+    \item Still, the QKD modules in the pipeline do delayed authentication: work on QKD post processing and exchange data in clear, plain text. Once the processing is over and we ought to have a shared secret key an authentication check is run to ensure the authenticity and integrity of the data exchanged.
+    
+    However, the cryptographic contexts which keep track of the current authentication state is now \emph{part} of the key metadata passing along the modules in the QKD pipeline. This means: in R10 QKD modules operate totally autonomous and do not need any running Q3P node to operate on keys. 
+    
+    \item As a consequence, the modules do now have a direct peer-to-peer communication and do not talk via Q3P nodes. This boosts up data exchange for reconciliation since we dropped two store-and-forward entities in between. 
+    
+    \item The communication to the remote peer module and within the QKD pipeline is now covered by 0MQ\footnote{\url{http://www.zeromq.org/}}, a high performance, very versatile thin network layer. QKD modules now can operate on a number of several communication principles. It is even possible to run a single QKD post processing pipeline on several machines, spanning more than 1 operating system and CPU architecture. This offers new possibilities in running resource demanding algorithms.
+    
+    \item The authentication facilities have been greatly redesigned so that you theoretically can give each new processed key its own authentication algorithm, initial and final key, assuming you have a QKD key surplus ...
+    
+    \item A lot of troublesome dependencies have been removed. The Q3P KeyStore is now laid out to support different types of storage systems. Currently native flat sparse files and RAM only are built-in. Berkeley DB, MySQL, SQLite and other backends are easy to integrate. That is: we dropped the hard Berkeley DB demand. Creating a new KeyStore instance is now done in the background without administrator interaction.
+
+    \item We dropped not supported concepts and ideas rendering the whole suite more lean and healthy.
+
+    \item The DBus bindings have been reworked to more easily access and detect runtime values.
+
+\end{itemize}
+
+On a technical level these things are essential to mention:
+
+\begin{itemize}
+
+    \item The AIT QKD Software comes now as \textbf{one single large project}. The implementation is now consolidated into one single project, one single package. One to rule them all. These should boost installation and deployment.
+    
+    \item \textbf{C++11}. The AIT QKD Software now is based on the new C++11\footnote{This requires a modern state-of-the art compiler, since the AIT QKD Software stresses somehow the new C++11 ideas} standard. The - one and only - QKD library is a C++11 library having classes for QKD Modules, QKD Keys, Encryption, Authentication, etc.
+    
+    \item Adding to the already present rigid compiler settings the AIT introduces a series of tests to be run on the newly created software. This ranges from small function tests to full blown inter-operating QKD pipelines. These tests a good documented as serve also as a repository for examples dealing with several concepts and design implementations.
+    
+    \item Plus sample codes in creating new modules. Ranging from a minimal "Hello World!" QKD module, up to a key processing, remote peer interaction QKD module with extended DBus binding, including build-system boilerplate code.
+    
+\end{itemize}
+
+Overall the R10 release is very, very different to any release prior. It is a brand new software installation having many parts totally redesigned and written from scratch anew. The goal is to have a nice and self-describing QKD software system at hand, which is easy to install, easy to maintain, easy to extend and easy to live with.
+
+
+\section{Software License}
+\label{sec:Software License}
+
+The AIT ships all software of the R10 as open source under the GNU General Public License V2 (GPL) and GNU Lesser General Public License V2.1 (LGPL) (see the appendix for the license text).
+
+\medskip
+
+All executable binaries are placed under the GPL, meaning every program which is executed directly is GPL. The one and only qkd library, which is linked with executables is under LGPL.
+
+\medskip
+
+The impact of this decision is
+
+\begin{enumerate}
+
+    \item You can run, distribute and modify any executable free of charge.
+
+    \item You can link, distribute and modify the qkd library free of charge.
+
+    \item If you distribute the AIT QKD software, or any modified version thereof, you have to guarantee the very same rights to your customer.
+
+    \item However, executables which are created by yourself and which are just linking to LGPL AIT libraries are exempted from this mandatory copyright. That is: you can create any executable with our LGPL AIT libraries and apply any license.
+
+\end{enumerate}
+
+This model allows you to draw as much benefit from the AIT QKD software as possible. As any modification to the original sources have to be declared on distribution, we regard this as a fair act for the QKD community and the AIT to benefit from 3$^{rd}$ party improvements.
+
+\medskip
+
+Having the core library, which enables one to write totally new programs with seamless integration in the AIT QKD software universe, licensed under the LGPL enables one to create totally new applications without the need to open source them. This model is therefore also of interest for profit oriented organizations.
+
+\section{Obtaining the Software}
+\label{sec:Obtaining the Software}
+
+The AIT QKD Software can be obtained as source code or as installable DEB\footnote{For Debian based distributions} or RPM\footnote{For distributions working with the Red Hat Package Manager} packages from the AIT SQT Software platform at:
+
+\medskip
+
+\begin{center}
+\url{https://sqt.ait.ac.at/software}
+\end{center}
+
+Further a GIT repository (see \href{http://git-scm.com}{http://git-scm.com/}) is set up where any user may clone the current public AIT QKD sources \url{http://sqt.ait.ac.at/git/qkd-public}. 
+
+\section{Service and Support}
+\label{sec:Service and Support}
+
+The AIT offers service and support. This ranges from 
+
+\begin{itemize}
+
+    \item how-tos
+    
+    \item wikis
+    
+    \item forum
+    
+    \item Issue Tracker for bugs found and wishes to deposit.
+    
+    \item Documents
+    
+    \item ...
+
+\end{itemize}
+
+up to full on-site setup and configuration support. However the current service conditions at which such support is charged are available at \url{https://sqt.ait.ac.at/software}.
+
+\medskip
+
+To apply for an account please contact \href{mailto:software.qkd@ait.ac.at}{software.qkd@ait.ac.at}.

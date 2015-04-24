@@ -1,0 +1,106 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-qkd-pipeline
+# 
+# This is a test file.
+#
+# TEST: test the qkd-pipeline tool
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2013-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+# ------------------------------------------------------------
+
+# init test environment
+test_init
+
+# we need to replace ourselves in the build folder
+cd ${TEST_BASE}
+
+# zap previous keys
+#rm -rf cat_keys.* &> /dev/null
+
+# create keys
+KEYS_TO_PROCESS="1000"
+${TEST_BASE}/bin/qkd-key-gen --size 2048 --keys ${KEYS_TO_PROCESS} --quantum --rate 0.03 cat_keys
+
+# prepare the log folder
+LOG_FOLDER="$(pwd)/log"
+mkdir -p ${LOG_FOLDER} &> /dev/null
+
+# remove any previous logs
+( cd "${LOG_FOLDER}" && rm * )
+
+# start the alice pipeline
+${TEST_BASE}/bin/qkd-pipeline --log "${LOG_FOLDER}" restart ${TEST_BASE}/test/test-data/pipeline-cat-alice.xml
+
+# start the bob pipeline
+${TEST_BASE}/bin/qkd-pipeline --log "${LOG_FOLDER}" restart ${TEST_BASE}/test/test-data/pipeline-cat-bob.xml
+
+# wait until at least some keys have been authentictaed
+KEYS_AUTHENTICATED="20"
+KEYS_ALICE="0"
+KEYS_BOB="0"
+while [ "${KEYS_ALICE}" -lt "${KEYS_AUTHENTICATED}" -a "${KEYS_BOB}" -lt "${KEYS_AUTHENTICATED}" ]; do
+    grep key-PUSH "${LOG_FOLDER}/qkd-auth-final.alice.log" | cut -d " " -f 3,4,13,14 > "${LOG_FOLDER}/final-keys-authenticated.alice"
+    grep key-PUSH "${LOG_FOLDER}/qkd-auth-final.bob.log" | cut -d " " -f 3,4,13,14 > "${LOG_FOLDER}/final-keys-authenticated.bob"
+    touch "${LOG_FOLDER}/final-alice.aa"
+    touch "${LOG_FOLDER}/final-bob.aa"
+    split -l "${KEYS_AUTHENTICATED}" "${LOG_FOLDER}/final-keys-authenticated.alice" "${LOG_FOLDER}/final-alice." || touch "${LOG_FOLDER}/final-alice.aa"
+    split -l "${KEYS_AUTHENTICATED}" "${LOG_FOLDER}/final-keys-authenticated.bob" "${LOG_FOLDER}/final-bob." || touch "${LOG_FOLDER}/final-bob.aa"
+    KEYS_ALICE=$(wc -l "${LOG_FOLDER}/final-alice.aa" | cut -d " " -f 1)
+    KEYS_BOB=$(wc -l "${LOG_FOLDER}/final-bob.aa" | cut -d " " -f 1)
+    echo "keys of alice: ${KEYS_ALICE}"
+    echo "keys of bob: ${KEYS_BOB}"
+    sleep 1s
+done
+echo "keys of alice: ${KEYS_ALICE}"
+echo "keys of bob: ${KEYS_BOB}"
+
+# compare created final authenticated keys    
+diff "${LOG_FOLDER}/final-keys-authenticated.alice" "${LOG_FOLDER}/final-keys-authenticated.bob"
+if [ "$?" != "0" ]; then
+    echo "authenticated keys differ - failed"
+    test_cleanup
+    exit 1
+fi
+
+# stop the alice pipeline
+${TEST_BASE}/bin/qkd-pipeline --log "${LOG_FOLDER}" stop test/test-data/pipeline-cat-alice.xml
+
+# stop the bob pipeline
+${TEST_BASE}/bin/qkd-pipeline --log "${LOG_FOLDER}" stop test/test-data/pipeline-cat-bob.xml
+
+# give modules chance to wind down gracefully
+sleep 1
+
+# stop modules
+test_cleanup
+    
+# state that test ok
+echo "=== TEST SUCCESS ==="

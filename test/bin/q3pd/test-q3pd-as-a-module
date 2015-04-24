@@ -1,0 +1,182 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-q3pd-as-a-module
+# 
+# This is a test file.
+#
+# TEST: test the keystore q3pd link qkd module
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+
+# ------------------------------------------------------------
+
+# init test environment
+test_init
+
+# zap previous database
+rm -rf "${DB_ALICE_2_BOB}" &> /dev/null
+rm -rf "${DB_BOB_2_ALICE}" &> /dev/null
+
+# zap previous output
+rm -rf q3pd_*.stderr k_? &> /dev/null
+
+# start both nodes
+q3pd_start "alice" --debug || exit $?
+q3pd_start "bob" --debug || exit $?
+
+while :; do
+    ( qkd_qdbus | grep at.ac.ait.q3p.node-alice &> /dev/null ) && break;
+done
+while :; do
+    ( qkd_qdbus | grep at.ac.ait.q3p.node-bob &> /dev/null) && break;
+done
+
+# launch alice
+qkd_qdbus at.ac.ait.q3p.node-alice /Node create_link "alice_to_bob" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob open_db "file://${DB_ALICE_2_BOB}" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob inject_url "file://${SHARED_SECRET_FILE}" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob org.freedesktop.DBus.Properties.Set at.ac.ait.q3p.link master "true" &> /dev/null
+
+# launch bob
+qkd_qdbus at.ac.ait.q3p.node-bob /Node create_link "bob_to_alice" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice open_db "file://${DB_BOB_2_ALICE}" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice inject_url "file://${SHARED_SECRET_FILE}" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice org.freedesktop.DBus.Properties.Set at.ac.ait.q3p.link slave "true" &> /dev/null
+
+# check for key presence
+KEYS_ALICE=$(qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob/CommonStore charge)
+KEYS_BOB=$(qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice/CommonStore charge)
+if [ "${KEYS_ALICE}" -lt "100" ]; then
+    echo "Not enough (<100) keys on alice side"
+    q3pd_stop "alice"
+    q3pd_stop "bob"
+    exit 1
+fi
+if [ "${KEYS_BOB}" -lt "100" ]; then
+    echo "Not enough (<100) keys on bob side"
+    q3pd_stop "alice"
+    q3pd_stop "bob"
+    exit 1
+fi
+
+# both should listen
+qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob listen "tcp://127.0.0.1:10011" "${SHARED_SECRET}" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice listen "tcp://127.0.0.1:10021" "${SHARED_SECRET}" &> /dev/null
+
+# let alice connect
+qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob connect "tcp://127.0.0.1:10021" "${SHARED_SECRET}" &> /dev/null
+
+# see if have a connection
+CONNECTED_ALICE=$(qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob connected)
+CONNECTED_BOB=$(qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice connected)
+if [ "${CONNECTED_ALICE}" != "true" ]; then
+    echo "alice failed to connect to bob"
+    q3pd_stop "alice"
+    q3pd_stop "bob"
+    exit 1
+fi
+if [ "${CONNECTED_BOB}" != "true" ]; then
+    echo "bob failed to connect to alice"
+    q3pd_stop "alice"
+    q3pd_stop "bob"
+    exit 1
+fi
+
+# generate some keys
+
+# number of qkd-tee modules in the pipe
+NUMBER_KEYS=1000
+
+# zap previous keys
+rm -rf keystore-keys.* &> /dev/null
+
+# create keys
+${TEST_BASE}/bin/qkd-key-gen --keys=${NUMBER_KEYS} keystore-keys
+
+# copy alice as bob keys (to be the same then)
+cp keystore-keys.alice keystore-keys.bob
+
+# start two pipelines
+PIPELINE_CONFIG="file://${TEST_BASE}/test/test-data/keystore.conf"
+
+# start the modules - for the confirmation we are using the same keys in the first round
+( ${TEST_BASE}/bin/qkd-cat --debug --run --config ${PIPELINE_CONFIG} --file "keystore-keys.alice" 2>> cat_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-cat --debug --bob --run --config ${PIPELINE_CONFIG} --file "keystore-keys.bob" 2>> cat_debug.bob ) &
+
+# wait until the modules are up
+while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module. | wc -l)" != "2" ]; do
+    echo "waiting for the pipeline to ignite ..."
+    sleep 1
+done
+echo "pipeline up"
+
+# wait for the q3p to pull all keys
+sleep 3
+
+# check the results of the nodes by collecting all key-PULL lines
+rm -f k_* &> /dev/null
+i=1
+for f in q3pd_*.stderr; do
+    # omit the timestamp
+    grep ^key-PULL ${f} | awk '{ print $1 " " $3 " " $4 " " $5 " " $6 " " $7 " " $8 " " $9 " " $10 " " $11 " " $12 }' > k_${i}
+    i=$((i + 1))
+done
+
+# we MUST have only two k_* files
+if [ "$(ls -1 k_*  | wc -l)" != "2" ]; then
+    echo "huh! created more k_ files than expected. confused."
+    exit 1
+fi
+
+# we need exactly ${NUMBER_KEYS} lines
+if [ "$(wc -l k_1 | awk '{ print $1 }')" != "${NUMBER_KEYS}" ]; then
+    echo "pulled less keys than expected"
+    exit 1
+fi
+
+# check how many 
+diff -q k_1 k_2
+if [ "$?" != "0" ]; then
+    echo "pulled different keys - failed"
+    exit 1
+fi
+echo "q3pd pulled keys - ok"
+
+q3pd_stop "bob" || exit $?
+q3pd_stop "alice" || exit $?
+
+# stop machines
+test_cleanup
+
+# state that test ok
+echo "=== TEST SUCCESS ==="
+
+
+

@@ -1,0 +1,62 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# qkd-demo-keys
+# 
+# Create a pair of demo-keys for a simple easy pipeline
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2013-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This file is part of the AIT QKD Software Suite.
+#
+# The AIT QKD Software Suite is free software: you can redistribute 
+# it and/or modify it under the terms of the GNU General Public License 
+# as published by the Free Software Foundation, either version 3 of 
+# the License, or (at your option) any later version.
+# 
+# The AIT QKD Software Suite is distributed in the hope that it will 
+# be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with the AIT QKD Software Suite. 
+# If not, see <http://www.gnu.org/licenses/>.
+# ------------------------------------------------------------
+
+
+# zap previous keys
+mkdir -p /tmp/qkd/ &> /dev/null
+rm -rf /tmp/qkd/cat_keys.* &> /dev/null
+
+# create keys
+qkd-key-gen --size 2048 --keys 1000 --quantum --rate 0.03 /tmp/qkd/cat_keys
+
+# tell user
+cat << END_OF_USER_MESSAGE
+
+created 1000 keys as quantum events with an error rate of 0.03
+files stored as
+
+    /tmp/qkd/cat_keys.alice
+    /tmp/qkd/cat_keys.bob
+
+Please move one of the files at the same location on the 
+proper - alice or bob - host.
+
+    like:
+
+        $ ssh dyle@alice mkdir -p /tmp/qkd &> /dev/null
+        $ scp /tmp/qkd/cat_keys.alice dyle@alice:/tmp/qkd/
+
+    or:
+
+        $ ssh dyle@bob mkdir -p /tmp/qkd &> /dev/null
+        $ scp /tmp/qkd/cat_keys.bob dyle@bob:/tmp/qkd/
+
+END_OF_USER_MESSAGE

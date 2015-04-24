@@ -1,0 +1,121 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-auth
+# 
+# This is a test file.
+#
+# TEST: test the QKD keystream postprocessing authentication
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+
+# ------------------------------------------------------------
+
+# init test environment
+test_init
+
+# zap previous keys
+rm -rf cat_keys.* &> /dev/null
+
+# trunacte previous debug out
+echo -n > auth_pre_debug.alice
+echo -n > auth_pre_debug.bob
+echo -n > cascade_debug.alice
+echo -n > cascade_debug.bob
+echo -n > auth_post_debug.alice
+echo -n > auth_post_debug.bob
+
+# create keys
+KEYS_TO_PROCESS="10"
+${TEST_BASE}/bin/qkd-key-gen --size 2048 --keys ${KEYS_TO_PROCESS} --rate 0.03 cat_keys
+
+# prepare the config files
+cp ${TEST_BASE}/test/test-data/auth-test.conf auth_pre.config
+sed -i 's/auth-PRE/auth/' auth_pre.config
+cp ${TEST_BASE}/test/test-data/auth-test.conf auth_post.config
+sed -i 's/auth-POST/auth/' auth_post.config
+
+# start two pipelines
+PIPELINE_PRE_CONFIG="auth_pre.config"
+PIPELINE_POST_CONFIG="auth_post.config"
+
+# start the modules
+( ${TEST_BASE}/bin/qkd-cat --debug --run --config ${PIPELINE_PRE_CONFIG} --file "cat_keys.alice" 2>> cat_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-cat --debug --bob --run --config ${PIPELINE_PRE_CONFIG} --file "cat_keys.bob" 2>> cat_debug.bob ) &
+( ${TEST_BASE}/bin/qkd-auth --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> auth_pre_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-auth --debug --bob --run --config ${PIPELINE_PRE_CONFIG} 2>> auth_pre_debug.bob ) &
+( ${TEST_BASE}/bin/qkd-cascade --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> cascade_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-cascade --debug --bob --run --config ${PIPELINE_PRE_CONFIG} 2>> cascade_debug.bob ) &
+( ${TEST_BASE}/bin/qkd-auth --debug --run --config ${PIPELINE_POST_CONFIG} 1> auth_keys.alice 2>> auth_post_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-auth --debug --bob --run --config ${PIPELINE_POST_CONFIG} 1> auth_keys.bob 2>> auth_post_debug.bob ) &
+
+# wait until the modules are up
+while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module.auth | wc -l)" != "4" ]; do
+    echo "waiting for the pipeline to ignite ..."
+    sleep 1
+done
+
+# wait until all keys have been processed
+sleep 1
+wait_stalled cat cascade auth
+echo "got keys"
+
+# check how many 
+if [ ! -s auth_keys.alice ]; then
+    echo "alice has no keys verified"
+    exit 1
+fi
+if [ ! -s auth_keys.bob ]; then
+    echo "bob has no keys verified"
+    exit 1
+fi
+diff -q auth_keys.alice auth_keys.bob
+if [ "$?" != "0" ]; then
+    echo "authentication pipeline created different results - failed"
+    exit 1
+fi
+echo "authentication pipeline corrected keys - ok"
+
+# in this scenario we'll correct 6 keys, but can only verify 5
+# too less keys to authentcate left
+if [ "$(grep PUSH auth_post_debug.alice  | wc -l)" != "5" ]; then
+    echo "alice pushed more verified keys than suppossed - huh?"
+    exit 1
+fi
+if [ "$(grep PUSH auth_post_debug.bob  | wc -l)" != "5" ]; then
+    echo "alice pushed more verified keys than suppossed - huh?"
+    exit 1
+fi
+
+# stop modules
+test_cleanup
+
+# state that test ok
+echo "=== TEST SUCCESS ==="
+

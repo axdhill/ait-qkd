@@ -1,0 +1,8 @@
+# This is a configuration file for /etc/init.d/qkd-dbus; it allows you to
+# perform common modifications to the behavior of the dbus daemon
+# startup without editing the init script (and thus getting prompted
+# by dpkg on upgrades).  We all love dpkg prompts.
+
+# Parameters to pass to dbus.
+PARAMS="--address=unix:path=/run/dbus/qkd_bus_socket --fork --config-file=/etc/dbus-1/qkd.conf"
+

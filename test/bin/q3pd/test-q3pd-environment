@@ -1,0 +1,169 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-q3pd-environment
+# 
+# This scripts uses the KDE konsole to start
+# up 2 q3pd.
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+
+# ------------------------------------------------------------
+
+# init test environment
+test_init
+
+# zap previous database
+rm -rf "${DB_ALICE_2_BOB}" &> /dev/null
+rm -rf "${DB_BOB_2_ALICE}" &> /dev/null
+
+# grant TUN/TAP creation permissions to q3pd
+echo "granting TUN/TAP creation permissions to q3pd ..."
+sudo setcap cap_net_admin=ep ${TEST_BASE}/bin/q3pd/q3pd
+
+# start both keystores
+konsole -e ${TEST_BASE}/bin/q3pd/q3pd --debug alice &> /dev/null
+konsole -e ${TEST_BASE}/bin/q3pd/q3pd --debug bob &> /dev/null
+
+# start both keystores - GDB version
+#konsole -e gdb --ex 'run' --args ${TEST_BASE}/bin/q3pd/q3pd --debug alice &> /dev/null
+#konsole -e gdb --ex 'run' --args ${TEST_BASE}/bin/q3pd/q3pd --debug bob &> /dev/null
+
+while :; do
+    ( qkd_qdbus | grep at.ac.ait.q3p.node-alice &> /dev/null ) && break;
+done
+while :; do
+    ( qkd_qdbus | grep at.ac.ait.q3p.node-bob &> /dev/null) && break;
+done
+
+# launch alice
+qkd_qdbus at.ac.ait.q3p.node-alice /Node create_link "alice_to_bob" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob open_db "file://${DB_ALICE_2_BOB}" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob inject_url "file://${SHARED_SECRET_FILE}" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob org.freedesktop.DBus.Properties.Set at.ac.ait.q3p.link master "true" &> /dev/null
+
+# launch bob
+qkd_qdbus at.ac.ait.q3p.node-bob /Node create_link "bob_to_alice" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice open_db "file://${DB_BOB_2_ALICE}" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice inject_url "file://${SHARED_SECRET_FILE}" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice org.freedesktop.DBus.Properties.Set at.ac.ait.q3p.link slave "true" &> /dev/null
+
+# full input into keystores
+for i in $(seq 1 10); do
+    qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob inject_url "file://${SHARED_SECRET_FILE}" &> /dev/null
+    qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice inject_url "file://${SHARED_SECRET_FILE}" &> /dev/null
+done
+
+
+# check for key presence
+KEYS_ALICE=$(qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob/CommonStore charge)
+KEYS_BOB=$(qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice/CommonStore charge)
+if [ "${KEYS_ALICE}" -lt "100" ]; then
+    echo "Not enough (<100) keys on alice side"
+    exit 1
+fi
+if [ "${KEYS_BOB}" -lt "100" ]; then
+    echo "Not enough (<100) keys on bob side"
+    exit 1
+fi
+
+# both should listen
+qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob listen "tcp://127.0.0.1:10011" "${SHARED_SECRET}" &> /dev/null
+qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice listen "tcp://127.0.0.1:10021" "${SHARED_SECRET}" &> /dev/null
+
+# let alice connect
+qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob connect "tcp://127.0.0.1:10021" "${SHARED_SECRET}" &> /dev/null
+
+# check state
+ALICE_CONNECTED=$(qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob link_state)
+BOB_CONNECTED=$(qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice link_state)
+if [ "${ALICE_CONNECTED}" != "4" ]; then
+    echo "alice not connected"
+    q3pd_stop "alice"
+    q3pd_stop "bob"
+    exit 1
+fi
+if [ "${BOB_CONNECTED}" != "4" ]; then
+    echo "bob not connected"
+    q3pd_stop "alice"
+    q3pd_stop "bob"
+    exit 1
+fi
+
+echo "alice and bob connected"
+
+# get up interfaces
+NIC_ALICE=$(qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob/NIC name)
+NIC_BOB=$(qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice/NIC name)
+if [ "${NIC_ALICE}" = "" ]; then
+    echo "Failed to get alice NIC. Permissions set?"
+    echo "If not EXECUTE: $ sudo setcap cap_net_admin=ep q3pd"
+    q3pd_stop "alice" || exit $?
+    q3pd_stop "bob" || exit $?
+    exit 1
+fi
+if [ "${NIC_BOB}" = "" ]; then
+    echo "Failed to get bob NIC. Permissions set?"
+    echo "If not EXECUTE: $ sudo setcap cap_net_admin=ep q3pd"
+    q3pd_stop "alice" || exit $?
+    q3pd_stop "bob" || exit $?
+    exit 1
+fi
+
+# setup addresses and configure "network"
+NIC_IP_ALICE="10.81.39.121"
+NIC_IP_BOB="10.81.39.122"
+sudo ip addr change ${NIC_IP_ALICE} peer ${NIC_IP_BOB} dev ${NIC_ALICE}
+sudo ip addr change ${NIC_IP_BOB} peer ${NIC_IP_ALICE} dev ${NIC_BOB}
+sudo ip link set dev ${NIC_ALICE} up
+sudo ip link set dev ${NIC_BOB} up
+sudo ip route add ${NIC_IP_ALICE} via ${NIC_IP_BOB}
+sudo ip route add ${NIC_IP_BOB} via ${NIC_IP_ALICE}
+
+
+exit 0
+
+
+# test NIC facility
+NIC_DATA_ORG="${TEST_BASE}/test/test-data/shared-secret-long"
+NIC_DATA_DST="${TEST_BASE}/nic-received"
+SERVER_PORT="5678"
+CLIENT_PORT="9012"
+
+echo "launching NIC-receiver in the background"
+( ${TEST_BASE}/test/bin/q3pd/nic-receiver.py ${NIC_IP_BOB} ${SERVER_PORT} ${NIC_DATA_DST} ) &
+
+exit 0
+
+# wait for the server to be online
+sleep 10
+
+echo "sending data"
+${TEST_BASE}/test/bin/q3pd/nic-sender.py ${NIC_IP_ALICE} ${CLIENT_PORT} ${NIC_IP_BOB} ${SERVER_PORT} ${NIC_DATA_ORG}
+echo "data sent"

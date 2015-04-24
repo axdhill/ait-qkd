@@ -1,0 +1,937 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>module_frame</class>
+ <widget class="QFrame" name="module_frame">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>528</width>
+    <height>559</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Module Frame</string>
+  </property>
+  <property name="frameShape">
+   <enum>QFrame::StyledPanel</enum>
+  </property>
+  <property name="frameShadow">
+   <enum>QFrame::Raised</enum>
+  </property>
+  <layout class="QVBoxLayout" name="cLyMain" stretch="0,0">
+   <item>
+    <layout class="QHBoxLayout" name="cLyHeader">
+     <item>
+      <widget class="QLabel" name="cLbDBus">
+       <property name="statusTip">
+        <string>Module DBus address</string>
+       </property>
+       <property name="text">
+        <string>DBus:</string>
+       </property>
+       <property name="buddy">
+        <cstring>cEdDBus</cstring>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="cEdDBus">
+       <property name="statusTip">
+        <string>Moule DBus address</string>
+       </property>
+       <property name="readOnly">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="cLbRoleTitle">
+       <property name="statusTip">
+        <string>Module Role</string>
+       </property>
+       <property name="text">
+        <string>Role:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="cLbRole">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>22</width>
+         <height>22</height>
+        </size>
+       </property>
+       <property name="statusTip">
+        <string>Module Role</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="pixmap">
+        <pixmap resource="module_frame.qrc">:/res/alice.png</pixmap>
+       </property>
+       <property name="scaledContents">
+        <bool>true</bool>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="cLbRoleName">
+       <property name="minimumSize">
+        <size>
+         <width>80</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="statusTip">
+        <string>Module Role</string>
+       </property>
+       <property name="text">
+        <string>ROLE_NAME</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="cLbStatusTitle">
+       <property name="statusTip">
+        <string>Module status</string>
+       </property>
+       <property name="text">
+        <string>Status:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QWidget" name="cLedStatus" native="true">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>20</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>20</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="cLbStatus">
+       <property name="minimumSize">
+        <size>
+         <width>80</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="statusTip">
+        <string>Current module status</string>
+       </property>
+       <property name="text">
+        <string>STATUS</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="cBtnResume">
+       <property name="statusTip">
+        <string>Run/Pause module</string>
+       </property>
+       <property name="text">
+        <string>...</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="cBtnStop">
+       <property name="statusTip">
+        <string>Stop module</string>
+       </property>
+       <property name="text">
+        <string>...</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QTabWidget" name="cTbPlots">
+     <property name="tabPosition">
+      <enum>QTabWidget::South</enum>
+     </property>
+     <property name="tabShape">
+      <enum>QTabWidget::Rounded</enum>
+     </property>
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="cTabData">
+      <attribute name="title">
+       <string>Data</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0,0,0,0,0,0,0,0,0,0">
+       <item row="12" column="3">
+        <widget class="QPushButton" name="cBtnRefresh">
+         <property name="statusTip">
+          <string>Relaod all module values now</string>
+         </property>
+         <property name="text">
+          <string>Refresh</string>
+         </property>
+        </widget>
+       </item>
+       <item row="10" column="3">
+        <widget class="QPushButton" name="cBtnUrlPipeOut">
+         <property name="statusTip">
+          <string>Apply new output stream address of keys processed</string>
+         </property>
+         <property name="text">
+          <string>Apply</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="cLbId">
+         <property name="statusTip">
+          <string>ID of module</string>
+         </property>
+         <property name="text">
+          <string>ID:</string>
+         </property>
+         <property name="buddy">
+          <cstring>cEdId</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="11" column="0" colspan="4">
+        <widget class="QWidget" name="cWdDataStretch" native="true"/>
+       </item>
+       <item row="4" column="1" colspan="2">
+        <widget class="QLineEdit" name="cEdHint">
+         <property name="statusTip">
+          <string>Connection hint</string>
+         </property>
+         <property name="readOnly">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="3">
+        <widget class="QPushButton" name="cBtnUrlPeer">
+         <property name="statusTip">
+          <string>Apply new address of peer to interact</string>
+         </property>
+         <property name="text">
+          <string>Apply</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="cLbHint">
+         <property name="statusTip">
+          <string>Connection hint</string>
+         </property>
+         <property name="text">
+          <string>Hint:</string>
+         </property>
+         <property name="buddy">
+          <cstring>cEdHint</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1" colspan="2">
+        <widget class="QLineEdit" name="cEdId">
+         <property name="statusTip">
+          <string>ID of module</string>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QCheckBox" name="cCkDebug">
+         <property name="statusTip">
+          <string>Enable or disable debug mode of module</string>
+         </property>
+         <property name="text">
+          <string>Debug</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="cLbOrganisation">
+         <property name="statusTip">
+          <string>Creator of module</string>
+         </property>
+         <property name="text">
+          <string>Organisation:</string>
+         </property>
+         <property name="buddy">
+          <cstring>cEdOrganisation</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <widget class="QLabel" name="cLbProcessStart">
+         <property name="statusTip">
+          <string>Date and time of instantiation</string>
+         </property>
+         <property name="text">
+          <string>Started:</string>
+         </property>
+         <property name="buddy">
+          <cstring>cEdProcessStart</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="3">
+        <widget class="QPushButton" name="cBtnHint">
+         <property name="text">
+          <string>Apply</string>
+         </property>
+        </widget>
+       </item>
+       <item row="10" column="0">
+        <widget class="QWidget" name="cWdPipeOut" native="true">
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="QLabel" name="cLbUrlPipeOutIcon">
+            <property name="maximumSize">
+             <size>
+              <width>22</width>
+              <height>22</height>
+             </size>
+            </property>
+            <property name="statusTip">
+             <string>Output stream address of keys processed</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="pixmap">
+             <pixmap resource="module_frame.qrc">:/res/module_pipe_out.png</pixmap>
+            </property>
+            <property name="scaledContents">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="cLblUrlPipeOutTitle">
+            <property name="statusTip">
+             <string>Output stream address of keys processed</string>
+            </property>
+            <property name="text">
+             <string>Pipe Out:</string>
+            </property>
+            <property name="buddy">
+             <cstring>cEdUrlPipeOut</cstring>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="9" column="1" colspan="2">
+        <widget class="QLineEdit" name="cEdUrlPeer">
+         <property name="statusTip">
+          <string>Address of peer to interact</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="cLbPipeline">
+         <property name="statusTip">
+          <string>Name of pipeline</string>
+         </property>
+         <property name="text">
+          <string>Pipeline:</string>
+         </property>
+         <property name="buddy">
+          <cstring>cEdPipeline</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0">
+        <widget class="QLabel" name="cLbProcessImage">
+         <property name="statusTip">
+          <string>Module process image</string>
+         </property>
+         <property name="text">
+          <string>Image:</string>
+         </property>
+         <property name="buddy">
+          <cstring>cEdProcessImage</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1" colspan="3">
+        <widget class="QLineEdit" name="cEdDescription">
+         <property name="statusTip">
+          <string>Description of module</string>
+         </property>
+         <property name="readOnly">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="1" colspan="3">
+        <widget class="QLineEdit" name="cEdProcessImage">
+         <property name="statusTip">
+          <string>Module process image</string>
+         </property>
+         <property name="readOnly">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1" colspan="3">
+        <widget class="QLineEdit" name="cEdOrganisation">
+         <property name="statusTip">
+          <string>Creator of module</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="3">
+        <widget class="QPushButton" name="cBtnUrlPipeIn">
+         <property name="statusTip">
+          <string>Apply new input stream address of keys to process</string>
+         </property>
+         <property name="text">
+          <string>Apply</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1" colspan="2">
+        <widget class="QLineEdit" name="cEdPipeline">
+         <property name="statusTip">
+          <string>Name of pipeline</string>
+         </property>
+         <property name="readOnly">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="0">
+        <widget class="QWidget" name="cWdPeer" native="true">
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QLabel" name="cLbUrlPeerIcon">
+            <property name="maximumSize">
+             <size>
+              <width>22</width>
+              <height>22</height>
+             </size>
+            </property>
+            <property name="statusTip">
+             <string>Address of peer to interact</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="pixmap">
+             <pixmap resource="module_frame.qrc">:/res/module_peer.png</pixmap>
+            </property>
+            <property name="scaledContents">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="cLbUrlPeerTitle">
+            <property name="statusTip">
+             <string>Address of peer to interact</string>
+            </property>
+            <property name="text">
+             <string>Peer:</string>
+            </property>
+            <property name="buddy">
+             <cstring>cEdUrlPeer</cstring>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="8" column="0">
+        <widget class="QWidget" name="cWdPipeIn" native="true">
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QLabel" name="cLbUrlPipeInIcon">
+            <property name="maximumSize">
+             <size>
+              <width>22</width>
+              <height>22</height>
+             </size>
+            </property>
+            <property name="statusTip">
+             <string>Input stream address of keys to process</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="pixmap">
+             <pixmap resource="module_frame.qrc">:/res/module_pipe_in.png</pixmap>
+            </property>
+            <property name="scaledContents">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="cLbUrlPipeInTitle">
+            <property name="statusTip">
+             <string>Input stream address of keys to process</string>
+            </property>
+            <property name="text">
+             <string>Pipe In:</string>
+            </property>
+            <property name="buddy">
+             <cstring>cEdUrlPipeIn</cstring>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="QLineEdit" name="cEdProcessStart">
+         <property name="statusTip">
+          <string>Date and time of instantiation</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="3">
+        <widget class="QLabel" name="cLbUptime">
+         <property name="minimumSize">
+          <size>
+           <width>120</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="statusTip">
+          <string>Running time in seconds</string>
+         </property>
+         <property name="text">
+          <string>RUNNING IN SEC</string>
+         </property>
+        </widget>
+       </item>
+       <item row="10" column="1" colspan="2">
+        <widget class="QLineEdit" name="cEdUrlPipeOut">
+         <property name="statusTip">
+          <string>Output stream address of keys processed</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="1" colspan="2">
+        <widget class="QLineEdit" name="cEdUrlPipeIn">
+         <property name="statusTip">
+          <string>Input stream address of keys to process</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="cLbDescription">
+         <property name="statusTip">
+          <string>Description of module</string>
+         </property>
+         <property name="text">
+          <string>Description</string>
+         </property>
+         <property name="buddy">
+          <cstring>cEdDescription</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="3">
+        <widget class="QPushButton" name="cBtnPipeline">
+         <property name="text">
+          <string>Apply</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="cTabKeys">
+      <attribute name="title">
+       <string extracomment="Current flow of keys in and out">Keys</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="cLyTabKeys">
+       <item>
+        <layout class="QHBoxLayout" name="cLyTabKeysValues" stretch="0,1,0,1,0,1,0,1">
+         <item>
+          <widget class="QLabel" name="cLbKeysIn">
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="statusTip">
+            <string>Total keys incoming</string>
+           </property>
+           <property name="text">
+            <string>Keys In:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="cLcdKeysIn">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>32</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>32</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="cLbKeysInRate">
+           <property name="statusTip">
+            <string>Current keys incoming per second</string>
+           </property>
+           <property name="text">
+            <string>1/s:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="cLcdKeysInRate">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>32</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>32</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="cLbKeysOut">
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="statusTip">
+            <string>Total keys outgoing</string>
+           </property>
+           <property name="text">
+            <string>Keys Out:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="cLcdKeysOut">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>32</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>32</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="cLbKeysOutRate">
+           <property name="statusTip">
+            <string>Current keys outgoing per second</string>
+           </property>
+           <property name="text">
+            <string>1/s:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="cLcdKeysOutRate">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>32</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>32</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="Line" name="cLnKeys">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QwtPlot" name="cPlKeys"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="cTabBits">
+      <attribute name="title">
+       <string extracomment="Current flow of bits in and out">Bits</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="cLyTabBits">
+       <item>
+        <layout class="QHBoxLayout" name="cLyTabBitsValues" stretch="0,1,0,1,0,1,0,1">
+         <item>
+          <widget class="QLabel" name="cLbBitsIn">
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="statusTip">
+            <string>Total bits incoming</string>
+           </property>
+           <property name="text">
+            <string>Bits In:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="cLcdBitsIn">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>32</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>32</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="cLbBitsInRate">
+           <property name="statusTip">
+            <string>Current bits incoming per second</string>
+           </property>
+           <property name="text">
+            <string>1/s:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="cLcdBitsInRate">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>32</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>32</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="cLbBitsOut">
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="statusTip">
+            <string>Total bits outgoing</string>
+           </property>
+           <property name="text">
+            <string>Bits Out:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="cLcdBitsOut">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>32</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>32</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="cLbBitsOutRate">
+           <property name="statusTip">
+            <string>Current bits outgoing per second</string>
+           </property>
+           <property name="text">
+            <string>1/s:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="cLcdBitsOutRate">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>32</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>32</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="Line" name="cLnBits">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QwtPlot" name="cPlBits"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="cTabQBER">
+      <attribute name="title">
+       <string extracomment="Current QBER">QBER</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="cLyTabQBER">
+       <item>
+        <layout class="QHBoxLayout" name="cLyTabQBERValue" stretch="0,1">
+         <item>
+          <widget class="QLabel" name="cLbQBER">
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>QBER:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="cLcdQBER">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>32</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>32</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="Line" name="cLnQBER">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QwtPlot" name="cPlQBER"/>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QwtPlot</class>
+   <extends>QFrame</extends>
+   <header>qwt_plot.h</header>
+  </customwidget>
+ </customwidgets>
+ <tabstops>
+  <tabstop>cEdDBus</tabstop>
+  <tabstop>cBtnResume</tabstop>
+  <tabstop>cBtnStop</tabstop>
+  <tabstop>cTbPlots</tabstop>
+  <tabstop>cEdId</tabstop>
+  <tabstop>cCkDebug</tabstop>
+  <tabstop>cEdDescription</tabstop>
+  <tabstop>cEdOrganisation</tabstop>
+  <tabstop>cEdHint</tabstop>
+  <tabstop>cBtnHint</tabstop>
+  <tabstop>cEdPipeline</tabstop>
+  <tabstop>cBtnPipeline</tabstop>
+  <tabstop>cEdProcessStart</tabstop>
+  <tabstop>cEdProcessImage</tabstop>
+  <tabstop>cEdUrlPipeIn</tabstop>
+  <tabstop>cBtnUrlPipeIn</tabstop>
+  <tabstop>cEdUrlPeer</tabstop>
+  <tabstop>cBtnUrlPeer</tabstop>
+  <tabstop>cEdUrlPipeOut</tabstop>
+  <tabstop>cBtnUrlPipeOut</tabstop>
+  <tabstop>cBtnRefresh</tabstop>
+ </tabstops>
+ <resources>
+  <include location="module_frame.qrc"/>
+ </resources>
+ <connections/>
+</ui>

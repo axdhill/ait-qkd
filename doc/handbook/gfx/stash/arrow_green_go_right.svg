@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="50"
+   height="40"
+   id="svg2"
+   sodipodi:version="0.32"
+   inkscape:version="0.46"
+   sodipodi:docbase="G:\Projs\Cliparts Stocker\released"
+   sodipodi:docname="arrow_go_right.svg"
+   inkscape:export-filename="/datas/wiki/arrow_go_right.png"
+   inkscape:export-xdpi="90.000000"
+   inkscape:export-ydpi="90.000000"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   version="1.0">
+  <defs
+     id="defs4">
+    <linearGradient
+       id="linearGradient1416">
+      <stop
+         id="stop1418"
+         offset="0.0000000"
+         style="stop-color:#3ec549;stop-opacity:0.50836122;" />
+      <stop
+         id="stop1420"
+         offset="1.0000000"
+         style="stop-color:#4fe756;stop-opacity:0.11705685;" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient1406">
+      <stop
+         style="stop-color:#56d760;stop-opacity:0.58862877;"
+         offset="0.0000000"
+         id="stop1408" />
+      <stop
+         style="stop-color:#18b01f;stop-opacity:0.39215687;"
+         offset="1.0000000"
+         id="stop1410" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient2127">
+      <stop
+         style="stop-color:#1b611f;stop-opacity:1.0000000;"
+         offset="0.0000000"
+         id="stop2129" />
+      <stop
+         style="stop-color:#103f14;stop-opacity:1.0000000;"
+         offset="1.0000000"
+         id="stop2131" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient1352">
+      <stop
+         style="stop-color:#179907;stop-opacity:1.0000000;"
+         offset="0.0000000"
+         id="stop1354" />
+      <stop
+         style="stop-color:#0f7402;stop-opacity:1.0000000;"
+         offset="1.0000000"
+         id="stop1356" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient1416"
+       id="linearGradient1480"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0,1,1,0,-6.70302,7.128229)"
+       x1="23.254534"
+       y1="16.125437"
+       x2="23.254532"
+       y2="59.48378" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient1406"
+       id="linearGradient1483"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0,1,1,0,-6.64063,7.616408)"
+       x1="28.414125"
+       y1="16.25"
+       x2="20.353058"
+       y2="62.974236" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient1352"
+       id="linearGradient1486"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0,1,1,0,-6.62693,7.434728)"
+       x1="32.382065"
+       y1="15.40625"
+       x2="16.504204"
+       y2="62.810131" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2127"
+       id="linearGradient1489"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0,1,1,0,-6.62693,7.434728)"
+       x1="5.0680437"
+       y1="34.687023"
+       x2="44.70229"
+       y2="42.612633" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="12.425"
+     inkscape:cx="36.066398"
+     inkscape:cy="20"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:grid-bbox="false"
+     inkscape:grid-points="false"
+     inkscape:window-width="1156"
+     inkscape:window-height="693"
+     inkscape:window-x="1"
+     inkscape:window-y="26"
+     showguides="false">
+    <inkscape:grid
+       id="GridFromPre046Settings"
+       type="xygrid"
+       originx="0px"
+       originy="0px"
+       spacingx="1px"
+       spacingy="1px"
+       color="#0000ff"
+       empcolor="#0000ff"
+       opacity="0.2"
+       empopacity="0.4"
+       empspacing="4"
+       visible="true"
+       enabled="true" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>Arrow Go Right</dc:title>
+        <dc:date>2005-11-01</dc:date>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Jean-Victor Balin</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:description>jean.victor.balin@gmail.com</dc:description>
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/publicdomain/" />
+        <dc:subject>
+          <rdf:Bag>
+            <rdf:li>icon</rdf:li>
+            <rdf:li>arrow</rdf:li>
+          </rdf:Bag>
+        </dc:subject>
+        <dc:language>fr-FR</dc:language>
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/publicdomain/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Calque 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       id="g1408"
+       transform="translate(-7.0000003,-12)">
+      <path
+         sodipodi:nodetypes="cccsccccscccccssccc"
+         id="path1388"
+         d="M 24.529324,18.590978 C 26.112298,18.590978 37.693081,18.590978 38.591824,18.590978 C 38.640625,17.590978 38.591824,13.590978 38.591824,13.590978 C 38.600957,13.143729 38.709146,12.760621 39.123074,12.590978 C 39.537001,12.421336 39.990191,12.497527 40.310574,12.809728 L 56.310574,28.809728 C 56.732377,29.245162 56.732377,29.936795 56.310574,30.372228 L 40.310574,46.372228 C 39.990191,46.68443 39.537002,46.79187 39.123074,46.622228 C 38.709145,46.452584 38.600957,46.038227 38.591824,45.590978 C 38.591824,45.590979 38.591824,41.590978 38.591824,40.590978 C 38.009407,40.590978 34.813629,40.590978 30.654324,40.590978 C 28.373074,40.434728 27.373074,41.434728 27.373074,44.434728 C 27.373074,47.434728 27.373074,50.497228 27.373074,50.497228 C 27.373074,50.497228 27.373074,51.497228 26.373074,51.497228 C 20.373074,51.497228 14.373073,51.434728 8.373074,51.434728 C 7.373074,51.434728 7.373074,50.434728 7.373074,50.434728 C 7.373074,50.434728 7.373074,38.840903 7.373074,37.934728 C 7.373074,23.434728 15.373074,18.434728 24.529324,18.590978 z"
+         style="opacity:1;fill:url(#linearGradient1489);fill-opacity:1;stroke:none;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <path
+         id="path2147"
+         d="M 8.77932,37.872228 C 8.77932,30.869311 10.695512,26.427009 13.52932,23.684728 C 16.363128,20.942447 20.233565,19.798388 24.56057,19.872228 C 24.570986,19.872349 24.581404,19.872349 24.59182,19.872228 C 26.174794,19.872228 37.755577,19.872228 38.65432,19.872228 C 39.372736,19.873059 39.964709,19.308619 39.99807,18.590978 C 40.048384,17.559982 40.009624,15.152331 39.99807,14.278478 L 55.24807,29.528478 L 39.99807,44.809728 C 39.998128,43.977074 39.99807,41.390113 39.99807,40.528478 C 39.998128,39.786322 39.396476,39.18467 38.65432,39.184728 C 38.078782,39.184728 34.89803,39.184728 30.81057,39.184728 C 30.778742,39.182548 30.748656,39.186487 30.71682,39.184728 C 29.399403,39.111926 28.079756,39.395913 27.21682,40.372228 C 26.33303,41.372136 26.09182,42.722949 26.09182,44.372228 C 26.09182,47.202125 26.09182,49.772853 26.09182,50.090978 C 20.329615,50.088726 14.558786,50.03073 8.77932,50.028478 C 8.77932,49.42474 8.77932,38.753483 8.77932,37.872228 z"
+         style="fill:url(#linearGradient1486);fill-opacity:1;stroke:none;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1" />
+      <path
+         id="path1412"
+         d="M 9.60937,38.053908 C 9.60937,31.204953 11.466256,27.017904 14.10937,24.460158 C 16.751498,21.903366 20.377154,20.826502 24.54687,20.897658 C 24.563822,20.897855 24.561168,20.897855 24.57812,20.897658 C 26.161094,20.897658 37.741877,20.897658 38.64062,20.897658 C 39.801645,20.899001 40.774206,19.96368 40.82812,18.803908 C 40.857114,18.209795 40.834682,17.382708 40.82812,16.491408 L 54.04687,29.710158 L 40.82812,42.960158 C 40.828113,42.059346 40.82812,41.162968 40.82812,40.710158 C 40.828214,39.511822 39.838956,38.522564 38.64062,38.522658 C 38.069668,38.522658 34.899818,38.522658 30.85937,38.522658 C 30.790795,38.517961 30.81428,38.522116 30.79687,38.522658 C 30.77946,38.5232 30.701015,38.520815 30.73437,38.522658 C 29.265212,38.441471 27.670039,38.756025 26.57812,39.991408 C 25.494999,41.216836 25.23437,42.822338 25.23437,44.553908 C 25.23437,46.966279 25.23437,48.628079 25.23437,49.428908 C 20.03749,49.422212 14.829164,49.373107 9.60937,49.366408 C 9.60937,47.593054 9.60937,38.873996 9.60937,38.053908 z"
+         style="fill:url(#linearGradient1483);fill-opacity:1;stroke:none;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1" />
+      <path
+         sodipodi:nodetypes="cssssscccsc"
+         id="path4351"
+         d="M 9.634548,39.790199 C 9.368837,33.349932 10.227564,28.109021 13.987344,24.543503 C 16.669275,22.000142 19.491167,20.900616 24.609481,20.971979 C 24.624796,20.972193 24.625415,20.972157 24.640731,20.971979 C 26.223705,20.971979 37.804488,20.971979 38.703231,20.971979 C 39.832593,20.973285 40.775776,20.0691 40.828231,18.940729 C 40.858656,18.317276 40.839755,17.396433 40.828231,16.503229 L 54.042435,29.717433 L 44.249253,39.510615 C 42.317288,31.62836 35.168917,26.121073 26.296981,26.121073 C 19.144562,26.121074 13.998602,28.225822 9.634548,39.790199 z"
+         style="fill:url(#linearGradient1480);fill-opacity:1;stroke:none;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1" />
+    </g>
+  </g>
+</svg>

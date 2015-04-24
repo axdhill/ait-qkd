@@ -1,0 +1,161 @@
+\section{Concepts of Program Design}
+\label{sec:concepts}
+
+In this section, the basic principles and concepts of the design of the QKD simulator will be described. It will be explained how components that are part of the simulation system can interact, which requirements they have to fulfil and which behaviour is expected from them. 
+
+\subsection{Object-Oriented Design and Event-Oriented Simulation}
+
+The physical system as described in section~\ref{sec:overview} is modelled and simulated with objects that are instances of C++ classes, which are interacting by sending events to each other. All classes that define the structure of components which are interacting in the simulation by sending and receiving events are derived from the base class \texttt{channel\_event\_handler} that defines basic functionality and interfaces necessary for event handling. 
+
+Objects which are in the same level of containment hierarchy do not communicate directly, however, but only send events either to one of the objects it contains (further denoted as child event handlers), to themselves, or to the object containing them (further denoted as parent event handler). The parent event handler is responsible for establishing the connectivity between its child event handlers by forwarding those events that its child event handlers are sending to it, if necessary. 
+
+For example, if the \textbf{source} in Figure \ref{fig:quantum_channel} is generating a new photon pair, it sends an event to its parent event handler which is the \textbf{channel}, which in turn forwards the event to \textbf{detector alice} and to \textbf{fiber} because these event handlers are connected to the \textbf{source}. This concept that components only send events to their parents or childs or to themselves, although it might seem restrictive, provides the advantage of flexibility when changing the system configuration and allows components to be instantiated multiple times without causing name conflicts and without the necessity to change their implementation.
+
+\subsection{Management of the Simulation and Event Dispatch}
+\label{subsec:concepts_events}
+
+A central role in the simulation plays one instance of the class \texttt{channel\_event\_manager} which is owned by the \texttt{channel} object. All event handlers on their initialisation obtain a pointer to the \texttt{channel\_event\_manager} object so that they can access it. Also they call the \texttt{add\_event\_handler} function of the \texttt{channel\_event\_manager} to register themselves as event handlers participating in the simulation. The \texttt{channel\_event\_manager} provides the \texttt{add\_event} function that allows to insert a new event into an event priority queue which the \texttt{channel\_event\_manager} internally keeps. An event is stored as a class named \texttt{event} which is defined as shown in Listing \ref{lst:event}.
+
+\begin{lstlisting}[caption={Definition of the \texttt{event} class}, captionpos=b, label={lst:event}]
+class event {
+
+    uint64_t nId;
+    priority ePriority;
+    type eType;
+    channel_event_handler * cDestination;
+    channel_event_handler * cSource;
+    int64_t nTime;
+    
+    struct {
+        
+        uint64_t m_nPhotonPairId;
+        photon_state m_ePhotonState;
+        int64_t m_nDetectTime;
+        bool m_bAlice;
+        bool m_bDown;
+        
+    } cData;
+};
+\end{lstlisting}
+
+The meaning of the structure members is the following:
+
+\begin{itemize}
+
+\item \texttt{m\_nTime} defines the time when the event should occur. It is measured in units of the \texttt{RESOLUTION} constant defined in the \texttt{ttm} class which is defined to be 82.3~ps, and the time is stored as signed 64-bit integer, so it is discretised to a time raster with a resolution of \texttt{ttm::RESOLUTION}.
+
+\item \texttt{m\_ePriority} defines the event priority. It is one of the enumeration constants defined in the \texttt{channel\_event\_priority} enumeration type as shown in Listing \ref{lst:event_priority}. The highest priority is the first one, and the lowest the last one defined. Event priorities are required when several events occur at the same time to determine the order of event dispatch. In the case that multiple events are set to occur at the same time, the events are handled in the order of their priorities, with the event having the highest priority being handled first. For events that are set to the same time and that also have the same priority the order of their dispatch is not determined.
+
+\item \texttt{m\_eType} describes the type of event, it must be one of the enumeration constants defined in the \texttt{channel\_event\_type} enumeration type in \texttt{event.h} (see Listing \ref{lst:event_type}).
+
+\item \texttt{m\_cDestination} is the address of the channel event handler that should receive the event.
+
+\item \texttt{m\_cSource} is the address of the channel event handler that sent the event.
+
+\item \texttt{m\_cData} is a structure variable containing additional information required for specific events.
+
+\end{itemize}
+
+\begin{lstlisting}[caption={Definition of the \texttt{event\_priority} enumeration type}, captionpos=b, label={lst:event_priority}]
+    enum priority : uint8_t {
+        
+        SYSTEM,
+        SUPERHIGH,
+        HIGH,
+        NORMAL,
+        SUBNORMAL,
+        LOW
+    };
+\end{lstlisting}
+
+\begin{lstlisting}[caption={Definition of the \texttt{channel\_event\_type} enumeration type}, captionpos=b, label={lst:event_type}]
+    enum type : uint8_t {
+        DARK_COUNT,
+        DETECT,
+        DETECTOR_PULSE,
+        DISABLE,
+        DOWN_END,
+        ENABLE,
+        INIT,
+        PHOTON,
+        PULSE,
+        STOP,
+        SYNC_PULSE,
+        SYNC_PULSE_BAD,
+        WINDOW_END,
+        WINDOW_END_BAD,
+        WINDOW_START
+    };
+\end{lstlisting}
+
+All channel event handlers provide the \texttt{handle} function that receives an event structure as parameter (passed by reference) which describes the event that should be handled. The \texttt{channel\_event\_manager} has a member variable named \texttt{m\_nTime} that stores the current simulation time. When a simulation is run, the following steps are performed:
+
+\begin{itemize}
+
+\item The \texttt{channel\_event\_manager} clears its event priority queue and initialises its \texttt{m\_nTime} variable with zero.
+
+\item The \texttt{channel\_event\_manager} sends events with \texttt{m\_eType} set to \texttt{channel\_event\_type::init} to all registered event handlers.
+
+\item As long as the \texttt{channel\_event\_manager}'s event priority queue is not empty and not some stop criterion is fulfilled, the \texttt{channel\_event\_manager} repeats the following steps:
+
+\begin{itemize}
+
+\item The \texttt{channel\_event\_manager} takes the next event that should be processed (depending on the \texttt{m\_nTime} and \texttt{m\_ePriority} members of all events in the queue) out of its event priority queue. Let this event further be denoted by  \texttt{ev}.
+
+\item \texttt{channel\_event\_manager.m\_nTime} is set to \texttt{ev.m\_nTime}.
+
+\item The \texttt{handle} function of the channel event handler addressed by \texttt{ev.m\_cDestination} is called with \texttt{ev} being passed as parameter.
+
+\end{itemize}
+
+\item The \texttt{channel\_event\_manager} sends events with \texttt{m\_eType} set to \texttt{channel\_event\_type::stop} to all registered event handlers.
+
+\end{itemize}
+
+By following the procedure described above it is ensured that all generated events are processed in correct chronological order, provided that only causal event generation is allowed, which means that never an event may be generated that should occur at a time earlier than the current simulation time. To avoid hang-ups or stack overflows, a \texttt{channel\_event\_handler} should never call the \texttt{handle} function of another \texttt{channel\_event\_handler} directly, but should always only use the \texttt{channel\_event\_manager}'s \texttt{add\_event} function to generate new events that can eventually address a specific \texttt{channel\_event\_handler} that should receive the event (possibly after some forwarding).
+
+\subsection{Management of Photon and Photon Pair Generation and Destruction}
+\label{subsec:concepts_photons}
+
+While the simulation is running, usually a large number of photons and photon pairs are generated by photon sources. Data structures are required to describe the properties like polarisation and entanglement of photons. Additionally, for pairs of entangled photons it is necessary to have a possibility to uniquely identify the two photons which are entangled, because measurement of the polarisation of one of the entangled photons instantaneously determines the polarisation state that will be measured for the other photon. For this purpose, the \texttt{photon\_state} enumeration type and the \texttt{photon\_pair} structure as shown in Listing \ref{lst:photon_pair} have been defined in \texttt{photon\_pair.h}.
+
+\begin{lstlisting}[caption={Definition of the \texttt{photon\_state} enumeration type and the \texttt{photon\_pair} structure}, captionpos=b, label={lst:photon_pair}]
+enum photon\_state : uint8_t {
+    
+    NONPOLARIZED,
+    ENTANGLED,
+    HORIZONTAL,
+    VERTICAL,
+    PLUS,
+    MINUS,
+    ABSORBED
+};
+
+struct photon_pair {
+    
+    photon_state eStateA;
+    photon_state eStateB;
+    double nEntanglementError;
+};
+\end{lstlisting}
+
+The \texttt{photon\_pair} structure is used to describe single photons as well as pairs of entangled photons. The members of the structure have the following meaning:
+
+\begin{itemize}
+
+\item \texttt{eStateA} is the state of the photon travelling to Alice. It must be set to one of the enumeration constants defined in \texttt{photon\_state}.
+
+\item \texttt{eStateB} is the state of the photon travelling to Bob. It must be set to one of the enumeration constants defined in \texttt{photon\_state}.
+
+\item \texttt{nEntanglementError} is a probability value (must be between 0 and 1) only valid for a pair of entangled photons. It describes the probability of measuring the same instead of orthogonal polarisation for the two entangled photons when measured in the same base (either H/V or P/M) at both Alice's and Bob's side. If the second photon is measured in a different base than the first photon, the \texttt{entanglement\_error} value does not have any effect (both possible polarisation measurement results for the second photon still are equally probable). This means that the \texttt{entanglement\_error} property only models an unbiased statistical error.
+
+\end{itemize}
+
+Setting \texttt{eStateA} or \texttt{eStateB} to \texttt{photon\_state::ABSORBED} means either that the photon has never been created (because only a single photon should be described) or it is not existing anymore because it has been absorbed (due to transmission loss, measurement, etc.). The enumeration constant \texttt{photon\_state::ENTANGLED} has a special role and may only be used if both \texttt{eStateA} and \texttt{eStateB} are set to it. It describes a pair of entangled photons. The \texttt{photon\_state::NONPOLARIZED} state can be used to describe photons whose polarisation is not known and statistically distributed over all possibilities with equal probability. The other enumeration constants defined in \texttt{photon\_state} describe specific polarisation states of the H/V and P/M bases.
+
+Because the allocation of heap memory each time a \texttt{photon\_pair} structure is needed would be inefficient in consideration of the runtime and therefore slow down the simulation, a \texttt{photon\_pair\_manager} class has been defined. The \texttt{channel} object keeps an instance of this class (which is announced to all channel event handlers during their initialisation) that is used for creating and destroying \texttt{photon\_pair} instances. Whenever a \texttt{photon\_pair} object is created by the \texttt{photon\_pair\_manager}, it is assigned a unique identifier of unsigned 64-bit integer type and inserted into an \texttt{unordered\_map} container. To avoid unnecessary waste of CPU time, the \texttt{photon\_pair\_manager} does however not check by itself for \texttt{photon\_pair} objects that should be removed from its container. 
+
+Therefore, it is the duty of all event handlers that whenever they set the \texttt{eStateA} or \texttt{eStateB} variable of some \texttt{photon\_pair} object contained in the \texttt{photon\_pair\_manager}'s map to \texttt{photon\_state::ABSORBED}, they should check if now both of those variables are in \texttt{ABSORBED} state, and if they are, the event handler must remove this \texttt{photon\_pair} from the \texttt{photon\_pair\_manager}'s map by calling the \texttt{photon\_pair\_manager}'s \texttt{remove} function.
+
+
+

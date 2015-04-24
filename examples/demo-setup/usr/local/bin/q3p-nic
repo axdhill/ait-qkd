@@ -1,0 +1,90 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# q3p-nic
+# 
+# setup the q3p NIC (network interface card) and prvide some
+# neat chat feature over the NIC interfaces
+#
+#   Usage: q3p-nic [--setup] alice|bob
+#
+#   Opiton: "--setup" ... only setup the addresses and exit
+#
+#       $ q3p-nic alice
+#       This starts the "client" side of a tiny Q3P chat       
+#
+#       $ q3p-nic bob
+#       This starts the "server" side of a tiny Q3P chat       
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This file is part of the AIT QKD Software Suite.
+#
+# The AIT QKD Software Suite is free software: you can redistribute 
+# it and/or modify it under the terms of the GNU General Public License 
+# as published by the Free Software Foundation, either version 3 of 
+# the License, or (at your option) any later version.
+# 
+# The AIT QKD Software Suite is distributed in the hope that it will 
+# be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with the AIT QKD Software Suite. 
+# If not, see <http://www.gnu.org/licenses/>.
+# ------------------------------------------------------------
+
+# check for "--setup" switch
+SETUP_ONLY="no"
+if [ "${1}" == "--setup" ]; then
+    SETUP_ONLY="yes"
+    shift
+fi
+
+# we must have a role
+if [ -z "${1}" ]; then
+    echo "please specify a role: \"$0 alice\" or \"$0 bob\""
+    exit 1
+fi
+
+# detect either alice or bob
+ROLE="${1}"
+IP_THIS="10.81.39.121"
+IP_PEER="10.81.39.122"
+if [ "${ROLE}" = "bob" ]; then
+    IP_THIS="10.81.39.122"
+    IP_PEER="10.81.39.121"
+fi
+
+# grab nic name
+NIC_OBJECT=$(qdbus at.ac.ait.q3p.node-${ROLE} | grep NIC | head -n 1)
+NIC_DEV=$(qdbus at.ac.ait.q3p.node-${ROLE} ${NIC_OBJECT} name)
+
+# setup NIC
+sudo ip addr change ${IP_THIS} dev ${NIC_DEV}
+sudo ip link set dev ${NIC_DEV} mtu 64000
+sudo ip link set dev ${NIC_DEV} up
+sudo ip route add ${IP_PEER} via ${IP_THIS}
+
+echo "=== NIC setup done ==="
+
+# exit?
+if [ "${SETUP_ONLY}" = "yes" ]; then
+    # no chat
+    exit 0
+fi
+
+echo "=== Q3P chat launched (type something) ==="
+
+# setup chat client and server
+if [ "${ROLE}" = "alice" ]; then
+    nc ${IP_PEER} 8907
+else
+    nc -l -p 8907 -s ${IP_THIS}
+fi

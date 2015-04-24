@@ -1,0 +1,100 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-q3pd-modules
+# 
+# This is a test file.
+#
+# TEST: test the listening of running modules of a node
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+
+# ------------------------------------------------------------
+
+# init test environment
+test_init
+
+# zap previous database
+rm -rf "${DB_ALICE_2_BOB}" &> /dev/null
+rm -rf "${DB_BOB_2_ALICE}" &> /dev/null
+
+# main
+q3pd_start "alice" --debug || exit $?
+
+# create link
+qkd_qdbus at.ac.ait.q3p.node-alice /Node create_link 'alice_to_bob'
+qkd_qdbus at.ac.ait.q3p.node-alice /Node Set at.ac.ait.q3p.node debug "true"
+
+# zap previous database
+rm -rf "${DB_ALICE_2_BOB}" &> /dev/null
+
+# create new database
+qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob open_db "file://${DB_ALICE_2_BOB}"
+
+# inject some keys
+echo "inject"
+qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob inject "${SHARED_SECRET}"
+echo "injected"
+KEYS_IN_DB=$(qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob/CommonStore charge)
+
+# verify test
+if [ "${KEYS_IN_DB}" != "6" ]; then
+    q3pd_stop "alice" || exit $?
+    exit 1
+fi
+
+# inject even more keys
+qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob inject_url "file://${TEST_BASE}/test/test-data/shared-secret-long"
+KEYS_IN_DB=$(qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob/CommonStore charge)
+echo "keys in DB: ${KEYS_IN_DB}"
+
+# verify test
+if [ "${KEYS_IN_DB}" != "518" ]; then
+    echo "Not the amount in the DB as expected. KEYS_IN_DB = ${KEYS_IN_DB} != 518"
+    q3pd_stop "alice" || exit $?
+    exit 1
+fi
+
+# inject a ton of keys
+qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob inject_url "file://${TEST_BASE}/test/test-data/shared-secret-very-long"
+KEYS_IN_DB=$(qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob/CommonStore charge)
+echo "keys in DB: ${KEYS_IN_DB}"
+
+# verify test
+if [ "${KEYS_IN_DB}" != "31768" ]; then
+    echo "Not the amount in the DB as expected. KEYS_IN_DB = ${KEYS_IN_DB} != 31768"
+    q3pd_stop "alice" || exit $?
+    exit 1
+fi
+
+q3pd_stop "alice" || exit $?
+
+# state that test ok
+echo "=== TEST SUCCESS ==="
+

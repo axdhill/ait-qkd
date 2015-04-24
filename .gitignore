@@ -1,0 +1,5 @@
+# do not check-in built files
+build/*
+
+# do not checkin vim temporary files
+*.swp

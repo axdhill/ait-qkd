@@ -1,0 +1,9 @@
+[Unit]
+Description=QKD D-Bus Message Bus Socket
+Before=sockets.target
+
+[Socket]
+ListenStream=%t/dbus/qkd_bus_socket
+
+[Install]
+WantedBy=default.target

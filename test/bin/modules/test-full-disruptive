@@ -1,0 +1,140 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-full-disruptive
+# 
+# This is a test file.
+#
+# TEST: test the QKD post processing eco-system
+#       be nasty and disruptive by reordering keys in the
+#       pipeline and throw some away
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2013-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+
+# ------------------------------------------------------------
+
+# init test environment
+test_init
+
+# zap previous keys
+rm -rf cat_keys.* &> /dev/null
+
+# trunacte previous debug out
+rm -f auth_pre.config auth_post.config auth_keys.alice auth_keys.bob 2> /dev/null
+echo -n > auth_pre_debug.alice
+echo -n > auth_pre_debug.bob
+echo -n > cat_debug.alice
+echo -n > cat_debug.bob
+echo -n > bb84_debug.alice
+echo -n > bb84_debug.bob
+echo -n > drop_debug.alice
+echo -n > drop_debug.bob
+echo -n > cascade_debug.alice
+echo -n > cascade_debug.bob
+echo -n > confirmation_debug.alice
+echo -n > confirmation_debug.bob
+echo -n > buffer_debug.alice
+echo -n > buffer_debug.bob
+echo -n > reorder_debug.alice
+echo -n > reorder_debug.bob
+echo -n > privacy_amplification_debug.alice
+echo -n > privacy_amplification_debug.bob
+echo -n > auth_post_debug.alice
+echo -n > auth_post_debug.bob
+
+# create keys
+KEYS_TO_PROCESS="1000"
+${TEST_BASE}/bin/qkd-key-gen --size 2048 --keys ${KEYS_TO_PROCESS} --quantum --rate 0.03 cat_keys
+
+# prepare the config files
+cp ${TEST_BASE}/test/test-data/disruptive-full.conf ${TEST_BASE}/auth_pre.config
+sed -i 's/auth-PRE/auth/' ${TEST_BASE}/auth_pre.config
+cp ${TEST_BASE}/test/test-data/disruptive-full.conf ${TEST_BASE}/auth_post.config
+sed -i 's/auth-POST/auth/' ${TEST_BASE}/auth_post.config
+
+# start two pipelines
+PIPELINE_PRE_CONFIG="file://${TEST_BASE}/auth_pre.config"
+PIPELINE_POST_CONFIG="file://${TEST_BASE}/auth_post.config"
+
+# start the modules: key material feeder
+( ${TEST_BASE}/bin/qkd-cat --debug --run --config ${PIPELINE_PRE_CONFIG} --file "cat_keys.alice" 2>> cat_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-cat --debug --bob --run --config ${PIPELINE_PRE_CONFIG} --file "cat_keys.bob" 2>> cat_debug.bob ) &
+
+# start the modules
+( ${TEST_BASE}/bin/qkd-auth --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> auth_pre_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-auth --debug --bob --run --config ${PIPELINE_PRE_CONFIG} 2>> auth_pre_debug.bob ) &
+( ${TEST_BASE}/bin/qkd-bb84 --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> bb84_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-bb84 --debug --bob --run --config ${PIPELINE_PRE_CONFIG} 2>> bb84_debug.bob ) &
+( ${TEST_BASE}/bin/qkd-cascade --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> cascade_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-cascade --debug --bob --run --config ${PIPELINE_PRE_CONFIG} 2>> cascade_debug.bob ) &
+( ${TEST_BASE}/bin/qkd-drop --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> drop_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-drop --debug --bob --run --config ${PIPELINE_PRE_CONFIG} 2>> drop_debug.bob ) &
+( ${TEST_BASE}/bin/qkd-confirmation --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> confirmation_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-confirmation --debug --bob --run --config ${PIPELINE_PRE_CONFIG} 2>> confirmation_debug.bob ) &
+( ${TEST_BASE}/bin/qkd-buffer --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> buffer_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-buffer --debug --bob --run --config ${PIPELINE_PRE_CONFIG} 2>> buffer_debug.bob ) &
+( ${TEST_BASE}/bin/qkd-reorder --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> reorder_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-reorder --debug --bob --run --config ${PIPELINE_PRE_CONFIG} 2>> reorder_debug.bob ) &
+( ${TEST_BASE}/bin/qkd-privacy-amplification --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> privacy_amplification_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-privacy-amplification --debug --bob --run --config ${PIPELINE_PRE_CONFIG} 2>> privacy_amplification_debug.bob ) &
+( ${TEST_BASE}/bin/qkd-auth --debug --run --config ${PIPELINE_POST_CONFIG} 1> auth_keys.alice 2>> auth_post_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-auth --debug --bob --run --config ${PIPELINE_POST_CONFIG} 1> auth_keys.bob 2>> auth_post_debug.bob ) &
+
+# wait until the modules are up
+while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module | wc -l)" != "20" ]; do
+    echo "waiting for the pipeline to ignite ..."
+    sleep 1
+done
+
+# wait until the pipeline has been through
+sleep 1
+wait_stalled cat bb84 cascade confirmation buffer drop reorder privacy-amplification auth
+
+# final authentication keys may not differ
+if [ ! -s auth_keys.alice ]; then
+    echo "alice has not pushed keys"
+    exit 1
+fi
+if [ ! -s auth_keys.bob ]; then
+    echo "bob has not pushed keys"
+    exit 1
+fi
+diff -q auth_keys.alice auth_keys.bob
+if [ "$?" != "0" ]; then
+    echo "pipeline created different results - failed"
+    exit 1
+fi
+echo "full pipeline corrected keys - ok"
+
+# stop modules
+test_cleanup
+
+# state that test ok
+echo "=== TEST SUCCESS ==="
+

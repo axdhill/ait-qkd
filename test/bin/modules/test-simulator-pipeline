@@ -1,0 +1,78 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-simulator-pipeline
+# 
+# This is a test file.
+#
+# TEST: test the QKD post processing eco-system
+#       with the qkd-simulator
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2013-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+# base path to binaries ...
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+# kick any running qkd modules processes: make a clean environment
+for p in $(qkd_qdbus | grep at.ac.ait.qkd.module); do
+    PID=$(qkd_qdbus ${p} /Module process_id 2> /dev/null) && (
+        echo "found qkd module running with pid ${PID} - killing ..."
+        kill ${PID}
+    )
+done
+
+# trunacte previous debug out
+echo -n > bb84_debug.alice
+echo -n > bb84_debug.bob
+echo -n > cascade_debug.alice
+echo -n > cascade_debug.bob
+echo -n > confirmation_debug.alice
+echo -n > confirmation_debug.bob
+echo -n > privacy_amplification_debug.alice
+echo -n > privacy_amplification_debug.bob
+
+# to create keys you have to launch the simulator 
+# and load the 'simulator.conf' configuration file
+
+# start two pipelines
+PIPELINE_CONFIG="file://${TEST_BASE}/test/test-data/simulator-pipeline.conf"
+
+# start the modules
+( ${TEST_BASE}/bin/qkd-bb84 --debug --run --config ${PIPELINE_CONFIG} 2>> bb84_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-bb84 --debug --bob --run --config ${PIPELINE_CONFIG} 2>> bb84_debug.bob ) &
+( ${TEST_BASE}/bin/qkd-cascade --debug --run --config ${PIPELINE_CONFIG} 2>> cascade_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-cascade --debug --bob --run --config ${PIPELINE_CONFIG} 2>> cascade_debug.bob ) &
+( ${TEST_BASE}/bin/qkd-confirmation --debug --run --config ${PIPELINE_CONFIG} 2>> confirmation_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-confirmation --debug --bob --run --config ${PIPELINE_CONFIG} 2>> confirmation_debug.bob ) &
+( ${TEST_BASE}/bin/qkd-privacy-amplification --debug --run --config ${PIPELINE_CONFIG} 1> shared_secret_key.alice 2>> privacy_amplification_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-privacy-amplification --debug --bob --run --config ${PIPELINE_CONFIG} 1> shared_secret_key.bob 2>> privacy_amplification_debug.bob ) &
+
+# wait until the modules are up
+while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module | wc -l)" != "8" ]; do
+    echo "waiting for the pipeline to ignite ..."
+    sleep 1
+done
+
+# state that pipeline is up and running
+echo "=== PIPELINE UP ==="

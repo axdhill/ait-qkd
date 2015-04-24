@@ -1,0 +1,76 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-module-copy
+# 
+# This is a test file.
+#
+# TEST: test the qkd module copy which is: test the pipe-in and pipe-out stuff
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+
+# ------------------------------------------------------------
+
+# kill any test-config-module instances
+pkill -ef "${TEST_BASE}/test/lib/test-config-module" &> /dev/null
+
+# kick any previous output
+rm -f "test-config-module.output" &> /dev/null
+
+# start the module in the background and dump the result a file
+( "${TEST_BASE}/test/lib/test-config-module" &> "test-config-module.output" ) &
+sleep 1
+
+# pick the module
+MODULE_SERVICE=$(qkd_qdbus | grep at.ac.ait.qkd.module.config)
+if [ "${MODULE_SERVICE}" = "" ]; then
+    echo "failed to start test-config-module"
+    exit 1
+fi
+echo "testing configuration on '${MODULE_SERVICE}'"
+
+# load the configuration file into the module
+qkd_qdbus ${MODULE_SERVICE} /Module at.ac.ait.qkd.module.configure "file://${TEST_BASE}/test/test-data/module.conf"
+
+# create the expected output
+cat > "test-config-module.expected" << EOF
+configuration loaded from 'file://${TEST_BASE}/test/test-data/module.conf':
+qkd.debug = true
+qkd.my_module.key = value
+qkd.my_module.key.one = value_4 value_5 value_6
+EOF
+
+# now ${TEST_BASE}/test/test-config-module.output
+diff -q "test-config-module.output" "test-config-module.expected"
+RESULT="$?"
+
+# tell the module to terminate
+qkd_qdbus ${MODULE_SERVICE} /Module at.ac.ait.qkd.module.terminate
+
+exit ${RESULT}

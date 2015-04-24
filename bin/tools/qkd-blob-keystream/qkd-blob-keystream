@@ -1,0 +1,115 @@
+#!/bin/sh
+
+# ------------------------------------------------------------
+# qkd-blob-keystream
+#
+# turn a binary large object (BLOB) into a qkd keystream file
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+# 
+# Copyright (C) 2013-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This file is part of the AIT QKD Software Suite.
+#
+# The AIT QKD Software Suite is free software: you can redistribute 
+# it and/or modify it under the terms of the GNU General Public License 
+# as published by the Free Software Foundation, either version 3 of 
+# the License, or (at your option) any later version.
+# 
+# The AIT QKD Software Suite is distributed in the hope that it will 
+# be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with the AIT QKD Software Suite. 
+# If not, see <http://www.gnu.org/licenses/>.
+# ------------------------------------------------------------
+
+# arguments
+FILE=""
+DEBUG=""
+KEYSIZE=""
+
+while [ "${1}" != "" ]; do
+
+    # deal with the options
+    case "${1}" in
+
+        -d|--debug)
+            DEBUG="--debug"
+            ;;
+
+        -?|-h|--help)
+            echo "qkd-blob-keystream - convert a BLOB into a QKD key stream."
+            echo
+            echo "USAGE: qkd-blob-keystream [OPTION] KEYSIZE FILE"
+            echo 
+            echo "with OPTION been:"
+            echo "  -d|--debug     enable debug mode instantly to all modules"
+            echo "  -h|--help      this page"
+            echo
+            echo "This program will convert any binary file into a QKD key stream."
+            echo "The QKD key stream file will have the suffix '.qkd' attached."
+            echo
+            echo "  - KEYSIZE   size of a single key in bytes"
+            echo
+            echo "  - FILE      the BLOB to convert"
+            echo
+            exit 0
+            ;;
+
+        -*|--*)
+            echo "Unknown option: ${1}"
+            exit 1
+            ;;
+            
+        *) 
+            break
+            ;;
+        
+    esac
+    
+    shift
+    
+done
+
+# get the keysize
+KEYSIZE="${1}"
+if [ -z "${KEYSIZE}" ]; then
+    echo "No keysize given. Type '--help' for help."
+    exit 1
+fi
+test "${KEYSIZE}" -ge 1 2>/dev/null
+if [ "$?" != "0" ]; then
+    echo "Invalid keysize. Type '--help' for help."
+    exit 1
+fi
+shift
+
+# get the input file
+FILE="${1}"
+if [ -z "${FILE}" ]; then
+    echo "No BLOB file given. Type '--help' for help."
+    exit 1
+fi
+test -f "${FILE}" 2>/dev/null
+if [ "$?" != "0" ]; then
+    echo "Not a regular file to read."
+    exit 1
+fi
+shift
+
+# check for qkd-enkey program
+QKD_ENKEY=$(which qkd-enkey 2>/dev/null)
+if [ "$?" != "0" ]; then
+    echo "failed to locate qkd-enkey. Please check if you have installed the qkd-enkey program."
+    exit 1
+fi
+
+# run command
+echo "running qkd-enkey ..."
+${QKD_ENKEY} ${DEBUG} --size=${KEYSIZE} --file=${FILE} --run 1>${FILE}.qkd

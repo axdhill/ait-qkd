@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-module-null
+# 
+# This is a test file.
+#
+# TEST: test the qkd module null (just start and stop the module)
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+
+# ------------------------------------------------------------
+
+# kill any test-null-module instances
+pkill -ef "${TEST_BASE}/test/lib/test-null-module" &> /dev/null
+
+# kick any previous output
+rm -f "test-null-module.output" &> /dev/null
+
+# start the module in the background and dump the result to stdout
+( "${TEST_BASE}/test/lib/test-null-module" &> "test-null-module.output" ) &
+sleep 1
+
+# pick the module
+MODULE_SERVICE=$(qkd_qdbus | grep at.ac.ait.qkd.module.null)
+if [ "${MODULE_SERVICE}" = "" ]; then
+    echo "failed to start test-null-module"
+    exit 1
+fi
+echo "'${MODULE_SERVICE}' started - ok"
+
+# kill test-null-module instance
+pkill -ef "${TEST_BASE}/test/lib/test-null-module" &> /dev/null
+
