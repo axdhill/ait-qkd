@@ -48,18 +48,18 @@ The whole project compiles in one single step, meaning no subprojects. This resu
     |   |   +-- qkd-reorder                                     randomly reorder keys in a keystream (development module)
     |   |   +-- qkd-tee                                         fork keystream to stderr and the next module
     |   |   +-- qkd-throttle                                    throttle key stream on bits/keys per second (development module)
-    |   +-- q3pd                                        The Q3P node
-    |   +-- tools                                       tools
-    |       +-- q3p-inject                                  Feed a Q3P node with keys, BASH-Script
-    |       +-- q3p-keystore-dump                           dump content of Q3P database human readable on stdout
-    |       +-- q3p-mq-reader                               read qkd Q3P message queue
-    |       +-- qkd-blob-keystream                          wrapper around qkd-enkey, BASH-Script
-    |       +-- qkd-key-dump                                dump a keystream file human readable to stdout
-    |       +-- qkd-key-gen                                 create pairs of pseudo random input keys
-    |       +-- qkd-module-manager                          GUI for qkd post processing
-    |       +-- qkd-pipeline                                high level qkd post processing admin (start/stop pipeline)
-    |       +-- qkd-simulate                                GUI with simulating quantum events continuously 
-    |       +-- qkd-view                                    dump current status of all qkd objects of the system to stdout
+    |   +-- q3pd                                            The Q3P node
+    |   +-- tools                                           tools
+    |       +-- q3p-inject                                      Feed a Q3P node with keys, BASH-Script
+    |       +-- q3p-keystore-dump                               dump content of Q3P database human readable on stdout
+    |       +-- q3p-mq-reader                                   read qkd Q3P message queue
+    |       +-- qkd-blob-keystream                              wrapper around qkd-enkey, BASH-Script
+    |       +-- qkd-key-dump                                    dump a keystream file human readable to stdout
+    |       +-- qkd-key-gen                                     create pairs of pseudo random input keys
+    |       +-- qkd-module-manager                              GUI for qkd post processing
+    |       +-- qkd-pipeline                                    high level qkd post processing admin (start/stop pipeline)
+    |       +-- qkd-simulate                                    GUI with simulating quantum events continuously 
+    |       +-- qkd-view                                        dump current status of all qkd objects of the system to stdout
     +-- cmake                                           cmake relevant build details
     +-- doc                                             documentation
     |   +-- handbook                                        AIT QKD Handbook (OUTDATED)
