@@ -2,7 +2,7 @@ AIT QKD R10 Software
 ====================
 
 
-This is the AIT QKD Software Suite containing Q3P, the Q3P KeyStore, QKD Modules, Cascade, and others.
+This is the AIT QKD Software Suite containing Q3P, the Q3P KeyStore, QKD Modules, Cascade, and others. This is the **public**, **free** repository. We do have additonal stuff like LDPC error correction, QKD presfiting and QKD GUI. If you have interest in these please contact us.
 
 The source code is arranged as a CMake (see: [http://www.cmake.org](http://www.cmake.org/)) project.
 
@@ -101,7 +101,7 @@ In order to compile the QKD sources we need at least the developer versions of:
 
 Here are the steps which help you to setup a build system capable of compiling the sources on a pure Debian Wheezy system.
 
-    # apt-get install build-essential g++ gcc libboost-all-dev libssl-dev uuid-dev cmake libssl-dev uuid-dev libgmp3-dev libzmq-dev libdbus-1-dev libqt4-dev doxygen 
+    # apt-get install build-essential g++ gcc libboost-all-dev libssl-dev uuid-dev cmake libssl-dev uuid-dev libgmp3-dev libzmq-dev libdbus-1-dev libqt4-dev libqwt-dev doxygen 
 
 
 To clone the sources from the AIT servers:
