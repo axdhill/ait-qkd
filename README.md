@@ -101,6 +101,7 @@ In order to compile the QKD sources we need at least the developer versions of:
 * GMP
 * 0MQ (Zero Message Queue) version 2.2 (**NOT** version 3)
 * Qt4 at least version 4.4
+* Qwt (Qt Widgets for Technical Applications)
 * Doxygen
 
 Here are the steps which help you to setup a build system capable of compiling the sources on a pure Debian Wheezy system.
