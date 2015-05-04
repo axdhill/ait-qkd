@@ -2,7 +2,7 @@ AIT QKD R10 Software
 ====================
 
 
-This is the AIT QKD Software Suite containing Q3P, the Q3P KeyStore, QKD Modules, Cascade, and others.
+This is the AIT QKD Software Suite containing Q3P, the Q3P KeyStore, QKD Modules, Cascade, and others. This is the **public**, **free** repository. We do have additonal stuff like LDPC error correction, QKD presfiting and QKD GUI. If you have interest in these please contact us.
 
 The source code is arranged as a CMake (see: [http://www.cmake.org](http://www.cmake.org/)) project.
 
@@ -48,18 +48,18 @@ The whole project compiles in one single step, meaning no subprojects. This resu
     |   |   +-- qkd-reorder                                     randomly reorder keys in a keystream (development module)
     |   |   +-- qkd-tee                                         fork keystream to stderr and the next module
     |   |   +-- qkd-throttle                                    throttle key stream on bits/keys per second (development module)
-    |   +-- q3pd                                        The Q3P node
-    |   +-- tools                                       tools
-    |       +-- q3p-inject                                  Feed a Q3P node with keys, BASH-Script
-    |       +-- q3p-keystore-dump                           dump content of Q3P database human readable on stdout
-    |       +-- q3p-mq-reader                               read qkd Q3P message queue
-    |       +-- qkd-blob-keystream                          wrapper around qkd-enkey, BASH-Script
-    |       +-- qkd-key-dump                                dump a keystream file human readable to stdout
-    |       +-- qkd-key-gen                                 create pairs of pseudo random input keys
-    |       +-- qkd-module-manager                          GUI for qkd post processing
-    |       +-- qkd-pipeline                                high level qkd post processing admin (start/stop pipeline)
-    |       +-- qkd-simulate                                GUI with simulating quantum events continuously 
-    |       +-- qkd-view                                    dump current status of all qkd objects of the system to stdout
+    |   +-- q3pd                                            The Q3P node
+    |   +-- tools                                           tools
+    |       +-- q3p-inject                                      Feed a Q3P node with keys, BASH-Script
+    |       +-- q3p-keystore-dump                               dump content of Q3P database human readable on stdout
+    |       +-- q3p-mq-reader                                   read qkd Q3P message queue
+    |       +-- qkd-blob-keystream                              wrapper around qkd-enkey, BASH-Script
+    |       +-- qkd-key-dump                                    dump a keystream file human readable to stdout
+    |       +-- qkd-key-gen                                     create pairs of pseudo random input keys
+    |       +-- qkd-module-manager                              GUI for qkd post processing
+    |       +-- qkd-pipeline                                    high level qkd post processing admin (start/stop pipeline)
+    |       +-- qkd-simulate                                    GUI with simulating quantum events continuously 
+    |       +-- qkd-view                                        dump current status of all qkd objects of the system to stdout
     +-- cmake                                           cmake relevant build details
     +-- doc                                             documentation
     |   +-- handbook                                        AIT QKD Handbook (OUTDATED)
@@ -101,7 +101,7 @@ In order to compile the QKD sources we need at least the developer versions of:
 
 Here are the steps which help you to setup a build system capable of compiling the sources on a pure Debian Wheezy system.
 
-    # apt-get install build-essential g++ gcc libboost-all-dev libssl-dev uuid-dev cmake libssl-dev uuid-dev libgmp3-dev libzmq-dev libdbus-1-dev libqt4-dev doxygen 
+    # apt-get install build-essential g++ gcc libboost-all-dev libssl-dev uuid-dev cmake libssl-dev uuid-dev libgmp3-dev libzmq-dev libdbus-1-dev libqt4-dev libqwt-dev doxygen 
 
 
 To clone the sources from the AIT servers:
