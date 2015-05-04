@@ -2,9 +2,13 @@ AIT QKD R10 Software
 ====================
 
 
-This is the AIT QKD Software Suite containing Q3P, the Q3P KeyStore, QKD Modules, Cascade, and others. This is the **public**, **free** repository. We do have additonal stuff like LDPC error correction, QKD presfiting and QKD GUI. If you have interest in these please contact us.
+This is the AIT QKD Software Suite containing Q3P, the Q3P KeyStore, QKD Modules, Cascade, and others.
 
-The source code is arranged as a CMake (see: [http://www.cmake.org](http://www.cmake.org/)) project.
+For scientists, universities, and security centered companies who want to concentrate on certain topics of QKD like sifting or error correction or simply use the off-the-shelf toolchain for their products the AIT QKD R10 is a full featured quantum key distribution implementation. Besides been a free open source solution the AIT comes with well defined interfaces and well documented sources which already have been used by several teams around the globe. 
+
+This is the **public**, **free** repository. We do have additonal stuff like LDPC error correction, QKD presfiting and QKD GUI but we currently do not ship them for free of charge. If you have interest in these please contact us.
+
+The source code is arranged as a CMake (see: [http://www.cmake.org](http://www.cmake.org/)) project in a git (see: [http://www.git-scm.com](http://www.git-scm.com)) repository.
 
 
 1. Preamble
