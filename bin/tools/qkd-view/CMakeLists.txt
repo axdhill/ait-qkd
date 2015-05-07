@@ -43,4 +43,5 @@ add_executable(qkd-view ${QKD_VIEW_SRC})
 target_link_libraries(qkd-view ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
-install(TARGETS qkd-view RUNTIME DESTINATION bin)
+install(TARGETS qkd-view RUNTIME DESTINATION bin COMPONENT tools)
+

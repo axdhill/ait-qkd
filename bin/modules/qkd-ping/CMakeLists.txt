@@ -62,4 +62,5 @@ add_executable(qkd-ping ${QKD_PING_SRC} ${QKD_PING_MOC} ${QKD_PING_DBUS_SRC})
 target_link_libraries(qkd-ping ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
-install(TARGETS qkd-ping RUNTIME DESTINATION bin)
+install(TARGETS qkd-ping RUNTIME DESTINATION bin COMPONENT modules)
+

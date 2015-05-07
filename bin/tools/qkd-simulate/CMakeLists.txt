@@ -100,6 +100,6 @@ configure_file(${CMAKE_SOURCE_DIR}/share/qkd-simulate/ait_logo.gif              
 configure_file(${CMAKE_SOURCE_DIR}/share/qkd-simulate/ait_logo_no_claim.jpg             ${CMAKE_BINARY_DIR}/bin/tools/share/qkd-simulate/ait_logo_no_claim.jpg      COPYONLY)
 
 # install
-install(TARGETS qkd-simulate RUNTIME DESTINATION bin)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/share/qkd-simulate DESTINATION share)
+install(TARGETS qkd-simulate RUNTIME DESTINATION bin COMPONENT tools)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/share/qkd-simulate DESTINATION share COMPONENT tools)
 

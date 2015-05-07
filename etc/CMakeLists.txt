@@ -1,11 +1,11 @@
 # ------------------------------------------------------------
 # CMakeLists.txt 
 # 
-# make: qkd/bin/modules/qkd-confirmation
+# make: qkd/etc
 #
 # Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
-# Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+# Copyright (C) 2013-2015 AIT Austrian Institute of Technology
 # AIT Austrian Institute of Technology GmbH
 # Donau-City-Strasse 1 | 1220 Vienna | Austria
 # http://www.ait.ac.at
@@ -29,37 +29,16 @@
 
 
 # ------------------------------------------------------------
-# modules/qkd-confirmation
-
-# additional includes
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
-# sources
-set(QKD_CONFIRMATION_SRC
-    main.cpp
-    qkd-confirmation.cpp
-)
-
-# Qt MOC
-QT4_GENERATE_MOC(qkd-confirmation.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-confirmation.moc.cpp) 
-set(QKD_CONFIRMATION_MOC
-    qkd-confirmation.moc.cpp
-)
-
-# DBus Integration
-QT4_GENERATE_DBUS_INTERFACE(qkd-confirmation.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-confirmation.xml)
-QT4_ADD_DBUS_ADAPTOR(QKD_CONFIRMATION_DBUS_SRC
-    ${CMAKE_CURRENT_BINARY_DIR}/qkd-confirmation.xml 
-    ${CMAKE_CURRENT_SOURCE_DIR}/qkd-confirmation.h 
-    qkd_confirmation
-    qkd_confirmation_dbus)
-
-# bin definition
-add_executable(qkd-confirmation ${QKD_CONFIRMATION_SRC} ${QKD_CONFIRMATION_MOC} ${QKD_CONFIRMATION_DBUS_SRC})
-
-# linkage
-target_link_libraries(qkd-confirmation ${CMAKE_REQUIRED_LIBRARIES})
+# etc - system configuration files for QKD
 
 # install
-install(TARGETS qkd-confirmation RUNTIME DESTINATION bin COMPONENT modules)
+
+install(FILES dbus-1/qkd.conf DESTINATION /etc/dbus-1 COMPONENT configuration)
+install(FILES default/qkd-dbus DESTINATION /etc/default COMPONENT configuration)
+install(FILES init.d/qkd-dbus DESTINATION /etc/init.d COMPONENT configuration)
+install(FILES profile.d/qkd_dbus_address.sh DESTINATION /etc/profile.d COMPONENT configuration)
+install(FILES q3p/sample.conf DESTINATION /etc/q3p COMPONENT configuration)
+install(FILES qkd/sample-pipeline.conf DESTINATION /etc/qkd COMPONENT configuration)
+install(FILES systemd/system/qkd-dbus.service DESTINATION /etc/systemd COMPONENT configuration)
+install(FILES systemd/system/qkd-dbus.socket DESTINATION /etc/systemd COMPONENT configuration)
 

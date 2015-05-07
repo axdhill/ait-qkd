@@ -43,4 +43,5 @@ add_custom_target(handbook
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 # install the handbook
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/AIT-QKD-Software-Handbook.pdf DESTINATION doc/qkd)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/AIT-QKD-Software-Handbook.pdf DESTINATION doc/qkd COMPONENT doc)
+

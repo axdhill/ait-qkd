@@ -69,5 +69,6 @@ configure_file(${CMAKE_SOURCE_DIR}/share/qkd-module-manager/ait_logo.gif        
 configure_file(${CMAKE_SOURCE_DIR}/share/qkd-module-manager/ait_logo_no_claim.jpg         ${CMAKE_BINARY_DIR}/bin/tools/share/qkd-module-manager/ait_logo_no_claim.jpg      COPYONLY)
 
 # install
-install(TARGETS qkd-module-manager RUNTIME DESTINATION bin)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/share/qkd-module-manager DESTINATION share)
+install(TARGETS qkd-module-manager RUNTIME DESTINATION bin COMPONENT tools)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/share/qkd-module-manager DESTINATION share COMPONENT tools)
+

@@ -61,4 +61,5 @@ add_executable(qkd-tee ${QKD_TEE_SRC} ${QKD_TEE_MOC} ${QKD_TEE_DBUS_SRC})
 target_link_libraries(qkd-tee ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
-install(TARGETS qkd-tee RUNTIME DESTINATION bin)
+install(TARGETS qkd-tee RUNTIME DESTINATION bin COMPONENT modules)
+

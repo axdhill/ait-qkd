@@ -61,5 +61,5 @@ add_executable(qkd-bb84 ${QKD_BB84_SRC} ${QKD_BB84_MOC} ${QKD_BB84_DBUS_SRC})
 target_link_libraries(qkd-bb84 ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
-install(TARGETS qkd-bb84 RUNTIME DESTINATION bin)
+install(TARGETS qkd-bb84 RUNTIME DESTINATION bin COMPONENT modules)
 

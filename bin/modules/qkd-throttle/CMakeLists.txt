@@ -61,4 +61,5 @@ add_executable(qkd-throttle ${QKD_THROTTLE_SRC} ${QKD_THROTTLE_MOC} ${QKD_THROTT
 target_link_libraries(qkd-throttle ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
-install(TARGETS qkd-throttle RUNTIME DESTINATION bin)
+install(TARGETS qkd-throttle RUNTIME DESTINATION bin COMPONENT modules)
+

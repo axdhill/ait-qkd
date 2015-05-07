@@ -61,6 +61,5 @@ add_executable(qkd-cat ${QKD_CAT_SRC} ${QKD_CAT_MOC} ${QKD_CAT_DBUS_SRC})
 target_link_libraries(qkd-cat ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
-install(TARGETS qkd-cat RUNTIME DESTINATION bin)
-
+install(TARGETS qkd-cat RUNTIME DESTINATION bin COMPONENT modules)
 

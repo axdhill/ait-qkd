@@ -43,4 +43,5 @@ add_executable(qkd-pipeline ${QKD_KEY_GEN_SRC})
 target_link_libraries(qkd-pipeline ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
-install(TARGETS qkd-pipeline RUNTIME DESTINATION bin)
+install(TARGETS qkd-pipeline RUNTIME DESTINATION bin COMPONENT tools)
+
