@@ -267,5 +267,5 @@ Oliver Maurhart
 [oliver.maurhart@ait.ac.at](mailto:oliver.maurhart@ait.ac.at)  
 [http://ait.ac.at](http://ait.ac.at)  
 [https://sqt.ait.ac.at/software](https://sqt.ait.ac.at/software)  
-[http://git-service.ait.ac.at/quantum-cryptography/qkd](http://git-service.ait.ac.at/quantum-cryptography/qkd)
+[https://git-service.ait.ac.at/quantum-cryptography/qkd](http://git-service.ait.ac.at/quantum-cryptography/qkd)
 
