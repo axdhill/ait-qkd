@@ -37,6 +37,7 @@
 #include <boost/program_options.hpp>
 
 // Qt
+#include <QtCore/QCoreApplication>
 #include <QtCore/QFile>
 #include <QtDBus/QDBusConnection>
 #include <QtDBus/QDBusMessage>
@@ -235,6 +236,9 @@ int main(int argc, char ** argv) {
         std::cerr << "command '" << sPipelineCommand << "' unknown.\nchoose one command - type '--help' for help." << std::endl;
         return 1;
     }
+
+    // from here one we have really work to do
+    QCoreApplication cApp(argc, argv);
     
     // pipeline-configuration
     if (!cVariableMap.count("PIPELINE-CONFIG")) {
