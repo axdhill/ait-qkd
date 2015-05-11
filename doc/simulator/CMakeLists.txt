@@ -44,5 +44,5 @@ add_custom_target(simulator-documentation
     
     
 # install the handbook
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/AIT-QKD-Simultator-Documentation.pdf DESTINATION doc/qkd COMPONENT doc)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/AIT-QKD-Simultator-Documentation.pdf DESTINATION share/doc/qkd COMPONENT doc)
     

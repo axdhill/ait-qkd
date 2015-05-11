@@ -416,7 +416,9 @@ set(CPACK_PACKAGE_VERSION_PATCH "3")
 set(CPACK_PROJECT_VERSION_STRING "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}" )
 
 set(CPACK_DEB_COMPONENT_INSTALL ON)
-set(CPACK_COMPONENTS_ALL modules node tools library configuration header doc)
+#set(CPACK_COMPONENTS_ALL modules node tools library configuration header doc)
+set(CPACK_COMPONENTS_ALL modules node tools library configuration)
+set(CPACK_COMPONENTS_ALL_IN_ONE_PACKAGE 1)
 set(CPACK_COMPONENT_MODULES_GROUP "core")
 set(CPACK_COMPONENT_NODE_GROUP "core")
 set(CPACK_COMPONENT_TOOLS_GROUP "core")
@@ -452,12 +454,4 @@ endif (DPKG_PROGRAM)
 
 include(CPack)
 
-# this is a bit of hack, since the current cpack has no ability to set
-# a package name per component group ... =(
-add_custom_target(package-final
-    COMMAND cpack .
-    COMMAND mv -v "${CPACK_PACKAGE_NAME_LOWERCASE}_${CPACK_PROJECT_VERSION_STRING}_${PACKAGE_ARCH}-core.deb" "${CPACK_PACKAGE_NAME_LOWERCASE}_${CPACK_PROJECT_VERSION_STRING}_${PACKAGE_ARCH}.deb"
-    COMMAND mv -v "${CPACK_PACKAGE_NAME_LOWERCASE}_${CPACK_PROJECT_VERSION_STRING}_${PACKAGE_ARCH}-dev.deb" "${CPACK_PACKAGE_NAME_LOWERCASE}-dev_${CPACK_PROJECT_VERSION_STRING}_${PACKAGE_ARCH}.deb"
-    COMMENT "Create packages"
-)
 
