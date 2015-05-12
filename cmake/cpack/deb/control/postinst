@@ -90,10 +90,10 @@ setcap 'cap_net_admin+ep' /usr/bin/q3pd
 setcap -q -v 'cap_net_admin+ep' /usr/bin/q3pd
 
 # deploy new configuration if not present (first time)
-test -f /etc/qkd/pipeline-default.conf || cp /etc/qkd/sample-pipeline-default.conf /etc/qkd/pipeline-default.conf
-test -f /etc/qkd/pipeline-alice.xml || cp /etc/qkd/sample-pipeline-alice.xml /etc/qkd/pipeline-alice.xml
-test -f /etc/qkd/pipeline-bob.xml || cp /etc/qkd/sample-pipeline-bob.xml /etc/qkd/pipeline-bob.xml
-test -f /etc/q3p/q3pd.conf || cp /etc/q3p/sample-q3pd.conf /etc/q3p/q3pd.conf
+test -f /etc/qkd/pipeline-default.conf || cp --preserve /etc/qkd/sample-pipeline-default.conf /etc/qkd/pipeline-default.conf
+test -f /etc/qkd/pipeline-alice.xml || cp --preserve /etc/qkd/sample-pipeline-alice.xml /etc/qkd/pipeline-alice.xml
+test -f /etc/qkd/pipeline-bob.xml || cp --preserve /etc/qkd/sample-pipeline-bob.xml /etc/qkd/pipeline-bob.xml
+test -f /etc/q3p/q3pd.conf || cp --preserve /etc/q3p/sample-q3pd.conf /etc/q3p/q3pd.conf
 
 # load environment
 . /etc/profile
