@@ -26,3 +26,19 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, 
 # Boston, MA  02110-1301, USA.
 # ------------------------------------------------------------
+
+
+# tweak services depending on sysv or systemd
+if [ $(cat /proc/1/comm) == 'init' ]; then
+    # sysv
+    update-rc.d qkd-dbus remove
+    rm -f /run/dbus/qkd-dbus.pid                                                                                                                    │$ 
+fi
+if [ $(cat /proc/1/comm) == 'systemd' ]; then
+    # systemd
+    systemctl stop qkd-dbus
+    systemctl disable qkd-dbus
+    systemctl daemon-reload
+fi
+
+

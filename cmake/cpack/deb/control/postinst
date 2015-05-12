@@ -80,3 +80,27 @@ chmod 640 /etc/q3p/sample.conf
 # grant net-admin rights to the q3pd to run TUN/TAP devices
 setcap 'cap_net_admin+ep' /usr/bin/q3pd
 setcap -q -v 'cap_net_admin+ep' /usr/bin/q3pd
+
+# fix configuration in etc
+test -f /etc/qkd/pipeline-default.conf || mv /etc/qkd/sample-pipeline-default.conf /etc/qkd/pipeline-default.conf
+test -f /etc/qkd/pipeline-alice.xml || mv /etc/qkd/sample-pipeline-alice.xml /etc/qkd/pipeline-alice.xml
+test -f /etc/qkd/pipeline-bob.xml || mv /etc/qkd/sample-pipeline-bob.xml /etc/qkd/pipeline-bob.xml
+test -f /etc/q3p/q3pd.conf || nv /etc/q3p/sample-q3pd.conf /etc/q3p/q3pd.conf
+
+# load environment
+. /etc/profile
+
+# tweak services depending on sysv or systemd
+if [ $(cat /proc/1/comm) == 'init' ]; then
+    # sysv
+    update-rc.d qkd-dbus defaults                                                                                                                   │dyle@graendal 12:31 ~/doc/src/ait/qkd/build
+    rm -f /run/dbus/qkd-dbus.pid                                                                                                                    │$ 
+    /etc/init.d/qkd-dbus restart
+fi
+if [ $(cat /proc/1/comm) == 'systemd' ]; then
+    # systemd
+    systemctl daemon-reload                                                                                                                         │dyle@graendal 12:31 ~/doc/src/ait/qkd/build
+    systemctl enable qkd-dbus                                                                                                                       │$ 
+    systemctl start qkd-dbus
+fi
+
