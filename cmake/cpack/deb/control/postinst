@@ -103,7 +103,7 @@ if [ `cat /proc/1/comm` = 'init' ]; then
     # sysv
     update-rc.d qkd-dbus defaults
     rm -f /run/dbus/qkd-dbus.pid
-    /etc/init.d/qkd-dbus restart
+    /etc/init.d/qkd-dbus start
 fi
 if [ `cat /proc/1/comm` = 'systemd' ]; then
     # systemd

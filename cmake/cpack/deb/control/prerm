@@ -31,6 +31,7 @@
 # tweak services depending on sysv or systemd
 if [ `cat /proc/1/comm` = 'init' ]; then
     # sysv
+    /etc/init.d/qkd-dbus stop 
     update-rc.d qkd-dbus remove
     rm -f /run/dbus/qkd-dbus.pid
 fi
