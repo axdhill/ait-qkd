@@ -32,7 +32,7 @@
 if [ `cat /proc/1/comm` = 'init' ]; then
     # sysv
     update-rc.d qkd-dbus remove
-    rm -f /run/dbus/qkd-dbus.pid                                                                                                                    │$ 
+    rm -f /run/dbus/qkd-dbus.pid
 fi
 if [ `cat /proc/1/comm` = 'systemd' ]; then
     # systemd

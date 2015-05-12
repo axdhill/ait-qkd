@@ -101,14 +101,14 @@ test -f /etc/q3p/q3pd.conf || cp /etc/q3p/sample-q3pd.conf /etc/q3p/q3pd.conf
 # tweak services depending on sysv or systemd
 if [ `cat /proc/1/comm` = 'init' ]; then
     # sysv
-    update-rc.d qkd-dbus defaults                                                                                                                   │dyle@graendal 12:31 ~/doc/src/ait/qkd/build
-    rm -f /run/dbus/qkd-dbus.pid                                                                                                                    │$ 
+    update-rc.d qkd-dbus defaults
+    rm -f /run/dbus/qkd-dbus.pid
     /etc/init.d/qkd-dbus restart
 fi
 if [ `cat /proc/1/comm` = 'systemd' ]; then
     # systemd
-    systemctl daemon-reload                                                                                                                         │dyle@graendal 12:31 ~/doc/src/ait/qkd/build
-    systemctl enable qkd-dbus                                                                                                                       │$ 
+    systemctl daemon-reload
+    systemctl enable qkd-dbus
     systemctl start qkd-dbus
 fi
 
