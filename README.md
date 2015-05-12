@@ -21,8 +21,6 @@ Among these are:
 * The Q3P protocol is not fully implemented yet.
 * The IPSec implementation - though present - is not yet fully included.
 * The QKD Module Manager (in the tools section) is not fully implemented.
-* Package creation does yet not consider correct dependencies.
-* There is currently no developer package including all header files present.
 * The examples and the demo is not up-to-date.
 * The documentation is slightly out of date.
 
@@ -84,11 +82,66 @@ The whole project compiles in one single step, meaning no subprojects. This resu
 
 
 
-3. Preparation
+   
+3. Package install
+------------------
+
+Despite a normal Debian Wheezy/Jessie implementation you'll need:  
+
+    # apt-get install dbus
+
+Then the rest will be installed like this (even on a mere plain installation):
+
+    # dpkg --install qkd_9.9999.3_amd64.deb 
+    Selecting previously unselected package qkd.
+    (Reading database ... 40364 files and directories currently installed.)
+    Unpacking qkd (from qkd_9.9999.3_amd64.deb) ...
+    dpkg: dependency problems prevent configuration of qkd:
+     qkd depends on libboost-filesystem1.49.0 (>= 1.49.0); however:
+      Package libboost-filesystem1.49.0 is not installed.
+     qkd depends on libboost-program-options1.49.0 (>= 1.49.0); however:
+      Package libboost-program-options1.49.0 is not installed.
+     qkd depends on libboost-system1.49.0 (>= 1.49.0); however:
+      Package libboost-system1.49.0 is not installed.
+     qkd depends on libzmq1; however:
+      Package libzmq1 is not installed.
+     qkd depends on libqtgui4; however:
+      Package libqtgui4 is not installed.
+     qkd depends on libqtdbus4; however:
+      Package libqtdbus4 is not installed.
+     qkd depends on libqt4-network; however:
+      Package libqt4-network is not installed.
+     qkd depends on libqwt6; however:
+      Package libqwt6 is not installed.
+     qkd depends on libcap2-bin; however:
+      Package libcap2-bin is not installed.
+
+    dpkg: error processing qkd (--install):
+     dependency problems - leaving unconfigured
+    Errors were encountered while processing:
+     qkd
+
+Which will resolve by issuing
+
+    # apt-get -f install
+
+
+4. Configuration
+-----------------
+
+The installation will deploy sample configuration scripts in `/etc/qkd` and `/etc/q3p`. Also a new system group `qkd` will be present. 
+
+**NOTE:** In order to access the configuration files you either have to be root or your user has to be in the `qkd` group.
+
+Finally an environment variable `QKD_DBUS_SESSION_ADDRESS` holds the address of the QKD dedicated system wide DBus server.
+
+For more details on configuration please consult the *AIT QKD Handbook*.
+
+5. Compilation
 --------------
 
-3.1 For compilation
--------------------
+5.1 Preperation
+---------------
 
 In order to compile the QKD sources we need at least the developer versions of:
 
@@ -116,19 +169,8 @@ To clone the sources from the AIT servers:
     
     $ git clone http://git-service.ait.ac.at/quantum-cryptography/qkd.git
 
-    
-    
-3.2 For package install only
-----------------------------
-
-Despite a normal Debian Wheezy/Jessie implementation you'll need:  
-
-**To Be Written**
-    
-    
-
-4. Compilation
---------------
+5.2 Building
+------------
 
 Step into the "build" folder, invoke cmake and then make.
 
@@ -137,10 +179,9 @@ Step into the "build" folder, invoke cmake and then make.
     $ cmake ..
     $ make
     
-
     
-5. Test
--------
+5.3 Test
+--------
 
 Once you've run successful the "make" command you are enabled to run tests at your disposal. To do so switch into the build folder again.
 
@@ -150,33 +191,19 @@ Once you've run successful the "make" command you are enabled to run tests at yo
 This will run a series of tests to check the sanity of the qkd system built. If one or more test failed then this is a good indicator that something has gone awry. Please consult the AIT with the output of the command for support.
    
 
-6. Packaging
-------------
+5.4 Packaging
+-------------
 
 After a successful build, you might as well create DEB packages for install on various Debian or Debian-based systems.
 
     $ cd build
     $ make package
-    
-(Note: the DEB package does currently not contain correct dependency information to install the QKD software on non compile-prepared Debian machines.)
 
 
-7. Installation from DEB
-------------------------
-
-On a Debian machine prepared for source compilation a
-
-    $ sudo dpkg --install qkd*.deb
-   
-is sufficient.
-
-This will install the qkd binaries into your system. However further preparations are needed. Depending on your system being sysv or systemd started. Check the INSTALL.sys\* scripts in the root folder for further explanations.
-
-
-8. Known Issues
+6. Known Issues
 ---------------
 
-**8.1 locale**
+**5.1 locale**
 
 If you come along such messages:
 
@@ -234,7 +261,7 @@ are installed which is seen by
 
     
 
-**8.2 Remote SSH login and DBus server**
+**5.2 Remote SSH login and DBus server**
 
 The AIT QKD depends on a running DBus server. When you ssh into a remote machine as usually via
 
@@ -252,7 +279,7 @@ Note: the AIT QKD contains the configuration files to start up a dedicated DBus 
 
 
     
-9. License
+6. License
 ----------
 
 The AIT QKD Software Suite is licensed under the GPL 3.
