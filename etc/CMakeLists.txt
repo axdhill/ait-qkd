@@ -35,7 +35,11 @@
 
 install(FILES dbus-1/qkd.conf DESTINATION /etc/dbus-1 COMPONENT configuration)
 install(FILES default/qkd-dbus DESTINATION /etc/default COMPONENT configuration)
-install(FILES init.d/qkd-dbus DESTINATION /etc/init.d COMPONENT configuration)
+install(FILES init.d/qkd-dbus DESTINATION /etc/init.d COMPONENT configuration 
+    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+                GROUP_READ GROUP_EXECUTE
+                WORLD_READ WORLD_EXECUTE
+)
 install(FILES profile.d/qkd_dbus_address.sh DESTINATION /etc/profile.d COMPONENT configuration)
 install(FILES q3p/sample-q3pd.conf DESTINATION /etc/q3p COMPONENT configuration)
 install(FILES qkd/sample-pipeline-alice.xml DESTINATION /etc/qkd COMPONENT configuration)
