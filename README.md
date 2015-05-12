@@ -43,7 +43,7 @@ The whole project compiles in one single step, meaning no subprojects. This resu
     |   |   +-- qkd-dekey                                       remove metadate from a keytream (turns keystream to BLOB)
     |   |   +-- qkd-drop                                        randomly dropping keys on one side (development module)
     |   |   +-- qkd-enkey                                       add metadate to a BLOB (turns BLOB to keystream)
-    |   |   +-- qkd-error-estimation                            error rstimation module
+    |   |   +-- qkd-error-estimation                            error estimation module
     |   |   +-- qkd-ping                                        touch remote peer module (administration module)
     |   |   +-- qkd-privacy-amplification                       privacy amplification module
     |   |   +-- qkd-reorder                                     randomly reorder keys in a keystream (development module)
@@ -261,7 +261,7 @@ are installed which is seen by
 
     
 
-**5.2 Remote SSH login and DBus server**
+**6.2 Remote SSH login and DBus server**
 
 The AIT QKD depends on a running DBus server. When you ssh into a remote machine as usually via
 
@@ -275,11 +275,8 @@ Please enable X11 forwarding support via
 
     $ ssh -X user@machine
 
-Note: the AIT QKD contains the configuration files to start up a dedicated DBus only for QKD purpose. The intended way is to install these configuration files which differ if you use sysv or systemd boot. However the address of the local running DBus is stored in the QKD\_DBUS\_SESSION\_ADDRESS environment variable. Check the INSTALL.sys\* files for details. 
-
-
     
-6. License
+7. License
 ----------
 
 The AIT QKD Software Suite is licensed under the GPL 3.
