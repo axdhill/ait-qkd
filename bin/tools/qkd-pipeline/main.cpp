@@ -37,6 +37,7 @@
 #include <boost/program_options.hpp>
 
 // Qt
+#include <QtCore/QCoreApplication>
 #include <QtCore/QFile>
 #include <QtDBus/QDBusConnection>
 #include <QtDBus/QDBusMessage>
@@ -235,7 +236,7 @@ int main(int argc, char ** argv) {
         std::cerr << "command '" << sPipelineCommand << "' unknown.\nchoose one command - type '--help' for help." << std::endl;
         return 1;
     }
-    
+
     // pipeline-configuration
     if (!cVariableMap.count("PIPELINE-CONFIG")) {
         std::cerr << "no pipeline-config specified.\ntype '--help' for information." << std::endl;
@@ -243,6 +244,9 @@ int main(int argc, char ** argv) {
     }
     std::string sPipelineConfiguration = cVariableMap["PIPELINE-CONFIG"].as<std::string>();
     
+    // from here one we have really work to do
+    QCoreApplication cApp(argc, argv);
+
     // make the steps
     int nConfigErrorCode = parse(sPipelineConfiguration);
     if (nConfigErrorCode != 0) return nConfigErrorCode;
@@ -448,7 +452,7 @@ int start() {
     std::cout << "starting modules ..." << std::endl;
     
     // iterate over the module definitions
-    for (auto const & cModule : g_cPipeline.cModules) {
+    for (auto & cModule : g_cPipeline.cModules) {
         
         // try to locate the executable
         boost::filesystem::path cExecutable = qkd::utility::environment::find_executable(cModule.sPath);
@@ -456,6 +460,9 @@ int start() {
             std::cerr << "module: '" << cModule.sPath << "' - error: failed to locate executable '" << cModule.sPath << "'" << std::endl;
             continue;
         }
+
+        // nail down found executable
+        cModule.sPath = cExecutable.string();
         
         // fork and daemonize
         if (!fork()) {

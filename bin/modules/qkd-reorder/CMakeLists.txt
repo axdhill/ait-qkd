@@ -61,4 +61,5 @@ add_executable(qkd-reorder ${QKD_REORDER_SRC} ${QKD_REORDER_MOC} ${QKD_REORDER_D
 target_link_libraries(qkd-reorder ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
-install(TARGETS qkd-reorder RUNTIME DESTINATION bin)
+install(TARGETS qkd-reorder RUNTIME DESTINATION bin COMPONENT modules)
+

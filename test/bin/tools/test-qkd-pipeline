@@ -43,7 +43,7 @@ test_init
 cd ${TEST_BASE}
 
 # zap previous keys
-#rm -rf cat_keys.* &> /dev/null
+rm -rf cat_keys.* &> /dev/null
 
 # create keys
 KEYS_TO_PROCESS="1000"
@@ -54,7 +54,7 @@ LOG_FOLDER="$(pwd)/log"
 mkdir -p ${LOG_FOLDER} &> /dev/null
 
 # remove any previous logs
-( cd "${LOG_FOLDER}" && rm * )
+( cd "${LOG_FOLDER}" && rm -f * &> /dev/null )
 
 # start the alice pipeline
 ${TEST_BASE}/bin/qkd-pipeline --log "${LOG_FOLDER}" restart ${TEST_BASE}/test/test-data/pipeline-cat-alice.xml
@@ -67,14 +67,12 @@ KEYS_AUTHENTICATED="20"
 KEYS_ALICE="0"
 KEYS_BOB="0"
 while [ "${KEYS_ALICE}" -lt "${KEYS_AUTHENTICATED}" -a "${KEYS_BOB}" -lt "${KEYS_AUTHENTICATED}" ]; do
-    grep key-PUSH "${LOG_FOLDER}/qkd-auth-final.alice.log" | cut -d " " -f 3,4,13,14 > "${LOG_FOLDER}/final-keys-authenticated.alice"
-    grep key-PUSH "${LOG_FOLDER}/qkd-auth-final.bob.log" | cut -d " " -f 3,4,13,14 > "${LOG_FOLDER}/final-keys-authenticated.bob"
-    touch "${LOG_FOLDER}/final-alice.aa"
-    touch "${LOG_FOLDER}/final-bob.aa"
-    split -l "${KEYS_AUTHENTICATED}" "${LOG_FOLDER}/final-keys-authenticated.alice" "${LOG_FOLDER}/final-alice." || touch "${LOG_FOLDER}/final-alice.aa"
-    split -l "${KEYS_AUTHENTICATED}" "${LOG_FOLDER}/final-keys-authenticated.bob" "${LOG_FOLDER}/final-bob." || touch "${LOG_FOLDER}/final-bob.aa"
-    KEYS_ALICE=$(wc -l "${LOG_FOLDER}/final-alice.aa" | cut -d " " -f 1)
-    KEYS_BOB=$(wc -l "${LOG_FOLDER}/final-bob.aa" | cut -d " " -f 1)
+    grep key-PUSH "${LOG_FOLDER}/qkd-auth-final.alice.log" | 
+        cut -d " " -f 3,4,13,14 > "${LOG_FOLDER}/final-keys-authenticated.alice"
+    grep key-PUSH "${LOG_FOLDER}/qkd-auth-final.bob.log" | 
+        cut -d " " -f 3,4,13,14 > "${LOG_FOLDER}/final-keys-authenticated.bob"
+    KEYS_ALICE=$(wc -l "${LOG_FOLDER}/final-keys-authenticated.alice" | awk '{ print $1 }')
+    KEYS_BOB=$(wc -l "${LOG_FOLDER}/final-keys-authenticated.bob" | awk '{ print $1 }')
     echo "keys of alice: ${KEYS_ALICE}"
     echo "keys of bob: ${KEYS_BOB}"
     sleep 1s
@@ -104,3 +102,4 @@ test_cleanup
     
 # state that test ok
 echo "=== TEST SUCCESS ==="
+

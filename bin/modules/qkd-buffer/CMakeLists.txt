@@ -61,4 +61,5 @@ add_executable(qkd-buffer ${QKD_BUFFER_SRC} ${QKD_BUFFER_MOC} ${QKD_BUFFER_DBUS_
 target_link_libraries(qkd-buffer ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
-install(TARGETS qkd-buffer RUNTIME DESTINATION bin)
+install(TARGETS qkd-buffer RUNTIME DESTINATION bin COMPONENT modules)
+

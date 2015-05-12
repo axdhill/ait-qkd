@@ -61,6 +61,5 @@ add_executable(qkd-confirmation ${QKD_CONFIRMATION_SRC} ${QKD_CONFIRMATION_MOC} 
 target_link_libraries(qkd-confirmation ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
-install(TARGETS qkd-confirmation RUNTIME DESTINATION bin)
-
+install(TARGETS qkd-confirmation RUNTIME DESTINATION bin COMPONENT modules)
 

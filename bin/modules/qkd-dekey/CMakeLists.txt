@@ -61,6 +61,5 @@ add_executable(qkd-dekey ${QKD_DEKEY_SRC} ${QKD_DEKEY_MOC} ${QKD_DEKEY_DBUS_SRC}
 target_link_libraries(qkd-dekey ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
-install(TARGETS qkd-dekey RUNTIME DESTINATION bin)
-
+install(TARGETS qkd-dekey RUNTIME DESTINATION bin COMPONENT modules)
 

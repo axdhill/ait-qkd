@@ -43,7 +43,7 @@ ENABLE_TESTING()
 # ------------------------------------------------------------
 # set global compiler flags
 
-set(VERSION "9.9999.2")
+set(VERSION "9.9999.3")
 add_definitions(-DVERSION=\"${VERSION}\")
 
 # we relay on a GNU/BSD SOURCE
@@ -373,7 +373,7 @@ add_dependencies(doc doxygen)
 
 # install HTML API documentation and manual pages
 set(DOC_PATH "share/doc/${CPACK_PACKAGE_NAME}")
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html DESTINATION ${DOC_PATH}/qkd)
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html DESTINATION ${DOC_PATH}/qkd COMPONENT doc)
 
 
 # ------------------------------------------------------------
@@ -389,6 +389,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_subdirectory(lib)
 add_subdirectory(bin)
+add_subdirectory(etc)
 add_subdirectory(doc)
 add_subdirectory(test)
 
@@ -402,8 +403,9 @@ install(DIRECTORY etc/q3p etc/qkd DESTINATION /etc)
 # ------------------------------------------------------------
 # packaging
 
-set(CPACK_PACKAGE_NAME "qkd")
+set(CPACK_GENERATOR "DEB")
 
+set(CPACK_PACKAGE_NAME "qkd")
 set(CPACK_PACKAGE_DESCRIPTION "QKD next generation")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "This is the AIT SQT QKD Software - R10")
 set(CPACK_PACKAGE_CONTACT "Oliver Maurhart <oliver.maurhart@ait.ac.at>")
@@ -413,14 +415,10 @@ set(CPACK_PACKAGE_VERSION_MINOR "9999")
 set(CPACK_PACKAGE_VERSION_PATCH "3")
 set(CPACK_PROJECT_VERSION_STRING "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}" )
 
-set(CPACK_GENERATOR "DEB;")
-set(CPACK_SOURCE_GENERATOR "TGZ")
-
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}-${CMAKE_SYSTEM_PROCESSOR}")
-set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}")
 set(CPACK_SOURCE_IGNORE_FILES "/build/*;/.git/")
 
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.13), libgcc1 (>= 1:4.4), libgmp10, libboost-filesystem1.49.0, libboost-program-options1.49.0, libboost-system1.49.0, libzmq1, libqtgui4, libqtdbus4, libqt4-network, libqwt5-qt4, libpcap0.8")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.13), libgcc1 (>= 1:4.4), libgmp10, libboost-filesystem1.49.0 (>= 1.49.0), libboost-program-options1.49.0 (>= 1.49.0), libboost-system1.49.0 (>= 1.49.0), libzmq1, libqtgui4, libqtdbus4, libqt4-network, libqwt6, libcap2-bin")
 set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cpack/deb/control/postinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/cpack/deb/control/postrm;${CMAKE_CURRENT_SOURCE_DIR}/cmake/cpack/deb/control/prerm;")
 
 # debianization
@@ -434,10 +432,12 @@ if (DPKG_PROGRAM)
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
     set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME_LOWERCASE}_${CPACK_PROJECT_VERSION_STRING}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
+    set(PACKAGE_ARCH ${CPACK_DEBIAN_PACKAGE_ARCHITECTURE})
 else (DPKG_PROGRAM)
     set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME_LOWERCASE}_${CPACK_PROJECT_VERSION_STRING}_${CMAKE_SYSTEM_NAME}")
+    set(PACKAGE_ARCH ${CMAKE_HOST_SYSTEM_PROCESSOR})
 endif (DPKG_PROGRAM)
 
-# package it
 include(CPack)
+
 

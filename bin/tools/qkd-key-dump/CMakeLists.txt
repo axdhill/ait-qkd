@@ -43,4 +43,5 @@ add_executable(qkd-key-dump ${QKD_KEY_DUMP_SRC})
 target_link_libraries(qkd-key-dump ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
-install(TARGETS qkd-key-dump RUNTIME DESTINATION bin)
+install(TARGETS qkd-key-dump RUNTIME DESTINATION bin COMPONENT tools)
+

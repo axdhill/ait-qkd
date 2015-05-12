@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+
+    This is the definition of a pipeline.
+    
+    A pipeline is basically nothing more
+    than a bundle of modules grouped together
+    by a name.
+    
+    The syntax is:
+    
+        <pipeline name="NAME">  ... defines a pipeline with
+                                    a specific name
+        
+            MODULE-DEFINITION* .... 0 or more module definitions
+        
+        </pipeline>
+        
+    A single module definition is:
+    
+        <module path="MODULE-PATH" start="YES|NO">
+            <config path="CONFIG-FILE" />
+            <role value="ALICE|BOB" />
+            <args value="ARGS" />
+            <log path="LOG-FILE" />
+        </module>
+        
+        with:
+        
+            MODULE-PATH     the path to the module executable
+                            beware: if this is not an absolute path
+                            the very first match as in $(which)
+                            is taken
+                            
+            YES|NO          either "yes" or "no" to start the module
+                            immediately
+            
+            CONFIG-FILE     path to the module-config file
+            
+            ALICE|BOB       role of the module
+            
+            ARGS            additional arguments for the module
+                            as specified on a command line
+        
+            LOG-FILE        path to a log-file to write 
+                            (if debug is turned on)
+                            we strongly recommend to specify
+                            dedicated log files for each module
+                            otherwise the log file's content
+                            will get mixed up
+                            
+    The order of modules appearing in this configuration file
+    has no impact as of which module is connected to another or
+    the sequence of modules in the pipeline.
+    
+    This is solely specified by usage of the 'pipe_in' and
+    'pipe_out' values in the module's configuration file.
+    
+-->
+
+<pipeline name="default">
+
+    <module path="qkd-bb84" start="yes">
+        <config path="/etc/qkd/pipeline-default.conf" />
+        <role value="alice" />
+        <args value="--debug" />
+        <log path="qkd-bb84.alice.log" />
+    </module>
+
+    <module path="qkd-cascade" start="yes">
+        <config path="/etc/qkd/pipeline-default.conf" />
+        <role value="alice" />
+        <args value="--debug" />
+        <log path="qkd-cascade.alice.log" />
+    </module>
+
+    <module path="qkd-confirmation" start="yes">
+        <config path="/etc/qkd/pipeline-default.conf" />
+        <role value="alice" />
+        <args value="--debug" />
+        <log path="qkd-confirmation.alice.log" />
+    </module>
+
+    <module path="qkd-buffer" start="yes">
+        <config path="/etc/qkd/pipeline-default.conf" />
+        <role value="alice" />
+        <args value="--debug" />
+        <log path="qkd-buffer.alice.log" />
+    </module>
+
+    <module path="qkd-privacy-amplification" start="yes">
+        <config path="/etc/qkd/pipeline-default.conf" />
+        <role value="alice" />
+        <args value="--debug" />
+        <log path="qkd-privacy-amplification.alice.log" />
+    </module>
+
+</pipeline>
+

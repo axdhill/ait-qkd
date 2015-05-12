@@ -366,5 +366,6 @@ set_target_properties(qkd PROPERTIES VERSION ${VERSION})
 # installation
 
 # install
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/qkd DESTINATION include)
-install(TARGETS qkd LIBRARY DESTINATION lib)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/qkd DESTINATION include COMPONENT header)
+install(TARGETS qkd LIBRARY DESTINATION lib COMPONENT library)
+

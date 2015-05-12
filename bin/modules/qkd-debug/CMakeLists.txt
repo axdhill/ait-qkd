@@ -61,4 +61,5 @@ add_executable(qkd-debug ${QKD_DEBUG_SRC} ${QKD_DEBUG_MOC} ${QKD_DEBUG_DBUS_SRC}
 target_link_libraries(qkd-debug ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
-install(TARGETS qkd-debug RUNTIME DESTINATION bin)
+install(TARGETS qkd-debug RUNTIME DESTINATION bin COMPONENT modules)
+

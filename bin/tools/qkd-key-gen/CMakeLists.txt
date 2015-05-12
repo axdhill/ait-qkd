@@ -43,4 +43,5 @@ add_executable(qkd-key-gen ${QKD_KEY_GEN_SRC})
 target_link_libraries(qkd-key-gen ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
-install(TARGETS qkd-key-gen RUNTIME DESTINATION bin)
+install(TARGETS qkd-key-gen RUNTIME DESTINATION bin COMPONENT tools)
+

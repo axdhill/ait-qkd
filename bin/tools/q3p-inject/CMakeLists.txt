@@ -32,4 +32,5 @@
 # q3p-inject
 
 # install
-install(PROGRAMS q3p-inject DESTINATION bin)
+install(PROGRAMS q3p-inject DESTINATION bin COMPONENT tools)
+

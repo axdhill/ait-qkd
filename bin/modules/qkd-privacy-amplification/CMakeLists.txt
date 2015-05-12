@@ -62,4 +62,5 @@ add_executable(qkd-privacy-amplification ${QKD_PRIVACY_AMPLIFICATION_SRC} ${QKD_
 target_link_libraries(qkd-privacy-amplification ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
-install(TARGETS qkd-privacy-amplification RUNTIME DESTINATION bin)
+install(TARGETS qkd-privacy-amplification RUNTIME DESTINATION bin COMPONENT modules)
+

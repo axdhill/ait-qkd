@@ -7,7 +7,7 @@
 #
 # Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
-# Copyright (C) 2012, 2013 AIT Austrian Institute of Technology
+# Copyright (C) 2012-2015 AIT Austrian Institute of Technology
 # AIT Austrian Institute of Technology GmbH
 # Donau-City-Strasse 1 | 1220 Vienna | Austria
 # http://www.ait.ac.at
@@ -26,3 +26,20 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, 
 # Boston, MA  02110-1301, USA.
 # ------------------------------------------------------------
+
+
+# tweak services depending on sysv or systemd
+if [ `cat /proc/1/comm` = 'init' ]; then
+    # sysv
+    /etc/init.d/qkd-dbus stop 
+    update-rc.d qkd-dbus remove
+    rm -f /run/dbus/qkd-dbus.pid
+fi
+if [ `cat /proc/1/comm` = 'systemd' ]; then
+    # systemd
+    systemctl stop qkd-dbus
+    systemctl disable qkd-dbus
+    systemctl daemon-reload
+fi
+
+

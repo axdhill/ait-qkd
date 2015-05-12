@@ -61,4 +61,5 @@ add_executable(qkd-drop ${QKD_DROP_SRC} ${QKD_DROP_MOC} ${QKD_DROP_DBUS_SRC})
 target_link_libraries(qkd-drop ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
-install(TARGETS qkd-drop RUNTIME DESTINATION bin)
+install(TARGETS qkd-drop RUNTIME DESTINATION bin COMPONENT modules)
+

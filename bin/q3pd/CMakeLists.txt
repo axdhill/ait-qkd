@@ -67,4 +67,5 @@ add_custom_command(TARGET q3pd
 target_link_libraries(q3pd ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
-install(TARGETS q3pd RUNTIME DESTINATION bin)
+install(TARGETS q3pd RUNTIME DESTINATION bin COMPONENT node)
+
