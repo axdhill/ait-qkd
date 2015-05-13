@@ -7,7 +7,7 @@ For scientists, universities, and security centered companies who want to concen
 
 This is the **public**, **free** repository. We do have additional stuff like LDPC error correction, QKD presfiting and QKD GUI but we currently do not ship them for free of charge. If you have interest in these please contact us.
 
-The source code is arranged as a CMake (see: [http://www.cmake.org](http://www.cmake.org/)) project in a git (see: [http://www.git-scm.com](http://www.git-scm.com)) repository. The reference machines are Debian 7.8 ("Wheezy") and Debian 8 ("Jessie"). Any other Linux distribution might work as well, e.g. Ubuntu or Mint, but this is not tested yet.
+The source code is arranged as a CMake (see: [http://www.cmake.org](http://www.cmake.org/)) project in a git (see: [http://www.git-scm.com](http://www.git-scm.com)) repository. The reference machines are Debian 7.8 ("Wheezy") and Debian 8 ("Jessie"). Any other Linux distribution might work as well, e.g. Ubuntu, RedHat, SuSE, Gentoo or Mint, but this is not tested yet.
 
 
 1. Preamble
@@ -82,17 +82,88 @@ The whole project compiles in one single step, meaning no subprojects. This resu
 
 
 
+3. Compilation
+--------------
+
+3.1 Preperation
+---------------
+
+In order to compile the QKD sources we need at least the developer versions of:
+
+* gcc and g++ at least version 4.6.3
+* boost at least version 1.49
+* OpenSSL
+* UUID
+* CMake
+* GMP
+* 0MQ (Zero Message Queue) version 2.2 (**NOT** version 3)
+* Qt4 at least version 4.4
+* Qwt (Qt Widgets for Technical Applications)
+* Doxygen
+
+Here are the steps which help you to setup a build system capable of compiling the sources on a pure Debian Wheezy/Jessie system.
+
+    $ sudo apt-get install build-essential g++ gcc libboost-all-dev libssl-dev uuid-dev cmake libssl-dev uuid-dev libgmp3-dev libzmq-dev libdbus-1-dev libqt4-dev libqwt-dev doxygen texlive-latex-base texlive-latex-extra texlive-font-utils dbus-x11 libcap2-bin
+
+
+To clone the sources from the AIT servers:
+    
+    $ sudo apt-get install git
+    ...
+    $ git clone http://git-service.ait.ac.at/quantum-cryptography/qkd.git
+
+
+3.2 Building
+------------
+
+Step into the "build" folder, invoke cmake and then make.
+
+    $ mkdir build
+    $ cd build
+    $ cmake ..
+    $ make
+    
+    
+3.3 Test
+--------
+
+Once you've run successful the "make" command you are enabled to run tests at your disposal. To do so switch into the build folder again.
+
+    $ cd build
+    $ make test
+
+This will run a series of tests to check the sanity of the qkd system built. If one or more test failed then this is a good indicator that something has gone awry. Please consult the AIT with the output of the command for support.
    
-3. Package install
+
+3.4 Packaging
+-------------
+
+After a successful build, you might as well create DEB packages for install on various Debian or Debian-based systems.
+
+    $ cd build
+    $ make package
+
+This will create a package `qkd_9.9999.3_amd64.deb` (or with the current version number embedded) in the current build folder.
+
+   
+4. Package install
 ------------------
 
 Despite a normal Debian Wheezy/Jessie implementation you'll need:  
 
-    # apt-get install dbus
+    $ sudo apt-get install dbus
 
-Then the rest will be installed like this (even on a mere plain installation):
+which is normally already installed on modern Linux distributions.
 
-    # dpkg --install qkd_9.9999.3_amd64.deb 
+If you have built the debian package on the target system then a
+
+    $ sudo dpkg --install qkd_9.9999.3_amd64.deb 
+
+will be sufficient.
+
+However, if you lack certain packages and get error messages like these
+
+    $ sudo dpkg --install qkd_9.9999.3_amd64.deb 
     Selecting previously unselected package qkd.
     (Reading database ... 40364 files and directories currently installed.)
     Unpacking qkd (from qkd_9.9999.3_amd64.deb) ...
@@ -121,89 +192,26 @@ Then the rest will be installed like this (even on a mere plain installation):
     Errors were encountered while processing:
      qkd
 
-Which will resolve by issuing
+then you can still go on with installment by issuing
 
-    # apt-get -f install
+    $ sudo apt-get -f install
 
 
-4. Configuration
+5. Configuration
 -----------------
 
 The installation will deploy sample configuration scripts in `/etc/qkd` and `/etc/q3p`. Also a new system group `qkd` will be present. 
 
-**NOTE:** In order to access the configuration files you either have to be root or your user has to be in the `qkd` group.
+**NOTE:** In order to access the configuration files you either have to be root (discouraged) or your user has to be part of the `qkd` group.
 
 Finally an environment variable `QKD_DBUS_SESSION_ADDRESS` holds the address of the QKD dedicated system wide DBus server.
 
 For more details on configuration please consult the *AIT QKD Handbook*.
 
-5. Compilation
---------------
-
-5.1 Preperation
----------------
-
-In order to compile the QKD sources we need at least the developer versions of:
-
-* gcc and g++ at least version 4.6.3
-* boost at least version 1.49
-* OpenSSL
-* UUID
-* CMake
-* GMP
-* 0MQ (Zero Message Queue) version 2.2 (**NOT** version 3)
-* Qt4 at least version 4.4
-* Qwt (Qt Widgets for Technical Applications)
-* Doxygen
-
-Here are the steps which help you to setup a build system capable of compiling the sources on a pure Debian Wheezy/Jessie system.
-
-    # apt-get install build-essential g++ gcc libboost-all-dev libssl-dev uuid-dev cmake libssl-dev uuid-dev libgmp3-dev libzmq-dev libdbus-1-dev libqt4-dev libqwt-dev doxygen texlive-latex-base texlive-latex-extra texlive-font-utils dbus-x11 libcap2-bin
-
-
-To clone the sources from the AIT servers:
-    
-    # apt-get install git
-    
-(switch back to normal user)
-    
-    $ git clone http://git-service.ait.ac.at/quantum-cryptography/qkd.git
-
-5.2 Building
-------------
-
-Step into the "build" folder, invoke cmake and then make.
-
-    $ mkdir build 2> /dev/null
-    $ cd build
-    $ cmake ..
-    $ make
-    
-    
-5.3 Test
---------
-
-Once you've run successful the "make" command you are enabled to run tests at your disposal. To do so switch into the build folder again.
-
-    $ cd build
-    $ make test
-
-This will run a series of tests to check the sanity of the qkd system built. If one or more test failed then this is a good indicator that something has gone awry. Please consult the AIT with the output of the command for support.
-   
-
-5.4 Packaging
--------------
-
-After a successful build, you might as well create DEB packages for install on various Debian or Debian-based systems.
-
-    $ cd build
-    $ make package
-
-
 6. Known Issues
 ---------------
 
-**5.1 locale**
+**6.1 locale**
 
 If you come along such messages:
 
@@ -249,13 +257,13 @@ or
 
 Then you are lacking a locale installation. Some parts, especially boost-filesystem, are known to suffer badly from missing locale installation files. Reinstall them by
 
-    # dpkg-reconfigure locales
+    $ sudo dpkg-reconfigure locales
 
-and verify that all locales as defined by
+and verify that all locales in use listed by
 
     $ locale
 
-are installed which is seen by
+are installed. All installed locales can be seen by
 
     $ locale -a
 
@@ -271,9 +279,14 @@ then you will lack DBus capabilities. This results in warnings and messages like
 
     Could not connect to D-Bus server: org.freedesktop.DBus.Error.NotSupported: Unable to autolaunch a dbus-daemon without a $DISPLAY for X11
 
-Please enable X11 forwarding support via 
+Please either enable X11 forwarding support via 
 
     $ ssh -X user@machine
+
+or ensure that the `qkd-dbus` service is running and the environment variable `QKD_DBUS_SESSION_ADDRESS` holds a valid DBus address.
+
+Note: if you launch GUI applications like `qkd-module-manager` or `qkd-simulate` remotely, you still need to login via SSH and X11-forwarding enabled.
+
 
     
 7. License
