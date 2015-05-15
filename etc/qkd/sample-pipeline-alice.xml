@@ -96,5 +96,13 @@
         <log path="qkd-privacy-amplification.alice.log" />
     </module>
 
+    <module path="qkd-tee" start="yes">
+        <config path="/etc/qkd/pipeline-default.conf" />
+        <role value="alice" />
+        <args value="--debug" />
+        <args value="--file">file:///tmp/qkd-keys.alice</args>
+        <log path="qkd-tee.alice.log" />
+    </module>
+
 </pipeline>
 
