@@ -1587,7 +1587,7 @@ void module::interrupt_worker() {
     sigval cSignalValue = { 0 };
     pthread_sigqueue(d->cModuleThread.native_handle(), SIGINT, cSignalValue);
     pthread_yield();
-    pthread_kill(d->cModuleThread->native_handle, SIGCHLD);
+    pthread_kill(d->cModuleThread.native_handle(), SIGCHLD);
 }
 
 
