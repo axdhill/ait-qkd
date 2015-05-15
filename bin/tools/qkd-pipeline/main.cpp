@@ -398,7 +398,7 @@ int parse_module(QDomElement const & cModuleElement) {
             
         // config args
         if (cDomElement.tagName() == "args") {
-            if (cDomElement.hasAttribute("value")) cModule.sArgs += cDomElement.attribute("value").toStdString();    
+            if (cDomElement.hasAttribute("value")) cModule.sArgs += std::string(" ") + cDomElement.attribute("value").toStdString();    
             if (!cDomElement.text().isEmpty()) cModule.sArgs += std::string(" ") + cDomElement.text().toStdString();
         }
         else
