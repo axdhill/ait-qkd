@@ -1584,7 +1584,8 @@ void module::interrupt_worker() {
     if (d->cModuleThread.get_id() == std::thread::id()) return;
         
     // interrupt worker thread
-    pthread_kill(d->cModuleThread.native_handle(), SIGCHLD);
+    sigval cSignalValue = { 0 };
+    pthread_sigqueue(d->cModuleThread.native_handle(), SIGINT, cSignalValue);
 }
 
 
