@@ -100,7 +100,7 @@
         <config path="/etc/qkd/pipeline-default.conf" />
         <role value="bob" />
         <args value="--debug" />
-        <args value="--file">file:///tmp/qkd-keys.bob</args>
+        <args value="--file">qkd-keys.bob</args>
         <log path="qkd-tee.bob.log" />
     </module>
 
