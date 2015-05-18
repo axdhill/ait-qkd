@@ -495,6 +495,7 @@ int start() {
                 argv[nArg++] = strdup(cModule.sConfiguration.c_str());
                 for (auto const s : cModule.sArgs) {
                     argv[nArg++] = strdup(s.c_str());
+                    if (nArg == 1024) break;
                 }
                 
                 // final set the last one to NULL
