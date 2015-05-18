@@ -376,6 +376,8 @@ enum class module_type : uint8_t {
  * 
  *      debug                           R/W             enable/disable debug output on stderr
  * 
+ *      debug_message_flow              R/W             enable/disable debug of message flow particles on stderr
+ *
  *      hint                            R/W             an arbitrary text which helps to interconnect modules
  * 
  *      id                               R              ID of the module
@@ -493,53 +495,54 @@ class module : public QObject {
     Q_OBJECT
     Q_CLASSINFO("D-Bus Interface", "at.ac.ait.qkd.module")
 
-    Q_PROPERTY(bool debug READ debug WRITE set_debug)                                       /**< get/set module debug flag */
-    Q_PROPERTY(QString hint READ hint WRITE set_hint)                                       /**< get/set the arbitrary module hint */
-    Q_PROPERTY(QString id READ id)                                                          /**< get the id of the module */
-    Q_PROPERTY(QString description READ description)                                        /**< get the description of the module */
-    Q_PROPERTY(QString organisation READ organisation)                                      /**< get the organisation/creator of the module */
-    Q_PROPERTY(bool paired READ paired)                                                     /**< get module's paired condition */
-    Q_PROPERTY(QString pipeline READ pipeline WRITE set_pipeline)                           /**< the pipeline ID this module is assigned to */
-    Q_PROPERTY(unsigned int process_id READ process_id)                                     /**< process ID of the current module */
-    Q_PROPERTY(QString process_image READ process_image)                                    /**< path of process image on disk */
-    Q_PROPERTY(bool processing READ processing)                                             /**< check if the module is currently processing a key  */
-    Q_PROPERTY(QString random_url READ random_url WRITE set_random_url)                     /**< random source handling functions */
-    Q_PROPERTY(qulonglong role READ role WRITE set_role)                                    /**< get/set module role */
-    Q_PROPERTY(QString role_name READ role_name)                                            /**< human readable role name */
-    Q_PROPERTY(qulonglong start_time READ start_time)                                       /**< UNIX epoch timestamp of module creation */       
-    Q_PROPERTY(qulonglong state READ state)                                                 /**< the state of the module */    
-    Q_PROPERTY(QString state_name READ state_name)                                          /**< the state name description of the module */
-    Q_PROPERTY(bool stalled READ stalled)                                                   /**< get the stalled flag: finished work on a key for at least 1 sec ago */
-    Q_PROPERTY(bool synchronize_keys READ synchronize_keys WRITE set_synchronize_keys)      /**< get/set synchronize key ids flag */
-    Q_PROPERTY(qulonglong synchronize_ttl READ synchronize_ttl WRITE set_synchronize_ttl)   /**< get/set synchronize TTL in seconds for not in-sync keys */
-    Q_PROPERTY(qulonglong terminate_after READ terminate_after WRITE set_terminate_after)   /**< number of keys left before terminating (0 --> do not terminate) */    
-    Q_PROPERTY(qlonglong timeout_network READ timeout_network WRITE set_timeout_network)    /**< number of milliseconds for network send/recv timeout */    
-    Q_PROPERTY(qlonglong timeout_pipe READ timeout_pipe WRITE set_timeout_pipe)             /**< number of milliseconds to wait after a failed read */    
-    Q_PROPERTY(qulonglong type READ type)                                                   /**< the type of the module */    
-    Q_PROPERTY(QString type_name READ type_name)                                            /**< the type name description of the module */
+    Q_PROPERTY(bool debug READ debug WRITE set_debug)                                           /**< get/set module debug flag */
+    Q_PROPERTY(bool debug_message_flow READ debug_message_flow WRITE set_debug_message_flow)    /**< get/set module debug flag */
+    Q_PROPERTY(QString hint READ hint WRITE set_hint)                                           /**< get/set the arbitrary module hint */
+    Q_PROPERTY(QString id READ id)                                                              /**< get the id of the module */
+    Q_PROPERTY(QString description READ description)                                            /**< get the description of the module */
+    Q_PROPERTY(QString organisation READ organisation)                                          /**< get the organisation/creator of the module */
+    Q_PROPERTY(bool paired READ paired)                                                         /**< get module's paired condition */
+    Q_PROPERTY(QString pipeline READ pipeline WRITE set_pipeline)                               /**< the pipeline ID this module is assigned to */
+    Q_PROPERTY(unsigned int process_id READ process_id)                                         /**< process ID of the current module */
+    Q_PROPERTY(QString process_image READ process_image)                                        /**< path of process image on disk */
+    Q_PROPERTY(bool processing READ processing)                                                 /**< check if the module is currently processing a key  */
+    Q_PROPERTY(QString random_url READ random_url WRITE set_random_url)                         /**< random source handling functions */
+    Q_PROPERTY(qulonglong role READ role WRITE set_role)                                        /**< get/set module role */
+    Q_PROPERTY(QString role_name READ role_name)                                                /**< human readable role name */
+    Q_PROPERTY(qulonglong start_time READ start_time)                                           /**< UNIX epoch timestamp of module creation */       
+    Q_PROPERTY(qulonglong state READ state)                                                     /**< the state of the module */    
+    Q_PROPERTY(QString state_name READ state_name)                                              /**< the state name description of the module */
+    Q_PROPERTY(bool stalled READ stalled)                                                       /**< get the stalled flag: finished work on a key for at least 1 sec ago */
+    Q_PROPERTY(bool synchronize_keys READ synchronize_keys WRITE set_synchronize_keys)          /**< get/set synchronize key ids flag */
+    Q_PROPERTY(qulonglong synchronize_ttl READ synchronize_ttl WRITE set_synchronize_ttl)       /**< get/set synchronize TTL in seconds for not in-sync keys */
+    Q_PROPERTY(qulonglong terminate_after READ terminate_after WRITE set_terminate_after)       /**< number of keys left before terminating (0 --> do not terminate) */    
+    Q_PROPERTY(qlonglong timeout_network READ timeout_network WRITE set_timeout_network)        /**< number of milliseconds for network send/recv timeout */    
+    Q_PROPERTY(qlonglong timeout_pipe READ timeout_pipe WRITE set_timeout_pipe)                 /**< number of milliseconds to wait after a failed read */    
+    Q_PROPERTY(qulonglong type READ type)                                                       /**< the type of the module */    
+    Q_PROPERTY(QString type_name READ type_name)                                                /**< the type name description of the module */
 
-    Q_PROPERTY(QString url_listen READ url_listen WRITE set_url_listen)                     /**< URL for peer (serving endpoint) */
-    Q_PROPERTY(QString url_peer READ url_peer WRITE set_url_peer)                           /**< URL of the peer connection (where this module connected to) */
-    Q_PROPERTY(QString url_pipe_in READ url_pipe_in WRITE set_url_pipe_in)                  /**< URL of incoming Pipe (serving endpoint) */
-    Q_PROPERTY(QString url_pipe_out READ url_pipe_out WRITE set_url_pipe_out)               /**< URL of outgoing Pipe */
+    Q_PROPERTY(QString url_listen READ url_listen WRITE set_url_listen)                         /**< URL for peer (serving endpoint) */
+    Q_PROPERTY(QString url_peer READ url_peer WRITE set_url_peer)                               /**< URL of the peer connection (where this module connected to) */
+    Q_PROPERTY(QString url_pipe_in READ url_pipe_in WRITE set_url_pipe_in)                      /**< URL of incoming Pipe (serving endpoint) */
+    Q_PROPERTY(QString url_pipe_out READ url_pipe_out WRITE set_url_pipe_out)                   /**< URL of outgoing Pipe */
     
-    Q_PROPERTY(qulonglong keys_incoming READ keys_incoming)                                 /**< total number of keys the module received so far */    
-    Q_PROPERTY(qulonglong keys_outgoing READ keys_outgoing)                                 /**< total number of keys the module sent so far */    
-    Q_PROPERTY(qulonglong key_bits_incoming READ key_bits_incoming)                         /**< total number of key bits the module received so far */    
-    Q_PROPERTY(qulonglong key_bits_outgoing READ key_bits_outgoing)                         /**< total number of key bits the module sent so far */    
-    Q_PROPERTY(qulonglong error_bits_incoming READ error_bits_incoming)                     /**< total number of error bits the module received so far in all keys */    
-    Q_PROPERTY(qulonglong error_bits_outgoing READ error_bits_outgoing)                     /**< total number of error bits the module sent so far in all keys */    
-    Q_PROPERTY(qulonglong disclosed_bits_incoming READ disclosed_bits_incoming)             /**< total number of disclosed bits the module received so far in all keys */    
-    Q_PROPERTY(qulonglong disclosed_bits_outgoing READ disclosed_bits_outgoing)             /**< total number of disclosed bits the module sent so far in all keys */    
+    Q_PROPERTY(qulonglong keys_incoming READ keys_incoming)                                     /**< total number of keys the module received so far */    
+    Q_PROPERTY(qulonglong keys_outgoing READ keys_outgoing)                                     /**< total number of keys the module sent so far */    
+    Q_PROPERTY(qulonglong key_bits_incoming READ key_bits_incoming)                             /**< total number of key bits the module received so far */    
+    Q_PROPERTY(qulonglong key_bits_outgoing READ key_bits_outgoing)                             /**< total number of key bits the module sent so far */    
+    Q_PROPERTY(qulonglong error_bits_incoming READ error_bits_incoming)                         /**< total number of error bits the module received so far in all keys */    
+    Q_PROPERTY(qulonglong error_bits_outgoing READ error_bits_outgoing)                         /**< total number of error bits the module sent so far in all keys */    
+    Q_PROPERTY(qulonglong disclosed_bits_incoming READ disclosed_bits_incoming)                 /**< total number of disclosed bits the module received so far in all keys */    
+    Q_PROPERTY(qulonglong disclosed_bits_outgoing READ disclosed_bits_outgoing)                 /**< total number of disclosed bits the module sent so far in all keys */    
 
-    Q_PROPERTY(qulonglong keys_incoming_rate READ keys_incoming_rate)                       /**< total number of keys the module received so far */    
-    Q_PROPERTY(qulonglong keys_outgoing_rate READ keys_outgoing_rate)                       /**< total number of keys the module sent so far */    
-    Q_PROPERTY(qulonglong key_bits_incoming_rate READ key_bits_incoming_rate)               /**< total number of key bits the module received so far */    
-    Q_PROPERTY(qulonglong key_bits_outgoing_rate READ key_bits_outgoing_rate)               /**< total number of key bits the module sent so far */    
-    Q_PROPERTY(qulonglong error_bits_incoming_rate READ error_bits_incoming_rate)           /**< total number of error bits the module received so far in all keys */    
-    Q_PROPERTY(qulonglong error_bits_outgoing_rate READ error_bits_outgoing_rate)           /**< total number of error bits the module sent so far in all keys */    
-    Q_PROPERTY(qulonglong disclosed_bits_incoming_rate READ disclosed_bits_incoming_rate)   /**< total number of disclosed bits the module received so far in all keys */    
-    Q_PROPERTY(qulonglong disclosed_bits_outgoing_rate READ disclosed_bits_outgoing_rate)   /**< total number of disclosed bits the module sent so far in all keys */    
+    Q_PROPERTY(qulonglong keys_incoming_rate READ keys_incoming_rate)                           /**< total number of keys the module received so far */    
+    Q_PROPERTY(qulonglong keys_outgoing_rate READ keys_outgoing_rate)                           /**< total number of keys the module sent so far */    
+    Q_PROPERTY(qulonglong key_bits_incoming_rate READ key_bits_incoming_rate)                   /**< total number of key bits the module received so far */    
+    Q_PROPERTY(qulonglong key_bits_outgoing_rate READ key_bits_outgoing_rate)                   /**< total number of key bits the module sent so far */    
+    Q_PROPERTY(qulonglong error_bits_incoming_rate READ error_bits_incoming_rate)               /**< total number of error bits the module received so far in all keys */    
+    Q_PROPERTY(qulonglong error_bits_outgoing_rate READ error_bits_outgoing_rate)               /**< total number of error bits the module sent so far in all keys */    
+    Q_PROPERTY(qulonglong disclosed_bits_incoming_rate READ disclosed_bits_incoming_rate)       /**< total number of disclosed bits the module received so far in all keys */    
+    Q_PROPERTY(qulonglong disclosed_bits_outgoing_rate READ disclosed_bits_outgoing_rate)       /**< total number of disclosed bits the module sent so far in all keys */    
 
     // friends
     friend class communicator;
@@ -714,6 +717,14 @@ public:
     inline bool debug() const { return qkd::utility::debug::enabled(); };
     
     
+    /**
+     * check if message flow particles are printed on stderr
+     * 
+     * @return  true, if debug messages of communication are pasted on stderr
+     */
+    bool debug_message_flow() const;
+
+
     /**
      * return the description of the module
      * 
@@ -1110,6 +1121,14 @@ public:
     inline void set_debug(bool bDebug) { qkd::utility::debug::enabled() = bDebug; };
     
     
+    /**
+     * set the debug message particle flow flag
+     * 
+     * @param   bDebug      new debug value for message particles
+     */
+    void set_debug_message_flow(bool bDebug);
+
+
     /**
      * set the module's hint
      * 

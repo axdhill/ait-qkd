@@ -32,6 +32,7 @@
 // incs
 
 #include <iostream>
+#include <vector>
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
@@ -60,12 +61,12 @@
 struct module_definition {
 
     
-    std::string sPath;              /**< path to module binary */
-    bool bStart;                    /**< start module immediately */
-    std::string sConfiguration;     /**< path to module's configuration file */
-    bool bAlice;                    /**< alice role (or bob if false) */
-    std::string sArgs;              /**< additional arguments to pass on the command line */
-    std::string sLog;               /**< path to log file */
+    std::string sPath;                  /**< path to module binary */
+    bool bStart;                        /**< start module immediately */
+    std::string sConfiguration;         /**< path to module's configuration file */
+    bool bAlice;                        /**< alice role (or bob if false) */
+    std::list<std::string> sArgs;       /**< additional arguments to pass on the command line */
+    std::string sLog;                   /**< path to log file */
 
         
     /**
@@ -76,7 +77,6 @@ struct module_definition {
         bStart = false;
         sConfiguration = "",
         bAlice = true;
-        sArgs = "";
         sLog = "";
     };
     
@@ -398,7 +398,8 @@ int parse_module(QDomElement const & cModuleElement) {
             
         // config args
         if (cDomElement.tagName() == "args") {
-            if (cDomElement.hasAttribute("value")) cModule.sArgs = cDomElement.attribute("value").toStdString();    
+            if (cDomElement.hasAttribute("value")) cModule.sArgs.push_back(cDomElement.attribute("value").toStdString());
+            if (!cDomElement.text().isEmpty()) cModule.sArgs.push_back(cDomElement.text().toStdString());
         }
         else
             
@@ -492,7 +493,10 @@ int start() {
                 if (!cModule.bAlice) argv[nArg++] = strdup("--bob");
                 argv[nArg++] = strdup("--config");
                 argv[nArg++] = strdup(cModule.sConfiguration.c_str());
-                if (cModule.sArgs.size()) argv[nArg++] = strdup(cModule.sArgs.c_str());
+                for (auto const s : cModule.sArgs) {
+                    argv[nArg++] = strdup(s.c_str());
+                    if (nArg == 1024) break;
+                }
                 
                 // final set the last one to NULL
                 argv[nArg++] = nullptr;

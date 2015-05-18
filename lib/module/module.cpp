@@ -190,6 +190,8 @@ public:
         cModuleBirth = std::chrono::high_resolution_clock::now();
         
         bProcessing = false;
+
+        bDebugMessagaFlow = false;
     };
     
     
@@ -255,6 +257,8 @@ public:
     std::thread cModuleThread;                  /**< the real module worker */
     
     std::atomic<bool> bProcessing;              /**< processing flag */
+
+    std::atomic<bool> bDebugMessagaFlow;        /**< debug message flow for send and recv packages */
 
 
     /**
@@ -1468,6 +1472,16 @@ void module::configure(QString sConfigURL) {
 
 
 /**
+ * check if message flow particles are printed on stderr
+ * 
+ * @return  true, if debug messages of communication are pasted on stderr
+ */
+bool module::debug_message_flow() const {
+    return d->bDebugMessagaFlow;
+}
+
+
+/**
  * this is the start method call
  * 
  * (reason it is not public: it would be visible 
@@ -1570,6 +1584,9 @@ void module::interrupt_worker() {
     if (d->cModuleThread.get_id() == std::thread::id()) return;
         
     // interrupt worker thread
+    sigval cSignalValue = { 0 };
+    pthread_sigqueue(d->cModuleThread.native_handle(), SIGINT, cSignalValue);
+    pthread_yield();
     pthread_kill(d->cModuleThread.native_handle(), SIGCHLD);
 }
 
@@ -1970,7 +1987,7 @@ bool module::recv_internal(qkd::module::message & cMessage, int nTimeOut) throw 
     cMessage.m_cTimeStamp = std::chrono::high_resolution_clock::now();
     
     // debug to the user
-    if (qkd::utility::debug::enabled()) qkd::utility::debug() << "<MOD-RECV>" << cMessage.string();
+    if (d->bDebugMessagaFlow) qkd::utility::debug() << "<MOD-RECV>" << cMessage.string();
    
     return true;
 }
@@ -2229,7 +2246,7 @@ void module::send(qkd::module::message & cMessage, qkd::crypto::crypto_context &
         cMessage.m_cTimeStamp = std::chrono::high_resolution_clock::now();
         
         // debug to the user
-        if (qkd::utility::debug::enabled()) qkd::utility::debug() << "<MOD-SEND>" << cMessage.string();
+        if (d->bDebugMessagaFlow) qkd::utility::debug() << "<MOD-SEND>" << cMessage.string();
         
         // send!
         zmq::message_t cZMQHeader(sizeof(cMessage.m_cHeader));
@@ -2277,6 +2294,16 @@ QString module::service_name() const {
     
     // try anyway to connect to DBus
     return QString("at.ac.ait.qkd.module.") + QString::fromStdString(ss.str());
+}
+
+
+/**
+ * set the debug message particle flow flag
+ * 
+ * @param   bDebug      new debug value for message particles
+ */
+void module::set_debug_message_flow(bool bDebug) {
+    d->bDebugMessagaFlow = bDebug;
 }
 
 
