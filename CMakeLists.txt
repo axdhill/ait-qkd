@@ -391,6 +391,7 @@ add_subdirectory(lib)
 add_subdirectory(bin)
 add_subdirectory(etc)
 add_subdirectory(doc)
+add_subdirectory(examples)
 add_subdirectory(test)
 
 

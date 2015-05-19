@@ -16,12 +16,10 @@ All samples do share the same requirements as building the AIT QKD RX software. 
     - Qwt5
     - Doxygen
 
-You can get these by copy-paste the line below into a shell with root privileges if you are running on a decent linux distribution (*) - mind the leading shell prompt '#':
+You can get these by copy-paste the line below into a shell with root privileges if you are running on a Debian-like Linux distribution - mind the leading shell prompt '#':
 
     # apt-get install build-essential g++ gcc libboost-all-dev libssl-dev uuid-dev cmake libssl-dev uuid-dev cmake libgmp3-dev libzmq-dev libdbus-1-dev libqt4-dev libqwt5-qt4-dev doxygen 
 
-
-(*) Debian Wheezy that is. Any distribution below that is not.
 
 
 The examples herein:
@@ -301,9 +299,11 @@ The QKD library (libqkd) is licensed under the GNU LGPL 2.1. All other stuff inc
 
 
     
-(C)opyright 2013 AIT Austrian Instiute of Technology
+(C)opyright 2013-2015 AIT Austrian Instiute of Technology
 
 Oliver Maurhart
 oliver.maurhart@ait.ac.at
 http://ait.ac.at
 https://sqt.ait.ac.at/software
+https://git-service.ait.ac.at/quantum-cryptography/qkd
+

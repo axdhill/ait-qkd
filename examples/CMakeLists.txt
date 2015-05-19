@@ -1,9 +1,7 @@
-#!/bin/bash
-
 # ------------------------------------------------------------
-# qkd-demo-keys
+# CMakeLists.txt 
 # 
-# Create a pair of demo-keys for a simple easy pipeline
+# make: examples
 #
 # Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
@@ -30,33 +28,11 @@
 # ------------------------------------------------------------
 
 
-# zap previous keys
-mkdir -p /tmp/qkd/ &> /dev/null
-rm -rf /tmp/qkd/cat_keys.* &> /dev/null
+# install the examples
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/module-1 DESTINATION share/doc/qkd/examples COMPONENT examples)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/module-2 DESTINATION share/doc/qkd/examples COMPONENT examples)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/module-3 DESTINATION share/doc/qkd/examples COMPONENT examples)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/module-4 DESTINATION share/doc/qkd/examples COMPONENT examples)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/module-5 DESTINATION share/doc/qkd/examples COMPONENT examples)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/README DESTINATION share/doc/qkd/examples COMPONENT examples)
 
-# create keys
-qkd-key-gen --size 2048 --keys 1000 --quantum --rate 0.03 /tmp/qkd/cat_keys
-
-# tell user
-cat << END_OF_USER_MESSAGE
-
-created 1000 keys as quantum events with an error rate of 0.03
-files stored as
-
-    /tmp/qkd/cat_keys.alice
-    /tmp/qkd/cat_keys.bob
-
-Please move one of the files at the same location on the 
-proper - alice or bob - host.
-
-    like:
-
-        $ ssh dyle@alice mkdir -p /tmp/qkd &> /dev/null
-        $ scp /tmp/qkd/cat_keys.alice dyle@alice:/tmp/qkd/
-
-    or:
-
-        $ ssh dyle@bob mkdir -p /tmp/qkd &> /dev/null
-        $ scp /tmp/qkd/cat_keys.bob dyle@bob:/tmp/qkd/
-
-END_OF_USER_MESSAGE

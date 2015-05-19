@@ -1,9 +1,0 @@
-#!/bin/bash
-
-CHARGE_APPLICATION=$(qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice/ApplicationBuffer charge)
-CHARGE_COMMON=$(qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice/CommonStore charge)
-CHARGE_INCOMING=$(qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice/IncomingBuffer charge)
-CHARGE_OUTGOING=$(qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice/OutgoingBuffer charge)
-
-echo "q3p charges: A=${CHARGE_APPLICATION} C=${CHARGE_COMMON} I=${CHARGE_INCOMING} O=${CHARGE_OUTGOING}"
-
