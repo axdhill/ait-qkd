@@ -42,8 +42,8 @@
 // Qwt
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-pedantic"
-#include <qwt_plot.h>
-#include <qwt_text.h>
+#include <qwt/qwt_plot.h>
+#include <qwt/qwt_text.h>
 #pragma GCC diagnostic pop
 
 
