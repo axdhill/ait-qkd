@@ -507,7 +507,7 @@ int main(int argc, char ** argv) {
     
     // create the command line header
     std::string sApplication = std::string("qkd-key-gen - AIT QKD Test Key Generator Tool V") + VERSION;
-    std::string sDescription = std::string("\nThis lets one create a pair of key files to feed a pipeline with.\nThese are keys for testing ONLY.\n\nCopyright 2012, 2013 AIT Austrian Institute of Technology GmbH");
+    std::string sDescription = std::string("\nThis lets one create a pair of key files to feed a pipeline with.\nThese are keys for testing ONLY.\n\nCopyright 2012-2015 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS] FILE";
     
     // define program options

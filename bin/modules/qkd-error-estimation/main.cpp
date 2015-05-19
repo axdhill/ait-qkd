@@ -59,7 +59,7 @@ int main(int argc, char ** argv) {
     
     // create the command line header
     std::string sApplication = std::string("qkd-error-estimation - AIT QKD Module 'error estimation' V") + VERSION;
-    std::string sDescription = std::string("\nThis is an AIT QKD module.\n\nThis module discloses a portion of the bits to estimation an error.\n\nCopyright 2012, 2013 AIT Austrian Institute of Technology GmbH");
+    std::string sDescription = std::string("\nThis is an AIT QKD module.\n\nThis module discloses a portion of the bits to estimation an error.\n\nCopyright 2012-2015 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS]";
     
     // define program options

@@ -61,7 +61,7 @@ int main(int argc, char ** argv) {
     
     // create the command line header
     std::string sApplication = std::string("qkd-cascade - AIT QKD Module 'cascade' V") + VERSION;
-    std::string sDescription = std::string("\nThis is an AIT QKD module.\n\nThis is the standard cascade error correction.\n\nCopyright 2014 AIT Austrian Institute of Technology GmbH");
+    std::string sDescription = std::string("\nThis is an AIT QKD module.\n\nThis is the standard cascade error correction.\n\nCopyright 2014-2015 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS]";
     
     // define program options

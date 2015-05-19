@@ -542,7 +542,7 @@ int main(int argc, char ** argv) {
     
     // create the command line header
     std::string sApplication = std::string("qkd-view - AIT QKD System View V") + VERSION;
-    std::string sDescription = std::string("\nThis shows the current QKD system.\nThe values of the found nodes, links and modules are sperated by tabs.\n\nCopyright 2012, 2013 AIT Austrian Institute of Technology GmbH");
+    std::string sDescription = std::string("\nThis shows the current QKD system.\nThe values of the found nodes, links and modules are sperated by tabs.\n\nCopyright 2012-2015 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS]";
     
     // define program options

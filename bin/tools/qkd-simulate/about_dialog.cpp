@@ -75,7 +75,7 @@ creates event tables for alice and bob <br/>\
 like the real quantum channel.<br/>\
 \
 <p>\
-Copyright (C) 2013, AIT Austrian Institute of Technology<br/>\
+Copyright (C) 2013-2015, AIT Austrian Institute of Technology<br/>\
 AIT Austrian Institute of Technology GmbH<br/>\
 Donau-City-Strasse 1 | 1220 Vienna | Austria<br/>\
 <a href=\"http://www.ait.ac.at\">http://www.ait.ac.at</a>\
