@@ -391,6 +391,7 @@ add_subdirectory(lib)
 add_subdirectory(bin)
 add_subdirectory(etc)
 add_subdirectory(doc)
+add_subdirectory(examples)
 add_subdirectory(test)
 
 
@@ -418,7 +419,7 @@ set(CPACK_PROJECT_VERSION_STRING "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}-${CMAKE_SYSTEM_PROCESSOR}")
 set(CPACK_SOURCE_IGNORE_FILES "/build/*;/.git/")
 
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.13), libgcc1 (>= 1:4.4), libgmp10, libboost-filesystem1.49.0 (>= 1.49.0), libboost-program-options1.49.0 (>= 1.49.0), libboost-system1.49.0 (>= 1.49.0), libzmq1, libqtgui4, libqtdbus4, libqt4-network, libqwt6, libcap2-bin")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.13), libgcc1 (>= 1:4.4), libgmp10, libboost-filesystem1.55.0 (>= 1.55.0), libboost-program-options1.55.0 (>= 1.55.0), libboost-system1.55.0 (>= 1.55.0), libzmq1, libqtgui4, libqtdbus4, libqt4-network, libqwt6, libcap2-bin")
 set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cpack/deb/control/postinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/cpack/deb/control/postrm;${CMAKE_CURRENT_SOURCE_DIR}/cmake/cpack/deb/control/prerm;")
 
 # debianization
