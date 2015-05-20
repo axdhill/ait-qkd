@@ -141,7 +141,7 @@ After a successful build, you might as well create DEB packages for install on v
     $ cd build
     $ make package
 
-This will create a package `qkd_9.9999.3_amd64.deb` (or with the current version number embedded) in the current build folder.
+This will create a package `qkd_9.9999.4_amd64.deb` (or with the current version number embedded) in the current build folder.
 
    
 4. Package install
@@ -155,16 +155,16 @@ which is normally already installed on modern Linux distributions.
 
 If you have built the debian package on the target system then a
 
-    $ sudo dpkg --install qkd_9.9999.3_amd64.deb 
+    $ sudo dpkg --install qkd_9.9999.4_amd64.deb 
 
 will be sufficient.
 
 However, if you lack certain packages and get error messages like these
 
-    $ sudo dpkg --install qkd_9.9999.3_amd64.deb 
+    $ sudo dpkg --install qkd_9.9999.4_amd64.deb 
     Selecting previously unselected package qkd.
     (Reading database ... 40364 files and directories currently installed.)
-    Unpacking qkd (from qkd_9.9999.3_amd64.deb) ...
+    Unpacking qkd (from qkd_9.9999.4_amd64.deb) ...
     dpkg: dependency problems prevent configuration of qkd:
      qkd depends on libboost-filesystem1.49.0 (>= 1.49.0); however:
       Package libboost-filesystem1.49.0 is not installed.
