@@ -18,7 +18,7 @@ All samples do share the same requirements as building the AIT QKD RX software. 
 
 You can get these by copy-paste the line below into a shell with root privileges if you are running on a Debian-like Linux distribution - mind the leading shell prompt '#':
 
-    # apt-get install build-essential g++ gcc libboost-all-dev libssl-dev uuid-dev cmake libssl-dev uuid-dev cmake libgmp3-dev libzmq-dev libdbus-1-dev libqt4-dev libqwt5-qt4-dev doxygen 
+    # apt-get install g++ libqt4-dev libboost-all-dev libqwt-dev libgmp3-dev libzmq-dev libdbus-1-dev libssl-dev cmake
 
 
 
