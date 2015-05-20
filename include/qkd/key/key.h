@@ -90,7 +90,7 @@ enum class key_state : uint8_t {
     KEY_STATE_AMPLIFIED,            /**< this is a privacy amplified key */
     KEY_STATE_AUTHENTICATED,        /**< this is an authenticated key */
 
-    KEY_STATE_DISCLOSED             /**< this is key has been disclosed (and is neither unconfirmed nor uncorrected */
+    KEY_STATE_DISCLOSED             /**< this key has been disclosed (and is neither unconfirmed nor uncorrected) */
 };
 
 
