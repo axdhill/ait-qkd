@@ -88,8 +88,8 @@ The whole project compiles in one single step, meaning no subprojects. This resu
 
 In order to compile the QKD sources we need at least the developer versions of:
 
-* gcc and g++ at least version 4.6.3
-* boost at least version 1.49
+* gcc and g++ at least version 4.8 or higher
+* boost at least version 1.49 (recommended: 1.55.0)
 * OpenSSL
 * UUID
 * CMake
