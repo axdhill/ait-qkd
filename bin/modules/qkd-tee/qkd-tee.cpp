@@ -52,7 +52,7 @@
 
 
 #define MODULE_DESCRIPTION      "This is the qkd-tee QKD Module: it copies the bypassing stream of keys to a file."
-#define MODULE_ORGANISATION     "(C)opyright 2012, 2013 AIT Austrian Institute of Technology, http://www.ait.ac.at"
+#define MODULE_ORGANISATION     "(C)opyright 2012-2015 AIT Austrian Institute of Technology, http://www.ait.ac.at"
 
 
 // ------------------------------------------------------------

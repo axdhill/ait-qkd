@@ -171,7 +171,7 @@ int main(int argc, char ** argv) {
     
     // create the command line header
     std::string sApplication = std::string("q3p-keystore-dump - AIT Q3P KeyStore Dump Tool V") + VERSION;
-    std::string sDescription = std::string("\nThis prints the content of an AIT Q3P KeyStore.\n\nCopyright 2012, 2013 AIT Austrian Institute of Technology GmbH");
+    std::string sDescription = std::string("\nThis prints the content of an AIT Q3P KeyStore.\n\nCopyright 2012-2015 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS] URL";
     
     // define program options

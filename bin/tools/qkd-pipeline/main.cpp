@@ -156,7 +156,7 @@ int main(int argc, char ** argv) {
     
     // create the command line header
     std::string sApplication = std::string("qkd-pipeline - AIT QKD Key Pipeline Tool V") + VERSION;
-    std::string sDescription = std::string("\nThis tools let start/stop/restart a full QKD pipeline.\n\nCopyright 2013 AIT Austrian Institute of Technology GmbH");
+    std::string sDescription = std::string("\nThis tools let start/stop/restart a full QKD pipeline.\n\nCopyright 2013-2015 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS] COMMAND PIPELINE-CONFIG";
     
     // define program options

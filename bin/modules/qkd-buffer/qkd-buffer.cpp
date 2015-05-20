@@ -43,7 +43,7 @@
 // defs
 
 #define MODULE_DESCRIPTION      "This is the qkd-buffer QKD Module."
-#define MODULE_ORGANISATION     "(C)opyright 2012, 2013 AIT Austrian Institute of Technology, http://www.ait.ac.at"
+#define MODULE_ORGANISATION     "(C)opyright 2012-2015 AIT Austrian Institute of Technology, http://www.ait.ac.at"
 
 
 // ------------------------------------------------------------

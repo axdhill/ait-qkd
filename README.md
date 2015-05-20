@@ -21,7 +21,6 @@ Among these are:
 * The Q3P protocol is not fully implemented yet.
 * The IPSec implementation - though present - is not yet fully included.
 * The QKD Module Manager (in the tools section) is not fully implemented.
-* The examples and the demo is not up-to-date.
 * The documentation is slightly out of date.
 
 
@@ -67,14 +66,13 @@ The whole project compiles in one single step, meaning no subprojects. This resu
     |   +-- simulator                                       QKD Simulator
     +-- etc                                             system configuration for installment
     +-- examples                                        examples
-    |   +-- demo-setup                                      sample setup scenarion (OUTDATED)
-    |   +-- module-1                                        "Hello World!" qkd module (OUTDATED)
-    |   +-- module-2                                        continuative example (OUTDATED)
-    |   +-- module-3                                        continuative example (OUTDATED)
-    |   +-- module-4                                        continuative example (OUTDATED)
+    |   +-- module-1                                        "Hello World!" qkd module 
+    |   +-- module-2                                        continuative example
+    |   +-- module-3                                        continuative example 
+    |   +-- module-4                                        continuative example 
     |   +-- module-5                                        complex example incl. DBus
     +-- include                                         header files
-    +-- lib                                             libqkd CORE (QKD Module Framework / Q3P Links / etc.)  <--- !! THIS IS THE CORE !! --->
+    +-- lib                                             libqkd (QKD Module Framework / Q3P Links / etc.)  <--- !! THIS IS THE CORE !! --->
     +-- share                                           shared files (like graphics)
     |   +-- qkd-module-manager                              graphic files for qkd module manager
     |   +-- qkd-simulate                                    graphic files for qkd simulator
@@ -90,8 +88,8 @@ The whole project compiles in one single step, meaning no subprojects. This resu
 
 In order to compile the QKD sources we need at least the developer versions of:
 
-* gcc and g++ at least version 4.6.3
-* boost at least version 1.49
+* gcc and g++ at least version 4.8 or higher
+* boost at least version 1.49 (recommended: 1.55.0)
 * OpenSSL
 * UUID
 * CMake

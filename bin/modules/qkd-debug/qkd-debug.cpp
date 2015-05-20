@@ -52,7 +52,7 @@
 
 
 #define MODULE_DESCRIPTION      "This is the qkd-debug QKD Module: it write human readable output to a file."
-#define MODULE_ORGANISATION     "(C)opyright 2013 AIT Austrian Institute of Technology, http://www.ait.ac.at"
+#define MODULE_ORGANISATION     "(C)opyright 2015 AIT Austrian Institute of Technology, http://www.ait.ac.at"
 
 
 // ------------------------------------------------------------

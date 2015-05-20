@@ -49,7 +49,7 @@
 // defs
 
 #define MODULE_DESCRIPTION      "This is the qkd-cascade QKD Module. The AIT standard implementation of the cascade error correction."
-#define MODULE_ORGANISATION     "(C)opyright 2014 AIT Austrian Institute of Technology, http://www.ait.ac.at"
+#define MODULE_ORGANISATION     "(C)opyright 2014-2015 AIT Austrian Institute of Technology, http://www.ait.ac.at"
 
 
 // ------------------------------------------------------------

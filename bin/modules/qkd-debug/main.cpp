@@ -60,7 +60,7 @@ int main(int argc, char ** argv) {
     
     // create the command line header
     std::string sApplication = std::string("qkd-debug - AIT QKD Module 'debug' V") + VERSION;
-    std::string sDescription = std::string("\nThis is an AIT QKD module.\n\nIt dumps human readable information of the bypassing key to a file.\n\nCopyright 2013 AIT Austrian Institute of Technology GmbH");
+    std::string sDescription = std::string("\nThis is an AIT QKD module.\n\nIt dumps human readable information of the bypassing key to a file.\n\nCopyright 2015 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS]";
     
     // define program options

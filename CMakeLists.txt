@@ -80,6 +80,7 @@ if (CMAKE_COMPILER_IS_GNUCC)
     # tweak capabilities of gcc versions prior to 4.8
     if (${CMAKE_C_COMPILER_VERSION} LESS 4.8)
     
+        message(WARNING "\nyour gcc compiler has version number less than 4.8\nwith some recent 4.7 versions this *might* work\nwe strongly recommend you to switch to a gcc version of 4.8 or higher")
         message(STATUS "gcc compiler < 4.8 detected - tweaking flags")
 
         # make this clear: we use std::thread
@@ -107,7 +108,7 @@ if (CMAKE_COMPILER_IS_GNUCC)
         # (this is builtin in gcc-4.8)
         add_definitions(-DFIX_STD_CHRONO_DURATION_ADD)
 
-     endif (${CMAKE_C_COMPILER_VERSION} LESS 4.8)
+    endif (${CMAKE_C_COMPILER_VERSION} LESS 4.8)
     
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -Wall -Wextra -pedantic -g -ggdb3 -rdynamic")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x -Wall -Wextra -pedantic -g -ggdb3 -rdynamic")
@@ -143,7 +144,7 @@ else (DOC_HANDBOOK)
 endif (DOC_HANDBOOK)
 
 
-# build the handbook
+# build the simulator docu
 option(DOC_SIMULATOR "create AIT QKD Simulator Documentation PDF" on)
 if (DOC_SIMULATOR)
     message(STATUS "building simulator documentation")
@@ -151,14 +152,6 @@ else (DOC_SIMULATOR)
     message(STATUS "not building simulator documentation (turn DOC_SIMULATOR option on, if you want to build the simulator documentation)")
 endif (DOC_SIMULATOR)
 
-
-# build the QKD Hardware Pickup Module
-option(MOD_HARDWARE_PICKUP "create AIT QKD Hardware Pickup" on)
-if (MOD_HARDWARE_PICKUP)
-    message(STATUS "build QKD Hardware Pickup Module")
-else (MOD_HARDWARE_PICKUP)
-    message(STATUS "not building QKD Hardware Pickup Module (turn MOD_HARDWARE_PICKUP option on, if you want to build the QKD Hardware Pickup Module)")
-endif (MOD_HARDWARE_PICKUP)
 
 
 # ------------------------------------------------------------

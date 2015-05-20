@@ -58,7 +58,7 @@ int main(int argc, char ** argv) {
     
     // create the command line header
     std::string sApplication = std::string("qkd-bb84 - AIT QKD Module 'BB84' V") + VERSION;
-    std::string sDescription = std::string("\nThis is an AIT QKD module.\n\nThis runs the well known BB84 protocol.\n\nCopyright 2012, 2013 AIT Austrian Institute of Technology GmbH");
+    std::string sDescription = std::string("\nThis is an AIT QKD module.\n\nThis runs the well known BB84 protocol.\n\nCopyright 2012-2015 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS]";
     
     // define program options
