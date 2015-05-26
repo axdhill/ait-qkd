@@ -177,7 +177,7 @@ bool qkd_buffer::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cIn
     // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     
-    // is this the first time?
+    // is this the first key we collect?
     if (d->cKey == qkd::key::key::null()) {
         
         // "consume" key if it has not been disclosed
@@ -188,9 +188,9 @@ bool qkd_buffer::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cIn
         }
         
         // add meta values (even if disclosed)
-        d->nErrorBits += cKey.meta().nErrorBits;
-        d->nDisclosedBits += cKey.meta().nDisclosedBits;
-        d->nKeyBits += cKey.data().size() * 8;
+        d->nErrorBits = cKey.meta().nErrorBits;
+        d->nDisclosedBits = cKey.meta().nDisclosedBits;
+        d->nKeyBits = cKey.data().size() * 8;
         
     }
     else {
