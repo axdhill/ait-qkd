@@ -191,7 +191,6 @@ int test() {
     std::string sTempFileName(sTempNameTemplate);
 
     cKeyA = qkd::key::key(13, cMemoryA);
-    cKeyA.meta().nErrorBits = 12;
     cKeyA.meta().nDisclosedBits = 65;
     cKeyA.meta().sCryptoSchemeIncoming = "evhash-96:053f37b4f59af505c42ba169:64ac81010f6382824d1440e2";
     cKeyA.meta().sCryptoSchemeOutgoing = "evhash-96:44bc9c0137fae9190b76d4b3:0319ff9b6df7a7ede957428d";
@@ -207,7 +206,6 @@ int test() {
     cFileIn.close();
     
     assert(cKeyA == cKeyB);
-    assert(cKeyB.meta().nErrorBits == 12);
     assert(cKeyB.meta().nDisclosedBits == 65);
     assert(cKeyB.meta().sCryptoSchemeIncoming == "evhash-96:053f37b4f59af505c42ba169:64ac81010f6382824d1440e2");
     assert(cKeyB.meta().sCryptoSchemeOutgoing == "evhash-96:44bc9c0137fae9190b76d4b3:0319ff9b6df7a7ede957428d");

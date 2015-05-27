@@ -1763,11 +1763,9 @@ bool module::read(qkd::key::key & cKey) {
     std::lock_guard<std::recursive_mutex> cLock(d->cStat.cMutex);
     d->cStat.nKeysIncoming++;
     d->cStat.nKeyBitsIncoming += cKey.size() * 8;
-    d->cStat.nErrorBitsIncoming += cKey.meta().nErrorBits;
     d->cStat.nDisclosedBitsIncoming += cKey.meta().nDisclosedBits;
     d->cStat.cKeysIncomingRate << d->cStat.nKeysIncoming;
     d->cStat.cKeyBitsIncomingRate << d->cStat.nKeyBitsIncoming;
-    d->cStat.cErrorBitsIncomingRate << d->cStat.nErrorBitsIncoming;
     d->cStat.cDisclosedBitsIncomingRate << d->cStat.nDisclosedBitsIncoming;
 
     // correct timestamp (if needed)
@@ -1779,13 +1777,12 @@ bool module::read(qkd::key::key & cKey) {
         // pretty printing for debug
         // if not needed, then performance is wasted here
         
-        boost::format cLineFormater = boost::format("key-PULL [%015ums] id: %010u bits: %010u err: %010u rat: %6.4f dis: %010u crc: %08x state: %-13s");
+        boost::format cLineFormater = boost::format("key-PULL [%015ums] id: %010u bits: %010u err: %6.4f dis: %010u crc: %08x state: %-13s");
         
         auto cTimePoint = std::chrono::duration_cast<std::chrono::milliseconds>(age());
         cLineFormater % cTimePoint.count();
         cLineFormater % cKey.id();
         cLineFormater % (cKey.size() * 8);
-        cLineFormater % cKey.meta().nErrorBits;
         cLineFormater % cKey.meta().nErrorRate;
         cLineFormater % cKey.meta().nDisclosedBits;
         
@@ -3069,11 +3066,9 @@ bool module::write(qkd::key::key const & cKey) {
     std::lock_guard<std::recursive_mutex> cLock(d->cStat.cMutex);
     d->cStat.nKeysOutgoing++;
     d->cStat.nKeyBitsOutgoing += cKey.size() * 8;
-    d->cStat.nErrorBitsOutgoing += cKey.meta().nErrorBits;
     d->cStat.nDisclosedBitsOutgoing += cKey.meta().nDisclosedBits;
     d->cStat.cKeysOutgoingRate << d->cStat.nKeysOutgoing;
     d->cStat.cKeyBitsOutgoingRate << d->cStat.nKeyBitsOutgoing;
-    d->cStat.cErrorBitsOutgoingRate << d->cStat.nErrorBitsOutgoing;
     d->cStat.cDisclosedBitsOutgoingRate << d->cStat.nDisclosedBitsOutgoing;
     
     // state semething if debug is on
@@ -3082,13 +3077,12 @@ bool module::write(qkd::key::key const & cKey) {
         // pretty printing for debug
         // if not needed, then performance is wasted here
         
-        boost::format cLineFormater = boost::format("key-PUSH [%015ums] id: %010u bits: %010u err: %010u rat: %6.4f dis: %010u crc: %08x state: %-13s dur: %012u ns (%06u ms)");
+        boost::format cLineFormater = boost::format("key-PUSH [%015ums] id: %010u bits: %010u err: %6.4f dis: %010u crc: %08x state: %-13s dur: %012u ns (%06u ms)");
 
         auto cTimePoint = std::chrono::duration_cast<std::chrono::milliseconds>(age());
         cLineFormater % cTimePoint.count();
         cLineFormater % cKey.id();
         cLineFormater % (cKey.size() * 8);
-        cLineFormater % cKey.meta().nErrorBits;
         cLineFormater % cKey.meta().nErrorRate;
         cLineFormater % cKey.meta().nDisclosedBits;
         

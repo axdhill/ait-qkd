@@ -109,8 +109,6 @@ enum class key_state : uint8_t {
  *  - incoming crypto scheme
  *  - outgoing crypto scheme
  *  - absolute number of disclosed bits
- *  - absolute number of error bits
- *  - error rate = absolute number of error bits / size of key (double)
  *  - timestamp of aquaintance (when this key has been read/created in the local process)
  * 
  * A QKD Key is read by a QKD Module, processed upon and then written to 
@@ -229,7 +227,7 @@ public:
         /**
          * ctor
          */
-        meta_data() : eKeyState(qkd::key::key_state::KEY_STATE_RAW), nDisclosedBits(0), nErrorBits(0), nErrorRate(0.0) { cTimestampRead = std::chrono::high_resolution_clock::now(); };
+        meta_data() : eKeyState(qkd::key::key_state::KEY_STATE_RAW), nDisclosedBits(0), nErrorRate(0.0) { cTimestampRead = std::chrono::high_resolution_clock::now(); };
         
         
         /**
@@ -242,7 +240,6 @@ public:
             sCryptoSchemeIncoming(rhs.sCryptoSchemeIncoming), 
             sCryptoSchemeOutgoing(rhs.sCryptoSchemeOutgoing), 
             nDisclosedBits(rhs.nDisclosedBits), 
-            nErrorBits(rhs.nErrorBits), 
             nErrorRate(rhs.nErrorRate), 
             cTimestampRead(rhs.cTimestampRead) {};
         
@@ -252,8 +249,7 @@ public:
         std::string sCryptoSchemeOutgoing;          /**< crypto context scheme string for this key for outgoing communictaion during key distiallation */
         
         uint64_t nDisclosedBits;                    /**< number of dislosed bits during key distillation  */
-        uint64_t nErrorBits;                        /**< number of error bits within the key */
-        double nErrorRate;                          /**< error rate (same as QBER and nErrorBits / size(); however size() and nErrorBits may change during key composition, this value not */
+        double nErrorRate;                          /**< error rate  */
         
         std::chrono::high_resolution_clock::time_point cTimestampRead;     /**< timestamp when this key has come into the current process via a read action - this is *NOT* saved */
         

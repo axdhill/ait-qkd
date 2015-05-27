@@ -188,7 +188,7 @@ bool qkd_buffer::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cIn
         }
         
         // add meta values (even if disclosed)
-        d->nErrorBits = cKey.meta().nErrorBits;
+        d->nErrorBits = cKey.meta().nErrorRate * cKey.data().size() * 8;
         d->nDisclosedBits = cKey.meta().nDisclosedBits;
         d->nKeyBits = cKey.data().size() * 8;
         
@@ -201,7 +201,7 @@ bool qkd_buffer::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cIn
         }
         
         // always add meta key values
-        d->nErrorBits += cKey.meta().nErrorBits;
+        d->nErrorBits += cKey.meta().nErrorRate * cKey.data().size() * 8;
         d->nDisclosedBits += cKey.meta().nDisclosedBits;
         d->nKeyBits += cKey.data().size() * 8;
         
@@ -221,7 +221,6 @@ bool qkd_buffer::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cIn
     cKey = d->cKey;
     cKey.meta().nErrorRate = (double)d->nErrorBits / (double)d->nKeyBits;
     cKey.meta().nDisclosedBits = d->nDisclosedBits;
-    cKey.meta().nErrorBits = 0;
     
     cIncomingContext = d->cIncomingContext;
     cOutgoingContext = d->cOutgoingContext;

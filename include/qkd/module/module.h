@@ -439,10 +439,6 @@ enum class module_type : uint8_t {
  * 
  *      key_bits_outgoing                R              total number of key bits the module sent so far
  * 
- *      error_bits_incoming              R              total number of error bits the module received so far in all keys
- * 
- *      error_bits_outgoing              R              total number of error bits the module sent so far in all keys
- * 
  *      disclosed_bits_incoming          R              total number of disclosed bits the module received so far in all keys
  * 
  *      disclosed_bits_outgoing          R              total number of disclosed bits the module sent so far in all keys
@@ -457,10 +453,6 @@ enum class module_type : uint8_t {
  *      key_bits_incoming_rate           R              total number of key bits incoming added in the last second
  * 
  *      key_bits_outgoing_rate           R              total number of key bits outgoing added in the last second
- * 
- *      error_bits_incoming_rate         R              total number of error bits incoming added in the last second
- * 
- *      error_bits_outgoing_rate         R              total number of error bits outgoing added in the last second
  * 
  *      disclosed_bits_incoming_rate     R              total number of disclosed bits incoming added in the last second
  * 
@@ -530,8 +522,6 @@ class module : public QObject {
     Q_PROPERTY(qulonglong keys_outgoing READ keys_outgoing)                                     /**< total number of keys the module sent so far */    
     Q_PROPERTY(qulonglong key_bits_incoming READ key_bits_incoming)                             /**< total number of key bits the module received so far */    
     Q_PROPERTY(qulonglong key_bits_outgoing READ key_bits_outgoing)                             /**< total number of key bits the module sent so far */    
-    Q_PROPERTY(qulonglong error_bits_incoming READ error_bits_incoming)                         /**< total number of error bits the module received so far in all keys */    
-    Q_PROPERTY(qulonglong error_bits_outgoing READ error_bits_outgoing)                         /**< total number of error bits the module sent so far in all keys */    
     Q_PROPERTY(qulonglong disclosed_bits_incoming READ disclosed_bits_incoming)                 /**< total number of disclosed bits the module received so far in all keys */    
     Q_PROPERTY(qulonglong disclosed_bits_outgoing READ disclosed_bits_outgoing)                 /**< total number of disclosed bits the module sent so far in all keys */    
 
@@ -539,8 +529,6 @@ class module : public QObject {
     Q_PROPERTY(qulonglong keys_outgoing_rate READ keys_outgoing_rate)                           /**< total number of keys the module sent so far */    
     Q_PROPERTY(qulonglong key_bits_incoming_rate READ key_bits_incoming_rate)                   /**< total number of key bits the module received so far */    
     Q_PROPERTY(qulonglong key_bits_outgoing_rate READ key_bits_outgoing_rate)                   /**< total number of key bits the module sent so far */    
-    Q_PROPERTY(qulonglong error_bits_incoming_rate READ error_bits_incoming_rate)               /**< total number of error bits the module received so far in all keys */    
-    Q_PROPERTY(qulonglong error_bits_outgoing_rate READ error_bits_outgoing_rate)               /**< total number of error bits the module sent so far in all keys */    
     Q_PROPERTY(qulonglong disclosed_bits_incoming_rate READ disclosed_bits_incoming_rate)       /**< total number of disclosed bits the module received so far in all keys */    
     Q_PROPERTY(qulonglong disclosed_bits_outgoing_rate READ disclosed_bits_outgoing_rate)       /**< total number of disclosed bits the module sent so far in all keys */    
 
@@ -570,8 +558,6 @@ public:
             nKeysOutgoing = 0;
             nKeyBitsIncoming = 0;
             nKeyBitsOutgoing = 0;
-            nErrorBitsIncoming = 0;
-            nErrorBitsOutgoing = 0;
             nDisclosedBitsIncoming = 0;
             nDisclosedBitsOutgoing = 0;
             
@@ -579,8 +565,6 @@ public:
             cKeysOutgoingRate = qkd::utility::average_technique::create("time", 1000);
             cKeyBitsIncomingRate = qkd::utility::average_technique::create("time", 1000);
             cKeyBitsOutgoingRate = qkd::utility::average_technique::create("time", 1000);
-            cErrorBitsIncomingRate = qkd::utility::average_technique::create("time", 1000);
-            cErrorBitsOutgoingRate = qkd::utility::average_technique::create("time", 1000);
             cDisclosedBitsIncomingRate = qkd::utility::average_technique::create("time", 1000);
             cDisclosedBitsOutgoingRate = qkd::utility::average_technique::create("time", 1000);
         };
@@ -595,8 +579,6 @@ public:
         uint64_t nKeysOutgoing;                             /**< number of keys outgoing  */
         uint64_t nKeyBitsIncoming;                          /**< number of keys bits incoming */
         uint64_t nKeyBitsOutgoing;                          /**< number of keys bits outgoing */
-        uint64_t nErrorBitsIncoming;                        /**< total amount of error bits detected by previous modules */
-        uint64_t nErrorBitsOutgoing;                        /**< total amount of error bits detected by previous modules AND the current one */
         uint64_t nDisclosedBitsIncoming;                    /**< total amount of dislosed bits published by previous modules */
         uint64_t nDisclosedBitsOutgoing;                    /**< total amount of dislosed bits published by previous modules AND the current one */
         
@@ -604,8 +586,6 @@ public:
         qkd::utility::average cKeysOutgoingRate;            /**< calculate gain of keys outgoing of the last second */
         qkd::utility::average cKeyBitsIncomingRate;         /**< calculate gain of key bits incoming of the last second */
         qkd::utility::average cKeyBitsOutgoingRate;         /**< calculate gain of key bits outgoing of the last second */
-        qkd::utility::average cErrorBitsIncomingRate;       /**< calculate gain of error bits incoming of the last second */
-        qkd::utility::average cErrorBitsOutgoingRate;       /**< calculate gain of error bits outgoing of the last second */
         qkd::utility::average cDisclosedBitsIncomingRate;   /**< calculate gain of disclosed bits incoming of the last second */
         qkd::utility::average cDisclosedBitsOutgoingRate;   /**< calculate gain of disclosed bits outgoing of the last second */
 
@@ -764,39 +744,7 @@ public:
      */
     inline qulonglong disclosed_bits_outgoing_rate() const { std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); return statistics().cDisclosedBitsOutgoingRate->slope(); };
     
-    
-    /**
-     * return the number of error bits in all keys received so far
-     * 
-     * @return  the number of all error bits in all keys received so far
-     */
-    inline qulonglong error_bits_incoming() const { std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); return statistics().nErrorBitsIncoming; };
-    
-    
-    /**
-     * return gain of error bits incoming of the last second 
-     * 
-     * @return  the gain of error bits incoming of the last second 
-     */
-    inline qulonglong error_bits_incoming_rate() const { std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); return statistics().cErrorBitsIncomingRate->slope(); };
-
-    
-    /**
-     * return the number of error bits in all keys sent so far
-     * 
-     * @return  the number of all error bits in all keys sent so far
-     */
-    inline qulonglong error_bits_outgoing() const { std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); return statistics().nErrorBitsOutgoing; };
-    
-    
-    /**
-     * return gain of error bits outgoing of the last second 
-     * 
-     * @return  the gain of error bits outgoing of the last second 
-     */
-    inline qulonglong error_bits_outgoing_rate() const { std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); return statistics().cErrorBitsOutgoingRate->slope(); };
-
-    
+  
     /**
      * get the current state
      * 

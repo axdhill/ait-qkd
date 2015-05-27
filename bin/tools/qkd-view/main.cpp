@@ -282,8 +282,6 @@ void dump_modules(std::map<std::string, qkd::utility::properties> const & cModul
             << "%-" << g_cColumnWidth.cModule["keys_outgoing"] << "s    "
             << "%-" << g_cColumnWidth.cModule["key_bits_incoming"] << "s    "
             << "%-" << g_cColumnWidth.cModule["key_bits_outgoing"] << "s    "
-            << "%-" << g_cColumnWidth.cModule["error_bits_incoming"] << "s    "
-            << "%-" << g_cColumnWidth.cModule["error_bits_outgoing"] << "s    "
             << "%-" << g_cColumnWidth.cModule["disclosed_bits_incoming"] << "s    "
             << "%-" << g_cColumnWidth.cModule["disclosed_bits_outgoing"] << "s    "
             << "%-" << g_cColumnWidth.cModule["debug"] << "s    "
@@ -360,8 +358,6 @@ void dump_modules(std::map<std::string, qkd::utility::properties> const & cModul
                 % "keys_outgoing" 
                 % "key_bits_incoming" 
                 % "key_bits_outgoing" 
-                % "error_bits_incoming" 
-                % "error_bits_outgoing" 
                 % "disclosed_bits_incoming" 
                 % "disclosed_bits_outgoing" 
                 % "debug" 
@@ -435,8 +431,6 @@ void dump_modules(std::map<std::string, qkd::utility::properties> const & cModul
             cModuleFormat % cModule.second.at("keys_outgoing");
             cModuleFormat % cModule.second.at("key_bits_incoming");
             cModuleFormat % cModule.second.at("key_bits_outgoing");
-            cModuleFormat % cModule.second.at("error_bits_incoming");
-            cModuleFormat % cModule.second.at("error_bits_outgoing");
             cModuleFormat % cModule.second.at("disclosed_bits_incoming");
             cModuleFormat % cModule.second.at("disclosed_bits_outgoing");
             cModuleFormat % cModule.second.at("debug");

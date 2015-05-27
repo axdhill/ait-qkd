@@ -63,7 +63,6 @@ qkd::key::key::key_id_counter & qkd::key::key::counter() {
 void qkd::key::key::meta_data::read(qkd::utility::buffer & cBuffer) {
     
     cBuffer >> (uint8_t&)eKeyState;
-    cBuffer >> nErrorBits;
     cBuffer >> nDisclosedBits;
     cBuffer >> nErrorRate;
     
@@ -83,11 +82,6 @@ void qkd::key::key::meta_data::read(std::istream & cStream) {
     uint8_t nKeyState = 0;
     cStream.read((char *)&nKeyState, sizeof(nKeyState));
     this->eKeyState = static_cast<qkd::key::key_state>(nKeyState);
-    
-    // read error bits
-    uint64_t nErrorBits = 0;
-    cStream.read((char *)&nErrorBits, sizeof(nErrorBits));
-    this->nErrorBits = be64toh(nErrorBits);
     
     // read disclosed bits
     uint64_t nDisclosedBits = 0;
@@ -132,7 +126,6 @@ void qkd::key::key::meta_data::read(std::istream & cStream) {
  */
 void qkd::key::key::meta_data::write(qkd::utility::buffer & cBuffer) const {
     cBuffer << (uint8_t)eKeyState;
-    cBuffer << nErrorBits;
     cBuffer << nDisclosedBits;
     cBuffer << nErrorRate;
     cBuffer << sCryptoSchemeIncoming;
@@ -149,10 +142,6 @@ void qkd::key::key::meta_data::write(std::ostream & cStream) const {
     
     // write key state
     cStream.write((char*)&(this->eKeyState), sizeof(this->eKeyState));
-    
-    // write error bits
-    uint64_t nErrorBits = htobe64(this->nErrorBits);
-    cStream.write((char *)&nErrorBits, sizeof(nErrorBits));
     
     // write disclosed bits
     uint64_t nDislosedBits = htobe64(this->nDisclosedBits);

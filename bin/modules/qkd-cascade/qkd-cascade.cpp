@@ -405,8 +405,7 @@ bool qkd_cascade::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cI
 
     // fix key meta data
     cKey.meta().nDisclosedBits = cFrame.transmitted_parities();
-    cKey.meta().nErrorBits = cFrame.corrected_bits().size();
-    cKey.meta().nErrorRate = (double)cKey.meta().nErrorBits / ((double)cKey.size() * 8);
+    cKey.meta().nErrorRate = (double)cFrame.corrected_bits().size() / ((double)cKey.size() * 8);
     cKey.meta().eKeyState = qkd::key::key_state::KEY_STATE_CORRECTED;
 
     // output efficiency values
