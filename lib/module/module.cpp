@@ -191,7 +191,7 @@ public:
         
         bProcessing = false;
 
-        bDebugMessagaFlow = false;
+        bDebugMessageFlow = false;
     };
     
     
@@ -258,7 +258,7 @@ public:
     
     std::atomic<bool> bProcessing;              /**< processing flag */
 
-    std::atomic<bool> bDebugMessagaFlow;        /**< debug message flow for send and recv packages */
+    std::atomic<bool> bDebugMessageFlow;        /**< debug message flow for send and recv packages */
 
 
     /**
@@ -1477,7 +1477,7 @@ void module::configure(QString sConfigURL) {
  * @return  true, if debug messages of communication are pasted on stderr
  */
 bool module::debug_message_flow() const {
-    return d->bDebugMessagaFlow;
+    return d->bDebugMessageFlow;
 }
 
 
@@ -1984,7 +1984,7 @@ bool module::recv_internal(qkd::module::message & cMessage, int nTimeOut) throw 
     cMessage.m_cTimeStamp = std::chrono::high_resolution_clock::now();
     
     // debug to the user
-    if (d->bDebugMessagaFlow) qkd::utility::debug() << "<MOD-RECV>" << cMessage.string();
+    if (d->bDebugMessageFlow) qkd::utility::debug() << "<MOD-RECV>" << cMessage.string();
    
     return true;
 }
@@ -2243,7 +2243,7 @@ void module::send(qkd::module::message & cMessage, qkd::crypto::crypto_context &
         cMessage.m_cTimeStamp = std::chrono::high_resolution_clock::now();
         
         // debug to the user
-        if (d->bDebugMessagaFlow) qkd::utility::debug() << "<MOD-SEND>" << cMessage.string();
+        if (d->bDebugMessageFlow) qkd::utility::debug() << "<MOD-SEND>" << cMessage.string();
         
         // send!
         zmq::message_t cZMQHeader(sizeof(cMessage.m_cHeader));
@@ -2300,7 +2300,7 @@ QString module::service_name() const {
  * @param   bDebug      new debug value for message particles
  */
 void module::set_debug_message_flow(bool bDebug) {
-    d->bDebugMessagaFlow = bDebug;
+    d->bDebugMessageFlow = bDebug;
 }
 
 
