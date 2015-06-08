@@ -37,6 +37,7 @@
 
 function setup_debian() {
     echo 'Setting up Debian construction site...'
+    sudo apt-get update
     sudo apt-get --quiet --yes install \
         build-essential \
         g++ \
