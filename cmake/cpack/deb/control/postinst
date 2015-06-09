@@ -108,6 +108,8 @@ fi
 if [ `cat /proc/1/comm` = 'systemd' ]; then
     # systemd
     systemctl daemon-reload
+    systemctl stop qkd-dbus
+    rm -f /run/dbus/qkd-dbus.pid
     systemctl enable qkd-dbus
     systemctl start qkd-dbus
 fi
