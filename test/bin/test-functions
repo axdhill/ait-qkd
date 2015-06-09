@@ -43,13 +43,12 @@ export DB_BOB_2_ALICE="${TEST_BASE}/bob_to_alice.db"
 export SHARED_SECRET=$(cat ${TEST_BASE}/test/test-data/shared-secret)
 export SHARED_SECRET_FILE="${TEST_BASE}/test/test-data/shared-secret-very-long"
 
-
-# ensure we are picking the right D-Bus
-if [ -n "${QKD_DBUS_SESSION_ADDRESS}" ]; then
-    alias qkd_qdbus='qdbus --address ${QKD_DBUS_SESSION_ADDRESS}'
-else
-    alias qkd_qdbus='qdbus'
-fi
+# setup local DBUS for testing
+mkdir -p /tmp/qkd-test-dbus &> /dev/null
+rm -f /tmp/qkd-test-dbus/qkd-dbus.pid &> /dev/null
+dbus-daemon --config-file test/test-data/qkd-test-dbus.conf
+export QKD_DBUS_SESSION_ADDRESS="unix:path=/tmp/qkd-test-dbus/qkd_dbus_socket"
+alias qkd_qdbus='qdbus --address ${QKD_DBUS_SESSION_ADDRESS}'
 
 
 # --------------------------------------------------
@@ -72,6 +71,9 @@ function test_cleanup() {
             kill ${PID}
         )
     done
+
+    # kick testing dbus
+    test -f /tmp/qkd-test-dbus/qkd-dbus.pid && kill $(cat /tmp/qkd-test-dbus/qkd-dbus.pid)
 }
 
 
