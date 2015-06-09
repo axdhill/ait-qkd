@@ -29,7 +29,6 @@
 # Boston, MA  02110-1301, USA.
 # ------------------------------------------------------------
 
-
 # base source
 export TEST_BASE="@CMAKE_BINARY_DIR@"
 source ${TEST_BASE}/test/bin/test-functions
