@@ -46,9 +46,14 @@ export SHARED_SECRET_FILE="${TEST_BASE}/test/test-data/shared-secret-very-long"
 # setup local DBUS for testing
 mkdir -p /tmp/qkd-test-dbus &> /dev/null
 rm -f /tmp/qkd-test-dbus/qkd-dbus.pid &> /dev/null
-dbus-daemon --config-file test/test-data/qkd-test-dbus.conf
+dbus-daemon --config-file ${TEST_BASE}/test/test-data/qkd-test-dbus.conf
 export QKD_DBUS_SESSION_ADDRESS="unix:path=/tmp/qkd-test-dbus/qkd_dbus_socket"
 alias qkd_qdbus='qdbus --address ${QKD_DBUS_SESSION_ADDRESS}'
+DBUS_ID=$(qkd_qdbus org.freedesktop.DBus / GetId)
+if [ -z ${DBUS_ID} ]; then
+    echo 'Failed to launch local DBus for testing.'
+    exit 1
+fi
 
 
 # --------------------------------------------------
