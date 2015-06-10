@@ -36,13 +36,9 @@ source ${TEST_BASE}/test/bin/test-functions
 
 # ------------------------------------------------------------
 
-# kill any test-null-module instances
-pkill -ef "${TEST_BASE}/test/lib/test-null-module" &> /dev/null
+test_init
 
-# kick any previous output
 rm -f "test-null-module.output" &> /dev/null
-
-# start the module in the background and dump the result to stdout
 ( "${TEST_BASE}/test/lib/test-null-module" &> "test-null-module.output" ) &
 sleep 1
 
@@ -54,6 +50,7 @@ if [ "${MODULE_SERVICE}" = "" ]; then
 fi
 echo "'${MODULE_SERVICE}' started - ok"
 
-# kill test-null-module instance
-pkill -ef "${TEST_BASE}/test/lib/test-null-module" &> /dev/null
+test_cleanup
+
+echo "=== TEST SUCCESS ==="
 
