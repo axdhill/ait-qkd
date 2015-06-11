@@ -27,26 +27,20 @@
 # Boston, MA  02110-1301, USA.
 # ------------------------------------------------------------
 
-# fail on error
 set -e
 
-# setup "qkd" group
 groupadd --force --system qkd
 
-# create system folders
 mkdir -p /var/log/qkd &> /dev/null
 mkdir -p /var/lib/q3p &> /dev/null
 sync
 
-# fix group ownership of system folder
 chown --silent root:qkd /var/log/qkd
 chown --silent root:qkd /var/lib/q3p
 
-# fix permissions
 chmod 770 /var/log/qkd
 chmod 770 /var/lib/q3p
 
-# set group of installed programs
 chgrp --silent qkd /usr/bin/q3pd
 test -e /usr/bin/q3p-keystore-dump          &&  chgrp --silent qkd /usr/bin/q3p-keystore-dump
 test -e /usr/bin/q3p-mq-reader              &&  chgrp --silent qkd /usr/bin/q3p-mq-reader
@@ -71,7 +65,6 @@ test -e /usr/bin/qkd-tee                    &&  chgrp --silent qkd /usr/bin/qkd-
 test -e /usr/bin/qkd-throttle               &&  chgrp --silent qkd /usr/bin/qkd-throttle
 test -e /usr/bin/qkd-view                   &&  chgrp --silent qkd /usr/bin/qkd-view
 
-# fix permission on sample configurations
 chown root:qkd /etc/qkd/sample-pipeline-default.conf 
 chown root:qkd /etc/qkd/sample-pipeline-alice.xml 
 chown root:qkd /etc/qkd/sample-pipeline-bob.xml 
@@ -85,8 +78,9 @@ chmod 640 /etc/qkd/sample-pipeline-auth-final.conf
 chmod 640 /etc/qkd/sample-pipeline-auth-starting.conf
 chmod 640 /etc/q3p/sample-q3pd.conf 
 
-# grant net-admin rights to the q3pd to run TUN/TAP devices
-setcap -q -v 'cap_net_admin+ep' /usr/bin/q3pd
+# grant net-admin rights to the q3pd to run TUN/TAP devices 
+# (if capabilities are enabled in current FS)
+( lsattr /usr/bin/q3pd &> /dev/null && setcap -q -v 'cap_net_admin+ep' /usr/bin/q3pd )
 
 # deploy new configuration if not present (first time)
 test -f /etc/qkd/pipeline-default.conf || cp --preserve /etc/qkd/sample-pipeline-default.conf /etc/qkd/pipeline-default.conf
@@ -94,10 +88,8 @@ test -f /etc/qkd/pipeline-alice.xml || cp --preserve /etc/qkd/sample-pipeline-al
 test -f /etc/qkd/pipeline-bob.xml || cp --preserve /etc/qkd/sample-pipeline-bob.xml /etc/qkd/pipeline-bob.xml
 test -f /etc/q3p/q3pd.conf || cp --preserve /etc/q3p/sample-q3pd.conf /etc/q3p/q3pd.conf
 
-# load environment
 . /etc/profile
 
-# tweak services depending on sysv or systemd
 if [ `cat /proc/1/comm` = 'init' ]; then
     # sysv
     update-rc.d qkd-dbus defaults
