@@ -70,7 +70,7 @@ message::message() {
  */
 std::string message::string() const {
     
-    boost::format cLineFormater = boost::format("<%10u><%-8s><%10u><%08x>");
+    boost::format cLineFormater = boost::format("<%10u><%-8s><%10u><%08x>\n%s");
 
     cLineFormater % id();
     
@@ -91,6 +91,10 @@ std::string message::string() const {
     
     cLineFormater % data().size();
     cLineFormater % data().crc32();
+    cLineFormater % data().canonical("        ");
     
     return cLineFormater.str();
 }
+
+
+

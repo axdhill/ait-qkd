@@ -324,6 +324,15 @@ public:
     
     
     /**
+     * dump a message to stderr
+     *
+     * @param   bSent       message has been sent
+     * @param   cMessage    message itself
+     */
+    void debug_message(bool bSent, qkd::module::message const & cMessage);
+
+
+    /**
      * deduce a correct, proper URL from a would-be URL
      * 
      * @param   sURL        an url
@@ -493,6 +502,24 @@ module_init::~module_init() {
 void module::module_data::connect(std::string sPeerURL) {
     this->sURLPeer = sPeerURL;
 }
+
+
+/**
+ * dump a message to stderr
+ *
+ * @param   bSent       message has been sent
+ * @param   cMessage    message itself
+ */
+void module::module_data::debug_message(bool bSent, qkd::module::message const & cMessage) {
+
+    if (!bDebugMessageFlow) return;
+    if (bSent) {
+        qkd::utility::debug() << "<MOD-SENT>" << cMessage.string();
+    }
+    else {
+        qkd::utility::debug() << "<MOD-RECV>" << cMessage.string();
+    }
+ }
 
 
 /**
@@ -1983,9 +2010,8 @@ bool module::recv_internal(qkd::module::message & cMessage, int nTimeOut) throw 
     // record action
     cMessage.m_cTimeStamp = std::chrono::high_resolution_clock::now();
     
-    // debug to the user
-    if (d->bDebugMessageFlow) qkd::utility::debug() << "<MOD-RECV>" << cMessage.string();
-   
+    d->debug_message(false, cMessage);
+  
     return true;
 }
 
@@ -2242,8 +2268,7 @@ void module::send(qkd::module::message & cMessage, qkd::crypto::crypto_context &
         cMessage.m_cHeader.nId = htobe32(++qkd::module::message::m_nLastId);
         cMessage.m_cTimeStamp = std::chrono::high_resolution_clock::now();
         
-        // debug to the user
-        if (d->bDebugMessageFlow) qkd::utility::debug() << "<MOD-SEND>" << cMessage.string();
+        d->debug_message(true, cMessage);
         
         // send!
         zmq::message_t cZMQHeader(sizeof(cMessage.m_cHeader));

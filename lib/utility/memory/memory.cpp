@@ -143,9 +143,10 @@ std::string memory::as_hex() const {
  *
  * This is a canonical output like "hexdump".
  *
+ * @param   sIndent     indent of each line of dump
  * @return  a string holding the canonical hex representation
  */
-std::string memory::canonical() const {
+std::string memory::canonical(std::string const sIndent) const {
     
     std::stringstream ss;
     
@@ -155,7 +156,7 @@ std::string memory::canonical() const {
         if (i) ss << "\n";
     
         // format each line with boost::format
-        boost::format cLineFormater = boost::format("%08x   %-49s  |%-17s|");
+        boost::format cLineFormater = boost::format("%s%08x   %-49s  |%-17s|");
         
         // get the hex and the ascii representation
         std::stringstream ss_hex;
@@ -184,6 +185,7 @@ std::string memory::canonical() const {
         }
         
         // construct the line
+        cLineFormater % sIndent;
         cLineFormater % i;
         cLineFormater % ss_hex.str();
         cLineFormater % ss_ascii.str();
