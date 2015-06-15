@@ -79,8 +79,10 @@ chmod 640 /etc/qkd/sample-pipeline-auth-starting.conf
 chmod 640 /etc/q3p/sample-q3pd.conf 
 
 # grant net-admin rights to the q3pd to run TUN/TAP devices 
-# (if capabilities are enabled in current FS)
-( lsattr /usr/bin/q3pd &> /dev/null && setcap -q -v 'cap_net_admin+ep' /usr/bin/q3pd )
+# if capabilities are enabled in current FS else this will fail
+if [ -e /usr/bin/setcap ]; then
+    setcap -q -v cap_net_admin=+pie /usr/bin/q3pd || echo 'warning: setcap -v cap_net_admin=+pie /usr/bin/q3pd failed'
+fi
 
 # deploy new configuration if not present (first time)
 test -f /etc/qkd/pipeline-default.conf || cp --preserve /etc/qkd/sample-pipeline-default.conf /etc/qkd/pipeline-default.conf
