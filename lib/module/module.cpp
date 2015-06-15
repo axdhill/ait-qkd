@@ -40,6 +40,7 @@
 #include <iostream>
 #include <map>
 #include <queue>
+#include <sstream>
 #include <thread>
 
 #include <boost/format.hpp>
@@ -192,6 +193,8 @@ public:
         bProcessing = false;
 
         bDebugMessageFlow = false;
+
+        cStash.nLastInSyncKeyPicked = 0;
     };
     
     
@@ -274,6 +277,7 @@ public:
         
         qkd::key::key cKey;                                 /**< the key which is currently not present within the peer module */
         std::chrono::system_clock::time_point cStashed;     /**< time point of stashing */
+        bool bValid;                                        /**< valid during current round */
         
         /**
          * age of the stashed key in seconds
@@ -281,7 +285,6 @@ public:
         inline uint64_t age() const { 
             return (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - cStashed)).count(); 
         };
-    
         
     } stashed_key;
     
@@ -291,8 +294,23 @@ public:
      */
     struct {
     
-        std::set<qkd::key::key> cInSync;                        /**< keys we now are present on the peer side: ready to process */
+        std::map<qkd::key::key_id, stashed_key> cInSync;        /**< keys we now are present on the peer side: ready to process */
         std::map<qkd::key::key_id, stashed_key> cOutOfSync;     /**< keys we did receive from a previous module but are not present on the remote module */
+
+        qkd::key::key_id nLastInSyncKeyPicked;                  /**< the last key picked for in sync */
+
+        /**
+         * return next in sync key
+         * 
+         * @return  iterator to next in sync key
+         */
+        std::map<qkd::key::key_id, stashed_key>::iterator next_in_sync() {
+            if (cInSync.size() == 0) return cInSync.end();
+            if (cInSync.size() == 1) return cInSync.begin();
+            auto iter = cInSync.lower_bound(nLastInSyncKeyPicked);
+            if (iter == cInSync.end()) return cInSync.begin();
+            return iter;
+        }
         
     } cStash;
     
@@ -2023,86 +2041,80 @@ bool module::recv_internal(qkd::module::message & cMessage, int nTimeOut) throw 
  */
 void module::recv_synchronize(qkd::module::message & cMessage) throw (std::runtime_error) {
     
-    // sanity check
     if (cMessage.type() != qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC) {
         throw std::runtime_error("accidently tried to sync keys based on a non-sync message");
     }
 
-    // for debug purpose
-    std::stringstream ssKeysLocalInSync;
-    std::stringstream ssKeysLocalOutOfSync;
-    std::stringstream ssKeysPeer;
-    std::stringstream ssKeysDelete;
-    
-    // walk over received list and put found keys into "synced" list
-    uint64_t nPeerKeys;
-    cMessage.data() >> nPeerKeys;
-    for (uint64_t i = 0; i < nPeerKeys; i++) {
-        
-        // pick peer key id
-        qkd::key::key_id nPeerKeyId;
-        cMessage.data() >> nPeerKeyId;
-        
-        // for debug output
-        if (qkd::utility::debug::enabled()) {
-            if (i) ssKeysPeer << ", ";
-            ssKeysPeer << nPeerKeyId;
-        }
-            
-        // lookup our own out-of-sync keys
-        auto cStashIter = d->cStash.cOutOfSync.find(nPeerKeyId);
-        if (cStashIter != d->cStash.cOutOfSync.end()) {
-            
-            // got one!
-            d->cStash.cInSync.insert((*cStashIter).second.cKey);
-            d->cStash.cOutOfSync.erase(cStashIter);
-        }
+    for (auto & cStashedKey : d->cStash.cInSync) {
+        cStashedKey.second.bValid = false;
     }
-    
-    // collect local keys for debug output
-    if (qkd::utility::debug::enabled()) {
-        
-        bool bFirst = true;
-        for (auto const & cInSyncKey : d->cStash.cInSync) { 
-            if (!bFirst) ssKeysLocalInSync << ", ";
-            bFirst = false;
-            ssKeysLocalInSync << cInSyncKey.id();
-        }
-        
-        bFirst = true;
-        for (auto const & cOutOfSyncKey : d->cStash.cOutOfSync) { 
-            if (!bFirst) ssKeysLocalOutOfSync << ", ";
-            bFirst = false;
-            ssKeysLocalOutOfSync << cOutOfSyncKey.second.cKey.id() << "[" << cOutOfSyncKey.second.age() << "]";
-        }
-    }
+
+    // the sync message consist of two lists: in-sync and out-of-sync key ids
+    // however, we perform the very same action on both of them
+    for (int i = 0; i < 2; ++i) {
+
+        uint64_t nPeerInSyncKeys;
+        cMessage.data() >> nPeerInSyncKeys;
+        for (uint64_t i = 0; i < nPeerInSyncKeys; i++) {
             
-    // decrement TTL (and kill) remaining out-of-sync keys
-    std::list<qkd::key::key_id> cToDelete;
-    for (auto & cStashedKey : d->cStash.cOutOfSync) {
-        
-        // time over?
-        if (cStashedKey.second.age() > synchronize_ttl()) {
-            if (qkd::utility::debug::enabled()) {
-                if (!cToDelete.empty()) ssKeysDelete << ", ";
-                ssKeysDelete << cStashedKey.second.cKey.id();
+            qkd::key::key_id nPeerKeyId;
+            cMessage.data() >> nPeerKeyId;
+
+            auto cStashIter = d->cStash.cInSync.find(nPeerKeyId);
+            if (cStashIter != d->cStash.cInSync.end()) {
+                (*cStashIter).second.bValid = true;
             }
-            cToDelete.push_back(cStashedKey.second.cKey.id());
-            continue;
+            cStashIter = d->cStash.cOutOfSync.find(nPeerKeyId);
+            if (cStashIter != d->cStash.cOutOfSync.end()) {
+                auto p = d->cStash.cInSync.emplace((*cStashIter).first, (*cStashIter).second);
+                if (!p.second) {
+                    throw std::runtime_error("failed to move out-of-sync key to in-sync key stash");
+                }
+                (*p.first).second.bValid = true;
+                d->cStash.cOutOfSync.erase(cStashIter);
+            }
         }
     }
-    
-    // kick'em (... like Beckham!)
+   
+    std::list<qkd::key::key_id> cToDelete;
+    for (auto & cStashedKey : d->cStash.cInSync) {
+        if (!cStashedKey.second.bValid) {
+            cToDelete.push_back(cStashedKey.second.cKey.id());
+        }
+    }
+    for (auto nKeyId: cToDelete) d->cStash.cInSync.erase(nKeyId);
+    cToDelete.clear();
+    for (auto & cStashedKey : d->cStash.cOutOfSync) {
+        if (cStashedKey.second.age() > synchronize_ttl()) {
+            cToDelete.push_back(cStashedKey.second.cKey.id());
+        }
+    }
     for (auto nKeyId: cToDelete) d->cStash.cOutOfSync.erase(nKeyId);
+
+    if (d->cStash.cInSync.size() <= 1) d->cStash.nLastInSyncKeyPicked = 0;
     
-    // full debug
     if (qkd::utility::debug::enabled()) {
+
+        std::stringstream ssInSyncKeys;
+        bool bInSyncKeyFirst = true;
+        for (auto const & cStashedKey : d->cStash.cInSync) {
+            if (!bInSyncKeyFirst) ssInSyncKeys << ", ";
+            ssInSyncKeys << cStashedKey.second.cKey.id();
+            bInSyncKeyFirst = false;
+        }
+
+        std::stringstream ssOutOfSyncKeys;
+        bool bOutOfSyncKeyFirst = true;
+        for (auto const & cStashedKey : d->cStash.cOutOfSync) {
+            if (!bOutOfSyncKeyFirst) ssOutOfSyncKeys << ", ";
+            ssOutOfSyncKeys << cStashedKey.second.cKey.id();
+            bOutOfSyncKeyFirst = false;
+        }
+
         qkd::utility::debug() <<
             "key-SYNC " <<
-            "in-sync=<" << ssKeysLocalInSync.str() << "> " << 
-            "out-sync=<" << ssKeysLocalOutOfSync.str() << "> " <<
-            "peer=<" << ssKeysPeer.str() << "> " <<
-            "delete=<" << ssKeysDelete.str() << ">";
+            "in-sync=<" << ssInSyncKeys.str() << "> " << 
+            "out-sync=<" << ssOutOfSyncKeys.str() << ">";
     }
 }
 
@@ -2648,19 +2660,18 @@ void module::synchronize() {
     
     if (!is_synchronizing()) return;
 
-    // do not proceed sync message processing if we do have some keys in sync already
-    if (d->cStash.cInSync.size() > 0) return;
-    
+    if (qkd::utility::debug::enabled()) qkd::utility::debug() << "synchronizing keys...";
+
     // TODO: we do not have authenticity when synchronizing keys ... is this a problem? o.O
     static qkd::crypto::crypto_context cNullContxt = qkd::crypto::engine::create("null");
     
-    // verify lists of synced keys
     qkd::module::message cMessage;
     cMessage.m_cHeader.eType = qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC;
+    cMessage.data() << d->cStash.cInSync.size();
+    for (auto const & cStashedKey : d->cStash.cInSync) cMessage.data() << cStashedKey.first;
     cMessage.data() << d->cStash.cOutOfSync.size();
     for (auto const & cStashedKey : d->cStash.cOutOfSync) cMessage.data() << cStashedKey.first;
     
-    // send list
     try {
         send(cMessage, cNullContxt, timeout_network());
     }
@@ -2669,7 +2680,6 @@ void module::synchronize() {
         return;
     }
     
-    // receive sync message
     try {
         recv(cMessage, cNullContxt, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC, timeout_network());
         recv_synchronize(cMessage);
@@ -2919,14 +2929,16 @@ void module::work() {
         while (eState == qkd::module::module_state::STATE_READY) eState = wait_for_state_change(eState);
         if (eState != qkd::module::module_state::STATE_RUNNING) break;
         
-        // get the next key
         qkd::key::key cKey;
-
         if (d->cStash.cInSync.size() > 0) {
             
-            // ... from the stash
-            cKey = *(d->cStash.cInSync.begin());
-            d->cStash.cInSync.erase(d->cStash.cInSync.begin());
+            auto cStashIter = d->cStash.next_in_sync();
+            if (cStashIter == d->cStash.cInSync.end()) {
+                throw std::runtime_error("failed to pick next key in sync though stash is not empty");
+            }
+            cKey = (*cStashIter).second.cKey;
+            d->cStash.cInSync.erase(cStashIter);
+            d->cStash.nLastInSyncKeyPicked = cKey.id();
         }
         else {
             
