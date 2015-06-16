@@ -234,6 +234,8 @@ public:
         bDebugMessageFlow = false;
 
         cStash.nLastInSyncKeyPicked = 0;
+        
+        nTerminateAfter = 0;
     };
     
     
