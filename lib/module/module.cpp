@@ -1630,6 +1630,11 @@ void module::terminate() {
 void module::thread() {
 
     if (!d->setup()) {
+        qkd::utility::syslog::crit() << __FILENAME__ 
+                << '@' 
+                << __LINE__ 
+                << ": " 
+                << "unable to setup module thread: terminating";
         d->release();
         emit terminated();
         return;
@@ -1798,6 +1803,8 @@ module_state module::wait_for_state_change(module_state eWorkingState) const {
 void module::work() {
 
     qkd::module::module_state eState = qkd::module::module_state::STATE_NEW;
+
+    qkd::utility::debug() << "working on icoming keys";
     
     do {
         
@@ -1817,6 +1824,7 @@ void module::work() {
             cKey = (*cStashIter).second.cKey;
             d->cStash.cInSync.erase(cStashIter);
             d->cStash.nLastInSyncKeyPicked = cKey.id();
+            qkd::utility::debug() << "scheduled key " << cKey.id() << " from in-sync stash for next process";
         }
         else {
             
@@ -1830,7 +1838,7 @@ void module::work() {
             
             if (!accept(cKey)) {
                 if (qkd::utility::debug::enabled()) {
-                    qkd::utility::debug() << "key is not accepted by this module";
+                    qkd::utility::debug() << "key " << cKey.id() << " is not accepted by this module";
                 }
                 continue;
             }
@@ -1878,6 +1886,7 @@ void module::work() {
         }
 
         d->bProcessing = true;
+        qkd::utility::debug() << "processing key " << cKey.id();
         bool bForwardKey = process(cKey, cIncomingContext, cOutgoingContext);
         d->cLastProcessedKey = std::chrono::system_clock::now();
         d->bProcessing = false;

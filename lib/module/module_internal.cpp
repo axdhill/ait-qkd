@@ -577,7 +577,14 @@ bool module::module_internal::setup_listen() {
     catch (zmq::error_t & cZMQError) {
         
         // fail
-        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to setup listen endpoint with url: " << sURLListen << " error: " << cZMQError.what(); 
+        qkd::utility::syslog::crit() << __FILENAME__ 
+                << '@' 
+                << __LINE__ 
+                << ": " 
+                << "failed to setup listen endpoint with url: " 
+                << sURLListen 
+                << " error: " 
+                << cZMQError.what(); 
         
         if (cSocketListener) delete cSocketListener;
         cSocketListener = nullptr;
