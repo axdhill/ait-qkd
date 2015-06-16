@@ -31,9 +31,13 @@
 // ------------------------------------------------------------
 // incs
 
-#include "module_internal.h"
 
+#include <boost/format.hpp>
+
+#include <qkd/module/module.h>
 #include <qkd/utility/syslog.h>
+
+#include "module_internal.h"
 
 using namespace qkd::module;
 
@@ -131,6 +135,42 @@ module_init::~module_init() {
 
 
 /**
+ * add key statistics for incoming
+ * 
+ * @param   cKey        new key arrived
+ */
+void module::module_internal::add_stats_incoming(qkd::key::key const & cKey) {
+
+    std::lock_guard<std::recursive_mutex> cLock(cStat.cMutex);
+
+    cStat.nKeysIncoming++;
+    cStat.nKeyBitsIncoming += cKey.size() * 8;
+    cStat.nDisclosedBitsIncoming += cKey.meta().nDisclosedBits;
+    cStat.cKeysIncomingRate << cStat.nKeysIncoming;
+    cStat.cKeyBitsIncomingRate << cStat.nKeyBitsIncoming;
+    cStat.cDisclosedBitsIncomingRate << cStat.nDisclosedBitsIncoming;
+}
+
+
+/**
+ * add key statistics for outgoing
+ * 
+ * @param   cKey        key sent
+ */
+void module::module_internal::add_stats_outgoing(qkd::key::key const & cKey) {
+
+    std::lock_guard<std::recursive_mutex> cLock(cStat.cMutex);
+
+    cStat.nKeysOutgoing++;
+    cStat.nKeyBitsOutgoing += cKey.size() * 8;
+    cStat.nDisclosedBitsOutgoing += cKey.meta().nDisclosedBits;
+    cStat.cKeysOutgoingRate << cStat.nKeysOutgoing;
+    cStat.cKeyBitsOutgoingRate << cStat.nKeyBitsOutgoing;
+    cStat.cDisclosedBitsOutgoingRate << cStat.nDisclosedBitsOutgoing;
+}
+
+
+/**
  * connect to remote instance
  * 
  * @param   sPeerURL        the remote instance URL
@@ -138,24 +178,6 @@ module_init::~module_init() {
 void module::module_internal::connect(std::string sPeerURL) {
     this->sURLPeer = sPeerURL;
 }
-
-
-/**
- * dump a message to stderr
- *
- * @param   bSent       message has been sent
- * @param   cMessage    message itself
- */
-void module::module_internal::debug_message(bool bSent, qkd::module::message const & cMessage) {
-
-    if (!bDebugMessageFlow) return;
-    if (bSent) {
-        qkd::utility::debug() << "<MOD-SENT>" << cMessage.string();
-    }
-    else {
-        qkd::utility::debug() << "<MOD-RECV>" << cMessage.string();
-    }
- }
 
 
 /**
@@ -207,6 +229,75 @@ boost::filesystem::path module::module_internal::create_ipc_out() const {
     cIPCPath /= ss.str();
     
     return cIPCPath;
+}
+
+
+/**
+ * dump a message to stderr
+ *
+ * @param   bSent       message has been sent
+ * @param   cMessage    message itself
+ */
+void module::module_internal::debug_message(bool bSent, qkd::module::message const & cMessage) {
+
+    if (!bDebugMessageFlow) return;
+    if (bSent) {
+        qkd::utility::debug() << "<MOD-SENT>" << cMessage.string("          ");
+    }
+    else {
+        qkd::utility::debug() << "<MOD-RECV>" << cMessage.string("          ");
+    }
+ }
+
+
+/**
+ * dump key PULL to stderr
+ *
+ * @param   cKey        key to dump
+ */
+void module::module_internal::debug_key_pull(qkd::key::key const & cKey) {
+
+    // if not needed, then performance is wasted here
+    boost::format cLineFormater = 
+            boost::format("key-PULL [%015ums] id: %010u bits: %010u err: %6.4f dis: %010u crc: %08x state: %-13s");
+    
+    auto cTimePoint = std::chrono::duration_cast<std::chrono::milliseconds>(cModule->age());
+    cLineFormater % cTimePoint.count();
+    cLineFormater % cKey.id();
+    cLineFormater % (cKey.size() * 8);
+    cLineFormater % cKey.meta().nErrorRate;
+    cLineFormater % cKey.meta().nDisclosedBits;
+    cLineFormater % cKey.data().crc32();
+    cLineFormater % cKey.state_string();
+    
+    qkd::utility::debug() << cLineFormater.str();
+}
+
+
+/**
+ * dump key PUSH  to stderr
+ *
+ * @param   cKey        key to dump
+ */
+void module::module_internal::debug_key_push(qkd::key::key const & cKey) {
+
+    // if not needed, then performance is wasted here
+    boost::format cLineFormater = 
+            boost::format("key-PUSH [%015ums] id: %010u bits: %010u err: %6.4f dis: %010u crc: %08x state: %-13s dur: %012u ns (%06u ms)");
+
+    auto cTimePoint = std::chrono::duration_cast<std::chrono::milliseconds>(cModule->age());
+    cLineFormater % cTimePoint.count();
+    cLineFormater % cKey.id();
+    cLineFormater % (cKey.size() * 8);
+    cLineFormater % cKey.meta().nErrorRate;
+    cLineFormater % cKey.meta().nDisclosedBits;
+    cLineFormater % cKey.data().crc32();
+    cLineFormater % cKey.state_string();
+    auto cNanoSeconds =  std::chrono::duration_cast<std::chrono::nanoseconds>(cKey.dwell());
+    cLineFormater % cNanoSeconds.count();
+    cLineFormater % (uint64_t)(std::floor(cNanoSeconds.count() / 1000000.0 + 0.5));
+    
+    qkd::utility::debug() << cLineFormater.str();
 }
 
 

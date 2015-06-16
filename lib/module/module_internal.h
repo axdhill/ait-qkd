@@ -68,6 +68,10 @@ namespace qkd {
 namespace module {
 
 
+// fwd
+class module;
+
+
 /**
  * the internal private module class
  */
@@ -76,6 +80,8 @@ class qkd::module::module::module_internal {
 public:
 
     
+    module * cModule;                           /**< containg module */
+
     module_stat cStat;                          /**< the module statistic */
     
     std::string sId;                            /**< the id of the module */
@@ -127,9 +133,66 @@ public:
 
 
     /**
+     * message queues for different messages of different type
+     */
+    std::map<qkd::module::message_type, std::queue<qkd::module::message>> cMessageQueues;
+    
+    
+    /**
+     * this is holds the information for a single stashed key
+     */
+    typedef struct {
+        
+        qkd::key::key cKey;                                 /**< the key which is currently not present within the peer module */
+        std::chrono::system_clock::time_point cStashed;     /**< time point of stashing */
+        bool bValid;                                        /**< valid during current round */
+        
+        /**
+         * age of the stashed key in seconds
+         */
+        inline uint64_t age() const { 
+            return (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - cStashed)).count(); 
+        };
+        
+    } stashed_key;
+    
+    
+    /**
+     * our stash of keys been sync ... or about to get in sync
+     */
+    struct {
+    
+        std::map<qkd::key::key_id, stashed_key> cInSync;        /**< keys we now are present on the peer side: ready to process */
+        std::map<qkd::key::key_id, stashed_key> cOutOfSync;     /**< keys we did receive from a previous module but are not present on the remote module */
+
+        qkd::key::key_id nLastInSyncKeyPicked;                  /**< the last key picked for in sync */
+
+        /**
+         * return next in sync key
+         * 
+         * @return  iterator to next in sync key
+         */
+        std::map<qkd::key::key_id, stashed_key>::iterator next_in_sync() {
+            if (cInSync.size() == 0) return cInSync.end();
+            if (cInSync.size() == 1) return cInSync.begin();
+            auto iter = cInSync.lower_bound(nLastInSyncKeyPicked);
+            if (iter == cInSync.end()) return cInSync.begin();
+            return iter;
+        }
+        
+    } cStash;
+    
+    
+    std::atomic<bool> bSynchronizeKeys;         /**< synchronize key ids flag */
+    std::atomic<uint64_t> nSynchronizeTTL;      /**< TTL for new not in-sync keys */
+    
+    std::chrono::system_clock::time_point cLastProcessedKey;    /**< timestamp of last processed key */
+    
+    
+    /**
      * ctor
      */
-    module_internal(std::string sId) : sId(sId), nStartTimeStamp(0) { 
+    module_internal(module * cParentModule, std::string sId) : cModule(cParentModule), sId(sId), nStartTimeStamp(0) { 
         
         // default values
         
@@ -192,62 +255,21 @@ public:
     
 
     /**
-     * message queues for different messages of different type
+     * add key statistics for incoming
+     * 
+     * @param   cKey        new key arrived
      */
-    std::map<qkd::module::message_type, std::queue<qkd::module::message>> cMessageQueues;
-    
-    
-    /**
-     * this is holds the information for a single stashed key
-     */
-    typedef struct {
-        
-        qkd::key::key cKey;                                 /**< the key which is currently not present within the peer module */
-        std::chrono::system_clock::time_point cStashed;     /**< time point of stashing */
-        bool bValid;                                        /**< valid during current round */
-        
-        /**
-         * age of the stashed key in seconds
-         */
-        inline uint64_t age() const { 
-            return (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - cStashed)).count(); 
-        };
-        
-    } stashed_key;
-    
-    
-    /**
-     * our stash of keys been sync ... or about to get in sync
-     */
-    struct {
-    
-        std::map<qkd::key::key_id, stashed_key> cInSync;        /**< keys we now are present on the peer side: ready to process */
-        std::map<qkd::key::key_id, stashed_key> cOutOfSync;     /**< keys we did receive from a previous module but are not present on the remote module */
+    void add_stats_incoming(qkd::key::key const & cKey);
 
-        qkd::key::key_id nLastInSyncKeyPicked;                  /**< the last key picked for in sync */
 
-        /**
-         * return next in sync key
-         * 
-         * @return  iterator to next in sync key
-         */
-        std::map<qkd::key::key_id, stashed_key>::iterator next_in_sync() {
-            if (cInSync.size() == 0) return cInSync.end();
-            if (cInSync.size() == 1) return cInSync.begin();
-            auto iter = cInSync.lower_bound(nLastInSyncKeyPicked);
-            if (iter == cInSync.end()) return cInSync.begin();
-            return iter;
-        }
-        
-    } cStash;
-    
-    
-    std::atomic<bool> bSynchronizeKeys;         /**< synchronize key ids flag */
-    std::atomic<uint64_t> nSynchronizeTTL;      /**< TTL for new not in-sync keys */
-    
-    std::chrono::system_clock::time_point cLastProcessedKey;    /**< timestamp of last processed key */
-    
-    
+    /**
+     * add key statistics for outgoing
+     * 
+     * @param   cKey        key sent
+     */
+    void add_stats_outgoing(qkd::key::key const & cKey);
+
+
     /**
      * create an IPC incoming path
      */
@@ -268,6 +290,22 @@ public:
     void connect(std::string sPeerURL);
     
     
+    /**
+     * dump key PULL to stderr
+     *
+     * @param   cKey        key to dump
+     */
+    void debug_key_pull(qkd::key::key const & cKey);
+
+
+    /**
+     * dump key PUSH  to stderr
+     *
+     * @param   cKey        key to dump
+     */
+    void debug_key_push(qkd::key::key const & cKey);
+
+
     /**
      * dump a message to stderr
      *

@@ -66,9 +66,10 @@ message::message() {
 /**
  * give a debug string
  * 
+ * @param   sIndent     indent of message canonical dump
  * @return  a debug string describing the message
  */
-std::string message::string() const {
+std::string message::string(std::string const & sIndent) const {
     
     boost::format cLineFormater = boost::format("<%10u><%-8s><%10u><%08x>\n%s");
 
@@ -91,7 +92,7 @@ std::string message::string() const {
     
     cLineFormater % data().size();
     cLineFormater % data().crc32();
-    cLineFormater % data().canonical("        ");
+    cLineFormater % data().canonical(sIndent);
     
     return cLineFormater.str();
 }

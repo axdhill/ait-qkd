@@ -35,7 +35,6 @@
 
 #include <fstream>
 
-#include <boost/format.hpp>
 #include <boost/program_options.hpp>
 #include <boost/program_options/detail/config_file.hpp>
 
@@ -95,7 +94,7 @@ void memory_delete(void * cData, void * cHint);
  */
 module::module(std::string sId, module_type eType, std::string sDescription, std::string sOrganisation) : QObject() {
     
-    d = boost::shared_ptr<qkd::module::module::module_internal>(new qkd::module::module::module_internal(sId));
+    d = boost::shared_ptr<qkd::module::module::module_internal>(new qkd::module::module::module_internal(this, sId));
     
     struct timeval cTV;
     struct timezone cTZ;
@@ -720,35 +719,9 @@ bool module::read(qkd::key::key & cKey) {
         return false;
     }
     
-    std::lock_guard<std::recursive_mutex> cLock(d->cStat.cMutex);
-    d->cStat.nKeysIncoming++;
-    d->cStat.nKeyBitsIncoming += cKey.size() * 8;
-    d->cStat.nDisclosedBitsIncoming += cKey.meta().nDisclosedBits;
-    d->cStat.cKeysIncomingRate << d->cStat.nKeysIncoming;
-    d->cStat.cKeyBitsIncomingRate << d->cStat.nKeyBitsIncoming;
-    d->cStat.cDisclosedBitsIncomingRate << d->cStat.nDisclosedBitsIncoming;
-
+    d->add_stats_incoming(cKey);
     cKey.meta().cTimestampRead = std::chrono::high_resolution_clock::now();
-
-    if (qkd::utility::debug::enabled()) {
-        
-        // pretty printing for debug
-        // if not needed, then performance is wasted here
-        
-        boost::format cLineFormater = 
-                boost::format("key-PULL [%015ums] id: %010u bits: %010u err: %6.4f dis: %010u crc: %08x state: %-13s");
-        
-        auto cTimePoint = std::chrono::duration_cast<std::chrono::milliseconds>(age());
-        cLineFormater % cTimePoint.count();
-        cLineFormater % cKey.id();
-        cLineFormater % (cKey.size() * 8);
-        cLineFormater % cKey.meta().nErrorRate;
-        cLineFormater % cKey.meta().nDisclosedBits;
-        cLineFormater % cKey.data().crc32();
-        cLineFormater % cKey.state_string();
-        
-        qkd::utility::debug() << cLineFormater.str();
-    }
+    if (qkd::utility::debug::enabled()) d->debug_key_pull(cKey);
 
     return true;
 }
@@ -1633,6 +1606,8 @@ qulonglong module::synchronize_ttl() const {
  */
 void module::terminate() {
 
+    qkd::utility::debug() << "terminate call received";
+
     if (d->get_state() == module_state::STATE_TERMINATING) return;
     if (d->get_state() == module_state::STATE_TERMINATED) return;
 
@@ -1986,35 +1961,9 @@ bool module::write(qkd::key::key const & cKey) {
         return false;
     }
 
-    std::lock_guard<std::recursive_mutex> cLock(d->cStat.cMutex);
-    d->cStat.nKeysOutgoing++;
-    d->cStat.nKeyBitsOutgoing += cKey.size() * 8;
-    d->cStat.nDisclosedBitsOutgoing += cKey.meta().nDisclosedBits;
-    d->cStat.cKeysOutgoingRate << d->cStat.nKeysOutgoing;
-    d->cStat.cKeyBitsOutgoingRate << d->cStat.nKeyBitsOutgoing;
-    d->cStat.cDisclosedBitsOutgoingRate << d->cStat.nDisclosedBitsOutgoing;
+    d->add_stats_outgoing(cKey);
     
-    if (qkd::utility::debug::enabled()) {
-        
-        // pretty printing for debug
-        // if not needed, then performance is wasted here
-        
-        boost::format cLineFormater = boost::format("key-PUSH [%015ums] id: %010u bits: %010u err: %6.4f dis: %010u crc: %08x state: %-13s dur: %012u ns (%06u ms)");
-
-        auto cTimePoint = std::chrono::duration_cast<std::chrono::milliseconds>(age());
-        cLineFormater % cTimePoint.count();
-        cLineFormater % cKey.id();
-        cLineFormater % (cKey.size() * 8);
-        cLineFormater % cKey.meta().nErrorRate;
-        cLineFormater % cKey.meta().nDisclosedBits;
-        cLineFormater % cKey.data().crc32();
-        cLineFormater % cKey.state_string();
-        auto cNanoSeconds =  std::chrono::duration_cast<std::chrono::nanoseconds>(cKey.dwell());
-        cLineFormater % cNanoSeconds.count();
-        cLineFormater % (uint64_t)(std::floor(cNanoSeconds.count() / 1000000.0 + 0.5));
-        
-        qkd::utility::debug() << cLineFormater.str();
-    }
+    if (qkd::utility::debug::enabled()) d->debug_key_push(cKey);
     
     return true;
 }
