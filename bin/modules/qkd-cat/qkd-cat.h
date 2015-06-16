@@ -127,6 +127,14 @@ private:
     
     
     /**
+     * checks (and opens) the file for valid input
+     *
+     * @return  true, if we can read from the file
+     */
+    bool is_data_accessible();
+
+
+    /**
      * module work
      * 
      * @param   cKey                    will be set to the loaded key from the file
