@@ -36,11 +36,9 @@
 // incs
 
 #include <chrono>
-#include <map>
 #include <mutex>
 #include <stdexcept>
 #include <string>
-#include <vector>
 
 #include <inttypes.h>
 
@@ -1763,8 +1761,8 @@ private:
     
     
     // pimpl
-    class module_data;
-    boost::shared_ptr<module_data> d;
+    class module_internal;
+    boost::shared_ptr<module_internal> d;
 };
 
 

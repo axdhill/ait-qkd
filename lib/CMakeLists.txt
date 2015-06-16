@@ -167,6 +167,7 @@ set(QKD_SRC
     module/communicator.cpp
     module/message.cpp
     module/module.cpp
+    module/module_internal.cpp
     
     # widgets
     widget/lcd.cpp
