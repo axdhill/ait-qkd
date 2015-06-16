@@ -233,6 +233,27 @@ boost::filesystem::path module::module_internal::create_ipc_out() const {
 
 
 /**
+ * dump current module config
+ */
+void module::module_internal::debug_config() {
+
+    qkd::utility::debug() << "current module config:";
+    qkd::utility::debug() << "              role: " << cModule->role_name().toStdString();
+    qkd::utility::debug() << "          url_peer: " << cModule->url_peer().toStdString();
+    qkd::utility::debug() << "       url_pipe_in: " << cModule->url_pipe_in().toStdString();
+    qkd::utility::debug() << "      url_pipe_out: " << cModule->url_pipe_out().toStdString();
+    qkd::utility::debug() << "        url_listen: " << cModule->url_listen().toStdString();
+    qkd::utility::debug() << "          pipeline: " << cModule->pipeline().toStdString();
+    qkd::utility::debug() << "              hint: " << cModule->hint().toStdString();
+    qkd::utility::debug() << "        random_url: " << cModule->random_url().toStdString();
+    qkd::utility::debug() << "  synchronize_keys: " << (cModule->synchronize_keys() ? "true" : "false");
+    qkd::utility::debug() << "   synchronize_ttl: " << cModule->synchronize_ttl();
+    qkd::utility::debug() << "   timeout_network: " << cModule->timeout_network();
+    qkd::utility::debug() << "      timeout_pipe: " << cModule->timeout_pipe();
+}
+
+
+/**
  * dump a message to stderr
  *
  * @param   bSent       message has been sent

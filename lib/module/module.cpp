@@ -1636,6 +1636,7 @@ void module::thread() {
     }
     
     qkd::utility::debug() << "module setup done - entering ready state";
+    d->debug_config();
     d->set_state(module_state::STATE_READY);
     emit ready();
     work();

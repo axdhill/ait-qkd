@@ -293,6 +293,12 @@ public:
     
     
     /**
+     * dump current module config
+     */
+    void debug_config();
+
+
+    /**
      * dump key PULL to stderr
      *
      * @param   cKey        key to dump
