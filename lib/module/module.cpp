@@ -552,13 +552,7 @@ void module::init() {
  * the return value of false.
  */
 void module::interrupt_worker() {
-    
-    if (d->cModuleThread.get_id() == std::thread::id()) return;
-        
-    // TODO: !! change this to something usefull
-    sigval cSignalValue = { 0 };
-    pthread_sigqueue(d->cModuleThread.native_handle(), SIGINT, cSignalValue);
-    pthread_yield();
+    if (d->cModuleThread.get_id() == std::this_thread::get_id()) return;
     pthread_kill(d->cModuleThread.native_handle(), SIGCHLD);
 }
 
@@ -1643,7 +1637,7 @@ void module::terminate() {
     if (d->get_state() == module_state::STATE_TERMINATING) return;
     if (d->get_state() == module_state::STATE_TERMINATED) return;
 
-    if (d->cModuleThread.get_id() == std::thread::id()) {
+    if (d->cModuleThread.get_id() == std::this_thread::get_id()) {
         d->release();
     }
     else {
@@ -1834,7 +1828,7 @@ void module::work() {
 
     qkd::module::module_state eState = qkd::module::module_state::STATE_NEW;
 
-    qkd::utility::debug() << "working on icoming keys";
+    qkd::utility::debug() << "working on icoming keys started";
     
     do {
         
@@ -1949,6 +1943,8 @@ void module::work() {
         
     } while (is_working_state(eState));
     
+    qkd::utility::debug() << "working on incoming keys suspended";
+
     d->bProcessing = false;
 }
 
