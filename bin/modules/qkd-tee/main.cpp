@@ -131,7 +131,7 @@ int main(int argc, char ** argv) {
     cApp.connect(&cQKDTee, SIGNAL(terminated()), SLOT(quit()));
     int nAppExit = cApp.exec();
     cQKDTee.join();
-    
+
     return nAppExit;
 }
 

@@ -555,6 +555,7 @@ void module::interrupt_worker() {
     
     if (d->cModuleThread.get_id() == std::thread::id()) return;
         
+    // TODO: !! change this to something usefull
     sigval cSignalValue = { 0 };
     pthread_sigqueue(d->cModuleThread.native_handle(), SIGINT, cSignalValue);
     pthread_yield();
@@ -703,15 +704,21 @@ bool module::read(qkd::key::key & cKey) {
     }
     else if (d->cSocketPipeIn) {
         
-        zmq::message_t cZMQMessage;
-        try {
-            if (d->cSocketPipeIn->recv(&cZMQMessage)) {
-                qkd::utility::buffer cData = qkd::utility::buffer(
-                        qkd::utility::memory::wrap((unsigned char *)cZMQMessage.data(), cZMQMessage.size()));
-                cData >> cKey;
-            }
+        zmq_msg_t cZMQMessage;
+        assert(zmq_msg_init(&cZMQMessage) == 0);
+        int nRead = zmq_msg_recv(&cZMQMessage, d->cSocketPipeIn, 0);
+        if (nRead == -1) {
+            std::stringstream ss;
+            ss << "failed reading key: " << strerror(zmq_errno());
+            zmq_msg_close(&cZMQMessage);
+            throw std::runtime_error(ss.str());
         }
-        catch (UNUSED zmq::error_t & cZMQError) {}
+
+        qkd::utility::buffer cData = qkd::utility::buffer(
+                qkd::utility::memory::wrap((unsigned char *)zmq_msg_data(&cZMQMessage), zmq_msg_size(&cZMQMessage)));
+        cData >> cKey;
+
+        zmq_msg_close(&cZMQMessage);
     }
     
     if (cKey == qkd::key::key::null()) {
@@ -856,56 +863,58 @@ bool module::recv_internal(qkd::module::message & cMessage, int nTimeOut) throw 
     if (bIsAlice && (d->cSocketPeer == nullptr)) throw std::runtime_error("no connection to peer");
     if (bIsBob && (d->cSocketListener == nullptr)) throw std::runtime_error("not accepting connection");
     
-    bool bRecv = false;
-    try {
-        
-        zmq::socket_t * cSocket = nullptr;
-        if (bIsAlice) cSocket = d->cSocketPeer;
-        if (bIsBob) cSocket = d->cSocketListener;
-        
-        if (!cSocket) {
-            qkd::utility::syslog::warning() << __FILENAME__ 
-                    << '@' 
-                    << __LINE__ 
-                    << ": " 
-                    << "failed to decide which channel to use for receive";
-            throw std::runtime_error("failed to decide which channel to use for recv");
-        }
-        
-        cSocket->setsockopt(ZMQ_RCVTIMEO, &nTimeOut, sizeof(nTimeOut));
-        
-        zmq::message_t cZMQHeader;
-        bRecv = (cSocket->recv(&cZMQHeader));
-        if (bRecv) {
-            
-#if (ZMQ_VERSION_MAJOR == 3)
-            int bMoreData = 0;
-#else
-            int64_t bMoreData = 0;
-#endif            
-            size_t nSizeOfOption = sizeof(bMoreData);
-            cSocket->getsockopt(ZMQ_RCVMORE, &bMoreData, &nSizeOfOption);
-            
-            if ((bMoreData == 0) || (cZMQHeader.size() != sizeof(cMessage.m_cHeader))) {
-                throw std::runtime_error("received invalid message header");
-            }
-            
-            memcpy(&(cMessage.m_cHeader), cZMQHeader.data(), sizeof(cMessage.m_cHeader));
-            
-            zmq::message_t cZMQData;
-            bRecv = (cSocket->recv(&cZMQData));
-            if (bRecv) {
-                cMessage.data().resize(cZMQData.size());
-                memcpy(cMessage.data().get(), cZMQData.data(), cZMQData.size());
-                cMessage.data().set_position(0);
-            }
-        }
-    }
-    catch (zmq::error_t & cZMQError) {
-        throw std::runtime_error(cZMQError.what());
+    void * cSocket = nullptr;
+    if (bIsAlice) cSocket = d->cSocketPeer;
+    if (bIsBob) cSocket = d->cSocketListener;
+    
+    if (!cSocket) {
+        qkd::utility::syslog::warning() << __FILENAME__ 
+                << '@' 
+                << __LINE__ 
+                << ": " 
+                << "failed to decide which channel to use for receive";
+        throw std::runtime_error("failed to decide which channel to use for recv");
     }
     
-    if (is_dying_state() || !bRecv) return false;
+    // TODO: setting timeout may be only valid before socket connet/bind
+    if (zmq_setsockopt(cSocket, ZMQ_RCVTIMEO, &nTimeOut, sizeof(nTimeOut)) == -1) {
+        std::stringstream ss;
+        ss << "failed to set timeout on socket: " << strerror(zmq_errno());
+        throw std::runtime_error(ss.str());
+    }
+    
+    zmq_msg_t cZMQHeader;
+    assert(zmq_msg_init(&cZMQHeader) == 0);
+    int nReadHeader = zmq_msg_recv(&cZMQHeader, cSocket, 0);
+    if (nReadHeader == -1) {
+        std::stringstream ss;
+        ss << "failed reading message header from peer: " << strerror(zmq_errno());
+        zmq_msg_close(&cZMQHeader);
+        throw std::runtime_error(ss.str());
+    }
+    if (!zmq_msg_more(&cZMQHeader) || (zmq_msg_size(&cZMQHeader) != sizeof(cMessage.m_cHeader))) {
+            throw std::runtime_error("received invalid message header");
+    }
+
+    memcpy(&(cMessage.m_cHeader), (unsigned char *)zmq_msg_data(&cZMQHeader), sizeof(cMessage.m_cHeader));
+    zmq_msg_close(&cZMQHeader);
+
+    zmq_msg_t cZMQData;
+    assert(zmq_msg_init(&cZMQData) == 0);
+    int nReadData = zmq_msg_recv(&cZMQData, cSocket, 0);
+    if (nReadData == -1) {
+        std::stringstream ss;
+        ss << "failed reading message data from peer: " << strerror(zmq_errno());
+        zmq_msg_close(&cZMQData);
+        throw std::runtime_error(ss.str());
+    }
+
+    cMessage.data().resize(zmq_msg_size(&cZMQData));
+    memcpy(cMessage.data().get(), zmq_msg_data(&cZMQData), zmq_msg_size(&cZMQData));
+    cMessage.data().set_position(0);
+    zmq_msg_close(&cZMQData);
+
+    if (is_dying_state()) return false;
 
     cMessage.m_cTimeStamp = std::chrono::high_resolution_clock::now();
     
@@ -1137,44 +1146,45 @@ void module::send(qkd::module::message & cMessage,
         
     if (bIsAlice && (d->cSocketPeer == nullptr)) throw std::runtime_error("no connection to peer");
     if (bIsBob && (d->cSocketListener == nullptr)) throw std::runtime_error("not accepting connection");
+   
+    void * cSocket = nullptr;
+    if (bIsAlice) cSocket = d->cSocketPeer;
+    if (bIsBob) cSocket = d->cSocketListener;
     
-    try {
-        
-        zmq::socket_t * cSocket = nullptr;
-        if (bIsAlice) cSocket = d->cSocketPeer;
-        if (bIsBob) cSocket = d->cSocketListener;
-        
-        if (!cSocket) {
-            qkd::utility::syslog::warning() << __FILENAME__ 
-                    << '@' 
-                    << __LINE__ 
-                    << ": " 
-                    << "failed to decide which channel to use for send";
-            throw std::runtime_error("failed to decide which channel to use for send");
-        }
-        
-        cSocket->setsockopt(ZMQ_RCVTIMEO, &nTimeOut, sizeof(nTimeOut));
+    if (!cSocket) {
+        qkd::utility::syslog::warning() << __FILENAME__ 
+                << '@' 
+                << __LINE__ 
+                << ": " 
+                << "failed to decide which channel to use for send";
+        throw std::runtime_error("failed to decide which channel to use for send");
+    }
 
-        cMessage.m_cHeader.nId = htobe32(++qkd::module::message::m_nLastId);
-        cMessage.m_cTimeStamp = std::chrono::high_resolution_clock::now();
-        d->debug_message(true, cMessage);
-        
-        zmq::message_t cZMQHeader(sizeof(cMessage.m_cHeader));
-        memcpy(cZMQHeader.data(), &(cMessage.m_cHeader), sizeof(cMessage.m_cHeader));
-        cSocket->send(cZMQHeader, ZMQ_SNDMORE);
-        
-        // make a shallow copy of the message memory
-        // this should increas the reference count and thus
-        // lets the memory delete later (within memory_delete)
-        // this should avoid a memcpy as much as possible
-        qkd::utility::memory * cData = new qkd::utility::memory(cMessage.data());
-        zmq::message_t cZMQData(cData->get(), cData->size(), memory_delete, cData);
-        cSocket->send(cZMQData);
+    // TODO: setting timeout may be only valid before socket connet/bind
+    if (zmq_setsockopt(cSocket, ZMQ_SNDTIMEO, &nTimeOut, sizeof(nTimeOut)) == -1) {
+        std::stringstream ss;
+        ss << "failed to set timeout on socket: " << strerror(zmq_errno());
+        throw std::runtime_error(ss.str());
     }
-    catch (zmq::error_t & cZMQError) {
-        throw std::runtime_error(cZMQError.what());
+  
+    cMessage.m_cHeader.nId = htobe32(++qkd::module::message::m_nLastId);
+    cMessage.m_cTimeStamp = std::chrono::high_resolution_clock::now();
+    d->debug_message(true, cMessage);
+
+    int nSentHeader = zmq_send(cSocket, &(cMessage.m_cHeader), sizeof(cMessage.m_cHeader), ZMQ_SNDMORE);
+    if (nSentHeader == -1) {
+        std::stringstream ss;
+        ss << "failed sending message header to peer: " << strerror(zmq_errno());
+        throw std::runtime_error(ss.str());
     }
-    
+
+    int nSentData = zmq_send(cSocket, cMessage.data().get(), cMessage.data().size(), 0);
+    if (nSentData == -1) {
+        std::stringstream ss;
+        ss << "failed sending message data to peer: " << strerror(zmq_errno());
+        throw std::runtime_error(ss.str());
+    }
+
     cAuthContext << cMessage.data();
     cMessage = qkd::module::message();    
 }
@@ -1347,15 +1357,32 @@ void module::set_terminate_after(qulonglong nTerminateAfter) {
  */
 void module::set_timeout_network(qlonglong nTimeout) {
     
+    // TODO: this may not work on already opened sockets
     std::lock_guard<std::mutex> cLock(d->cURLMutex);
     d->nTimeoutNetwork = nTimeout;
     if (d->cSocketListener) {
-        d->cSocketListener->setsockopt(ZMQ_RCVTIMEO, &d->nTimeoutNetwork, sizeof(d->nTimeoutNetwork));
-        d->cSocketListener->setsockopt(ZMQ_SNDTIMEO, &d->nTimeoutNetwork, sizeof(d->nTimeoutNetwork));
+        if (zmq_setsockopt(d->cSocketListener, ZMQ_RCVTIMEO, &d->nTimeoutNetwork, sizeof(d->nTimeoutNetwork)) == -1) {
+            std::stringstream ss;
+            ss << "failed to set timeout on socket: " << strerror(zmq_errno());
+            throw std::runtime_error(ss.str());
+        }
+        if (zmq_setsockopt(d->cSocketListener, ZMQ_SNDTIMEO, &d->nTimeoutNetwork, sizeof(d->nTimeoutNetwork)) == -1) {
+            std::stringstream ss;
+            ss << "failed to set timeout on socket: " << strerror(zmq_errno());
+            throw std::runtime_error(ss.str());
+        }
     }
     if (d->cSocketPeer) {
-        d->cSocketPeer->setsockopt(ZMQ_RCVTIMEO, &d->nTimeoutNetwork, sizeof(d->nTimeoutNetwork));
-        d->cSocketPeer->setsockopt(ZMQ_SNDTIMEO, &d->nTimeoutNetwork, sizeof(d->nTimeoutNetwork));
+        if (zmq_setsockopt(d->cSocketPeer, ZMQ_RCVTIMEO, &d->nTimeoutNetwork, sizeof(d->nTimeoutNetwork)) == -1) {
+            std::stringstream ss;
+            ss << "failed to set timeout on socket: " << strerror(zmq_errno());
+            throw std::runtime_error(ss.str());
+        }
+        if (zmq_setsockopt(d->cSocketPeer, ZMQ_SNDTIMEO, &d->nTimeoutNetwork, sizeof(d->nTimeoutNetwork)) == -1) {
+            std::stringstream ss;
+            ss << "failed to set timeout on socket: " << strerror(zmq_errno());
+            throw std::runtime_error(ss.str());
+        }
     }
 }
 
@@ -1367,18 +1394,23 @@ void module::set_timeout_network(qlonglong nTimeout) {
  */
 void module::set_timeout_pipe(qlonglong nTimeout) {
     
+    // TODO: this may not work on already opened sockets
     std::lock_guard<std::mutex> cLock(d->cURLMutex);
     d->nTimeoutPipe = nTimeout;
     if (d->cSocketPipeIn) {
-        d->cSocketPipeIn->setsockopt(ZMQ_RCVTIMEO, &d->nTimeoutPipe, sizeof(d->nTimeoutPipe));
-        d->cSocketPipeIn->setsockopt(ZMQ_SNDTIMEO, &d->nTimeoutPipe, sizeof(d->nTimeoutPipe));
+        if (zmq_setsockopt(d->cSocketPipeIn, ZMQ_RCVTIMEO, &d->nTimeoutPipe, sizeof(d->nTimeoutPipe)) == -1) {
+            std::stringstream ss;
+            ss << "failed to set timeout on socket: " << strerror(zmq_errno());
+            throw std::runtime_error(ss.str());
+        }
     }
     if (d->cSocketPipeOut) {
-        d->cSocketPipeOut->setsockopt(ZMQ_RCVTIMEO, &d->nTimeoutPipe, sizeof(d->nTimeoutPipe));
-        d->cSocketPipeOut->setsockopt(ZMQ_SNDTIMEO, &d->nTimeoutPipe, sizeof(d->nTimeoutPipe));
+        if (zmq_setsockopt(d->cSocketPipeOut, ZMQ_SNDTIMEO, &d->nTimeoutPipe, sizeof(d->nTimeoutPipe)) == -1) {
+            std::stringstream ss;
+            ss << "failed to set timeout on socket: " << strerror(zmq_errno());
+            throw std::runtime_error(ss.str());
+        }
     }
-    
-    d->nTimeoutPipe = nTimeout;
 }
 
 
@@ -1619,8 +1651,6 @@ void module::terminate() {
         d->set_state(module_state::STATE_TERMINATING);
         interrupt_worker();
     }
-    
-    emit terminated();
 }
 
 
@@ -1952,13 +1982,12 @@ bool module::write(qkd::key::key const & cKey) {
         qkd::utility::buffer cBuffer;
         cBuffer << cKey;
 
-        zmq::message_t cZMQMessage(cBuffer.size());
-        memcpy(cZMQMessage.data(), cBuffer.get(), cBuffer.size());
-         
-        try {
-            if (d->cSocketPipeOut->send(cZMQMessage)) bFailed = false;
+        int nWritten = zmq_send(d->cSocketPipeOut, cBuffer.get(), cBuffer.size(), 0);
+        if (nWritten == -1) {
+            std::stringstream ss;
+            ss << "failed writing key to next module: " << strerror(zmq_errno());
+            throw std::runtime_error(ss.str());
         }
-        catch (UNUSED zmq::error_t & cZMQError) {}
     }
     
     if (bFailed) {

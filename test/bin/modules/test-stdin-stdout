@@ -48,7 +48,7 @@ ${TEST_BASE}/bin/qkd-key-gen --keys=100 stdin-stdout-keys
 
 # start the qkd-tee module in the background 
 # with stdin:// and stdout:// set
-( cat stdin-stdout-keys.alice | ${TEST_BASE}/bin/qkd-tee --file "stdin-stdout-keys.charly" > stdin-stdout-keys.daisy ) &
+( cat stdin-stdout-keys.alice | ${TEST_BASE}/bin/qkd-tee --debug --file "stdin-stdout-keys.charly" 1> stdin-stdout-keys.daisy 2> stdin-stdout-tee.debug ) &
 sleep 1
 
 # pick the module
@@ -116,7 +116,10 @@ fi
 
 # all good
 echo "qkd-tee works with stdin:// and stdout:// as expected"
+echo "1"
+echo qkd_qdbus ${MODULE_SERVICE} /Module terminate
 qkd_qdbus ${MODULE_SERVICE} /Module terminate
+echo "2"
 
 # enforced cleansing
 test_cleanup

@@ -32,7 +32,7 @@
 # sources and linkage
 
 # additional includes
-include_directories(${CMAKE_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${CMAKE_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR}) 
 
 # define the sources
 set(QKD_SRC 

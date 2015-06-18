@@ -78,7 +78,7 @@ public:
      * 
      * @return  the 0MQ context
      */
-    inline zmq::context_t & zmq_ctx() { return *m_cZMQContext; };
+    inline void * zmq_ctx() { return m_cZMQContext; };
     
 
 private:
@@ -87,7 +87,7 @@ private:
     /**
      * our single ZMQ context used
      */
-    zmq::context_t * m_cZMQContext;
+    void * m_cZMQContext;
     
 };
 
@@ -116,7 +116,7 @@ module_init::module_init() : m_cZMQContext(nullptr) {
     //
     // this is a singelton and won't run twice
     
-    m_cZMQContext = new zmq::context_t(2);
+    m_cZMQContext = zmq_ctx_new();
     assert(m_cZMQContext != nullptr);
 }
 
@@ -129,8 +129,9 @@ module_init::~module_init() {
     // this is run, when the process exits once.
     // include here correct and graceful framwork
     // and resource rundown.
-    
-    delete m_cZMQContext;
+   
+    zmq_ctx_term(m_cZMQContext);
+    m_cZMQContext = nullptr;
 }
 
 
@@ -445,36 +446,10 @@ void module::module_internal::release() {
     
     // free ZMQ stuff (if any)
     
-    // by setting the LINGER to 0, we
-    // kick all pending messages
-    
-    if (cSocketListener != nullptr) {
-        int nLinger = 0;
-        cSocketListener->setsockopt(ZMQ_LINGER, &nLinger, sizeof(nLinger));
-        delete cSocketListener;
-    }
-    cSocketListener = nullptr;
-    
-    if (cSocketPeer != nullptr) {
-        int nLinger = 0;
-        cSocketPeer->setsockopt(ZMQ_LINGER, &nLinger, sizeof(nLinger));
-        delete cSocketPeer;
-    }
-    cSocketPeer = nullptr;
-    
-    if (cSocketPipeIn != nullptr) {
-        int nLinger = 0;
-        cSocketPipeIn->setsockopt(ZMQ_LINGER, &nLinger, sizeof(nLinger));
-        delete cSocketPipeIn;
-    }
-    cSocketPipeIn = nullptr;
-    
-    if (cSocketPipeOut != nullptr) {
-        int nLinger = 0;
-        cSocketPipeOut->setsockopt(ZMQ_LINGER, &nLinger, sizeof(nLinger));
-        delete cSocketPipeOut;
-    }
-    cSocketPipeOut = nullptr;
+    release_socket(cSocketListener);
+    release_socket(cSocketPeer);
+    release_socket(cSocketPipeIn);
+    release_socket(cSocketPipeOut);
     
     // reset connection settings to initial
     bPipeInStdin = false;
@@ -492,6 +467,29 @@ void module::module_internal::release() {
 }
 
 
+/**
+ * clean resources on a socket
+ *
+ * @param   cSocket     the socket to release
+ */
+void module::module_internal::release_socket(void * & cSocket) {
+
+    // by setting the LINGER to 0, we
+    // kick all pending messages
+
+    if (cSocket != nullptr) {
+        int nLinger = 0;
+        if (zmq_setsockopt(cSocket, ZMQ_LINGER, &nLinger, sizeof(nLinger)) == -1) {
+            std::stringstream ss;
+            ss << "failed to set linger on socket: " << strerror(zmq_errno());
+            throw std::runtime_error(ss.str());
+        }
+        zmq_close(cSocket);
+    }
+    cSocket = nullptr;
+}
+
+ 
 /**
  * set a new module state
  * 
@@ -539,59 +537,28 @@ bool module::module_internal::setup_listen() {
     bSetupListen = false;
     
     // reset peer connection stuff
-    if (cSocketListener) delete cSocketListener;
+    if (cSocketListener) zmq_close(cSocketListener);
     cSocketListener = nullptr;
     
     // if we ain't got a URL then we are already finished
     if (!sURLListen.empty()) sURLListen = fix_url(sURLListen);
     if (sURLListen.empty()) return true;
     
-    try {
-        
-        // create the ZMQ socket
-        cSocketListener = new zmq::socket_t(g_cInit.zmq_ctx(), ZMQ_DEALER);
-        
-#if (ZMQ_VERSION_MAJOR == 3)
-        // set HWM to 1000
-        int nHighWaterMark = 1000;
-        cSocketListener->setsockopt(ZMQ_RCVHWM, &nHighWaterMark, sizeof(nHighWaterMark));
-        cSocketListener->setsockopt(ZMQ_SNDHWM, &nHighWaterMark, sizeof(nHighWaterMark));
-#else
-        // set HWM to 1000
-        uint64_t nHighWaterMark = 1000;
-        cSocketListener->setsockopt(ZMQ_HWM, &nHighWaterMark, sizeof(nHighWaterMark));
-#endif        
-        
-        // set send/recv time out
-        cSocketListener->setsockopt(ZMQ_RCVTIMEO, &nTimeoutNetwork, sizeof(nTimeoutNetwork));
-        cSocketListener->setsockopt(ZMQ_SNDTIMEO, &nTimeoutNetwork, sizeof(nTimeoutNetwork));
-        
-        // bind!
-        qkd::utility::syslog::info() << "binding module listen on " << sURLListen;
-        cSocketListener->bind(sURLListen.c_str());
-        
-        // debug
-        if (qkd::utility::debug::enabled()) qkd::utility::debug() << "listen set to '" << sURLListen << "'";
-        
+    // create the ZMQ socket
+    cSocketListener = zmq_socket(g_cInit.zmq_ctx(), ZMQ_DEALER);
+    setup_socket(cSocketListener, 1000, nTimeoutNetwork);
+    
+    // bind!
+    qkd::utility::syslog::info() << "binding module listen on " << sURLListen;
+    if (zmq_bind(cSocketListener, sURLListen.c_str()) == -1) {
+        std::stringstream ss;
+        ss << "failed to bind socket: " << strerror(zmq_errno());
+        throw std::runtime_error(ss.str());
     }
-    catch (zmq::error_t & cZMQError) {
+    
+    // debug
+    if (qkd::utility::debug::enabled()) qkd::utility::debug() << "listen set to '" << sURLListen << "'";
         
-        // fail
-        qkd::utility::syslog::crit() << __FILENAME__ 
-                << '@' 
-                << __LINE__ 
-                << ": " 
-                << "failed to setup listen endpoint with url: " 
-                << sURLListen 
-                << " error: " 
-                << cZMQError.what(); 
-        
-        if (cSocketListener) delete cSocketListener;
-        cSocketListener = nullptr;
-        
-        return false;
-    }
-
     return true;
 }
 
@@ -610,49 +577,21 @@ bool module::module_internal::setup_peer() {
     bSetupPeer = false;
     
     // reset peer connection stuff
-    if (cSocketPeer) delete cSocketPeer;
+    if (cSocketPeer) zmq_close(cSocketPeer);
     cSocketPeer = nullptr;
     
     // if we ain't got a URL then we are already finished
     if (!sURLPeer.empty()) sURLPeer = fix_url(sURLPeer);
     if (sURLPeer.empty()) return true;
+
+    cSocketPeer = zmq_socket(g_cInit.zmq_ctx(), ZMQ_DEALER);
+    setup_socket(cSocketPeer, 1000, nTimeoutNetwork);
+        
+    // connect
+    zmq_connect(cSocketPeer, sURLPeer.c_str());
     
-    try {
-        
-        // create the ZMQ socket
-        cSocketPeer = new zmq::socket_t(g_cInit.zmq_ctx(), ZMQ_DEALER);
-        
-#if (ZMQ_VERSION_MAJOR == 3)
-        // set HWM to 1000
-        int nHighWaterMark = 1000;
-        cSocketPeer->setsockopt(ZMQ_RCVHWM, &nHighWaterMark, sizeof(nHighWaterMark));
-        cSocketPeer->setsockopt(ZMQ_SNDHWM, &nHighWaterMark, sizeof(nHighWaterMark));
-#else
-        // set HWM to 1000
-        uint64_t nHighWaterMark = 1000;
-        cSocketPeer->setsockopt(ZMQ_HWM, &nHighWaterMark, sizeof(nHighWaterMark));
-#endif        
-        
-        // set send/recv time out
-        cSocketPeer->setsockopt(ZMQ_RCVTIMEO, &nTimeoutNetwork, sizeof(nTimeoutNetwork));
-        cSocketPeer->setsockopt(ZMQ_SNDTIMEO, &nTimeoutNetwork, sizeof(nTimeoutNetwork));
-        
-        // connect
-        cSocketPeer->connect(sURLPeer.c_str());
-        
-        // debug
-        if (qkd::utility::debug::enabled()) qkd::utility::debug() << "connected to '" << sURLPeer << "'";
-    }
-    catch (zmq::error_t & cZMQError) {
-        
-        // fail
-        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to connect to url: " << sURLPeer << " error: " << cZMQError.what();
-        
-        if (cSocketPeer) delete cSocketPeer;
-        cSocketPeer = nullptr;
-        
-        return false;
-    }
+    // debug
+    if (qkd::utility::debug::enabled()) qkd::utility::debug() << "connected to '" << sURLPeer << "'";
 
     return true;
 }
@@ -672,7 +611,7 @@ bool module::module_internal::setup_pipe_in() {
     bSetupPipeIn = false;
     
     // reset pipe in stuff
-    if (cSocketPipeIn) delete cSocketPipeIn;
+    if (cSocketPipeIn) zmq_close(cSocketPipeIn);
     cSocketPipeIn = nullptr;
     bPipeInStdin = false;
     bPipeInVoid = true;
@@ -719,48 +658,20 @@ bool module::module_internal::setup_pipe_in() {
         bPipeInStdin = false;
         bPipeInVoid = false;
         
-        try {
-
-
-            // create the ZMQ socket
-            cSocketPipeIn = new zmq::socket_t(g_cInit.zmq_ctx(), ZMQ_PULL);
-            
-#if (ZMQ_VERSION_MAJOR == 3)
-            
-            // set HighWaterMark to 1000
-            int nHighWaterMark = 1000;
-            cSocketPipeIn->setsockopt(ZMQ_RCVHWM, &nHighWaterMark, sizeof(nHighWaterMark));
-#else
-            // set HighWaterMark to 1000
-            uint64_t nHighWaterMark = 1000;
-            cSocketPipeIn->setsockopt(ZMQ_HWM, &nHighWaterMark, sizeof(nHighWaterMark));
-#endif        
-            
-            // set recv time out
-            cSocketPipeIn->setsockopt(ZMQ_RCVTIMEO, &nTimeoutPipe, sizeof(nTimeoutPipe));
-            
-            // warn if we use a "*" or empty host here
-            bool bAmbiguousHost = (cURLPipeIn.scheme() == "tcp") && ((cURLPipeIn.host().isEmpty()) || (cURLPipeIn.host() == "*") || (cURLPipeIn.host() == "0.0.0.0"));
-            if (bAmbiguousHost) qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "warning: pipe-in URL '" << sURLPipeIn << "' contains ambiguous host address - this may fail!";
+        // create the ZMQ socket
+        cSocketPipeIn = zmq_socket(g_cInit.zmq_ctx(), ZMQ_PULL);
+        setup_socket(cSocketPipeIn, 1000, nTimeoutPipe); 
         
-            // bind!
-            cSocketPipeIn->bind(sURLPipeIn.c_str());
+        // warn if we use a "*" or empty host here
+        bool bAmbiguousHost = (cURLPipeIn.scheme() == "tcp") && ((cURLPipeIn.host().isEmpty()) || (cURLPipeIn.host() == "*") || (cURLPipeIn.host() == "0.0.0.0"));
+        if (bAmbiguousHost) qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "warning: pipe-in URL '" << sURLPipeIn << "' contains ambiguous host address - this may fail!";
+    
+        // bind!
+        zmq_bind(cSocketPipeIn, sURLPipeIn.c_str());
+        
+        // debug
+        if (qkd::utility::debug::enabled()) qkd::utility::debug() << "input pipe stream set to '" << sURLPipeIn << "'";
             
-            // debug
-            if (qkd::utility::debug::enabled()) qkd::utility::debug() << "input pipe stream set to '" << sURLPipeIn << "'";
-            
-        }
-        catch (zmq::error_t & cZMQError) {
-            
-            // fail
-            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to setup input with url: " << sURLPipeIn << " error: " << cZMQError.what(); 
-            
-            if (cSocketPipeIn) delete cSocketPipeIn;
-            cSocketPipeIn = nullptr;
-            
-            return false;
-        }
-
         return true;
     }
     
@@ -785,7 +696,7 @@ bool module::module_internal::setup_pipe_out() {
     bSetupPipeOut = false;
     
     // reset pipe out stuff
-    if (cSocketPipeOut) delete cSocketPipeOut;
+    if (cSocketPipeOut) zmq_close(cSocketPipeOut);
     cSocketPipeOut = nullptr;
     bPipeOutStdout = false;
     bPipeOutVoid = true;
@@ -832,46 +743,20 @@ bool module::module_internal::setup_pipe_out() {
         bPipeOutStdout = false;
         bPipeOutVoid = false;
         
-        try {
-            
-            // create the ZMQ socket
-            cSocketPipeOut = new zmq::socket_t(g_cInit.zmq_ctx(), ZMQ_PUSH);
-
-#if (ZMQ_VERSION_MAJOR == 3)
-            // set HWM to 1000
-            int nHighWaterMark = 1000;
-            cSocketPipeOut->setsockopt(ZMQ_SNDHWM, &nHighWaterMark, sizeof(nHighWaterMark));
-#else
-            // set HWM to 1000
-            uint64_t nHighWaterMark = 1000;
-            cSocketPipeOut->setsockopt(ZMQ_HWM, &nHighWaterMark, sizeof(nHighWaterMark));
-#endif        
-            
-            // set recv time out
-            cSocketPipeOut->setsockopt(ZMQ_SNDTIMEO, &nTimeoutPipe, sizeof(nTimeoutPipe));
-            
-            // warn if we use a "*" or empty host here
-            bool bAmbiguousHost = (cURLPipeOut.scheme() == "tcp") && ((cURLPipeOut.host().isEmpty()) || (cURLPipeOut.host() == "*") || (cURLPipeOut.host() == "0.0.0.0"));
-            if (bAmbiguousHost) qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "warning: pipe-out URL '" << sURLPipeOut << "' contains ambiguous host address - this may fail!";
-            
-            // connect!
-            cSocketPipeOut->connect(sURLPipeOut.c_str());
-            
-            // debug
-            if (qkd::utility::debug::enabled()) qkd::utility::debug() << "output pipe stream set to '" << sURLPipeOut << "'";
-            
-        }
-        catch (zmq::error_t & cZMQError) {
-            
-            // fail
-            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to setup output with url: " << sURLPipeOut << " error: " << cZMQError.what(); 
-            
-            if (cSocketPipeOut) delete cSocketPipeOut;
-            cSocketPipeOut = nullptr;
-            
-            return false;
-        }
-
+        // create the ZMQ socket
+        cSocketPipeOut = zmq_socket(g_cInit.zmq_ctx(), ZMQ_PUSH);
+        setup_socket(cSocketPipeOut, 1000, nTimeoutPipe);
+        
+        // warn if we use a "*" or empty host here
+        bool bAmbiguousHost = (cURLPipeOut.scheme() == "tcp") && ((cURLPipeOut.host().isEmpty()) || (cURLPipeOut.host() == "*") || (cURLPipeOut.host() == "0.0.0.0"));
+        if (bAmbiguousHost) qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "warning: pipe-out URL '" << sURLPipeOut << "' contains ambiguous host address - this may fail!";
+        
+        // connect!
+        zmq_connect(cSocketPipeOut, sURLPipeOut.c_str());
+        
+        // debug
+        if (qkd::utility::debug::enabled()) qkd::utility::debug() << "output pipe stream set to '" << sURLPipeOut << "'";
+        
         return true;
     }
     
@@ -882,6 +767,47 @@ bool module::module_internal::setup_pipe_out() {
 }
 
 
+/**
+ * setup socket with high water mark and timeout
+ *
+ * @param   cSocket             socket to modify
+ * @param   nHighWaterMark      high water mark
+ * @param   nTimeout            timeout on socket
+ */
+void module::module_internal::setup_socket(void * & cSocket, int nHighWaterMark, int64_t nTimeout) {
+
+    if (zmq_setsockopt(cSocket, ZMQ_RCVHWM, &nHighWaterMark, sizeof(nHighWaterMark)) == -1) {
+        std::stringstream ss;
+        ss << "failed to set high water mark on socket: " << strerror(zmq_errno());
+        zmq_close(cSocket);
+        cSocket = nullptr;
+        throw std::runtime_error(ss.str());
+    }
+    if (zmq_setsockopt(cSocket, ZMQ_SNDHWM, &nHighWaterMark, sizeof(nHighWaterMark)) == -1) {
+        std::stringstream ss;
+        ss << "failed to set high water mark on socket: " << strerror(zmq_errno());
+        zmq_close(cSocket);
+        cSocket = nullptr;
+        throw std::runtime_error(ss.str());
+    }
+    
+    if (zmq_setsockopt(cSocket, ZMQ_RCVTIMEO, &nTimeout, sizeof(nTimeout)) == -1) {
+        std::stringstream ss;
+        ss << "failed to set receive timeout on socket: " << strerror(zmq_errno());
+        zmq_close(cSocket);
+        cSocket = nullptr;
+        throw std::runtime_error(ss.str());
+    }
+    if (zmq_setsockopt(cSocket, ZMQ_SNDTIMEO, &nTimeout, sizeof(nTimeout)) == -1) {
+        std::stringstream ss;
+        ss << "failed to set send timeout on socket: " << strerror(zmq_errno());
+        zmq_close(cSocket);
+        cSocket = nullptr;
+        throw std::runtime_error(ss.str());
+    }
+}
+
+    
 /**
  * wait for state change
  * 

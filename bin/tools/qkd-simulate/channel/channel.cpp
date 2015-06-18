@@ -83,7 +83,7 @@ channel::channel() : m_cPipeAlice(nullptr), m_cPipeBob(nullptr) {
     init(nullptr, &m_cManager, &m_cPhotonPairManager);
     
     // setup the 0MQ context
-    m_cZMQContext = new zmq::context_t(2);
+    m_cZMQContext = zmq_ctx_new();
     assert(m_cZMQContext != nullptr);
 }
 
@@ -96,7 +96,6 @@ channel::~channel() {
     // interrupt detector thread in the case it is running
     interrupt_thread();
     
-    // delete the detectors
     if (m_cDetectorAlice) {
         delete m_cDetectorAlice;
         m_cDetectorAlice = nullptr;
@@ -106,21 +105,16 @@ channel::~channel() {
         m_cDetectorBob = nullptr;
     }
     
-    // delete sockets
     if (m_cPipeAlice ) {
-        m_cPipeAlice ->close();
-        delete m_cPipeAlice ;
+        zmq_close(m_cPipeAlice);
         m_cPipeAlice  = nullptr;
     }
     if (m_cPipeBob ) {
-        m_cPipeBob ->close();
-        delete m_cPipeBob ;
+        zmq_close(m_cPipeBob);
         m_cPipeBob  = nullptr;
     }
-    
-    // delete 0MQ context
     if (m_cZMQContext) {
-        delete m_cZMQContext;    
+        zmq_ctx_term(m_cZMQContext);    
         m_cZMQContext = nullptr;
     }
 }
@@ -176,44 +170,31 @@ void channel::flush_measurment(qkd::simulate::measurement const & cMeasurement) 
         // pipe: alice
         if (!m_cPipeAlice) return;
         
-        // send "key" to alice
-        try {
-            
-            qkd::utility::buffer cBuffer;
-            cBuffer << cMeasurement->key_alice();
+        qkd::utility::buffer cBufferAlice;
+        cBufferAlice << cMeasurement->key_alice();
 
-            // write to zeroMQ
-            zmq::message_t cZMQMessage(cBuffer.size());
-            memcpy(cZMQMessage.data(), cBuffer.get(), cBuffer.size());
-
-            // send
-            m_cPipeAlice->send(cZMQMessage);
+        // send
+        int nSentAlice = zmq_send(m_cPipeAlice, cBufferAlice.get(), cBufferAlice.size(), 0);
+        if (nSentAlice == -1) {
+            std::stringstream ss;
+            ss << "failed to send key to alice: " << strerror(zmq_errno());
+            throw std::runtime_error(ss.str());
+        }
             
-        }
-        catch (zmq::error_t & cZMQError) {
-            std::cerr << "failed to forward generated events to alice" << std::endl;
-        }
-        
         // pipe: bob
         if (!m_cPipeBob) return;
         
-        // send "key" to bob
-        try {
-            
-            qkd::utility::buffer cBuffer;
-            cBuffer << cMeasurement->key_bob();
+        qkd::utility::buffer cBufferBob;
+        cBufferBob << cMeasurement->key_bob();
 
-            // write to zeroMQ
-            zmq::message_t cZMQMessage(cBuffer.size());
-            memcpy(cZMQMessage.data(), cBuffer.get(), cBuffer.size());
-
-            // send
-            m_cPipeBob->send(cZMQMessage);
-            
+        // send
+        int nSentBob = zmq_send(m_cPipeBob, cBufferBob.get(), cBufferBob.size(), 0);
+        if (nSentBob == -1) {
+            std::stringstream ss;
+            ss << "failed to send key to bob: " << strerror(zmq_errno());
+            throw std::runtime_error(ss.str());
         }
-        catch (zmq::error_t & cZMQError) {
-            std::cerr << "failed to forward generated events to bob" << std::endl;
-        }
+        
     }
     else {
         
@@ -435,41 +416,53 @@ measurement channel::measure() {
 
 
 /**
+ * sets a pipe out 
+ * 
+ * @param   cSocket         the socket to set
+ * @param   sPipe           the new pipe out url
+ */
+void channel::set_pipe(void * & cSocket, std::string const & sPipe) {
+
+    if (cSocket) {
+        zmq_close(cSocket);
+        cSocket = nullptr;
+    }
+    
+    cSocket = zmq_socket(m_cZMQContext, ZMQ_PUSH);
+
+    int nHighWaterMark = 1000;
+    if (zmq_setsockopt(cSocket, ZMQ_SNDHWM, &nHighWaterMark, sizeof(nHighWaterMark)) == -1) {
+        std::stringstream ss;
+        ss << "failed to set high water mark on socket: " << strerror(zmq_errno());
+        throw std::runtime_error(ss.str());
+    }
+            
+    int nTimeoutPipe = -1;
+    if (zmq_setsockopt(cSocket, ZMQ_SNDTIMEO, &nTimeoutPipe, sizeof(nTimeoutPipe)) == -1) {
+        std::stringstream ss;
+        ss << "failed to set timeout on socket: " << strerror(zmq_errno());
+        throw std::runtime_error(ss.str());
+    }
+            
+    int nLinger = 0;
+    if (zmq_setsockopt(cSocket, ZMQ_LINGER, &nLinger, sizeof(nLinger)) == -1) {
+        std::stringstream ss;
+        ss << "failed to set linger on socket: " << strerror(zmq_errno());
+        throw std::runtime_error(ss.str());
+    }
+
+    zmq_connect(cSocket, sPipe.c_str());
+}
+
+
+/**
  * sets the pipe out url for alice
  * 
  * @param   sPipe           the new pipe out url
  */
 void channel::set_pipe_alice(std::string const & sPipe) {
+    set_pipe(m_cPipeAlice, sPipe);
     
-    // delete old socket
-    if (m_cPipeAlice) {
-        m_cPipeAlice->close();
-        delete m_cPipeAlice;
-        m_cPipeAlice = nullptr;
-    }
-    
-    // create the ZMQ socket
-    m_cPipeAlice = new zmq::socket_t(*m_cZMQContext, ZMQ_PUSH);
-
-#if (ZMQ_VERSION_MAJOR == 3)
-    // set HWM to 1
-    int nHighWaterMark = 10;
-    m_cPipeAlice->setsockopt(ZMQ_SNDHWM, &nHighWaterMark, sizeof(nHighWaterMark));
-#else
-    // set HWM to 1
-    uint64_t nHighWaterMark = 10;
-    m_cPipeAlice->setsockopt(ZMQ_HWM, &nHighWaterMark, sizeof(nHighWaterMark));
-#endif        
-            
-    // set send time out
-    int nTimeoutPipe = -1;
-    m_cPipeAlice->setsockopt(ZMQ_SNDTIMEO, &nTimeoutPipe, sizeof(nTimeoutPipe));
-            
-    int nLinger = 0;
-    m_cPipeAlice->setsockopt(ZMQ_LINGER, &nLinger, sizeof(nLinger));
-
-    // connect!
-    m_cPipeAlice->connect(sPipe.c_str());
 }
 
 
@@ -479,36 +472,7 @@ void channel::set_pipe_alice(std::string const & sPipe) {
  * @param   sPipe           the new pipe out url
  */
 void channel::set_pipe_bob(std::string const & sPipe) {
-    
-    // delete old socket
-    if (m_cPipeBob) {
-        m_cPipeBob->close();
-        delete m_cPipeBob;
-        m_cPipeBob = nullptr;
-    }
-    
-    // create the ZMQ socket
-    m_cPipeBob = new zmq::socket_t(*m_cZMQContext, ZMQ_PUSH);
-
-#if (ZMQ_VERSION_MAJOR == 3)
-    // set HWM to 1
-    int nHighWaterMark = 10;
-    m_cPipeBob->setsockopt(ZMQ_SNDHWM, &nHighWaterMark, sizeof(nHighWaterMark));
-#else
-    // set HWM to 1
-    uint64_t nHighWaterMark = 10;
-    m_cPipeBob->setsockopt(ZMQ_HWM, &nHighWaterMark, sizeof(nHighWaterMark));
-#endif        
-            
-    // set send time out
-    int nTimeoutPipe = -1;
-    m_cPipeBob->setsockopt(ZMQ_SNDTIMEO, &nTimeoutPipe, sizeof(nTimeoutPipe));
-            
-    int nLinger = 0;
-    m_cPipeBob->setsockopt(ZMQ_LINGER, &nLinger, sizeof(nLinger));
-
-    // connect!
-    m_cPipeBob->connect(sPipe.c_str());
+    set_pipe(m_cPipeBob, sPipe);
 }
 
 

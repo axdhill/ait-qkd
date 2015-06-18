@@ -38,18 +38,7 @@
 #include "config.h"
 
 // 0MQ
-#ifdef HAVE_ZMQ_H
-#   include <zmq.h>
-#   ifdef __cplusplus
-#       if (ZMQ_VERSION_MAJOR == 3)
-#           include "lib/utility/zmq.hpp"
-#       else
-#           include <zmq.hpp>
-#       endif
-#   endif
-#else
-#   error "ZMQ not found"
-#endif
+#include <zmq.h>
 
 #include <atomic>
 #include <condition_variable>
@@ -118,10 +107,10 @@ public:
     bool bPipeOutStdout;                        /**< pipe out is stdout:// flag */
     bool bPipeOutVoid;                          /**< pipe out is void flag */
     
-    zmq::socket_t * cSocketListener;            /**< listener socket */
-    zmq::socket_t * cSocketPeer;                /**< connection to peer */
-    zmq::socket_t * cSocketPipeIn;              /**< incoming 0MQ socket of the pipe */
-    zmq::socket_t * cSocketPipeOut;             /**< outgoing 0MQ socket of the pipe */
+    void * cSocketListener;                     /**< listener socket */
+    void * cSocketPeer;                         /**< connection to peer */
+    void * cSocketPipeIn;                       /**< incoming 0MQ socket of the pipe */
+    void * cSocketPipeOut;                      /**< outgoing 0MQ socket of the pipe */
     
     std::chrono::high_resolution_clock::time_point cModuleBirth;        /**< timestamp of module birth */
     
@@ -245,13 +234,13 @@ public:
     ~module_internal() {
         
         // clean up
-        if (cSocketListener != nullptr) delete cSocketListener;
+        if (cSocketListener != nullptr) zmq_close(cSocketListener);
         cSocketListener = nullptr;
-        if (cSocketPeer != nullptr) delete cSocketPeer;
+        if (cSocketPeer != nullptr) zmq_close(cSocketPeer);
         cSocketPeer = nullptr;
-        if (cSocketPipeIn != nullptr) delete cSocketPipeIn;
+        if (cSocketPipeIn != nullptr) zmq_close(cSocketPipeIn);
         cSocketPipeIn = nullptr;
-        if (cSocketPipeOut != nullptr) delete cSocketPipeOut;
+        if (cSocketPipeOut != nullptr) zmq_close(cSocketPipeOut);
         cSocketPipeOut = nullptr;
     };
     
@@ -365,6 +354,14 @@ public:
     
     
     /**
+     * clean resources on a socket
+     *
+     * @param   cSocket     the socket to release
+     */
+    void release_socket(void * & cSocket);
+
+    
+    /**
      * set a new module state
      * 
      * the working thread will be notified (if waiting)
@@ -412,6 +409,16 @@ public:
      * @return  true, for success
      */
     bool setup_pipe_out();
+
+
+    /**
+     * setup socket with high water mark and timeout
+     *
+     * @param   cSocket             socket to modify
+     * @param   nHighWaterMark      high water mark
+     * @param   nTimeout            timeout on socket
+     */
+    void setup_socket(void * & cSocket, int nHighWaterMark, int64_t nTimeout); 
     
     
     /**

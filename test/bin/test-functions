@@ -52,21 +52,38 @@ alias qkd_qdbus='qdbus --address ${QKD_DBUS_SESSION_ADDRESS}'
 # 
 function test_cleanup() {
 
-    # kick any running q3pd processes
-    for p in $(qkd_qdbus | grep at.ac.ait.q3p.node); do
-        PID=$(qkd_qdbus ${p} /Node process_id 2> /dev/null) && (
-            echo "found q3pd running with pid ${PID} - killing ..."
-            kill ${PID}
-        )
-    done
-    
-    # kick any running qkd modules processes
-    for p in $(qkd_qdbus | grep at.ac.ait.qkd.module); do
-        PID=$(qkd_qdbus ${p} /Module process_id 2> /dev/null) && (
-            echo "found qkd module running with pid ${PID} - killing ..."
-            kill ${PID}
-        )
-    done
+    # if we ain't got a local testing DBus: just kill all processes we find
+    DBUS_PRESENT="FALSE"
+    if [ -f /tmp/qkd-test-dbus/qkd-dbus.pid ]; then
+        pgrep dbus-daemon | grep $(cat /tmp/qkd-test-dbus/qkd-dbus.pid) &> /dev/null    
+        if [ "$?" = "0" ]; then
+            echo "Local testing DBus present"
+            DBUS_PRESENT="TRUE"
+        fi
+    fi
+
+    if [ "${DBUS_PRESENT}" = "TRUE" ]; then
+
+        # kick any running q3pd processes
+        for p in $(qkd_qdbus | grep at.ac.ait.q3p.node); do
+            PID=$(qkd_qdbus ${p} /Node process_id 2> /dev/null) && (
+                echo "found q3pd running with pid ${PID} - killing ..."
+                kill ${PID}
+            )
+        done
+        
+        # kick any running qkd modules processes
+        for p in $(qkd_qdbus | grep at.ac.ait.qkd.module); do
+            PID=$(qkd_qdbus ${p} /Module process_id 2> /dev/null) && (
+                echo "found qkd module running with pid ${PID} - killing ..."
+                kill ${PID}
+            )
+        done
+
+    else
+        pkill q3pd
+        pkill qkd-
+    fi
 
     # kick testing dbus
     test -f /tmp/qkd-test-dbus/qkd-dbus.pid && kill $(cat /tmp/qkd-test-dbus/qkd-dbus.pid)
@@ -119,6 +136,7 @@ function test_init() {
     mkdir -p /tmp/qkd-test-dbus &> /dev/null
     rm -f /tmp/qkd-test-dbus/qkd-dbus.pid &> /dev/null
     dbus-daemon --config-file ${TEST_BASE}/test/test-data/qkd-test-dbus.conf
+    echo "query local temporary DBus with 'qdbus --address unix:path=/tmp/qkd-test-dbus/qkd_dbus_socket'"
     DBUS_ID=$(qkd_qdbus org.freedesktop.DBus / GetId)
     if [ -z ${DBUS_ID} ]; then
         echo 'Failed to launch local DBus for testing.'

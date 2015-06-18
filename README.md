@@ -94,14 +94,14 @@ In order to compile the QKD sources we need at least the developer versions of:
 * UUID
 * CMake
 * GMP
-* 0MQ (Zero Message Queue) version 2.2 (**NOT** version 3)
+* 0MQ (Zero Message Queue) at least version 4.0.5
 * Qt4 at least version 4.4
 * Qwt (Qt Widgets for Technical Applications)
 * Doxygen
 
 Here are the steps which help you to setup a build system capable of compiling the sources on a pure Debian Wheezy/Jessie system.
 
-    $ sudo apt-get install build-essential g++ gcc libboost-all-dev libssl-dev uuid-dev cmake libssl-dev uuid-dev libgmp3-dev libzmq-dev libdbus-1-dev libqt4-dev libqwt-dev doxygen texlive-latex-base texlive-latex-extra texlive-font-utils dbus-x11 libcap2-bin
+    $ sudo apt-get install build-essential g++ gcc libboost-all-dev libssl-dev uuid-dev cmake libssl-dev uuid-dev libgmp3-dev libzmq3-dev libdbus-1-dev libqt4-dev libqwt-dev doxygen texlive-latex-base texlive-latex-extra texlive-font-utils dbus-x11 libcap2-bin
 
 
 To clone the sources from the AIT servers:
