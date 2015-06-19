@@ -876,7 +876,6 @@ bool module::recv_internal(qkd::module::message & cMessage, int nTimeOut) throw 
         throw std::runtime_error("failed to decide which channel to use for recv");
     }
     
-    // TODO: setting timeout may be only valid before socket connet/bind
     if (zmq_setsockopt(cSocket, ZMQ_RCVTIMEO, &nTimeOut, sizeof(nTimeOut)) == -1) {
         std::stringstream ss;
         ss << "failed to set timeout on socket: " << strerror(zmq_errno());
@@ -1177,13 +1176,12 @@ bool module::send(qkd::module::message & cMessage,
         throw std::runtime_error("failed to decide which channel to use for send");
     }
 
-    // TODO: setting timeout may be only valid before socket connet/bind
     if (zmq_setsockopt(cSocket, ZMQ_SNDTIMEO, &nTimeOut, sizeof(nTimeOut)) == -1) {
         std::stringstream ss;
         ss << "failed to set timeout on socket: " << strerror(zmq_errno());
         throw std::runtime_error(ss.str());
     }
-  
+
     cMessage.m_cHeader.nId = htobe32(++qkd::module::message::m_nLastId);
     cMessage.m_cTimeStamp = std::chrono::high_resolution_clock::now();
     d->debug_message(true, cMessage);
@@ -1387,7 +1385,6 @@ void module::set_terminate_after(qulonglong nTerminateAfter) {
  */
 void module::set_timeout_network(qlonglong nTimeout) {
     
-    // TODO: this may not work on already opened sockets
     std::lock_guard<std::mutex> cLock(d->cURLMutex);
     d->nTimeoutNetwork = nTimeout;
     if (d->cSocketListener) {
@@ -1424,7 +1421,6 @@ void module::set_timeout_network(qlonglong nTimeout) {
  */
 void module::set_timeout_pipe(qlonglong nTimeout) {
     
-    // TODO: this may not work on already opened sockets
     std::lock_guard<std::mutex> cLock(d->cURLMutex);
     d->nTimeoutPipe = nTimeout;
     if (d->cSocketPipeIn) {
