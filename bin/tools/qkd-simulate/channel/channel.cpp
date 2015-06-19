@@ -40,17 +40,8 @@
 #include <pthread.h>
 #include <signal.h>
 
-
-#ifdef HAVE_ZMQ_H
-#   include <zmq.h>
-#   ifdef __cplusplus
-#       if (ZMQ_VERSION_MAJOR == 3)
-#           include "lib/utility/zmq.hpp"
-#       else
-#           include <zmq.hpp>
-#       endif
-#   endif
-#endif
+// 0MQ
+#include <zmq.h>
 
 // ait
 #include "channel.h"

@@ -702,6 +702,12 @@ bool module::read(qkd::key::key & cKey) {
         assert(zmq_msg_init(&cZMQMessage) == 0);
         int nRead = zmq_msg_recv(&cZMQMessage, d->cSocketPipeIn, 0);
         if (nRead == -1) {
+
+            // EAGAIN and EINTR are not critical
+            if ((zmq_errno() == EAGAIN) || (zmq_errno() == EINTR)) {
+                return false;
+            }
+
             std::stringstream ss;
             ss << "failed reading key: " << strerror(zmq_errno());
             zmq_msg_close(&cZMQMessage);
@@ -881,6 +887,13 @@ bool module::recv_internal(qkd::module::message & cMessage, int nTimeOut) throw 
     assert(zmq_msg_init(&cZMQHeader) == 0);
     int nReadHeader = zmq_msg_recv(&cZMQHeader, cSocket, 0);
     if (nReadHeader == -1) {
+
+        // EAGAIN and EINTR are not critical
+        if ((zmq_errno() == EAGAIN) || (zmq_errno() == EINTR)) {
+            zmq_msg_close(&cZMQHeader);
+            return false;
+        }
+
         std::stringstream ss;
         ss << "failed reading message header from peer: " << strerror(zmq_errno());
         zmq_msg_close(&cZMQHeader);
@@ -897,6 +910,13 @@ bool module::recv_internal(qkd::module::message & cMessage, int nTimeOut) throw 
     assert(zmq_msg_init(&cZMQData) == 0);
     int nReadData = zmq_msg_recv(&cZMQData, cSocket, 0);
     if (nReadData == -1) {
+
+        // EAGAIN and EINTR are not critical
+        if ((zmq_errno() == EAGAIN) || (zmq_errno() == EINTR)) {
+            zmq_close(&cZMQData);
+            return false;
+        }
+
         std::stringstream ss;
         ss << "failed reading message data from peer: " << strerror(zmq_errno());
         zmq_msg_close(&cZMQData);
@@ -1124,11 +1144,14 @@ void module::run() {
  * Note: this function takes ownership of the message's data sent! 
  * Afterwards the message's data will be void
  * 
+ * Sending might fail on interrupt.
+ *
  * @param   cMessage            the message to send
  * @param   cAuthContext        the authentication context involved
  * @param   nTimeOut            timeout in ms
+ * @returns true, if successfully sent
  */
-void module::send(qkd::module::message & cMessage, 
+bool module::send(qkd::module::message & cMessage, 
         qkd::crypto::crypto_context & cAuthContext, 
         int nTimeOut) throw (std::runtime_error) {
     
@@ -1167,6 +1190,12 @@ void module::send(qkd::module::message & cMessage,
 
     int nSentHeader = zmq_send(cSocket, &(cMessage.m_cHeader), sizeof(cMessage.m_cHeader), ZMQ_SNDMORE);
     if (nSentHeader == -1) {
+
+        // EINTR is not critical
+        if (zmq_errno() == EINTR) {
+            return false;
+        }
+
         std::stringstream ss;
         ss << "failed sending message header to peer: " << strerror(zmq_errno());
         throw std::runtime_error(ss.str());
@@ -1174,6 +1203,11 @@ void module::send(qkd::module::message & cMessage,
 
     int nSentData = zmq_send(cSocket, cMessage.data().get(), cMessage.data().size(), 0);
     if (nSentData == -1) {
+
+        // EINTR is not critical
+        if (zmq_errno() == EINTR) {
+            return false;
+        }
         std::stringstream ss;
         ss << "failed sending message data to peer: " << strerror(zmq_errno());
         throw std::runtime_error(ss.str());
@@ -1181,6 +1215,8 @@ void module::send(qkd::module::message & cMessage,
 
     cAuthContext << cMessage.data();
     cMessage = qkd::module::message();    
+
+    return true;
 }
 
 
@@ -1979,10 +2015,18 @@ bool module::write(qkd::key::key const & cKey) {
 
         int nWritten = zmq_send(d->cSocketPipeOut, cBuffer.get(), cBuffer.size(), 0);
         if (nWritten == -1) {
+
+            // EINTR is not critical
+            if (zmq_errno() == EINTR) {
+                return false;
+            }
+
             std::stringstream ss;
             ss << "failed writing key to next module: " << strerror(zmq_errno());
             throw std::runtime_error(ss.str());
         }
+
+        bFailed = false;
     }
     
     if (bFailed) {

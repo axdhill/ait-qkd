@@ -242,10 +242,13 @@ public:
      * Note: this function takes ownership of the message's data sent! 
      * Afterwards the message's data will be void
      * 
+     * Sending might fail on interrupt.
+     *
      * @param   cMessage            the message to send
      * @param   nTimeOut            timeout in ms
+     * @returns true, if the message has been sent
      */
-    void send(qkd::module::message & cMessage, int nTimeOut = std::numeric_limits< int >::min()) throw (std::runtime_error);
+    bool send(qkd::module::message & cMessage, int nTimeOut = std::numeric_limits< int >::min()) throw (std::runtime_error);
 
 
 private:

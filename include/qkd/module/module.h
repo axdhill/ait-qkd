@@ -1570,12 +1570,15 @@ protected:
      * 
      * Note: this function takes ownership of the message's data sent! 
      * Afterwards the message's data will be void
-     * 
+     *
+     * Sending might fail on interrupt.
+     *
      * @param   cMessage            the message to send
      * @param   cAuthContext        the authentication context involved
      * @param   nTimeOut            timeout in ms
+     * @returns true, if successfully sent
      */
-    virtual void send(qkd::module::message & cMessage, qkd::crypto::crypto_context & cAuthContext, int nTimeOut = -1) throw (std::runtime_error);
+    virtual bool send(qkd::module::message & cMessage, qkd::crypto::crypto_context & cAuthContext, int nTimeOut = -1) throw (std::runtime_error);
 
     
     /**
