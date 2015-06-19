@@ -537,9 +537,7 @@ bool module::module_internal::setup_listen() {
     
     // create the ZMQ socket
     cSocketListener = zmq_socket(g_cInit.zmq_ctx(), ZMQ_DEALER);
-qkd::utility::debug() << __FILENAME__ << "@" << __LINE__;    
     setup_socket(cSocketListener, 1000, nTimeoutNetwork);
-qkd::utility::debug() << __FILENAME__ << "@" << __LINE__;    
     
     // bind!
     qkd::utility::syslog::info() << "binding module listen on " << sURLListen;
@@ -578,9 +576,7 @@ bool module::module_internal::setup_peer() {
     if (sURLPeer.empty()) return true;
 
     cSocketPeer = zmq_socket(g_cInit.zmq_ctx(), ZMQ_DEALER);
-qkd::utility::debug() << __FILENAME__ << "@" << __LINE__;    
     setup_socket(cSocketPeer, 1000, nTimeoutNetwork);
-qkd::utility::debug() << __FILENAME__ << "@" << __LINE__;    
 
     // connect
     zmq_connect(cSocketPeer, sURLPeer.c_str());
@@ -655,9 +651,7 @@ bool module::module_internal::setup_pipe_in() {
         
         // create the ZMQ socket
         cSocketPipeIn = zmq_socket(g_cInit.zmq_ctx(), ZMQ_PULL);
-qkd::utility::debug() << __FILENAME__ << "@" << __LINE__;    
         setup_socket(cSocketPipeIn, 1000, nTimeoutPipe); 
-qkd::utility::debug() << __FILENAME__ << "@" << __LINE__;    
         
         // warn if we use a "*" or empty host here
         bool bAmbiguousHost = (cURLPipeIn.scheme() == "tcp") && ((cURLPipeIn.host().isEmpty()) || (cURLPipeIn.host() == "*") || (cURLPipeIn.host() == "0.0.0.0"));
@@ -742,9 +736,7 @@ bool module::module_internal::setup_pipe_out() {
         
         // create the ZMQ socket
         cSocketPipeOut = zmq_socket(g_cInit.zmq_ctx(), ZMQ_PUSH);
-qkd::utility::debug() << __FILENAME__ << "@" << __LINE__;    
         setup_socket(cSocketPipeOut, 1000, nTimeoutPipe);
-qkd::utility::debug() << __FILENAME__ << "@" << __LINE__;    
         
         // warn if we use a "*" or empty host here
         bool bAmbiguousHost = (cURLPipeOut.scheme() == "tcp") && ((cURLPipeOut.host().isEmpty()) || (cURLPipeOut.host() == "*") || (cURLPipeOut.host() == "0.0.0.0"));
