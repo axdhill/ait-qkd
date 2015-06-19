@@ -56,11 +56,12 @@ rm -rf throttle-keys.* &> /dev/null
 # 20000 bits total
 ${TEST_BASE}/bin/qkd-key-gen --keys=10 --size=250 throttle-keys
 
+
 # ---- test: maximum of 5000 bps ----
 
 
 # some info about what we are doing
-echo "test: throttle to 5000 bps --> minimum of 4 seconds needed for all keys (20000 bits in total)"
+echo "test: throttle to 5000 bps --> minimum of 3 seconds needed for all keys (20000 bits in total)"
 
 # start the qkd-throttle module in the background 
 # with stdin:// and with maximum of 5000 bps
@@ -133,7 +134,7 @@ THROTTLE_SECONDS=$(echo "${THROTTLE_TIMING}" | grep "^real" | awk '{ print $2; }
 # with 5000 bps we must have at least 3 secs
 THROTTLE_OK=$(echo "${THROTTLE_SECONDS} >= 3.0" | bc)
 if [ "${THROTTLE_OK}" != "1" ]; then
-    echo "seconds used for thottle is '${THROTTLE_SECONDS}' which is not greater or equal to 4.0 (as it should): test failed"
+    echo "seconds used for thottle is '${THROTTLE_SECONDS}' which is not greater or equal to 3.0 (as it should): test failed"
     exit 1
 fi
 echo "throttle for max bits per seconds ok"
