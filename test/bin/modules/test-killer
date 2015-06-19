@@ -50,7 +50,7 @@ ${TEST_BASE}/bin/qkd-key-gen --keys=100 killer-keys
 
 # create a pipeline: cat --> throttle --> tee
 ${TEST_BASE}/bin/qkd-cat &
-${TEST_BASE}/bin/qkd-throttle &
+${TEST_BASE}/bin/qkd-throttle --debug 2> qkd_throttle.debug &
 ${TEST_BASE}/bin/qkd-tee &
 sleep 1
 
@@ -127,12 +127,6 @@ qkd_qdbus ${MODULE_TEE} /Module resume
 sleep 1
 
 wait_stalled cat throttle tee
-
-## wait until we have processed all keys
-#while [ "$(qkd_qdbus ${MODULE_THROTTLE} /Module keys_outgoing)" -lt "100" ]; do
-#    echo "waiting for all keys to be processed ..."
-#    sleep 1
-#done
 
 # add the output from the 1st TEE to the 2nd TEE and check
 cat killer-keys.1.tee killer-keys.2.tee > killer-keys.total.tee
