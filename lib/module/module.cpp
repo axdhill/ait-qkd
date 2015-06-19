@@ -1885,17 +1885,16 @@ void module::work() {
         else {
             
             if (!read(cKey)) {
-                if (qkd::utility::debug::enabled()) {
-                    qkd::utility::debug() << "failed to read key from previous module in pipe";
-                }
+
+                if (get_state() != qkd::module::module_state::STATE_RUNNING) break;
+
+                qkd::utility::debug() << "failed to read key from previous module in pipe";
                 synchronize();
                 continue;
             }
             
             if (!accept(cKey)) {
-                if (qkd::utility::debug::enabled()) {
-                    qkd::utility::debug() << "key " << cKey.id() << " is not accepted by this module";
-                }
+                qkd::utility::debug() << "key " << cKey.id() << " is not accepted by this module";
                 continue;
             }
             
@@ -1958,9 +1957,8 @@ void module::work() {
             if (cKey.meta().sCryptoSchemeOutgoing == "null") cKey.meta().sCryptoSchemeOutgoing = "";
 
             if (!write(cKey)) {
-                if (qkd::utility::debug::enabled()) {
-                    qkd::utility::debug() << "failed to write key to next module in pipe.";
-                }
+                if (get_state() != qkd::module::module_state::STATE_RUNNING) break;
+                qkd::utility::debug() << "failed to write key to next module in pipe.";
             }
         }
 
