@@ -1864,7 +1864,7 @@ void module::work() {
 
     qkd::module::module_state eState = qkd::module::module_state::STATE_NEW;
 
-    qkd::utility::debug() << "working on icoming keys started";
+    qkd::utility::debug() << "working on incoming keys started";
     
     do {
         
