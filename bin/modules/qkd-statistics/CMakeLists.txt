@@ -1,7 +1,7 @@
 # ------------------------------------------------------------
 # CMakeLists.txt 
 # 
-# make: qkd/bin/modules
+# make: qkd/bin/modules/qkd-statistics
 #
 # Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
@@ -29,22 +29,37 @@
 
 
 # ------------------------------------------------------------
-# go through the subs
+# modules/qkd-statistics
 
-add_subdirectory(qkd-auth)
-add_subdirectory(qkd-bb84)
-add_subdirectory(qkd-buffer)
-add_subdirectory(qkd-cascade)
-add_subdirectory(qkd-cat)
-add_subdirectory(qkd-confirmation)
-add_subdirectory(qkd-debug)
-add_subdirectory(qkd-dekey)
-add_subdirectory(qkd-drop)
-add_subdirectory(qkd-enkey)
-add_subdirectory(qkd-error-estimation)
-add_subdirectory(qkd-ping)
-add_subdirectory(qkd-privacy-amplification)
-add_subdirectory(qkd-reorder)
-add_subdirectory(qkd-statistics)
-add_subdirectory(qkd-tee)
-add_subdirectory(qkd-throttle)
+# additional includes
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+# sources
+set(QKD_STATISTICS_SRC
+    main.cpp
+    qkd-statistics.cpp
+)
+
+# Qt MOC
+QT4_GENERATE_MOC(qkd-statistics.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-statistics.moc.cpp) 
+set(QKD_STATISTICS_MOC
+    qkd-statistics.moc.cpp
+)
+
+# DBus Integration
+QT4_GENERATE_DBUS_INTERFACE(qkd-statistics.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-statistics.xml)
+QT4_ADD_DBUS_ADAPTOR(QKD_STATISTICS_DBUS_SRC
+    ${CMAKE_CURRENT_BINARY_DIR}/qkd-statistics.xml 
+    ${CMAKE_CURRENT_SOURCE_DIR}/qkd-statistics.h 
+    qkd_statistics
+    qkd_statistics_dbus)
+
+# bin definition
+add_executable(qkd-statistics ${QKD_STATISTICS_SRC} ${QKD_STATISTICS_MOC} ${QKD_STATISTICS_DBUS_SRC})
+
+# linkage
+target_link_libraries(qkd-statistics ${CMAKE_REQUIRED_LIBRARIES})
+
+# install
+install(TARGETS qkd-statistics RUNTIME DESTINATION bin COMPONENT modules)
+
