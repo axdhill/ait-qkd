@@ -81,7 +81,11 @@ function test_cleanup() {
         done
 
     else
-        pkill q3pd
+        for p in pgrep q3pd; do
+            if [ $(basename $(readlink /proc/${p}/exe)) = "q3pd" ]; then
+                kill -9 ${p}
+            fi
+        done
         pkill qkd-
     fi
 
@@ -128,7 +132,6 @@ function test_init() {
         
     )
     
-
     # clean up any remants of previous tests
     test_cleanup
 
