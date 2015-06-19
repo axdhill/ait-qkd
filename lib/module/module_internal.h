@@ -414,6 +414,8 @@ public:
     /**
      * setup socket with high water mark and timeout
      *
+     * also linger will be set to 0
+     *
      * @param   cSocket             socket to modify
      * @param   nHighWaterMark      high water mark
      * @param   nTimeout            timeout on socket

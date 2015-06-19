@@ -474,16 +474,7 @@ void module::module_internal::release() {
  */
 void module::module_internal::release_socket(void * & cSocket) {
 
-    // by setting the LINGER to 0, we
-    // kick all pending messages
-
     if (cSocket != nullptr) {
-        int nLinger = 0;
-        if (zmq_setsockopt(cSocket, ZMQ_LINGER, &nLinger, sizeof(nLinger)) == -1) {
-            std::stringstream ss;
-            ss << "failed to set linger on socket: " << strerror(zmq_errno());
-            throw std::runtime_error(ss.str());
-        }
         zmq_close(cSocket);
     }
     cSocket = nullptr;
@@ -770,6 +761,8 @@ bool module::module_internal::setup_pipe_out() {
 /**
  * setup socket with high water mark and timeout
  *
+ * also linger will be set to 0
+ *
  * @param   cSocket             socket to modify
  * @param   nHighWaterMark      high water mark
  * @param   nTimeout            timeout on socket
@@ -805,6 +798,14 @@ void module::module_internal::setup_socket(void * & cSocket, int nHighWaterMark,
         cSocket = nullptr;
         throw std::runtime_error(ss.str());
     }
+
+    int nLinger = 0;
+    if (zmq_setsockopt(cSocket, ZMQ_LINGER, &nLinger, sizeof(nLinger)) == -1) {
+        std::stringstream ss;
+        ss << "failed to set linger on socket: " << strerror(zmq_errno());
+        throw std::runtime_error(ss.str());
+    }
+
 }
 
     
