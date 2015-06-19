@@ -537,7 +537,9 @@ bool module::module_internal::setup_listen() {
     
     // create the ZMQ socket
     cSocketListener = zmq_socket(g_cInit.zmq_ctx(), ZMQ_DEALER);
+qkd::utility::debug() << __FILENAME__ << "@" << __LINE__;    
     setup_socket(cSocketListener, 1000, nTimeoutNetwork);
+qkd::utility::debug() << __FILENAME__ << "@" << __LINE__;    
     
     // bind!
     qkd::utility::syslog::info() << "binding module listen on " << sURLListen;
@@ -576,8 +578,10 @@ bool module::module_internal::setup_peer() {
     if (sURLPeer.empty()) return true;
 
     cSocketPeer = zmq_socket(g_cInit.zmq_ctx(), ZMQ_DEALER);
+qkd::utility::debug() << __FILENAME__ << "@" << __LINE__;    
     setup_socket(cSocketPeer, 1000, nTimeoutNetwork);
-        
+qkd::utility::debug() << __FILENAME__ << "@" << __LINE__;    
+
     // connect
     zmq_connect(cSocketPeer, sURLPeer.c_str());
     
@@ -651,7 +655,9 @@ bool module::module_internal::setup_pipe_in() {
         
         // create the ZMQ socket
         cSocketPipeIn = zmq_socket(g_cInit.zmq_ctx(), ZMQ_PULL);
+qkd::utility::debug() << __FILENAME__ << "@" << __LINE__;    
         setup_socket(cSocketPipeIn, 1000, nTimeoutPipe); 
+qkd::utility::debug() << __FILENAME__ << "@" << __LINE__;    
         
         // warn if we use a "*" or empty host here
         bool bAmbiguousHost = (cURLPipeIn.scheme() == "tcp") && ((cURLPipeIn.host().isEmpty()) || (cURLPipeIn.host() == "*") || (cURLPipeIn.host() == "0.0.0.0"));
@@ -736,7 +742,9 @@ bool module::module_internal::setup_pipe_out() {
         
         // create the ZMQ socket
         cSocketPipeOut = zmq_socket(g_cInit.zmq_ctx(), ZMQ_PUSH);
+qkd::utility::debug() << __FILENAME__ << "@" << __LINE__;    
         setup_socket(cSocketPipeOut, 1000, nTimeoutPipe);
+qkd::utility::debug() << __FILENAME__ << "@" << __LINE__;    
         
         // warn if we use a "*" or empty host here
         bool bAmbiguousHost = (cURLPipeOut.scheme() == "tcp") && ((cURLPipeOut.host().isEmpty()) || (cURLPipeOut.host() == "*") || (cURLPipeOut.host() == "0.0.0.0"));
@@ -767,7 +775,7 @@ bool module::module_internal::setup_pipe_out() {
  * @param   nHighWaterMark      high water mark
  * @param   nTimeout            timeout on socket
  */
-void module::module_internal::setup_socket(void * & cSocket, int nHighWaterMark, int64_t nTimeout) {
+void module::module_internal::setup_socket(void * & cSocket, int nHighWaterMark, int nTimeout) {
 
     if (zmq_setsockopt(cSocket, ZMQ_RCVHWM, &nHighWaterMark, sizeof(nHighWaterMark)) == -1) {
         std::stringstream ss;
@@ -783,7 +791,6 @@ void module::module_internal::setup_socket(void * & cSocket, int nHighWaterMark,
         cSocket = nullptr;
         throw std::runtime_error(ss.str());
     }
-    
     if (zmq_setsockopt(cSocket, ZMQ_RCVTIMEO, &nTimeout, sizeof(nTimeout)) == -1) {
         std::stringstream ss;
         ss << "failed to set receive timeout on socket: " << strerror(zmq_errno());

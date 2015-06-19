@@ -419,8 +419,10 @@ public:
      * @param   cSocket             socket to modify
      * @param   nHighWaterMark      high water mark
      * @param   nTimeout            timeout on socket
+     * @param   bTimeoutRecv        set timeout on receive
+     * @param   bTimeoutSent        set timeout on send
      */
-    void setup_socket(void * & cSocket, int nHighWaterMark, int64_t nTimeout); 
+    void setup_socket(void * & cSocket, int nHighWaterMark, int nTimeout); 
     
     
     /**

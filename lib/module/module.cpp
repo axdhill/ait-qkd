@@ -1910,7 +1910,6 @@ void module::work() {
         }
 
         d->bProcessing = true;
-        qkd::utility::debug() << "processing key " << cKey.id();
         bool bForwardKey = process(cKey, cIncomingContext, cOutgoingContext);
         d->cLastProcessedKey = std::chrono::system_clock::now();
         d->bProcessing = false;
