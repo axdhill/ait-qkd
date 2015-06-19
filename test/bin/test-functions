@@ -81,12 +81,8 @@ function test_cleanup() {
         done
 
     else
-        for p in pgrep q3pd; do
-            if [ $(basename $(readlink /proc/${p}/exe)) = "q3pd" ]; then
-                kill -9 ${p}
-            fi
-        done
-        pkill qkd-
+        pkill ^q3pd
+        pkill ^qkd-
     fi
 
     # kick testing dbus
