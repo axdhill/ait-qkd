@@ -279,7 +279,6 @@ void module::module_internal::debug_message(bool bSent, qkd::module::message con
  */
 void module::module_internal::debug_key_pull(qkd::key::key const & cKey) {
 
-    // if not needed, then performance is wasted here
     boost::format cLineFormater = 
             boost::format("key-PULL [%015ums] id: %010u bits: %010u err: %6.4f dis: %010u crc: %08x state: %-13s");
     
@@ -303,7 +302,6 @@ void module::module_internal::debug_key_pull(qkd::key::key const & cKey) {
  */
 void module::module_internal::debug_key_push(qkd::key::key const & cKey) {
 
-    // if not needed, then performance is wasted here
     boost::format cLineFormater = 
             boost::format("key-PUSH [%015ums] id: %010u bits: %010u err: %6.4f dis: %010u crc: %08x state: %-13s dur: %012u ns (%06u ms)");
 

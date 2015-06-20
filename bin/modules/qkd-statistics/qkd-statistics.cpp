@@ -40,6 +40,8 @@
 #include <boost/format.hpp>
 
 // ait
+#include <qkd/utility/average.h>
+#include <qkd/utility/shannon.h>
 #include <qkd/utility/syslog.h>
 
 #include "qkd-statistics.h"
@@ -68,14 +70,29 @@ public:
     /**
      * ctor
      */
-    qkd_statistics_data() : bWarningDisplayed(false), bHeaderWritten(false) {};
-    
-    std::recursive_mutex cPropertyMutex;    /**< property mutex */
-    std::string sFileURL;                   /**< file URL */
-    std::ofstream cStatisticsFile;          /**< the statistics file */
+    qkd_statistics_data(qkd_statistics * cParent) : 
+            cParentModule(cParent), bWarningDisplayed(false), bHeaderWritten(false) {
 
-    bool bWarningDisplayed;                 /**< displayed initial warning on file opening errors */
-    bool bHeaderWritten;                    /**< header has been written */
+        nKeysOutgoing = 0;
+        nKeyBitsOutgoing = 0;
+        cKeysOutgoingRate = qkd::utility::average_technique::create("time", 1000);
+        cKeyBitsOutgoingRate = qkd::utility::average_technique::create("time", 1000);
+    };
+    
+    qkd_statistics * cParentModule;                     /**< the encapsuling parent module */
+
+    std::recursive_mutex cPropertyMutex;                /**< property mutex */
+    std::string sFileURL;                               /**< file URL */
+    std::ofstream cStatisticsFile;                      /**< the statistics file */
+
+    bool bWarningDisplayed;                             /**< displayed initial warning on file opening errors */
+    bool bHeaderWritten;                                /**< header has been written */
+
+    uint64_t nKeysOutgoing;                             /**< number of keys outgoing  */
+    uint64_t nKeyBitsOutgoing;                          /**< number of keys bits outgoing */
+    
+    qkd::utility::average cKeysOutgoingRate;            /**< calculate gain of keys outgoing of the last second */
+    qkd::utility::average cKeyBitsOutgoingRate;         /**< calculate gain of key bits outgoing of the last second */
 
 
     /**
@@ -179,9 +196,9 @@ bool qkd_statistics::qkd_statistics_data::ensure_file_open() {
 void qkd_statistics::qkd_statistics_data::write_header() {
 
     if (bHeaderWritten) return;
-
-    cStatisticsFile << "HEADER" << std::endl;
-
+    cStatisticsFile 
+            << "timestamp         id         bits       qber   disclosed bits  state         sh.eff. total keys   total bits         keys/second  bps"
+            << std::endl;
     bHeaderWritten = true;
 }
 
@@ -193,17 +210,48 @@ void qkd_statistics::qkd_statistics_data::write_header() {
  */
 void qkd_statistics::qkd_statistics_data::write_statistics(qkd::key::key const & cKey) {
 
-    cStatisticsFile << "KEY: " << cKey.id() << std::endl;
+    std::lock_guard<std::recursive_mutex> cLock(cPropertyMutex);
 
+    boost::format cLineFormater = 
+            boost::format("%015ums %010u %010u %6.4f %010u      %-13s %7.5f %012u %018u %12.0f %14.0f");
+
+    double nShannonEfficiency = qkd::utility::shannon_efficiency(
+            cKey.meta().nErrorRate, 
+            (double)cKey.meta().nDisclosedBits / (cKey.size() * 8.0));
+
+    nKeysOutgoing += 1;
+    nKeyBitsOutgoing += cKey.size() * 8;
+    cKeysOutgoingRate << 1.0;
+    cKeyBitsOutgoingRate << (cKey.size() * 8.0);
+
+    double kps = cKeysOutgoingRate->sum();
+    double bps = cKeyBitsOutgoingRate->sum();
+
+    auto cTimePoint = std::chrono::duration_cast<std::chrono::milliseconds>(cParentModule->age());
+    cLineFormater % cTimePoint.count();
+    cLineFormater % cKey.id();
+    cLineFormater % (cKey.size() * 8);
+    cLineFormater % cKey.meta().nErrorRate;
+    cLineFormater % cKey.meta().nDisclosedBits;
+    cLineFormater % cKey.state_string();
+    cLineFormater % nShannonEfficiency;
+    cLineFormater % nKeysOutgoing;
+    cLineFormater % nKeyBitsOutgoing;
+    cLineFormater % kps;
+    cLineFormater % bps;
+    
+    cStatisticsFile << cLineFormater.str() << std::endl;
 }
 
 
 /**
  * ctor
  */
-qkd_statistics::qkd_statistics() : qkd::module::module("statistics", qkd::module::module_type::TYPE_OTHER, MODULE_DESCRIPTION, MODULE_ORGANISATION) {
+qkd_statistics::qkd_statistics() : 
+        qkd::module::module("statistics", 
+        qkd::module::module_type::TYPE_OTHER, MODULE_DESCRIPTION, MODULE_ORGANISATION) {
 
-    d = boost::shared_ptr<qkd_statistics::qkd_statistics_data>(new qkd_statistics::qkd_statistics_data());
+    d = boost::shared_ptr<qkd_statistics::qkd_statistics_data>(new qkd_statistics::qkd_statistics_data(this));
     
     // enforce DBus registration
     new StatisticsAdaptor(this);
@@ -262,7 +310,9 @@ QString qkd_statistics::file_url() const {
  * @param   cOutgoingContext        outgoing crypto context
  * @return  always true
  */
-bool qkd_statistics::process(qkd::key::key & cKey, UNUSED qkd::crypto::crypto_context & cIncomingContext, UNUSED qkd::crypto::crypto_context & cOutgoingContext) {
+bool qkd_statistics::process(qkd::key::key & cKey, 
+        UNUSED qkd::crypto::crypto_context & cIncomingContext, 
+        UNUSED qkd::crypto::crypto_context & cOutgoingContext) {
     
     if (!d->ensure_file_open()) return true;
 
