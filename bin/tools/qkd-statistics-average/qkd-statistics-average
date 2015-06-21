@@ -1,0 +1,163 @@
+#!/usr/bin/env python3
+
+# ------------------------------------------------------------
+# qkd-statistics-average
+#
+# This python script parses the output file of qkd-statistics
+# prints the average values on stdout.
+#
+# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This file is part of the AIT QKD Software Suite.
+#
+# The AIT QKD Software Suite is free software: you can redistribute 
+# it and/or modify it under the terms of the GNU General Public License 
+# as published by the Free Software Foundation, either version 3 of 
+# the License, or (at your option) any later version.
+# 
+# The AIT QKD Software Suite is distributed in the hope that it will 
+# be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with the AIT QKD Software Suite. 
+# If not, see <http://www.gnu.org/licenses/>.
+# ------------------------------------------------------------
+
+
+# metadata
+__author__      = 'AIT Austrian Instutute of Technology'
+__copyright__   = 'Copyright (C) 2015 AIT Austrian Institute of Technology'
+__license__     = 'GPL v3'
+__licenseurl__  = 'http://www.ait.ac.at'
+__title__       = 'qkd-statistics-average'
+__version__     = '9.9999.4'
+
+
+# ------------------------------------------------------------
+# imports
+
+import argparse
+import re
+import sys
+
+
+# ------------------------------------------------------------
+# code
+
+
+def parse(filenames):
+
+    """Start file parsing
+
+    @param  filenames       alle files to parse in a list
+    """
+
+    for fn in filenames:
+        try:
+            parse_file(fn)
+        except Exception as e:
+            sys.stderr.write('error parsing file "' + fn + '": ' + str(e) + '\n')
+
+
+def parse_file(fn):
+
+    """Parse a single file
+
+    the file is suggested to be produced by qkd-statistics
+
+    @param  fn      the filename of the qkd-statistics result file
+    """
+
+    pattern = re.compile('(?P<timestamp>[0-9]*)ms (?P<id>[0-9]*) (?P<bits>[0-9]*) (?P<error_rate>[0-9\.]*) (?P<disclosed_bits>[0-9]*) *(?P<state>[a-z]*) *(?P<shannon_eff>[0-9\.]*) (?P<keys_total>[0-9]*) (?P<bits_total>[0-9\.]*) *(?P<keys_second>[0-9]*) *(?P<bps>[0-9]*)')
+
+    bits = []
+    error_rate = []
+    disclosed_bits = []
+    shannon_eff = []
+    keys_total = 0
+    bits_total = 0
+    keys_second = []
+    bps = []
+
+    f = open(fn)
+    for l in f:
+        try:
+            
+            m = pattern.match(l).groups()
+            bits.append(float(m[2]))
+            error_rate.append(float(m[3]))
+            disclosed_bits.append(float(m[4]))
+            shannon_eff.append(float(m[6]))
+            keys_total = int(m[7])
+            bits_total = int(m[8])
+            keys_second.append(float(m[9]))
+            bps.append(float(m[10]))
+
+        except:
+            pass
+
+    f.close()
+
+    avg_bits = sum(bits) / float(len(bits))
+    avg_error_rate = sum(error_rate) / float(len(error_rate))
+    avg_disclosed_bits = sum(disclosed_bits) / float(len(disclosed_bits))
+    avg_shannon_eff = sum(shannon_eff) / float(len(shannon_eff))
+    avg_keys_second = sum(keys_second) / float(len(keys_second))
+    avg_bps = sum(bps) / float(len(bps))
+
+    print(
+        "file: " + fn + " " +
+        "avg_bits: " + str(avg_bits) +  " " +
+        "avg_error_rate: " + str(avg_error_rate) + " " +
+        "avg_disclosed_bits: " + str(avg_disclosed_bits) + " " +
+        "avg_shannon_eff: " + str(avg_shannon_eff) + " " +
+        "keys_total: " + str(keys_total) + " " +
+        "bits_total: " + str(bits_total) + " " +
+        "avg_keys_per_second: " + str(avg_keys_second) + " " +
+        "avg_bps: " + str(avg_bps)
+    )
+
+
+def main():
+
+    """qkd-statistics-average start"""
+
+    # parse arguments
+    parser = argparse.ArgumentParser(description = '''qkd-statistics-average:  
+            parses the output file of qkd-statistics and prints the average values on stdout.''')
+
+    parser.add_argument('-v', '--version', dest='version', action='store_const', const=True, default=False,
+            help = 'show version information')
+
+    parser.add_argument('files', metavar="FILES...", nargs='+',
+            help = 'show version information')
+
+    args = parser.parse_args()
+
+    if (args.version): 
+        show_version()
+        sys.exit(0)
+
+    parse(args.files)
+
+
+def show_version():
+
+    """Show the version"""
+
+    print('qkd-statistics-average V{0}'.format(__version__))
+    print(__author__)
+    print(__copyright__)
+    print('Licensed under the terms of {0} - please read "{1}"'.format(__license__, __licenseurl__))
+
+
+if __name__ == '__main__':
+    main()
+

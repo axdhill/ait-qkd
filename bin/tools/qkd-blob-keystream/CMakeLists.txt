@@ -31,6 +31,8 @@
 # ------------------------------------------------------------
 # qkd-blob-keystream
 
+configure_file(qkd-blob-keystream ${CMAKE_CURRENT_BINARY_DIR}/qkd-blob-keystream)
+
 # install
 install(PROGRAMS qkd-blob-keystream DESTINATION bin COMPONENT tools)
 

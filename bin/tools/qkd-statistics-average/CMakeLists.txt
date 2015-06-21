@@ -1,11 +1,11 @@
 # ------------------------------------------------------------
 # CMakeLists.txt 
 # 
-# make: qkd/bin/tools/q3p-inject
+# make: qkd/bin/tools/qkd-statistics-average
 #
 # Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
-# Copyright (C) 2013-2015 AIT Austrian Institute of Technology
+# Copyright (C) 2015 AIT Austrian Institute of Technology
 # AIT Austrian Institute of Technology GmbH
 # Donau-City-Strasse 1 | 1220 Vienna | Austria
 # http://www.ait.ac.at
@@ -29,10 +29,10 @@
 
 
 # ------------------------------------------------------------
-# q3p-inject
+# qkd-statistics-average
 
-configure_file(q3p-inject ${CMAKE_CURRENT_BINARY_DIR}/q3p-inject)
+configure_file(qkd-statistics-average ${CMAKE_CURRENT_BINARY_DIR}/qkd-statistics-average)
 
 # install
-install(PROGRAMS q3p-inject DESTINATION bin COMPONENT tools)
+install(PROGRAMS qkd-statistics-average DESTINATION bin COMPONENT tools)
 
