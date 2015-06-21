@@ -39,16 +39,16 @@ The whole project compiles in one single step, meaning no subprojects. This resu
     |   |   +-- qkd-cat                                         load a keystream from a file and feed the pipeline
     |   |   +-- qkd-confirmation                                confirmation module
     |   |   +-- qkd-debug                                       print keystream meta data to stderr
-    |   |   +-- qkd-dekey                                       remove metadate from a keytream (turns keystream to BLOB)
+    |   |   +-- qkd-dekey                                       remove metadata from a keystream (turns keystream to BLOB)
     |   |   +-- qkd-drop                                        randomly dropping keys on one side (development module)
-    |   |   +-- qkd-enkey                                       add metadate to a BLOB (turns BLOB to keystream)
+    |   |   +-- qkd-enkey                                       add metadata to a BLOB (turns BLOB to keystream)
     |   |   +-- qkd-error-estimation                            error estimation module
     |   |   +-- qkd-ping                                        touch remote peer module (administration module)
     |   |   +-- qkd-privacy-amplification                       privacy amplification module
     |   |   +-- qkd-reorder                                     randomly reorder keys in a keystream (development module)
-    |   |   +-- qkd-statistics                                  writes statistic data of the bypassing keystream to a file
+    |   |   +-- qkd-statistics                                  writes statistic data of bypassing keystream to a file
     |   |   +-- qkd-tee                                         fork keystream to stderr and the next module
-    |   |   +-- qkd-throttle                                    throttle key stream on bits/keys per second (development module)
+    |   |   +-- qkd-throttle                                    throttle key stream on bits or keys per second (development module)
     |   +-- q3pd                                            The Q3P node
     |   +-- tools                                           tools
     |       +-- q3p-inject                                      Feed a Q3P node with keys, BASH-Script
@@ -174,8 +174,8 @@ However, if you lack certain packages and get error messages like these
       Package libboost-program-options1.49.0 is not installed.
      qkd depends on libboost-system1.49.0 (>= 1.49.0); however:
       Package libboost-system1.49.0 is not installed.
-     qkd depends on libzmq1; however:
-      Package libzmq1 is not installed.
+     qkd depends on libzmqr3; however:
+      Package libzmqr3 is not installed.
      qkd depends on libqtgui4; however:
       Package libqtgui4 is not installed.
      qkd depends on libqtdbus4; however:
