@@ -46,6 +46,7 @@ The whole project compiles in one single step, meaning no subprojects. This resu
     |   |   +-- qkd-ping                                        touch remote peer module (administration module)
     |   |   +-- qkd-privacy-amplification                       privacy amplification module
     |   |   +-- qkd-reorder                                     randomly reorder keys in a keystream (development module)
+    |   |   +-- qkd-statistics                                  writes statistic data of the bypassing keystream to a file
     |   |   +-- qkd-tee                                         fork keystream to stderr and the next module
     |   |   +-- qkd-throttle                                    throttle key stream on bits/keys per second (development module)
     |   +-- q3pd                                            The Q3P node
@@ -58,6 +59,7 @@ The whole project compiles in one single step, meaning no subprojects. This resu
     |       +-- qkd-key-gen                                     create pairs of pseudo random input keys
     |       +-- qkd-module-manager                              GUI for qkd post processing
     |       +-- qkd-pipeline                                    high level qkd post processing admin (start/stop pipeline)
+    |       +-- qkd-statistics-average                          makes average analysis of files dumped by qkd-statistic
     |       +-- qkd-simulate                                    GUI with simulating quantum events continuously 
     |       +-- qkd-view                                        dump current status of all qkd objects of the system to stdout
     +-- cmake                                           cmake relevant build details
