@@ -1,11 +1,11 @@
 # ------------------------------------------------------------
 # CMakeLists.txt 
 # 
-# make: qkd/bin/tools
+# make: qkd/bin/tools/qkd-blob-keystream
 #
 # Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
-# Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+# Copyright (C) 2015 AIT Austrian Institute of Technology
 # AIT Austrian Institute of Technology GmbH
 # Donau-City-Strasse 1 | 1220 Vienna | Austria
 # http://www.ait.ac.at
@@ -29,14 +29,8 @@
 
 
 # ------------------------------------------------------------
-# go through the subs
+# qkd-blob-keystream
 
-add_subdirectory(q3p-keystore-dump)
-add_subdirectory(q3p-mq-reader)
-add_subdirectory(qkd-blob-keystream)
-add_subdirectory(qkd-key-dump)
-add_subdirectory(qkd-key-gen)
-add_subdirectory(qkd-pipeline)
-add_subdirectory(qkd-module-manager)
-add_subdirectory(qkd-simulate)
-add_subdirectory(qkd-view)
+# install
+install(PROGRAMS qkd-blob-keystream DESTINATION bin COMPONENT tools)
+

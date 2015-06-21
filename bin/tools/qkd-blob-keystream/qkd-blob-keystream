@@ -113,3 +113,4 @@ fi
 # run command
 echo "running qkd-enkey ..."
 ${QKD_ENKEY} ${DEBUG} --size=${KEYSIZE} --file=${FILE} --run 1>${FILE}.qkd
+
