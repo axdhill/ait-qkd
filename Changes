@@ -1,0 +1,48 @@
+This file holds the changes of the AIT QKD R10 throughout the versions
+======================================================================
+
+
+Changes from 9.9999.3 to 9.9999.4
+---------------------------------
+
+* added qkd-statistics-average tool
+
+    This causes the new python3 dependency
+
+* added qkd-statistics module
+
+* switched to 0MQ 4.0.5
+
+    ATTENTION: this has a heavy impact on the target platforms.
+    For Debian based systems this changes from installing libzmq1
+    to installing libzmq3.
+
+* qkd-throttle works now again
+
+* module interrupt and terminate is now gracefully again.
+
+* key synchronization has been improved and stabilised.
+
+* added "--debug-message-flow" to modules
+
+    Most AIT QKD modules will now respond to a "--debug-message-flow" command
+    line option. This option will pass on the content of received and sent
+    messages to the debug output in canonical form.
+
+    Beware: this will tend to heavy growth of the debug file.
+
+* dropped "error bits" field in key stream
+
+    The error bits field in key stream has been cause to many irritations.
+    As it does not provide any benefit the AIT QKD team decided to drop
+    this field without substitution.
+
+* added local test DBus when running "make test"
+
+    As such there are not failed DBus/X11 messages when running
+    plain via SSH.
+
+* added bob_the_builder script for continuous integration
+
+* Bug fixes
+
