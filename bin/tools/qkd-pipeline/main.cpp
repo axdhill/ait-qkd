@@ -31,7 +31,12 @@
 // ------------------------------------------------------------
 // incs
 
+#include <sys/types.h>
+#include <signal.h>
+
+#include <fstream>
 #include <iostream>
+#include <thread>
 #include <vector>
 
 #include <boost/filesystem.hpp>
@@ -67,7 +72,7 @@ struct module_definition {
     bool bAlice;                        /**< alice role (or bob if false) */
     std::list<std::string> sArgs;       /**< additional arguments to pass on the command line */
     std::string sLog;                   /**< path to log file */
-
+    std::string sDBusServiceName;       /**< DBus service name of started module */
         
     /**
      * clear the module values
@@ -91,8 +96,26 @@ struct {
     std::string sName;                          /**< pipeline name */
     std::string sLogFolder;                     /**< log folder */
     std::list<module_definition> cModules;      /**< list of modules */
-    
+    bool bAutoConnect = false;                  /**< autoconnect modules */
+
 } g_cPipeline;
+
+
+/**
+ * autoconnect listened modules
+ *
+ * @return  true for success
+ */
+static bool autoconnect_modules();
+
+
+/**
+ * searches for the DBus service name of a module
+ *
+ * @param   sPID        process ID of module
+ * @return  DBus Service Name of module
+ */
+static std::string get_dbus_service_name(std::string const & sPID);
 
 
 /**
@@ -120,6 +143,15 @@ static int parse_module(QDomElement const & cModuleElement);
 
 
 /**
+ * read childs PID from file
+ *
+ * @param   cPath       the file to read
+ * @return  child's pid (as string number)
+ */
+static std::string read_child_pid(boost::filesystem::path const & cPath);
+
+
+/**
  * start the pipeline
  * 
  * starts all modules specified in the global
@@ -141,8 +173,58 @@ static int start();
 static int stop();
 
 
+/**
+ * write current PID into file
+ *
+ * @param   cPath       the file to write
+ * @return  true for success
+ */
+static void write_current_pid(boost::filesystem::path const & cPath);
+
+
 // ------------------------------------------------------------
 // code
+
+
+/**
+ * autoconnect listened modules
+ *
+ * @return  true for success
+ */
+bool autoconnect_modules() {
+
+    return true;
+}
+
+
+/**
+ * searches for the DBus service name of a module
+ *
+ * @param   sPID        process ID of module
+ * @return  DBus Service Name of module
+ */
+std::string get_dbus_service_name(std::string const & sPID) {
+
+    std::string res = "";
+    int nTries = 50;
+    do {
+
+        qkd::utility::investigation cInvestigation = qkd::utility::investigation::investigate();
+        for (auto const & p : cInvestigation.modules()) {
+
+            if (p.second.at("process_id") == sPID) {
+                res = p.second.at("dbus");
+                break;
+            }
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        nTries--;
+
+    } while (res.empty() && (nTries > 0));
+    
+    return res;
+}
 
 
 /**
@@ -305,6 +387,11 @@ int parse(std::string const & sPipelineConfiguration) {
     }
     g_cPipeline.sName = cRootElement.attribute("name").toStdString();
     
+    // the 'pipeline' MIGHT have a autoconnect attribute
+    if (!cRootElement.hasAttribute("autoconnect")) {
+        g_cPipeline.bAutoConnect = (cRootElement.attribute("autoconnect") == "true");
+    }
+    
     // iterate over the module nodes
     int nModuleErrorCode = 0;
     for (QDomNode cNode = cRootElement.firstChild(); !cNode.isNull() && (nModuleErrorCode == 0); cNode = cNode.nextSibling()) {
@@ -422,6 +509,60 @@ int parse_module(QDomElement const & cModuleElement) {
 
 
 /**
+ * read childs PID from file
+ *
+ * @param   cPath       the file to read
+ * @return  child's pid (as string number)
+ */
+std::string read_child_pid(boost::filesystem::path const & cPath) {
+
+    std::string sChildPID;
+
+    // timeout: 50 * 100 millisec --> 5 sec
+    for (int i = 0; i < 50; ++i) {
+
+        if (!boost::filesystem::exists(cPath)) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            continue;
+        }
+
+        if (boost::filesystem::file_size(cPath) == 0) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            continue;
+        }
+
+        // read and check if the PID exists
+        sChildPID = "";
+        std::ifstream cPIDFile;
+        cPIDFile.open(cPath.string());
+        cPIDFile >> sChildPID;
+        cPIDFile.close();
+
+        if (sChildPID.empty()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            continue;
+        }
+
+        pid_t nChildPID = std::stoi(sChildPID);
+        if (kill(nChildPID, 0) != 0) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            sChildPID = "";
+            continue;
+        }
+
+        break;
+    }
+
+    if (!boost::filesystem::exists(cPath)) {
+        return "";
+    }
+    boost::filesystem::remove(cPath);
+
+    return sChildPID;
+}
+
+
+/**
  * start the pipeline
  * 
  * starts all modules specified in the global
@@ -452,7 +593,6 @@ int start() {
         
     std::cout << "starting modules ..." << std::endl;
     
-    // iterate over the module definitions
     for (auto & cModule : g_cPipeline.cModules) {
         
         // try to locate the executable
@@ -462,32 +602,45 @@ int start() {
             continue;
         }
 
-        // nail down found executable
         cModule.sPath = cExecutable.string();
         
+        // write current pid into pid file 
+        boost::filesystem::path cPIDFileName = qkd::utility::environment::temp_path() / "qkd-pipeline.autoconnect.module.pid";
+
         // fork and daemonize
         if (!fork()) {
             
             // this is within a new child
+            // now daemon() does another fork
+            // so we have to get a holdon to 
+            // the child's child PID --> we write it into a file
+            // since stdin and stdout are lost now
+
             if (daemon(1, 0) == -1) {
                 std::cerr << "module: '" << cModule.sPath << "' - error: failed to daemonize subprocess." << std::endl;
             }
             else {
-                
+
+                // write actual PID into tmp file to be read
+                // by the qkd-pipeline tool again to find DBus service name
+                // of current module
+                write_current_pid(cPIDFileName);
+
                 // redirect to log file
                 if (g_cPipeline.sLogFolder.size() && cModule.sLog.size()) {
                     boost::filesystem::path cLogFile(g_cPipeline.sLogFolder);
                     cLogFile /= boost::filesystem::path(cModule.sLog);
                     if (!freopen(cLogFile.string().c_str(), "a+", stderr)) {
-                        std::cerr << "module: '" << cModule.sPath << "' - error: failed to redirect stderr." << std::endl;
+                        std::cerr << "module: '" 
+                                << cModule.sPath 
+                                << "' - error: failed to redirect stderr." 
+                                << std::endl;
                     }
                 }
                 
-                // call process
                 char * argv[1024];
                 unsigned int nArg = 0;
                 
-                // set the argumnents
                 argv[nArg++] = strdup(cModule.sPath.c_str());
                 if (cModule.bStart) argv[nArg++] = strdup("--run");
                 if (!cModule.bAlice) argv[nArg++] = strdup("--bob");
@@ -498,7 +651,6 @@ int start() {
                     if (nArg == 1024) break;
                 }
                 
-                // final set the last one to NULL
                 argv[nArg++] = nullptr;
 
                 // launch process
@@ -506,7 +658,14 @@ int start() {
                     
                     // if we end up here execv failed
                     int nError = errno;
-                    std::cerr << "module: '" << cModule.sPath << "' - error: failed to start subprocess: " << strerror(nError) << " (" << nError << ")"  << std::endl;
+                    std::cerr << "module: '" 
+                            << cModule.sPath 
+                            << "' - error: failed to start subprocess: " 
+                            << strerror(nError) 
+                            << " (" 
+                            << nError 
+                            << ")"  
+                            << std::endl;
                 }
                 
                 // we reach this point: fail!
@@ -515,7 +674,28 @@ int start() {
             }
         }
         else {
-            std::cout << "started module: " << cModule.sPath << std::endl;
+            
+            std::cout << "started module: " << cModule.sPath << " ";
+
+            std::string sChildPID = read_child_pid(cPIDFileName);
+            if (sChildPID.empty() && g_cPipeline.bAutoConnect) {
+                std::cout << std::endl;
+                if (g_cPipeline.bAutoConnect) {
+                    std::cerr << "unable to fetch module's process ID - can't autoconnect" << std::endl;
+                }
+                continue;
+            }
+
+            std::cout << "PID: " << sChildPID << " ";
+
+            cModule.sDBusServiceName = get_dbus_service_name(sChildPID);
+            std::cout << "DBus: " << cModule.sDBusServiceName << std::endl;
+        }
+    }
+
+    if (g_cPipeline.bAutoConnect) {
+        if (!autoconnect_modules()) {
+            std::cerr << "failed to autoconnect modules" << std::endl;
         }
     }
 
@@ -584,3 +764,19 @@ int stop() {
     
     return 0;
 }
+
+
+/**
+ * write current PID into file
+ *
+ * @param   cPath       the file to write
+ * @return  true for success
+ */
+void write_current_pid(boost::filesystem::path const & cPath) {
+    std::ofstream cPIDFile;
+    cPIDFile.open(cPath.string());
+    cPIDFile << getpid();
+    cPIDFile.flush();
+    cPIDFile.close();
+}
+
