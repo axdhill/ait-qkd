@@ -45,6 +45,7 @@ __version__     = '9.9999.4'
 
 import argparse
 import re
+import os.path
 import sys
 
 
@@ -131,7 +132,7 @@ def parse_file(fn):
     else:
         avg_bps = 0
 
-    print(fn + " " 
+    print(os.path.basename(fn) + " " 
             + str(avg_bits) +  " " 
             + str(avg_error_rate) + " " 
             + str(avg_disclosed_bits) + " " 
