@@ -61,6 +61,7 @@ int main(int argc, char ** argv) {
     boost::program_options::options_description cOptions(sApplication + "\n" + sDescription + "\n\n\t" + sSynopsis + "\n\nAllowed Options");
     cOptions.add_options()("bob,b", "set this as bob's instance, the responder");
     cOptions.add_options()("config,c", boost::program_options::value<std::string>(), "configuration file URL");
+    cOptions.add_options()("dbus", "write DBus service name on stdout");
     cOptions.add_options()("debug,d", "enable debug output on stderr");
     cOptions.add_options()("help,h", "this page");
     cOptions.add_options()("run,r", "run immediately");
@@ -99,6 +100,9 @@ int main(int argc, char ** argv) {
     }
     else {
         cQKDReorder.set_role((unsigned long)qkd::module::module_role::ROLE_ALICE);
+    }
+    if (cVariableMap.count("dbus")) {
+        std::cout << cQKDReorder.service_name().toStdString() << std::endl;
     }
     if (cVariableMap.count("config")) {
         cQKDReorder.configure(QString::fromStdString(cVariableMap["config"].as<std::string>()), true);

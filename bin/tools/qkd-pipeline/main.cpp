@@ -32,6 +32,7 @@
 // incs
 
 #include <iostream>
+#include <thread>
 #include <vector>
 
 #include <boost/filesystem.hpp>
@@ -88,11 +89,20 @@ struct module_definition {
  */
 struct {
     
+    bool bAutoConnect;                          /**< autoconnect modules */
     std::string sName;                          /**< pipeline name */
     std::string sLogFolder;                     /**< log folder */
     std::list<module_definition> cModules;      /**< list of modules */
     
 } g_cPipeline;
+
+
+/**
+ * autoconnect all pipe_in/pipe_out URLs of defined modules
+ * 
+ * @return  true, for successfull autoconnect
+ */
+static bool autoconnect_modules();
 
 
 /**
@@ -143,6 +153,22 @@ static int stop();
 
 // ------------------------------------------------------------
 // code
+
+
+/**
+* autoconnect all pipe_in/pipe_out URLs of defined modules
+* 
+* @return  true, for successfull autoconnect
+*/
+bool autoconnect_modules() {
+
+    for (auto iter = g_cPipeline.cModules.rbegin(); iter != g_cPipeline.cModules.rend(); ++iter) {
+std::cerr << (*iter).sPath << std::endl;
+    }
+
+
+    return true;
+}
 
 
 /**
@@ -305,6 +331,11 @@ int parse(std::string const & sPipelineConfiguration) {
     }
     g_cPipeline.sName = cRootElement.attribute("name").toStdString();
     
+    // the 'pipeline' MAY have a autoconnect attribute
+    if (cRootElement.hasAttribute("autoconnect")) {
+        g_cPipeline.bAutoConnect = (cRootElement.attribute("autoconnect") == "true");
+    }
+
     // iterate over the module nodes
     int nModuleErrorCode = 0;
     for (QDomNode cNode = cRootElement.firstChild(); !cNode.isNull() && (nModuleErrorCode == 0); cNode = cNode.nextSibling()) {
@@ -466,7 +497,8 @@ int start() {
         cModule.sPath = cExecutable.string();
         
         // fork and daemonize
-        if (!fork()) {
+        pid_t nChildPID = fork();
+        if (!nChildPID) {
             
             // this is within a new child
             if (daemon(1, 0) == -1) {
@@ -515,7 +547,36 @@ int start() {
             }
         }
         else {
-            std::cout << "started module: " << cModule.sPath << std::endl;
+
+            // we need the DBus address of the new child process
+            std::cout << "started module: " << cModule.sPath << " - PID: " << nChildPID << " - DBus: ";
+            std::string sChildPID = std::to_string(nChildPID);
+
+            bool bFoundOnDBus = false;
+            while (!bFoundOnDBus) {
+
+                qkd::utility::investigation cInvestigation = qkd::utility::investigation::investigate();
+                for (auto const & prop : cInvestigation.modules()) {
+                    auto pos = prop.first.rfind('-');
+                    pos++;
+std::cerr << prop.first << ": " << prop.first.substr(pos, sChildPID.size()) << std::endl;
+                    if (prop.first.substr(pos, sChildPID.size()) == sChildPID) {
+std::cerr << prop.first << std::endl;
+                        bFoundOnDBus = true;
+                        break;
+                    }
+                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                }
+            }
+            std::cout << std::endl;
+
+
+        }
+    }
+
+    if (g_cPipeline.bAutoConnect) {
+        if (!autoconnect_modules()) {
+            std::cerr << "failed to autoconnect modules" << std::endl;
         }
     }
 
