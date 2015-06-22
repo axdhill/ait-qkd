@@ -62,7 +62,6 @@ int main(int argc, char ** argv) {
     
     boost::program_options::options_description cOptions(sApplication + "\n" + sDescription + "\n\n\t" + sSynopsis + "\n\nAllowed Options");
     cOptions.add_options()("bob,b", "set this as bob's instance, the responder");
-    cOptions.add_options()("dbus", "write DBus service name on stdout");
     cOptions.add_options()("connect,c", boost::program_options::value<std::string>()->default_value("tcp://127.0.0.1:6789"), "connection string to connect to or listen on");
     cOptions.add_options()("count,t", boost::program_options::value<uint64_t>()->default_value(0), "number of roundtrips (0 = infinite)");
     cOptions.add_options()("debug-message-flow", "enable message debug dump output on stderr");
@@ -104,9 +103,6 @@ int main(int argc, char ** argv) {
     cQKDPing.set_debug_message_flow(cVariableMap.count("debug-message-flow") > 0);
     cQKDPing.set_payload_size(cVariableMap["payload"].as<uint64_t>());
     cQKDPing.set_sleep_time(cVariableMap["sleep"].as<uint64_t>());
-    if (cVariableMap.count("dbus")) {
-        std::cout << cQKDPing.service_name().toStdString() << std::endl;
-    }
     if (cVariableMap.count("bob")) {
         cQKDPing.set_role((unsigned long)qkd::module::module_role::ROLE_BOB);
         cQKDPing.set_url_listen(QString::fromStdString(cVariableMap["connect"].as<std::string>()));
