@@ -100,6 +100,7 @@ In order to compile the QKD sources we need at least the developer versions of:
 * Qt4 at least version 4.4
 * Qwt (Qt Widgets for Technical Applications)
 * Doxygen
+* Python 3
 
 Here are the steps which help you to setup a build system capable of compiling the sources on a pure Debian Wheezy/Jessie system.
 
