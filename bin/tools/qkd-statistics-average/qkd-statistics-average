@@ -59,6 +59,7 @@ def parse(filenames):
     @param  filenames       alle files to parse in a list
     """
 
+    print_header()
     for fn in filenames:
         try:
             parse_file(fn)
@@ -105,24 +106,46 @@ def parse_file(fn):
 
     f.close()
 
-    avg_bits = sum(bits) / float(len(bits))
-    avg_error_rate = sum(error_rate) / float(len(error_rate))
-    avg_disclosed_bits = sum(disclosed_bits) / float(len(disclosed_bits))
-    avg_shannon_eff = sum(shannon_eff) / float(len(shannon_eff))
-    avg_keys_second = sum(keys_second) / float(len(keys_second))
-    avg_bps = sum(bps) / float(len(bps))
+    if len(bits) > 0:
+        avg_bits = sum(bits) / float(len(bits))
+    else:
+        avg_bits = 0
+    if len(error_rate):
+        avg_error_rate = sum(error_rate) / float(len(error_rate))
+    else:
+        avg_error_rate = 0
+    if len(disclosed_bits): 
+        avg_disclosed_bits = sum(disclosed_bits) / float(len(disclosed_bits))
+    else:
+        avg_disclosed_bits = 0
+    if len(shannon_eff):
+        avg_shannon_eff = sum(shannon_eff) / float(len(shannon_eff))
+    else:
+        avg_shannon_eff = 0
+    if len(keys_second):
+        avg_keys_second = sum(keys_second) / float(len(keys_second))
+    else:
+        avg_keys_second = 0
+    if len(bps):
+        avg_bps = sum(bps) / float(len(bps))
+    else:
+        avg_bps = 0
 
-    print(
-        "file: " + fn + " " +
-        "avg_bits: " + str(avg_bits) +  " " +
-        "avg_error_rate: " + str(avg_error_rate) + " " +
-        "avg_disclosed_bits: " + str(avg_disclosed_bits) + " " +
-        "avg_shannon_eff: " + str(avg_shannon_eff) + " " +
-        "keys_total: " + str(keys_total) + " " +
-        "bits_total: " + str(bits_total) + " " +
-        "avg_keys_per_second: " + str(avg_keys_second) + " " +
-        "avg_bps: " + str(avg_bps)
-    )
+    print(fn + " " 
+            + str(avg_bits) +  " " 
+            + str(avg_error_rate) + " " 
+            + str(avg_disclosed_bits) + " " 
+            + str(avg_shannon_eff) + " " 
+            + str(keys_total) + " " 
+            + str(bits_total) + " " 
+            + str(avg_keys_second) + " "
+            + str(avg_bps))
+
+
+def print_header():
+
+    """print the statistics average header"""
+    print("file avg_bits avg_error_rate avg_disclosed_bits avg_shannon_eff keys_total bits_total avg_keys_second avg_bps");
 
 
 def main():
