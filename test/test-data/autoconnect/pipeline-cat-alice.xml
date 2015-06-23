@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+
+    This is the definition of a pipeline.
+    
+    A pipeline is basically nothing more
+    than a bundle of modules grouped together
+    by a name.
+    
+    The syntax is:
+    
+        <pipeline name="NAME" autoconnect>  ... defines a 
+                    pipeline with a specific name. 
+                    if 'autoconnect' is set, then all modules are 
+                    connected automatically in the order the are listened
+                    in this file.
+        
+            MODULE-DEFINITION* .... 0 or more module definitions
+        
+        </pipeline>
+        
+    A single module definition is:
+    
+        <module path="MODULE-PATH" start="YES|NO">
+            <config path="CONFIG-FILE" />
+            <role value="ALICE|BOB" />
+            <args value="ARGS" />
+            <log path="LOG-FILE" />
+        </module>
+        
+        with:
+        
+            MODULE-PATH     the path to the module executable
+                            beware: if this is not an absolute path
+                            the very first match as in $(which)
+                            is taken
+                            
+            YES|NO          either "yes" or "no" to start the module
+                            immediately
+            
+            CONFIG-FILE     path to the module-config file
+            
+            ALICE|BOB       role of the module
+            
+            ARGS            additional arguments for the module
+                            as specified on a command line
+        
+            LOG-FILE        path to a log-file to write 
+                            (if debug is turned on)
+                            we strongly recommend to specify
+                            dedicated log files for each module
+                            otherwise the log file's content
+                            will get mixed up
+   
+-->
+
+<pipeline name="default" autoconnect="true" pipein="ipc:///tmp/qkd/default.alice.in" pipeout="ipc:///tmp/qkd/default.alice.out" >
+
+    <module path="bin/modules/qkd-cat/qkd-cat">
+        <config path="test/test-data/autoconnect/cat-pipeline.conf" />
+        <role value="alice" />
+        <args value="--debug" />
+        <log path="qkd-cat.alice.log" />
+    </module>
+
+    <module path="bin/modules/qkd-auth/qkd-auth">
+        <config path="test/test-data/autoconnect/auth-starting.conf" />
+        <role value="alice" />
+        <args value="--debug" />
+        <log path="qkd-auth-starting.alice.log" />
+    </module>
+
+    <module path="bin/modules/qkd-bb84/qkd-bb84">
+        <config path="test/test-data/autoconnect/cat-pipeline.conf" />
+        <role value="alice" />
+        <args value="--debug" />
+        <log path="qkd-bb84.alice.log" />
+    </module>
+
+    <module path="bin/modules/qkd-cascade/qkd-cascade">
+        <config path="test/test-data/autoconnect/cat-pipeline.conf" />
+        <role value="alice" />
+        <args value="--debug" />
+        <log path="qkd-cascade.alice.log" />
+    </module>
+
+    <module path="bin/modules/qkd-confirmation/qkd-confirmation">
+        <config path="test/test-data/autoconnect/cat-pipeline.conf" />
+        <role value="alice" />
+        <args value="--debug" />
+        <log path="qkd-confirmation.alice.log" />
+    </module>
+
+    <module path="bin/modules/qkd-buffer/qkd-buffer">
+        <config path="test/test-data/autoconnect/cat-pipeline.conf" />
+        <role value="alice" />
+        <args value="--debug" />
+        <log path="qkd-buffer.alice.log" />
+    </module>
+
+    <module path="bin/modules/qkd-privacy-amplification/qkd-privacy-amplification">
+        <config path="test/test-data/autoconnect/cat-pipeline.conf" />
+        <role value="alice" />
+        <args value="--debug" />
+        <log path="qkd-privacy-amplification.alice.log" />
+    </module>
+
+    <module path="bin/modules/qkd-auth/qkd-auth">
+        <config path="test/test-data/autoconnect/auth-final.conf" />
+        <role value="alice" />
+        <args value="--debug" />
+        <log path="qkd-auth-final.alice.log" />
+    </module>
+
+</pipeline>
