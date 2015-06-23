@@ -57,56 +57,56 @@
 
 <pipeline name="default" autoconnect="true" >
 
-    <module path="bin/modules/qkd-cat/qkd-cat" start="yes">
+    <module path="bin/modules/qkd-cat/qkd-cat">
         <config path="test/test-data/autoconnect/cat-pipeline.conf" />
         <role value="alice" />
         <args value="--debug" />
         <log path="qkd-cat.alice.log" />
     </module>
 
-    <module path="bin/modules/qkd-auth/qkd-auth" start="yes">
+    <module path="bin/modules/qkd-auth/qkd-auth">
         <config path="test/test-data/autoconnect/auth-starting.conf" />
         <role value="alice" />
         <args value="--debug" />
         <log path="qkd-auth-starting.alice.log" />
     </module>
 
-    <module path="bin/modules/qkd-bb84/qkd-bb84" start="yes">
+    <module path="bin/modules/qkd-bb84/qkd-bb84">
         <config path="test/test-data/autoconnect/cat-pipeline.conf" />
         <role value="alice" />
         <args value="--debug" />
         <log path="qkd-bb84.alice.log" />
     </module>
 
-    <module path="bin/modules/qkd-cascade/qkd-cascade" start="yes">
+    <module path="bin/modules/qkd-cascade/qkd-cascade">
         <config path="test/test-data/autoconnect/cat-pipeline.conf" />
         <role value="alice" />
         <args value="--debug" />
         <log path="qkd-cascade.alice.log" />
     </module>
 
-    <module path="bin/modules/qkd-confirmation/qkd-confirmation" start="yes">
+    <module path="bin/modules/qkd-confirmation/qkd-confirmation">
         <config path="test/test-data/autoconnect/cat-pipeline.conf" />
         <role value="alice" />
         <args value="--debug" />
         <log path="qkd-confirmation.alice.log" />
     </module>
 
-    <module path="bin/modules/qkd-buffer/qkd-buffer" start="yes">
+    <module path="bin/modules/qkd-buffer/qkd-buffer">
         <config path="test/test-data/autoconnect/cat-pipeline.conf" />
         <role value="alice" />
         <args value="--debug" />
         <log path="qkd-buffer.alice.log" />
     </module>
 
-    <module path="bin/modules/qkd-privacy-amplification/qkd-privacy-amplification" start="yes">
+    <module path="bin/modules/qkd-privacy-amplification/qkd-privacy-amplification">
         <config path="test/test-data/autoconnect/cat-pipeline.conf" />
         <role value="alice" />
         <args value="--debug" />
         <log path="qkd-privacy-amplification.alice.log" />
     </module>
 
-    <module path="bin/modules/qkd-auth/qkd-auth" start="yes">
+    <module path="bin/modules/qkd-auth/qkd-auth">
         <config path="test/test-data/autoconnect/auth-final.conf" />
         <role value="alice" />
         <args value="--debug" />

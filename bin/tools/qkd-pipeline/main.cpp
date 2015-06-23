@@ -46,12 +46,15 @@
 #include <QtCore/QCoreApplication>
 #include <QtCore/QFile>
 #include <QtDBus/QDBusConnection>
+#include <QtDBus/QDBusInterface>
 #include <QtDBus/QDBusMessage>
+#include <QtDBus/QDBusReply>
 #include <QtXml/QDomDocument>
 #include <QtXml/QDomElement>
 
 // ait
 #include <qkd/utility/dbus.h>
+#include <qkd/utility/debug.h>
 #include <qkd/utility/environment.h>
 #include <qkd/utility/investigation.h>
 
@@ -193,6 +196,30 @@ static void write_current_pid(boost::filesystem::path const & cPath);
  */
 bool autoconnect_modules() {
 
+    QString sNextModulePipeIn = "";
+
+    QDBusConnection cDBus = qkd::utility::dbus::qkd_dbus();
+    for (auto iter = g_cPipeline.cModules.rbegin(); iter != g_cPipeline.cModules.rend(); ++iter) {
+
+        QDBusMessage cMessage;
+
+        cMessage = QDBusMessage::createMethodCall(
+                QString::fromStdString((*iter).sDBusServiceName), 
+                "/Module", 
+                "at.ac.ait.qkd.module",
+                "pause");
+        cDBus.call(cMessage, QDBus::NoBlock);
+
+        cMessage = QDBusMessage::createMethodCall(
+                QString::fromStdString((*iter).sDBusServiceName), 
+                "/Module", 
+                "org.freedesktop.DBus.Properties", 
+                "Set");
+        cMessage << "at.ac.ait.qkd.module" << "url_pipe_in" << QVariant::fromValue(QDBusVariant("ipc://*")); 
+        cDBus.call(cMessage, QDBus::NoBlock);
+
+    }
+
     return true;
 }
 
@@ -272,7 +299,10 @@ int main(int argc, char ** argv) {
         boost::program_options::notify(cVariableMap);        
     }
     catch (std::exception & cException) {
-        std::cerr << "error parsing command line: " << cException.what() << "\ntype '--help' for help" << std::endl;        
+        std::cerr << "error parsing command line: " 
+                << cException.what() 
+                << "\ntype '--help' for help" 
+                << std::endl;        
         return 1;
     }
     
@@ -306,7 +336,9 @@ int main(int argc, char ** argv) {
     }
     std::string sPipelineCommand = cVariableMap["COMMAND"].as<std::string>();
     if (!sPipelineCommand.size()) {
-        std::cerr << "neither 'start', 'stop' nor 'restart' specified.\nchoose one command - type '--help' for help." << std::endl;
+        std::cerr 
+                << "neither 'start', 'stop' nor 'restart' specified.\nchoose one command - type '--help' for help." 
+                << std::endl;
         return 1;
     }
     
@@ -315,7 +347,10 @@ int main(int argc, char ** argv) {
     bool bStop = (sPipelineCommand == "stop");
     bool bRestart = (sPipelineCommand == "restart");
     if (!bStart && !bStop && !bRestart) {
-        std::cerr << "command '" << sPipelineCommand << "' unknown.\nchoose one command - type '--help' for help." << std::endl;
+        std::cerr << "command '" 
+                << sPipelineCommand 
+                << "' unknown.\nchoose one command - type '--help' for help." 
+                << std::endl;
         return 1;
     }
 
@@ -388,7 +423,7 @@ int parse(std::string const & sPipelineConfiguration) {
     g_cPipeline.sName = cRootElement.attribute("name").toStdString();
     
     // the 'pipeline' MIGHT have a autoconnect attribute
-    if (!cRootElement.hasAttribute("autoconnect")) {
+    if (cRootElement.hasAttribute("autoconnect")) {
         g_cPipeline.bAutoConnect = (cRootElement.attribute("autoconnect") == "true");
     }
     
@@ -439,6 +474,9 @@ int parse_module(QDomElement const & cModuleElement) {
     // start attribute value
     std::string sStartAttribute = "no";
     if (cModuleElement.hasAttribute("start")) sStartAttribute = cModuleElement.attribute("start").toStdString();    
+    if (g_cPipeline.bAutoConnect) {
+        sStartAttribute = "no";
+    }
     if (sStartAttribute == "no") {
         cModule.bStart = false;
     }
@@ -461,7 +499,9 @@ int parse_module(QDomElement const & cModuleElement) {
         
         // config tag
         if (cDomElement.tagName() == "config") {
-            if (cDomElement.hasAttribute("path")) cModule.sConfiguration = cDomElement.attribute("path").toStdString();    
+            if (cDomElement.hasAttribute("path")) {
+                cModule.sConfiguration = cDomElement.attribute("path").toStdString();    
+            }
         }
         else
             
@@ -477,7 +517,11 @@ int parse_module(QDomElement const & cModuleElement) {
                     cModule.bAlice = false;
                 }
                 else {
-                    std::cerr << "module: '" << cModule.sPath << "' - ignoring role value '" << sModuleRole << "'." << std::endl;
+                    std::cerr << "module: '" 
+                            << cModule.sPath 
+                            << "' - ignoring role value '" << 
+                            sModuleRole << "'." << 
+                            std::endl;
                 }
             }
         }
@@ -485,8 +529,12 @@ int parse_module(QDomElement const & cModuleElement) {
             
         // config args
         if (cDomElement.tagName() == "args") {
-            if (cDomElement.hasAttribute("value")) cModule.sArgs.push_back(cDomElement.attribute("value").toStdString());
-            if (!cDomElement.text().isEmpty()) cModule.sArgs.push_back(cDomElement.text().toStdString());
+            if (cDomElement.hasAttribute("value")) {
+                cModule.sArgs.push_back(cDomElement.attribute("value").toStdString());
+            }
+            if (!cDomElement.text().isEmpty()) {
+                cModule.sArgs.push_back(cDomElement.text().toStdString());
+            }
         }
         else
             
@@ -497,7 +545,11 @@ int parse_module(QDomElement const & cModuleElement) {
         
         // ... unknown config tag
         else {
-            std::cerr << "module: '" << cModule.sPath << "' - ignoring unknown tag '" << cDomElement.tagName().toStdString() << std::endl;
+            std::cerr << "module: '" 
+                    << cModule.sPath 
+                    << "' - ignoring unknown tag '" 
+                    << cDomElement.tagName().toStdString() 
+                    << std::endl;
         }
     }
     
@@ -598,7 +650,11 @@ int start() {
         // try to locate the executable
         boost::filesystem::path cExecutable = qkd::utility::environment::find_executable(cModule.sPath);
         if (!cExecutable.string().size()) {
-            std::cerr << "module: '" << cModule.sPath << "' - error: failed to locate executable '" << cModule.sPath << "'" << std::endl;
+            std::cerr << "module: '" 
+                    << cModule.sPath 
+                    << "' - error: failed to locate executable '" 
+                    << cModule.sPath << "'" 
+                    << std::endl;
             continue;
         }
 
@@ -617,7 +673,10 @@ int start() {
             // since stdin and stdout are lost now
 
             if (daemon(1, 0) == -1) {
-                std::cerr << "module: '" << cModule.sPath << "' - error: failed to daemonize subprocess." << std::endl;
+                std::cerr << "module: '" 
+                        << cModule.sPath 
+                        << "' - error: failed to daemonize subprocess." 
+                        << std::endl;
             }
             else {
 
@@ -686,8 +745,6 @@ int start() {
                 continue;
             }
 
-            std::cout << "PID: " << sChildPID << " ";
-
             cModule.sDBusServiceName = get_dbus_service_name(sChildPID);
             std::cout << "DBus: " << cModule.sDBusServiceName << std::endl;
         }
@@ -755,7 +812,11 @@ int stop() {
             std::cout << "terminating module: " << cModuleFound.second.at("dbus") << std::endl;
             
             // invoke 'terminate' on module via DBus
-            QDBusMessage cMessage = QDBusMessage::createMethodCall(QString::fromStdString(cModuleFound.second.at("dbus")), "/Module", "at.ac.ait.qkd.module", "terminate");
+            QDBusMessage cMessage = QDBusMessage::createMethodCall(
+                    QString::fromStdString(cModuleFound.second.at("dbus")), 
+                    "/Module", 
+                    "at.ac.ait.qkd.module", 
+                    "terminate");
             cDBus.call(cMessage, QDBus::NoBlock);
         }
     }
