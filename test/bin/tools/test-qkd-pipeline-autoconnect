@@ -66,7 +66,7 @@ ${TEST_BASE}/bin/qkd-pipeline --log "${LOG_FOLDER}" restart ${TEST_BASE}/test/te
 KEYS_AUTHENTICATED="20"
 KEYS_ALICE="0"
 KEYS_BOB="0"
-while [ "${KEYS_ALICE}" -lt "${KEYS_AUTHENTICATED}" -a "${KEYS_BOB}" -lt "${KEYS_AUTHENTICATED}" ]; do
+while [ "${KEYS_ALICE}" -lt "${KEYS_AUTHENTICATED}" -o "${KEYS_BOB}" -lt "${KEYS_AUTHENTICATED}" ]; do
     grep key-PUSH "${LOG_FOLDER}/qkd-auth-final.alice.log" | 
         cut -d " " -f 3,4,13,14 > "${LOG_FOLDER}/final-keys-authenticated.alice"
     grep key-PUSH "${LOG_FOLDER}/qkd-auth-final.bob.log" | 
