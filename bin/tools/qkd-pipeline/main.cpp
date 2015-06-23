@@ -72,7 +72,6 @@ struct module_definition {
 
     
     std::string sPath;                  /**< path to module binary */
-    bool bStart;                        /**< start module immediately */
     std::string sConfiguration;         /**< path to module's configuration file */
     bool bAlice;                        /**< alice role (or bob if false) */
     std::list<std::string> sArgs;       /**< additional arguments to pass on the command line */
@@ -84,7 +83,6 @@ struct module_definition {
      */
     void clear() {
         sPath = "";
-        bStart = false;
         sConfiguration = "",
         bAlice = true;
         sLog = "";
@@ -658,24 +656,6 @@ int parse_module(QDomElement const & cModuleElement) {
     }
     cModule.sPath = cModuleElement.attribute("path").toStdString();
     
-    // start attribute value
-    std::string sStartAttribute = "no";
-    if (cModuleElement.hasAttribute("start")) sStartAttribute = cModuleElement.attribute("start").toStdString();    
-    if (g_cPipeline.bAutoConnect) {
-        sStartAttribute = "no";
-    }
-    if (sStartAttribute == "no") {
-        cModule.bStart = false;
-    }
-    else 
-    if (sStartAttribute == "yes") {
-        cModule.bStart = true;
-    }
-    else {
-        std::cerr << "module: '" << cModule.sPath << "' - failed to parse 'start' attribute value." << std::endl;
-        return 1;
-    }
-    
     // iterate over the childs
     for (QDomNode cNode = cModuleElement.firstChild(); !cNode.isNull(); cNode = cNode.nextSibling()) {
         
@@ -888,7 +868,6 @@ int start() {
                 unsigned int nArg = 0;
                 
                 argv[nArg++] = strdup(cModule.sPath.c_str());
-                if (cModule.bStart) argv[nArg++] = strdup("--run");
                 if (!cModule.bAlice) argv[nArg++] = strdup("--bob");
                 argv[nArg++] = strdup("--config");
                 argv[nArg++] = strdup(cModule.sConfiguration.c_str());
