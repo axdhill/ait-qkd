@@ -111,6 +111,38 @@ public:
     void set_loop(bool bLoop);
 
     
+    /**
+     * sets a new LISTEN URL
+     *
+     * @param   sURL        the new LISTEN URL
+     */
+    virtual void set_url_listen(QString sURL);
+    
+    
+    /**
+     * sets a new PEER URL
+     *
+     * @param   sURL        the new PEER URL
+     */
+    virtual void set_url_peer(QString sURL);
+    
+    
+    /**
+     * sets a new pipeline INCOMING URL
+     *
+     * @param   sURL        the new pipe in URL
+     */
+    virtual void set_url_pipe_in(QString sURL);
+    
+    
+    /**
+     * sets a new pipeline OUTGOING URL
+     *
+     * @param   sURL        the new pipe out URL
+     */
+    virtual void set_url_pipe_out(QString sURL);
+
+
 protected:
     
     

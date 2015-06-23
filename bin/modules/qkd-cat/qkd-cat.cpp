@@ -307,3 +307,46 @@ void qkd_cat::set_loop(bool bLoop) {
     d->bLoop = bLoop;
 }
 
+
+/**
+ * sets a new LISTEN URL
+ *
+ * @param   sURL        the new LISTEN URL
+ */
+void qkd_cat::set_url_listen(UNUSED QString sURL) {
+    qkd::utility::debug() << "rejecting 'set_url_listen' since this module does not habe a peer.";
+}
+
+
+/**
+ * sets a new PEER URL
+ *
+ * @param   sURL        the new PEER URL
+ */
+void qkd_cat::set_url_peer(UNUSED QString sURL) {
+    qkd::utility::debug() << "rejecting 'set_url_peer' since this module does not habe a peer.";
+}
+
+
+/**
+ * sets a new pipeline INCOMING URL
+ *
+ * @param   sURL        the new pipe in URL
+ */
+void qkd_cat::set_url_pipe_in(UNUSED QString sURL) {
+    qkd::utility::debug() << "rejecting 'set_url_pipe_in': this module has other means of input.";
+    qkd::module::module::set_url_pipe_in("");
+}
+
+
+/**
+ * sets a new pipeline OUTGOING URL
+ *
+ * @param   sURL        the new pipe out URL
+ */
+void qkd_cat::set_url_pipe_out(QString sURL) {
+    qkd::module::module::set_url_pipe_out(sURL);
+}
+
+
+
