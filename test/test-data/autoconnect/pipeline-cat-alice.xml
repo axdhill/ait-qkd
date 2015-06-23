@@ -55,7 +55,7 @@
    
 -->
 
-<pipeline name="default" autoconnect="true" >
+<pipeline name="default" autoconnect="true" pipein="ipc:///tmp/qkd/default.alice.in" pipeout="ipc:///tmp/qkd/default.alice.out" >
 
     <module path="bin/modules/qkd-cat/qkd-cat">
         <config path="test/test-data/autoconnect/cat-pipeline.conf" />

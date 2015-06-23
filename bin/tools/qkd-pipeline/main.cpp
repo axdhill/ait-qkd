@@ -45,6 +45,7 @@
 // Qt
 #include <QtCore/QCoreApplication>
 #include <QtCore/QFile>
+#include <QtCore/QUrl>
 #include <QtDBus/QDBusConnection>
 #include <QtDBus/QDBusInterface>
 #include <QtDBus/QDBusMessage>
@@ -99,7 +100,10 @@ struct {
     std::string sName;                          /**< pipeline name */
     std::string sLogFolder;                     /**< log folder */
     std::list<module_definition> cModules;      /**< list of modules */
+
     bool bAutoConnect = false;                  /**< autoconnect modules */
+    std::string sURLPipeIn;                     /**< input URL of whole pipeline */
+    std::string sURLPipeOut;                    /**< output URL of whole pipeline */
 
 } g_cPipeline;
 
@@ -113,12 +117,30 @@ static bool autoconnect_modules();
 
 
 /**
+ * test if the given URL can be worked with
+ *
+ * @param   sURL        url to be worked with
+ * @return  true, if URL is ok
+ */
+static bool ensure_writeable(std::string const & sURL);
+
+
+/**
  * searches for the DBus service name of a module
  *
  * @param   sPID        process ID of module
  * @return  DBus Service Name of module
  */
 static std::string get_dbus_service_name(std::string const & sPID);
+
+
+/**
+ * retrieves the pipeline entry and exit URLs
+ *
+ * @param   sURLPipeIn      pipeline entry
+ * @param   sURLPipeOut     pipeline exit
+ */
+static void get_pipeline_pipes(std::string & sURLPipeIn, std::string & sURLPipeOut);
 
 
 /**
@@ -196,7 +218,14 @@ static void write_current_pid(boost::filesystem::path const & cPath);
  */
 bool autoconnect_modules() {
 
-    QString sNextModulePipeIn = "";
+    if (g_cPipeline.cModules.empty()) return false;
+
+    // our ipc sockets will be placed in ${TMP}/qkd
+    boost::filesystem::path cSocketPath = qkd::utility::environment::temp_path() / "qkd";
+
+    QString sNextModulePipeIn = QString::fromStdString(g_cPipeline.sURLPipeOut);
+
+    // interconnect modules in reverse order
 
     QDBusConnection cDBus = qkd::utility::dbus::qkd_dbus();
     for (auto iter = g_cPipeline.cModules.rbegin(); iter != g_cPipeline.cModules.rend(); ++iter) {
@@ -210,17 +239,112 @@ bool autoconnect_modules() {
                 "pause");
         cDBus.call(cMessage, QDBus::NoBlock);
 
+        boost::filesystem::path cPipeInPath = cSocketPath / (*iter).sDBusServiceName;
+        QString sURLPipeIn = "ipc://" + QString::fromStdString(cPipeInPath.string());
+
         cMessage = QDBusMessage::createMethodCall(
                 QString::fromStdString((*iter).sDBusServiceName), 
                 "/Module", 
                 "org.freedesktop.DBus.Properties", 
                 "Set");
-        cMessage << "at.ac.ait.qkd.module" << "url_pipe_in" << QVariant::fromValue(QDBusVariant("ipc://*")); 
+
+        cMessage 
+                << "at.ac.ait.qkd.module" 
+                << "url_pipe_in" 
+                << QVariant::fromValue(QDBusVariant(sURLPipeIn)); 
+
         cDBus.call(cMessage, QDBus::NoBlock);
 
+        if (!sNextModulePipeIn.isEmpty()) {
+
+            cMessage = QDBusMessage::createMethodCall(
+                    QString::fromStdString((*iter).sDBusServiceName), 
+                    "/Module", 
+                    "org.freedesktop.DBus.Properties", 
+                    "Set");
+
+            cMessage 
+                    << "at.ac.ait.qkd.module" 
+                    << "url_pipe_out" 
+                    << QVariant::fromValue(QDBusVariant(sNextModulePipeIn)); 
+
+            cDBus.call(cMessage, QDBus::NoBlock);
+        }
+
+        cMessage = QDBusMessage::createMethodCall(
+                QString::fromStdString((*iter).sDBusServiceName), 
+                "/Module", 
+                "at.ac.ait.qkd.module",
+                "run");
+        cDBus.call(cMessage, QDBus::NoBlock);
+
+        sNextModulePipeIn = sURLPipeIn;
+    }
+
+    // finally fix pipeline entry point
+
+    if (!g_cPipeline.sURLPipeIn.empty()) {
+
+        std::string sFirstModuleServiceName = g_cPipeline.cModules.front().sDBusServiceName;
+        QString sFirstModulePipeIn = QString::fromStdString(g_cPipeline.sURLPipeIn);
+
+        QDBusMessage cMessage = QDBusMessage::createMethodCall(
+                QString::fromStdString(sFirstModuleServiceName), 
+                "/Module", 
+                "org.freedesktop.DBus.Properties", 
+                "Set");
+
+        cMessage 
+                << "at.ac.ait.qkd.module" 
+                << "url_pipe_in" 
+                << QVariant::fromValue(QDBusVariant(sFirstModulePipeIn)); 
+
+        cDBus.call(cMessage, QDBus::NoBlock);
     }
 
     return true;
+}
+
+
+/**
+ * test if the given URL can be worked with
+ *
+ * @param   sURL        url to be worked with
+ * @return  true, if URL is ok
+ */
+bool ensure_writeable(std::string const & sURL) {
+
+    // void URLs are read-/writeable
+    if (sURL.empty()) return true;
+
+    QUrl cURL(QString::fromStdString(sURL));
+    if (cURL.scheme() == "tcp") return true;
+    if (cURL.scheme() != "ipc") return false;
+
+    std::string sPath = cURL.path().toStdString();
+    boost::filesystem::path cPath(sPath);
+
+    // this is 'mkdir -p $(dirname sURL)'
+    boost::filesystem::path p;
+    for (auto d = cPath.begin(); d != --cPath.end(); ++d) {
+        p = p / (*d);
+        if (boost::filesystem::is_directory(p)) continue;
+        if (boost::filesystem::exists(p)) return false;
+        if (!boost::filesystem::create_directory(p)) return false;
+    }
+
+    bool res = boost::filesystem::exists(cPath);
+    if (!res) {
+
+        // test if we can create the file
+        std::ofstream f(sPath);
+        f << "";
+        f.close();
+        res = boost::filesystem::exists(cPath);
+        boost::filesystem::remove(cPath);
+    }
+
+    return res;
 }
 
 
@@ -251,6 +375,44 @@ std::string get_dbus_service_name(std::string const & sPID) {
     } while (res.empty() && (nTries > 0));
     
     return res;
+}
+
+
+/**
+ * retrieves the pipeline entry and exit URLs
+ *
+ * @param   sURLPipeIn      pipeline entry
+ * @param   sURLPipeOut     pipeline exit
+ */
+void get_pipeline_pipes(std::string & sURLPipeIn, std::string & sURLPipeOut) {
+
+    sURLPipeIn = std::string();
+    sURLPipeOut = std::string();
+
+    if (g_cPipeline.cModules.empty()) return;
+
+    QDBusConnection cDBus = qkd::utility::dbus::qkd_dbus();
+    QDBusMessage cMessage;
+
+    std::string sFirstModuleServiceName = g_cPipeline.cModules.front().sDBusServiceName;
+    cMessage = QDBusMessage::createMethodCall(
+            QString::fromStdString(sFirstModuleServiceName), 
+            "/Module", 
+            "org.freedesktop.DBus.Properties", 
+            "Get");
+    cMessage << "at.ac.ait.qkd.module" << "url_pipe_in";
+    QDBusReply<QDBusVariant> cReplyPipeIn = cDBus.call(cMessage);
+    sURLPipeIn = cReplyPipeIn.value().variant().toString().toStdString();
+
+    std::string sLastModuleServiceName = g_cPipeline.cModules.back().sDBusServiceName;
+    cMessage = QDBusMessage::createMethodCall(
+            QString::fromStdString(sLastModuleServiceName), 
+            "/Module", 
+            "org.freedesktop.DBus.Properties", 
+            "Get");
+    cMessage << "at.ac.ait.qkd.module" << "url_pipe_out";
+    QDBusReply<QDBusVariant> cReplyPipeOut = cDBus.call(cMessage);
+    sURLPipeOut = cReplyPipeOut.value().variant().toString().toStdString();
 }
 
 
@@ -427,6 +589,22 @@ int parse(std::string const & sPipelineConfiguration) {
         g_cPipeline.bAutoConnect = (cRootElement.attribute("autoconnect") == "true");
     }
     
+    // the 'pipeline' MIGHT have a pipein attribute
+    if (cRootElement.hasAttribute("pipein")) {
+        g_cPipeline.sURLPipeIn = cRootElement.attribute("pipein").toStdString();
+        if (!ensure_writeable(g_cPipeline.sURLPipeIn)) {
+            std::cerr << "cannot deal with pipein '" << g_cPipeline.sURLPipeIn << "'" << std::endl;
+        }
+    }
+
+    // the 'pipeline' MIGHT have a pipeout attribute
+    if (cRootElement.hasAttribute("pipeout")) {
+        g_cPipeline.sURLPipeOut = cRootElement.attribute("pipeout").toStdString();
+        if (!ensure_writeable(g_cPipeline.sURLPipeOut)) {
+            std::cerr << "cannot deal with pipeout '" << g_cPipeline.sURLPipeOut << "'" << std::endl;
+        }
+    }
+
     // iterate over the module nodes
     int nModuleErrorCode = 0;
     for (QDomNode cNode = cRootElement.firstChild(); !cNode.isNull() && (nModuleErrorCode == 0); cNode = cNode.nextSibling()) {
@@ -756,6 +934,11 @@ int start() {
         }
     }
 
+    std::string sURLPipeIn;
+    std::string sURLPipeOut;
+    get_pipeline_pipes(sURLPipeIn, sURLPipeOut);
+    std::cout << "pipeline entry point: " << sURLPipeIn << std::endl;
+    std::cout << "pipeline exit point: " << sURLPipeOut << std::endl;
     std::cout << "starting modules ... done" << std::endl;
     
     return 0;

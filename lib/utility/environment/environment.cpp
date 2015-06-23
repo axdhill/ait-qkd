@@ -745,6 +745,7 @@ std::list<boost::filesystem::path> environment::qkd_modules() {
         "qkd-ping", 
         "qkd-privacy-amplification", 
         "qkd-reorder", 
+        "qkd-statistics", 
         "qkd-tee", 
         "qkd-throttle"
     };

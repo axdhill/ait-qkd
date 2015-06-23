@@ -54,7 +54,6 @@
 #endif
 
 // Qt
-//#include <QtCore/QUrl>
 #include <QtDBus/QDBusConnection>
 
 // ait
