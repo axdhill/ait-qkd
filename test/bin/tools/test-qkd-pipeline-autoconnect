@@ -46,7 +46,7 @@ cd ${TEST_BASE}
 rm -rf cat_keys.* &> /dev/null
 
 # create keys
-KEYS_TO_PROCESS="100"
+KEYS_TO_PROCESS="1000"
 ${TEST_BASE}/bin/qkd-key-gen --size 2048 --keys ${KEYS_TO_PROCESS} --quantum --rate 0.03 cat_keys
 
 # prepare the log folder

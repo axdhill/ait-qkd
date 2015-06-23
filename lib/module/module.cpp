@@ -264,6 +264,11 @@ bool module::apply_standard_config(std::string const & sKey, std::string const &
         return true;
     }
     else
+    if (sSubKey == "terminate_after") {
+        set_terminate_after(std::stoll(sValue));
+        return true;
+    }
+    else
     if (sSubKey == "timeout_network") {
         set_timeout_network(std::stoll(sValue));
         return true;
@@ -578,6 +583,7 @@ bool module::is_standard_config_key(std::string const & sKey) const {
     if (sSubKey == "random_url") return true;
     if (sSubKey == "synchronize_keys") return true;
     if (sSubKey == "synchronize_ttl") return true;
+    if (sSubKey == "terminate_after") return true;
     if (sSubKey == "timeout_network") return true;
     if (sSubKey == "timeout_pipe") return true;
     
@@ -1965,6 +1971,7 @@ void module::work() {
 
             d->nTerminateAfter--;
             if (d->nTerminateAfter == 0) {
+                qkd::utility::debug() << "reached maximum number of keys to process - winding down";
                 terminate();
             }
         }
