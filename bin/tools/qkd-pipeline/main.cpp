@@ -54,6 +54,7 @@
 #include <QtXml/QDomElement>
 
 // ait
+#include <qkd/module/module.h>
 #include <qkd/utility/dbus.h>
 #include <qkd/utility/debug.h>
 #include <qkd/utility/environment.h>
@@ -188,6 +189,12 @@ static int start();
 
 
 /**
+ * start the modules of the pipeline
+ */
+static void start_modules();
+
+
+/**
  * stop the pipeline
  * 
  * stops all modules specified in the global
@@ -196,6 +203,15 @@ static int start();
  * @return  0 for success, else errorcode as for main()
  */
 static int stop();
+
+
+/**
+ * waits until a module reached a certain state
+ *
+ * @param   sDBusServiceName        service name of the module
+ * @param   eState                  module state to wait for
+ */
+static bool wait_for_module_state(std::string const & sDBusServiceName, qkd::module::module_state eState);
 
 
 /**
@@ -270,13 +286,6 @@ bool autoconnect_modules() {
 
             cDBus.call(cMessage, QDBus::NoBlock);
         }
-
-        cMessage = QDBusMessage::createMethodCall(
-                QString::fromStdString((*iter).sDBusServiceName), 
-                "/Module", 
-                "at.ac.ait.qkd.module",
-                "run");
-        cDBus.call(cMessage, QDBus::NoBlock);
 
         sNextModulePipeIn = sURLPipeIn;
     }
@@ -939,9 +948,40 @@ int start() {
     get_pipeline_pipes(sURLPipeIn, sURLPipeOut);
     std::cout << "pipeline entry point: " << sURLPipeIn << std::endl;
     std::cout << "pipeline exit point: " << sURLPipeOut << std::endl;
+    start_modules();
     std::cout << "starting modules ... done" << std::endl;
     
     return 0;
+}
+
+
+/**
+ * start the modules of the pipeline
+ */
+void start_modules() {
+
+    QDBusConnection cDBus = qkd::utility::dbus::qkd_dbus();
+    for (auto iter = g_cPipeline.cModules.rbegin(); iter != g_cPipeline.cModules.rend(); ++iter) {
+
+        QDBusMessage cMessage;
+        QDBusMessage cReply;
+
+        cMessage = QDBusMessage::createMethodCall(
+                QString::fromStdString((*iter).sDBusServiceName), 
+                "/Module", 
+                "at.ac.ait.qkd.module",
+                "run");
+        cReply = cDBus.call(cMessage);
+        wait_for_module_state((*iter).sDBusServiceName, qkd::module::STATE_READY);
+
+        cMessage = QDBusMessage::createMethodCall(
+                QString::fromStdString((*iter).sDBusServiceName), 
+                "/Module", 
+                "at.ac.ait.qkd.module",
+                "resume");
+        cReply = cDBus.call(cMessage);
+        wait_for_module_state((*iter).sDBusServiceName, qkd::module::STATE_RUNNING);
+    }
 }
 
 
@@ -1007,6 +1047,43 @@ int stop() {
     std::cout << "stopping modules ... done" << std::endl;
     
     return 0;
+}
+
+
+/**
+ * waits until a module reached a certain state
+ *
+ * @param   sDBusServiceName        service name of the module
+ * @param   eState                  module state to wait for
+ */
+bool wait_for_module_state(std::string const & sDBusServiceName, qkd::module::module_state eState) {
+
+    bool res = false;
+
+    QDBusConnection cDBus = qkd::utility::dbus::qkd_dbus();
+    int nTries = 50;
+    do {
+
+        QDBusMessage cMessage = QDBusMessage::createMethodCall(
+                QString::fromStdString(sDBusServiceName), 
+                "/Module", 
+                "org.freedesktop.DBus.Properties", 
+                "Get");
+        cMessage << "at.ac.ait.qkd.module" << "state";
+        QDBusReply<QDBusVariant> cReply = cDBus.call(cMessage);
+        int nModuleState = cReply.value().variant().toInt();
+
+        if ((int)eState == nModuleState) {
+            res = true;
+            break;
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        nTries--;
+
+    } while (!res && (nTries > 0));
+
+    return res;
 }
 
 
