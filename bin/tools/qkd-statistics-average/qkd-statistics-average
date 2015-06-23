@@ -77,7 +77,7 @@ def parse_file(fn):
     @param  fn      the filename of the qkd-statistics result file
     """
 
-    pattern = re.compile('(?P<timestamp>[0-9]*)ms (?P<id>[0-9]*) (?P<bits>[0-9]*) (?P<error_rate>[0-9\.]*) (?P<disclosed_bits>[0-9]*) *(?P<state>[a-z]*) *(?P<shannon_eff>[0-9\.]*) (?P<keys_total>[0-9]*) (?P<bits_total>[0-9\.]*) *(?P<keys_second>[0-9]*) *(?P<bps>[0-9]*)')
+    pattern = re.compile('(?P<timestamp>[0-9]*)ms (?P<id>[0-9]*) (?P<bits>[0-9]*) (?P<error_rate>[0-9\.]*) (?P<disclosed_bits>[0-9]*) *(?P<state>[a-z]*) *(?P<shannon_eff>[0-9a-z\.]*) (?P<keys_total>[0-9]*) (?P<bits_total>[0-9\.]*) *(?P<keys_second>[0-9]*) *(?P<bps>[0-9]*)')
 
     bits = []
     error_rate = []
@@ -96,7 +96,8 @@ def parse_file(fn):
             bits.append(float(m[2]))
             error_rate.append(float(m[3]))
             disclosed_bits.append(float(m[4]))
-            shannon_eff.append(float(m[6]))
+            if not (float(m[6]) == float('inf')):
+                shannon_eff.append(float(m[6]))
             keys_total = int(m[7])
             bits_total = int(m[8])
             keys_second.append(float(m[9]))
