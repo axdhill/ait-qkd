@@ -307,14 +307,3 @@ void qkd_cat::set_loop(bool bLoop) {
     d->bLoop = bLoop;
 }
 
-
-/**
- * sets a new pipeline INCOMING URL
- *
- * @param   sURL        the new pipe in URL
- */
-void qkd_cat::set_url_pipe_in(UNUSED QString sURL) {
-    qkd::utility::debug() << "rejecting 'set_url_pipe_in': this module has other means of input.";
-    qkd::module::module::set_url_pipe_in("");
-}
-

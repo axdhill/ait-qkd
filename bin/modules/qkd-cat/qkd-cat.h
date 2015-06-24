@@ -131,7 +131,7 @@ public:
      * @param   sURL        the new PEER URL
      */
     virtual void set_url_peer(UNUSED QString sURL) {
-        set_url_peer("");
+        module::set_url_peer("");
     };
     
      
@@ -140,7 +140,9 @@ public:
      *
      * @param   sURL        the new pipe in URL
      */
-    virtual void set_url_pipe_in(QString sURL);
+    virtual void set_url_pipe_in(UNUSED QString sURL) {
+        module::set_url_pipe_in("");
+    };
     
     
 protected:

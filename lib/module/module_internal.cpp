@@ -240,9 +240,9 @@ void module::module_internal::debug_config() {
 
     qkd::utility::debug() << "current module config:";
     qkd::utility::debug() << "              role: " << cModule->role_name().toStdString();
-    qkd::utility::debug() << "          url_peer: " << cModule->url_peer().toStdString();
     qkd::utility::debug() << "       url_pipe_in: " << cModule->url_pipe_in().toStdString();
     qkd::utility::debug() << "      url_pipe_out: " << cModule->url_pipe_out().toStdString();
+    qkd::utility::debug() << "          url_peer: " << cModule->url_peer().toStdString();
     qkd::utility::debug() << "        url_listen: " << cModule->url_listen().toStdString();
     qkd::utility::debug() << "          pipeline: " << cModule->pipeline().toStdString();
     qkd::utility::debug() << "              hint: " << cModule->hint().toStdString();
