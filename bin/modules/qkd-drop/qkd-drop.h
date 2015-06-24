@@ -92,6 +92,26 @@ public:
     void set_drop_ratio(double nRatio);
     
     
+    /**
+     * sets a new LISTEN URL
+     *
+     * This module does not have a peer
+     *
+     * @param   sURL        the new LISTEN URL
+     */
+    virtual void set_url_listen(UNUSED QString sURL) {};
+    
+    
+    /**
+     * sets a new PEER URL
+     *
+     * This module does not have a peer
+     *
+     * @param   sURL        the new PEER URL
+     */
+    virtual void set_url_peer(UNUSED QString sURL) {};
+    
+     
 protected:
     
     
