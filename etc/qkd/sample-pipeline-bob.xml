@@ -96,6 +96,14 @@
         <log path="qkd-privacy-amplification.bob.log" />
     </module>
 
+    <module path="qkd-statistics" >
+        <config path="/etc/qkd/pipeline-default.conf" />
+        <role value="alice" />
+        <args value="--debug" />
+        <args value="--file">qkd-keys.bob.statistics</args>
+        <log path="qkd-statistics.alice.log" />
+    </module>
+
     <module path="qkd-tee" >
         <config path="/etc/qkd/pipeline-default.conf" />
         <role value="bob" />
