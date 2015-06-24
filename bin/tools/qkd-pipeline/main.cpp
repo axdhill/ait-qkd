@@ -87,7 +87,16 @@ struct module_definition {
         bAlice = true;
         sLog = "";
     };
-    
+   
+
+    /**
+     * check if this is a valid module definition
+     *
+     * @return  true, if we have a valid module at hand
+     */
+    bool valid() const {
+        return !sDBusServiceName.empty();
+    }
 };
 
 
@@ -176,6 +185,12 @@ static std::string read_child_pid(boost::filesystem::path const & cPath);
 
 
 /**
+ * set the pipeline entry socket
+ */
+static void set_pipeline_entry();
+
+
+/**
  * start the pipeline
  * 
  * starts all modules specified in the global
@@ -244,6 +259,8 @@ bool autoconnect_modules() {
     QDBusConnection cDBus = qkd::utility::dbus::qkd_dbus();
     for (auto iter = g_cPipeline.cModules.rbegin(); iter != g_cPipeline.cModules.rend(); ++iter) {
 
+        if (!(*iter).valid()) continue;
+
         QDBusMessage cMessage;
 
         cMessage = QDBusMessage::createMethodCall(
@@ -288,27 +305,11 @@ bool autoconnect_modules() {
         sNextModulePipeIn = sURLPipeIn;
     }
 
-    // finally fix pipeline entry point
 
-    if (!g_cPipeline.sURLPipeIn.empty()) {
+    // all done -> fix pipeline entry point
 
-        std::string sFirstModuleServiceName = g_cPipeline.cModules.front().sDBusServiceName;
-        QString sFirstModulePipeIn = QString::fromStdString(g_cPipeline.sURLPipeIn);
-
-        QDBusMessage cMessage = QDBusMessage::createMethodCall(
-                QString::fromStdString(sFirstModuleServiceName), 
-                "/Module", 
-                "org.freedesktop.DBus.Properties", 
-                "Set");
-
-        cMessage 
-                << "at.ac.ait.qkd.module" 
-                << "url_pipe_in" 
-                << QVariant::fromValue(QDBusVariant(sFirstModulePipeIn)); 
-
-        cDBus.call(cMessage, QDBus::NoBlock);
-    }
-
+    set_pipeline_entry();
+    
     return true;
 }
 
@@ -432,18 +433,15 @@ void get_pipeline_pipes(std::string & sURLPipeIn, std::string & sURLPipeOut) {
  */
 int main(int argc, char ** argv) {
     
-    // create the command line header
     std::string sApplication = std::string("qkd-pipeline - AIT QKD Key Pipeline Tool V") + VERSION;
     std::string sDescription = std::string("\nThis tools let start/stop/restart a full QKD pipeline.\n\nCopyright 2013-2015 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS] COMMAND PIPELINE-CONFIG";
     
-    // define program options
     boost::program_options::options_description cOptions(sApplication + "\n" + sDescription + "\n\n\t" + sSynopsis + "\n\nAllowed Options");
     cOptions.add_options()("help,h", "this page");
     cOptions.add_options()("log,l", boost::program_options::value<std::string>(), "path to log folder");
     cOptions.add_options()("version,v", "print version string");
     
-    // arguments
     boost::program_options::options_description cArgs("Arguments");
     
     cArgs.add_options()("COMMAND", "COMMAND is either 'start', 'stop' or 'restart'.");
@@ -453,16 +451,12 @@ int main(int argc, char ** argv) {
     cPositionalDescription.add("COMMAND", 1);
     cPositionalDescription.add("PIPELINE-CONFIG", 1);
     
-    // construct overall options
     boost::program_options::options_description cCmdLineOptions("Command Line");
     cCmdLineOptions.add(cOptions);
     cCmdLineOptions.add(cArgs);
     
-    // option variable map
     boost::program_options::variables_map cVariableMap;
-    
     try {
-        // parse action
         boost::program_options::command_line_parser cParser(argc, argv);
         boost::program_options::store(cParser.options(cCmdLineOptions).positional(cPositionalDescription).run(), cVariableMap);
         boost::program_options::notify(cVariableMap);        
@@ -475,7 +469,6 @@ int main(int argc, char ** argv) {
         return 1;
     }
     
-    // check for "help" set
     if (cVariableMap.count("help")) {
         std::cout << cOptions << std::endl;
         std::cout << cArgs.find("COMMAND", false).description() << "\n";      
@@ -483,13 +476,11 @@ int main(int argc, char ** argv) {
         return 0;
     }
     
-    // check for "version" set
     if (cVariableMap.count("version")) {
         std::cout << sApplication << std::endl;
         return 0;
     }
     
-    // log folder
     if (cVariableMap.count("log")) {
         g_cPipeline.sLogFolder = cVariableMap["log"].as<std::string>();
         if (!boost::filesystem::exists(boost::filesystem::path(g_cPipeline.sLogFolder))) {
@@ -498,7 +489,6 @@ int main(int argc, char ** argv) {
         }
     }
     
-    // pipeline command
     if (!cVariableMap.count("COMMAND")) {
         std::cerr << "no pipeline command.\ntype '--help' for information." << std::endl;
         return 1;
@@ -511,7 +501,6 @@ int main(int argc, char ** argv) {
         return 1;
     }
     
-    // check for valid command values
     bool bStart = (sPipelineCommand == "start");
     bool bStop = (sPipelineCommand == "stop");
     bool bRestart = (sPipelineCommand == "restart");
@@ -523,17 +512,14 @@ int main(int argc, char ** argv) {
         return 1;
     }
 
-    // pipeline-configuration
     if (!cVariableMap.count("PIPELINE-CONFIG")) {
         std::cerr << "no pipeline-config specified.\ntype '--help' for information." << std::endl;
         return 1;
     }
     std::string sPipelineConfiguration = cVariableMap["PIPELINE-CONFIG"].as<std::string>();
     
-    // from here one we have really work to do
     QCoreApplication cApp(argc, argv);
 
-    // make the steps
     int nConfigErrorCode = parse(sPipelineConfiguration);
     if (nConfigErrorCode != 0) return nConfigErrorCode;
     
@@ -557,14 +543,12 @@ int main(int argc, char ** argv) {
  */
 int parse(std::string const & sPipelineConfiguration) {
     
-    // open config file
     QFile cFile(QString::fromStdString(sPipelineConfiguration));
     if (!cFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
         std::cerr << "failed to open '" << sPipelineConfiguration << "'." << std::endl;
         return 1;
     }
     
-    // read in
     QDomDocument cDomDoc;
     QString sDomParsingError;
     int nDomParsingErrorLine;
@@ -577,26 +561,22 @@ int parse(std::string const & sPipelineConfiguration) {
         return 1;
     }
     
-    // check root XML element
     QDomElement cRootElement = cDomDoc.documentElement();
     if (cRootElement.tagName() != "pipeline") {
         std::cerr << "failed to parse configuration: root element 'pipeline' not found." << std::endl;
         return 1;
     }
     
-    // the 'pipeline' MUST have a name attribute
     if (!cRootElement.hasAttribute("name")) {
         std::cerr << "pipeline tag element has no 'name' attribute which is mandatory." << std::endl;
         return 1;
     }
     g_cPipeline.sName = cRootElement.attribute("name").toStdString();
     
-    // the 'pipeline' MIGHT have a autoconnect attribute
     if (cRootElement.hasAttribute("autoconnect")) {
         g_cPipeline.bAutoConnect = (cRootElement.attribute("autoconnect") == "true");
     }
     
-    // the 'pipeline' MIGHT have a pipein attribute
     if (cRootElement.hasAttribute("pipein")) {
         g_cPipeline.sURLPipeIn = cRootElement.attribute("pipein").toStdString();
         if (!ensure_writeable(g_cPipeline.sURLPipeIn)) {
@@ -604,7 +584,6 @@ int parse(std::string const & sPipelineConfiguration) {
         }
     }
 
-    // the 'pipeline' MIGHT have a pipeout attribute
     if (cRootElement.hasAttribute("pipeout")) {
         g_cPipeline.sURLPipeOut = cRootElement.attribute("pipeout").toStdString();
         if (!ensure_writeable(g_cPipeline.sURLPipeOut)) {
@@ -612,15 +591,13 @@ int parse(std::string const & sPipelineConfiguration) {
         }
     }
 
-    // iterate over the module nodes
     int nModuleErrorCode = 0;
     for (QDomNode cNode = cRootElement.firstChild(); !cNode.isNull() && (nModuleErrorCode == 0); cNode = cNode.nextSibling()) {
-        
-        // we just pick the xml elements
-        if (cNode.isElement()) nModuleErrorCode = parse_module(cNode.toElement());
+        if (cNode.isElement()) {
+            nModuleErrorCode = parse_module(cNode.toElement());
+        }
     }
     
-    // state what we've found
     if (nModuleErrorCode == 0) {
         std::cout << "modules found: " << g_cPipeline.cModules.size() << std::endl;
     }
@@ -643,28 +620,22 @@ int parse_module(QDomElement const & cModuleElement) {
     module_definition cModule;
     cModule.clear();
     
-    // sanity check for module node
     if (cModuleElement.tagName() != "module") {
         std::cerr << "failed to parse configuration: element 'module' for a single module not found." << std::endl;
         return 1;
     }
     
-    // the 'module' MUST have a path attribute
     if (!cModuleElement.hasAttribute("path")) {
         std::cerr << "module lacks 'path' attribute which is mandatory." << std::endl;
         return 1;
     }
     cModule.sPath = cModuleElement.attribute("path").toStdString();
     
-    // iterate over the childs
     for (QDomNode cNode = cModuleElement.firstChild(); !cNode.isNull(); cNode = cNode.nextSibling()) {
         
-        // we just pick the xml elements
         if (!cNode.isElement()) continue;
         
         QDomElement cDomElement = cNode.toElement();
-        
-        // config tag
         if (cDomElement.tagName() == "config") {
             if (cDomElement.hasAttribute("path")) {
                 cModule.sConfiguration = cDomElement.attribute("path").toStdString();    
@@ -672,7 +643,6 @@ int parse_module(QDomElement const & cModuleElement) {
         }
         else
             
-        // config role
         if (cDomElement.tagName() == "role") {
             if (cDomElement.hasAttribute("value")) {
                 std::string sModuleRole = cDomElement.attribute("value").toStdString();
@@ -694,7 +664,6 @@ int parse_module(QDomElement const & cModuleElement) {
         }
         else
             
-        // config args
         if (cDomElement.tagName() == "args") {
             if (cDomElement.hasAttribute("value")) {
                 cModule.sArgs.push_back(cDomElement.attribute("value").toStdString());
@@ -705,12 +674,10 @@ int parse_module(QDomElement const & cModuleElement) {
         }
         else
             
-        // config logs
         if (cDomElement.tagName() == "log") {
             if (cDomElement.hasAttribute("path")) cModule.sLog = cDomElement.attribute("path").toStdString();    
         }
         
-        // ... unknown config tag
         else {
             std::cerr << "module: '" 
                     << cModule.sPath 
@@ -720,7 +687,6 @@ int parse_module(QDomElement const & cModuleElement) {
         }
     }
     
-    // add module to our pipeline setting
     g_cPipeline.cModules.push_back(cModule);
     
     return 0;
@@ -782,6 +748,38 @@ std::string read_child_pid(boost::filesystem::path const & cPath) {
 
 
 /**
+ * set the pipeline entry socket
+ */
+void set_pipeline_entry() {
+
+    if (g_cPipeline.sURLPipeIn.empty()) return;
+
+    auto cModule = g_cPipeline.cModules.front();
+    if (!cModule.valid()) {
+        std::cerr << "first module in pipeline is invalid - refused to set pipeline entry point" << std::endl;
+        return;
+    }
+
+    QDBusConnection cDBus = qkd::utility::dbus::qkd_dbus();
+    std::string sFirstModuleServiceName = cModule.sDBusServiceName;
+    QString sFirstModulePipeIn = QString::fromStdString(g_cPipeline.sURLPipeIn);
+
+    QDBusMessage cMessage = QDBusMessage::createMethodCall(
+            QString::fromStdString(sFirstModuleServiceName), 
+            "/Module", 
+            "org.freedesktop.DBus.Properties", 
+            "Set");
+
+    cMessage 
+            << "at.ac.ait.qkd.module" 
+            << "url_pipe_in" 
+            << QVariant::fromValue(QDBusVariant(sFirstModulePipeIn)); 
+
+    cDBus.call(cMessage, QDBus::NoBlock);
+}
+
+
+/**
  * start the pipeline
  * 
  * starts all modules specified in the global
@@ -791,7 +789,6 @@ std::string read_child_pid(boost::filesystem::path const & cPath) {
  */
 int start() {
 
-    // set up log folder
     if (g_cPipeline.sLogFolder.size()) {
         
         boost::filesystem::path cLogFolder(g_cPipeline.sLogFolder);
@@ -803,7 +800,6 @@ int start() {
             }
         }
         
-        // a directory?
         if (!boost::filesystem::is_directory(cLogFolder)) {
             std::cerr << "path '" << g_cPipeline.sLogFolder << "' is not a directory" << std::endl;
             return 1;
@@ -812,6 +808,7 @@ int start() {
         
     std::cout << "starting modules ..." << std::endl;
     
+    int nModulesLaunched = 0;
     for (auto & cModule : g_cPipeline.cModules) {
         
         // try to locate the executable
@@ -877,8 +874,6 @@ int start() {
                 }
                 
                 argv[nArg++] = nullptr;
-
-                // launch process
                 if (execv(argv[0], argv) == -1) {
                     
                     // if we end up here execv failed
@@ -901,20 +896,24 @@ int start() {
         else {
             
             std::cout << "started module: " << cModule.sPath << " ";
-
             std::string sChildPID = read_child_pid(cPIDFileName);
-            if (sChildPID.empty() && g_cPipeline.bAutoConnect) {
-                std::cout << std::endl;
-                if (g_cPipeline.bAutoConnect) {
-                    std::cerr << "unable to fetch module's process ID - can't autoconnect" << std::endl;
-                }
+            cModule.sDBusServiceName = get_dbus_service_name(sChildPID);
+            if (!cModule.valid()) {
+                std::cout << " --- failed" << std::endl;
+                std::cerr << "unable to get module PID or DBus service name - is module running?" << std::endl;
                 continue;
             }
 
-            cModule.sDBusServiceName = get_dbus_service_name(sChildPID);
             std::cout << "DBus: " << cModule.sDBusServiceName << std::endl;
+            nModulesLaunched++;
         }
     }
+
+    if (nModulesLaunched == 0) {
+        std::cerr << "failed to start a single module - this is futile" << std::endl;
+        return 1;
+    }
+
 
     if (g_cPipeline.bAutoConnect) {
         if (!autoconnect_modules()) {
@@ -939,8 +938,15 @@ int start() {
  */
 void start_modules() {
 
+    if (g_cPipeline.cModules.empty()) return;
+
+    std::cout << "starting modules..." << std::endl;
+
     QDBusConnection cDBus = qkd::utility::dbus::qkd_dbus();
     for (auto iter = g_cPipeline.cModules.rbegin(); iter != g_cPipeline.cModules.rend(); ++iter) {
+
+        if (!(*iter).valid()) continue;
+        std::cout << (*iter).sDBusServiceName << "..." << std::endl;
 
         QDBusMessage cMessage;
         QDBusMessage cReply;
@@ -976,7 +982,6 @@ int stop() {
     
     std::cout << "stopping modules ..." << std::endl;
     
-    // investigate the system
     qkd::utility::investigation cInvestigation = qkd::utility::investigation::investigate();
     QDBusConnection cDBus = qkd::utility::dbus::qkd_dbus();
     
@@ -989,23 +994,17 @@ int stop() {
         //      pipeline must be the same as our definition
         //      process_image must end in module-path
         //      role must be as our definition
-        // any other ideas
-        // 
         
-        // iterate over the modules of the system
         for (auto const & cModuleFound : cInvestigation.modules()) {
             
-            // pipeline
             if (cModuleFound.second.at("pipeline") != g_cPipeline.sName) continue;
             
-            // process_image
             std::string sProcessImage = cModuleFound.second.at("process_image");
             if (sProcessImage.size() < cModuleDefined.sPath.size()) continue;
             unsigned int nPos = sProcessImage.size() - cModuleDefined.sPath.size();
             sProcessImage = sProcessImage.substr(nPos, sProcessImage.size());
             if (sProcessImage != cModuleDefined.sPath) continue;
             
-            // role check
             std::string sRoleName = cModuleFound.second.at("role_name");
             if (cModuleDefined.bAlice && (sRoleName != "alice")) continue;
             if (!cModuleDefined.bAlice && (sRoleName != "bob")) continue;
@@ -1013,7 +1012,6 @@ int stop() {
             // found
             std::cout << "terminating module: " << cModuleFound.second.at("dbus") << std::endl;
             
-            // invoke 'terminate' on module via DBus
             QDBusMessage cMessage = QDBusMessage::createMethodCall(
                     QString::fromStdString(cModuleFound.second.at("dbus")), 
                     "/Module", 
@@ -1039,6 +1037,7 @@ bool wait_for_module_state(std::string const & sDBusServiceName, qkd::module::mo
 
     bool res = false;
 
+    // timeout: 50 * 100 millisec --> 5 sec
     QDBusConnection cDBus = qkd::utility::dbus::qkd_dbus();
     int nTries = 50;
     do {
