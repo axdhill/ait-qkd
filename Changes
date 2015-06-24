@@ -5,6 +5,23 @@ This file holds the changes of the AIT QKD R10 throughout the versions
 Changes from 9.9999.3 to 9.9999.4
 ---------------------------------
 
+* qkd-pipeline supports now "autoconnect"
+    
+    When set "autoconnect" to "true", then the qkd-pipeline does now
+    interconnect each module listened in the order given on the local
+    machine.
+
+    That is: it set url_pipe_in and url_pipe_out automatically without
+    any need to set this manually by the administrator which is 
+    error prone. 
+
+    Additionally arguments in the XML file are "pipein" which defines the
+    input pipe socket for the whole pipeline and "pipeout" likewise
+    as the output socket for the whole pipe.
+
+    At the same time the 'start="yes"' argument within the module
+    definitions of the pipeline config XML has been dropped.
+
 * added qkd-statistics-average tool
 
     This causes the new python3 dependency
