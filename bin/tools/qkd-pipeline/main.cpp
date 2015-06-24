@@ -56,7 +56,6 @@
 // ait
 #include <qkd/module/module.h>
 #include <qkd/utility/dbus.h>
-#include <qkd/utility/debug.h>
 #include <qkd/utility/environment.h>
 #include <qkd/utility/investigation.h>
 
@@ -412,7 +411,15 @@ void get_pipeline_pipes(std::string & sURLPipeIn, std::string & sURLPipeOut) {
     QDBusReply<QDBusVariant> cReplyPipeIn = cDBus.call(cMessage);
     sURLPipeIn = cReplyPipeIn.value().variant().toString().toStdString();
 
-    std::string sLastModuleServiceName = g_cPipeline.cModules.back().sDBusServiceName;
+    std::string sLastModuleServiceName;
+    for (auto iter = g_cPipeline.cModules.rbegin(); iter != g_cPipeline.cModules.rend(); ++iter) {
+        if ((*iter).valid()) {
+            sLastModuleServiceName = (*iter).sDBusServiceName;
+            break;
+        }
+    }
+    if (sLastModuleServiceName.empty()) return;
+
     cMessage = QDBusMessage::createMethodCall(
             QString::fromStdString(sLastModuleServiceName), 
             "/Module", 
