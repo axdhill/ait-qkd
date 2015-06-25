@@ -43,7 +43,7 @@ ENABLE_TESTING()
 # ------------------------------------------------------------
 # set global compiler flags
 
-set(VERSION "9.9999.4")
+set(VERSION "9.9999.5")
 add_definitions(-DVERSION=\"${VERSION}\")
 
 # we relay on a GNU/BSD SOURCE
