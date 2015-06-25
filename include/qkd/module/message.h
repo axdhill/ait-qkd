@@ -128,9 +128,10 @@ public:
     /**
      * give a debug string
      * 
+     * @param   sIndent     indent of message canonical dump
      * @return  a debug string describing the message
      */
-    std::string string() const;
+    std::string string(std::string const & sIndent) const;
     
     
     /**

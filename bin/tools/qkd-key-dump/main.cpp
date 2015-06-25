@@ -80,7 +80,6 @@ int dump(std::istream & cIn, std::ostream & cOut) {
         ss << "key #" << cKey.id() << "\n";
         ss << "\tbits:                \t" << nBits << "\n";
         ss << "\tdisclosed bits:      \t" << cKey.meta().nDisclosedBits << " (" << boost::format("%05.2f") % (nDisclosedBitsRate * 100.0) << "%)\n";
-        ss << "\terror bits:          \t" << cKey.meta().nErrorBits << "\n";
         ss << "\terror rate:          \t" << cKey.meta().nErrorRate << "\n";
         ss << "\tauth-scheme-incoming:\t" << cKey.meta().sCryptoSchemeIncoming << "\n";
         ss << "\tauth-scheme-outgoing:\t" << cKey.meta().sCryptoSchemeOutgoing << "\n";
@@ -109,8 +108,8 @@ int dump(std::istream & cIn, std::ostream & cOut) {
  */
 int dump_short(std::istream & cIn, std::ostream & cOut) {
 
-    std::string sHeading = "key        bits     disclosed bits error bits error rate state         crc\n";
-    std::string sFormat = "%010lu %08lu %08lu       %08lu  %7.4f     %-13s %8s\n";
+    std::string sHeading = "key        bits     disclosed bits error rate state         crc\n";
+    std::string sFormat = "%010lu %08lu %08lu      %7.4f     %-13s %8s\n";
     bool bPrintHeading = true;
 
     // loop until we are eof
@@ -130,7 +129,7 @@ int dump_short(std::istream & cIn, std::ostream & cOut) {
         }
         
         uint64_t nBits = cKey.size() * 8;
-        cOut << boost::format(sFormat) % cKey.id() % nBits % cKey.meta().nDisclosedBits % cKey.meta().nErrorBits % cKey.meta().nErrorRate % cKey.state_string() % cKey.data().crc32();
+        cOut << boost::format(sFormat) % cKey.id() % nBits % cKey.meta().nDisclosedBits % cKey.meta().nErrorRate % cKey.state_string() % cKey.data().crc32();
     }
     
     return 0;

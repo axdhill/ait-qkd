@@ -59,44 +59,52 @@
     
 -->
 
-<pipeline name="default">
+<pipeline name="default" autoconnect="true" pipein="ipc:///tmp/qkd/default.alice.in" pipeout="ipc:///tmp/qkd/default.alice.out">
 
-    <module path="qkd-bb84" start="yes">
+    <module path="qkd-bb84" >
         <config path="/etc/qkd/pipeline-default.conf" />
         <role value="alice" />
         <args value="--debug" />
         <log path="qkd-bb84.alice.log" />
     </module>
 
-    <module path="qkd-cascade" start="yes">
+    <module path="qkd-cascade" >
         <config path="/etc/qkd/pipeline-default.conf" />
         <role value="alice" />
         <args value="--debug" />
         <log path="qkd-cascade.alice.log" />
     </module>
 
-    <module path="qkd-confirmation" start="yes">
+    <module path="qkd-confirmation" >
         <config path="/etc/qkd/pipeline-default.conf" />
         <role value="alice" />
         <args value="--debug" />
         <log path="qkd-confirmation.alice.log" />
     </module>
 
-    <module path="qkd-buffer" start="yes">
+    <module path="qkd-buffer" >
         <config path="/etc/qkd/pipeline-default.conf" />
         <role value="alice" />
         <args value="--debug" />
         <log path="qkd-buffer.alice.log" />
     </module>
 
-    <module path="qkd-privacy-amplification" start="yes">
+    <module path="qkd-privacy-amplification" >
         <config path="/etc/qkd/pipeline-default.conf" />
         <role value="alice" />
         <args value="--debug" />
         <log path="qkd-privacy-amplification.alice.log" />
     </module>
 
-    <module path="qkd-tee" start="yes">
+    <module path="qkd-statistics" >
+        <config path="/etc/qkd/pipeline-default.conf" />
+        <role value="alice" />
+        <args value="--debug" />
+        <args value="--file">qkd-keys.alice.statistics</args>
+        <log path="qkd-statistics.alice.log" />
+    </module>
+
+    <module path="qkd-tee" >
         <config path="/etc/qkd/pipeline-default.conf" />
         <role value="alice" />
         <args value="--debug" />

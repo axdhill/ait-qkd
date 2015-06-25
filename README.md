@@ -39,15 +39,16 @@ The whole project compiles in one single step, meaning no subprojects. This resu
     |   |   +-- qkd-cat                                         load a keystream from a file and feed the pipeline
     |   |   +-- qkd-confirmation                                confirmation module
     |   |   +-- qkd-debug                                       print keystream meta data to stderr
-    |   |   +-- qkd-dekey                                       remove metadate from a keytream (turns keystream to BLOB)
+    |   |   +-- qkd-dekey                                       remove metadata from a keystream (turns keystream to BLOB)
     |   |   +-- qkd-drop                                        randomly dropping keys on one side (development module)
-    |   |   +-- qkd-enkey                                       add metadate to a BLOB (turns BLOB to keystream)
+    |   |   +-- qkd-enkey                                       add metadata to a BLOB (turns BLOB to keystream)
     |   |   +-- qkd-error-estimation                            error estimation module
     |   |   +-- qkd-ping                                        touch remote peer module (administration module)
     |   |   +-- qkd-privacy-amplification                       privacy amplification module
     |   |   +-- qkd-reorder                                     randomly reorder keys in a keystream (development module)
+    |   |   +-- qkd-statistics                                  writes statistic data of bypassing keystream to a file
     |   |   +-- qkd-tee                                         fork keystream to stderr and the next module
-    |   |   +-- qkd-throttle                                    throttle key stream on bits/keys per second (development module)
+    |   |   +-- qkd-throttle                                    throttle key stream on bits or keys per second (development module)
     |   +-- q3pd                                            The Q3P node
     |   +-- tools                                           tools
     |       +-- q3p-inject                                      Feed a Q3P node with keys, BASH-Script
@@ -58,6 +59,7 @@ The whole project compiles in one single step, meaning no subprojects. This resu
     |       +-- qkd-key-gen                                     create pairs of pseudo random input keys
     |       +-- qkd-module-manager                              GUI for qkd post processing
     |       +-- qkd-pipeline                                    high level qkd post processing admin (start/stop pipeline)
+    |       +-- qkd-statistics-average                          makes average analysis of files dumped by qkd-statistic
     |       +-- qkd-simulate                                    GUI with simulating quantum events continuously 
     |       +-- qkd-view                                        dump current status of all qkd objects of the system to stdout
     +-- cmake                                           cmake relevant build details
@@ -94,14 +96,15 @@ In order to compile the QKD sources we need at least the developer versions of:
 * UUID
 * CMake
 * GMP
-* 0MQ (Zero Message Queue) version 2.2 (**NOT** version 3)
+* 0MQ (Zero Message Queue) at least version 4.0.5
 * Qt4 at least version 4.4
 * Qwt (Qt Widgets for Technical Applications)
 * Doxygen
+* Python 3
 
 Here are the steps which help you to setup a build system capable of compiling the sources on a pure Debian Wheezy/Jessie system.
 
-    $ sudo apt-get install build-essential g++ gcc libboost-all-dev libssl-dev uuid-dev cmake libssl-dev uuid-dev libgmp3-dev libzmq-dev libdbus-1-dev libqt4-dev libqwt-dev doxygen texlive-latex-base texlive-latex-extra texlive-font-utils dbus-x11 libcap2-bin
+    $ sudo apt-get install build-essential g++ gcc libboost-all-dev libssl-dev uuid-dev cmake libssl-dev uuid-dev libgmp3-dev libzmq3-dev libdbus-1-dev libqt4-dev libqwt-dev doxygen texlive-latex-base texlive-latex-extra texlive-font-utils dbus-x11 libcap2-bin
 
 
 To clone the sources from the AIT servers:
@@ -141,7 +144,7 @@ After a successful build, you might as well create DEB packages for install on v
     $ cd build
     $ make package
 
-This will create a package `qkd_9.9999.3_amd64.deb` (or with the current version number embedded) in the current build folder.
+This will create a package `qkd_9.9999.4_amd64.deb` (or with the current version number embedded) in the current build folder.
 
    
 4. Package install
@@ -155,16 +158,16 @@ which is normally already installed on modern Linux distributions.
 
 If you have built the debian package on the target system then a
 
-    $ sudo dpkg --install qkd_9.9999.3_amd64.deb 
+    $ sudo dpkg --install qkd_9.9999.4_amd64.deb 
 
 will be sufficient.
 
 However, if you lack certain packages and get error messages like these
 
-    $ sudo dpkg --install qkd_9.9999.3_amd64.deb 
+    $ sudo dpkg --install qkd_9.9999.4_amd64.deb 
     Selecting previously unselected package qkd.
     (Reading database ... 40364 files and directories currently installed.)
-    Unpacking qkd (from qkd_9.9999.3_amd64.deb) ...
+    Unpacking qkd (from qkd_9.9999.4_amd64.deb) ...
     dpkg: dependency problems prevent configuration of qkd:
      qkd depends on libboost-filesystem1.49.0 (>= 1.49.0); however:
       Package libboost-filesystem1.49.0 is not installed.
@@ -172,8 +175,8 @@ However, if you lack certain packages and get error messages like these
       Package libboost-program-options1.49.0 is not installed.
      qkd depends on libboost-system1.49.0 (>= 1.49.0); however:
       Package libboost-system1.49.0 is not installed.
-     qkd depends on libzmq1; however:
-      Package libzmq1 is not installed.
+     qkd depends on libzmqr3; however:
+      Package libzmqr3 is not installed.
      qkd depends on libqtgui4; however:
       Package libqtgui4 is not installed.
      qkd depends on libqtdbus4; however:

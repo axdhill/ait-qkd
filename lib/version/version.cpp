@@ -92,3 +92,16 @@ uint32_t qkd_version_9_9999_3() {
     return MAKE_VERSION(9, 9999, 3);
 }
 
+
+/**
+ * version check for 9.9999.4 
+ * 
+ * any compiler and linker may link against the qkd library
+ * requesting this funtcion to ensure availablity
+ * 
+ * @return  value, representing the version
+ */
+uint32_t qkd_version_9_9999_4() {
+    return MAKE_VERSION(9, 9999, 4);
+}
+

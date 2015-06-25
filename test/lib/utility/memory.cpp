@@ -243,21 +243,21 @@ int test() {
     cFileCanonical.close();
     
     // check canonical output
-    assert(cMemoryA.canonical() == "\
-00000000   54 68 69 73 20 69 73 20  61 20 73 68 61 72 65 64   |This is  a shared|\n\
-00000010   20 73 65 63 72 65 74 2e  20 49 74 20 6f 75 67 68   | secret.  It ough|\n\
-00000020   74 20 74 6f 20 62 65 20  6c 6f 6e 67 65 72 20 74   |t to be  longer t|\n\
-00000030   68 61 6e 20 61 20 6b 65  79 20 71 75 61 6e 74 75   |han a ke y quantu|\n\
-00000040   6d 20 74 6f 20 68 61 76  65 20 6d 6f 72 65 20 74   |m to hav e more t|\n\
-00000050   68 61 6e 20 31 20 6b 65  79 20 69 6e 20 74 68 65   |han 1 ke y in the|\n\
-00000060   20 44 42 20 77 69 74 68  20 74 68 69 73 20 74 65   | DB with  this te|\n\
-00000070   78 74 2e 20 41 20 6b 65  79 20 71 75 61 6e 74 75   |xt. A ke y quantu|\n\
-00000080   6d 20 69 73 20 74 68 65  20 73 69 7a 65 20 6f 66   |m is the  size of|\n\
-00000090   20 61 20 6b 65 79 20 61  74 6f 6d 2e 20 54 68 65   | a key a tom. The|\n\
-000000a0   20 64 61 74 61 62 61 73  65 20 6f 6e 6c 79 20 68   | databas e only h|\n\
-000000b0   61 6e 64 6c 65 73 20 6b  65 79 73 20 6f 66 20 74   |andles k eys of t|\n\
-000000c0   68 61 74 20 73 69 7a 65  2e 20 4e 6f 20 6d 6f 72   |hat size . No mor|\n\
-000000d0   65 2c 20 6e 6f 20 6c 65  73 73 2e 0a               |e, no le ss..    |\
+    assert(cMemoryA.canonical("abc ") == "\
+abc 00000000   54 68 69 73 20 69 73 20  61 20 73 68 61 72 65 64   |This is  a shared|\n\
+abc 00000010   20 73 65 63 72 65 74 2e  20 49 74 20 6f 75 67 68   | secret.  It ough|\n\
+abc 00000020   74 20 74 6f 20 62 65 20  6c 6f 6e 67 65 72 20 74   |t to be  longer t|\n\
+abc 00000030   68 61 6e 20 61 20 6b 65  79 20 71 75 61 6e 74 75   |han a ke y quantu|\n\
+abc 00000040   6d 20 74 6f 20 68 61 76  65 20 6d 6f 72 65 20 74   |m to hav e more t|\n\
+abc 00000050   68 61 6e 20 31 20 6b 65  79 20 69 6e 20 74 68 65   |han 1 ke y in the|\n\
+abc 00000060   20 44 42 20 77 69 74 68  20 74 68 69 73 20 74 65   | DB with  this te|\n\
+abc 00000070   78 74 2e 20 41 20 6b 65  79 20 71 75 61 6e 74 75   |xt. A ke y quantu|\n\
+abc 00000080   6d 20 69 73 20 74 68 65  20 73 69 7a 65 20 6f 66   |m is the  size of|\n\
+abc 00000090   20 61 20 6b 65 79 20 61  74 6f 6d 2e 20 54 68 65   | a key a tom. The|\n\
+abc 000000a0   20 64 61 74 61 62 61 73  65 20 6f 6e 6c 79 20 68   | databas e only h|\n\
+abc 000000b0   61 6e 64 6c 65 73 20 6b  65 79 73 20 6f 66 20 74   |andles k eys of t|\n\
+abc 000000c0   68 61 74 20 73 69 7a 65  2e 20 4e 6f 20 6d 6f 72   |hat size . No mor|\n\
+abc 000000d0   65 2c 20 6e 6f 20 6c 65  73 73 2e 0a               |e, no le ss..    |\
 ");    
     
     return 0;

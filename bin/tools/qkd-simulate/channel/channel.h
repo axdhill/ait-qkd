@@ -439,6 +439,15 @@ private:
     
     
     /**
+     * sets a pipe out 
+     * 
+     * @param   cSocket         the socket to set
+     * @param   sPipe           the new pipe out url
+     */
+    void set_pipe(void * & cSocket, std::string const & sPipe);
+
+
+    /**
      * perform a measurement 
      * to be overwritten by derived classes
      * 
@@ -516,13 +525,13 @@ private:
     /**
      * outgoing 0MQ socket of the pipe for Alice
      */
-    zmq::socket_t * m_cPipeAlice;
+    void * m_cPipeAlice;
     
     
     /**
      * outgoing 0MQ socket of the pipe for Bob
      */
-    zmq::socket_t * m_cPipeBob;
+    void * m_cPipeBob;
     
     
     /**
@@ -546,7 +555,7 @@ private:
     /**
      * our ZMQ context used
      */
-    zmq::context_t * m_cZMQContext;
+    void * m_cZMQContext;
     
     
     /**

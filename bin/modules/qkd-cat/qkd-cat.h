@@ -111,6 +111,40 @@ public:
     void set_loop(bool bLoop);
 
     
+    /**
+     * sets a new LISTEN URL
+     *
+     * This module does not have a peer
+     *
+     * @param   sURL        the new LISTEN URL
+     */
+    virtual void set_url_listen(UNUSED QString sURL) {
+        module::set_url_listen("");
+    };
+    
+    
+    /**
+     * sets a new PEER URL
+     *
+     * This module does not have a peer
+     *
+     * @param   sURL        the new PEER URL
+     */
+    virtual void set_url_peer(UNUSED QString sURL) {
+        module::set_url_peer("");
+    };
+    
+     
+    /**
+     * sets a new pipeline INCOMING URL
+     *
+     * @param   sURL        the new pipe in URL
+     */
+    virtual void set_url_pipe_in(UNUSED QString sURL) {
+        module::set_url_pipe_in("");
+    };
+    
+    
 protected:
     
     
@@ -126,6 +160,14 @@ protected:
 private:
     
     
+    /**
+     * checks (and opens) the file for valid input
+     *
+     * @return  true, if we can read from the file
+     */
+    bool is_data_accessible();
+
+
     /**
      * module work
      * 

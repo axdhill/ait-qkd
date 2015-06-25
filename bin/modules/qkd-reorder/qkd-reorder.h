@@ -101,6 +101,30 @@ public:
     void set_buffer_size(qulonglong nSize);
     
     
+    /**
+     * sets a new LISTEN URL
+     *
+     * This module does not have a peer
+     *
+     * @param   sURL        the new LISTEN URL
+     */
+    virtual void set_url_listen(UNUSED QString sURL) {
+        module::set_url_listen("");
+    };
+    
+    
+    /**
+     * sets a new PEER URL
+     *
+     * This module does not have a peer
+     *
+     * @param   sURL        the new PEER URL
+     */
+    virtual void set_url_peer(UNUSED QString sURL) {
+        set_url_peer("");
+    };
+    
+      
 protected:
     
     

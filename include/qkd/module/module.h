@@ -36,11 +36,9 @@
 // incs
 
 #include <chrono>
-#include <map>
 #include <mutex>
 #include <stdexcept>
 #include <string>
-#include <vector>
 
 #include <inttypes.h>
 
@@ -439,10 +437,6 @@ enum class module_type : uint8_t {
  * 
  *      key_bits_outgoing                R              total number of key bits the module sent so far
  * 
- *      error_bits_incoming              R              total number of error bits the module received so far in all keys
- * 
- *      error_bits_outgoing              R              total number of error bits the module sent so far in all keys
- * 
  *      disclosed_bits_incoming          R              total number of disclosed bits the module received so far in all keys
  * 
  *      disclosed_bits_outgoing          R              total number of disclosed bits the module sent so far in all keys
@@ -457,10 +451,6 @@ enum class module_type : uint8_t {
  *      key_bits_incoming_rate           R              total number of key bits incoming added in the last second
  * 
  *      key_bits_outgoing_rate           R              total number of key bits outgoing added in the last second
- * 
- *      error_bits_incoming_rate         R              total number of error bits incoming added in the last second
- * 
- *      error_bits_outgoing_rate         R              total number of error bits outgoing added in the last second
  * 
  *      disclosed_bits_incoming_rate     R              total number of disclosed bits incoming added in the last second
  * 
@@ -530,8 +520,6 @@ class module : public QObject {
     Q_PROPERTY(qulonglong keys_outgoing READ keys_outgoing)                                     /**< total number of keys the module sent so far */    
     Q_PROPERTY(qulonglong key_bits_incoming READ key_bits_incoming)                             /**< total number of key bits the module received so far */    
     Q_PROPERTY(qulonglong key_bits_outgoing READ key_bits_outgoing)                             /**< total number of key bits the module sent so far */    
-    Q_PROPERTY(qulonglong error_bits_incoming READ error_bits_incoming)                         /**< total number of error bits the module received so far in all keys */    
-    Q_PROPERTY(qulonglong error_bits_outgoing READ error_bits_outgoing)                         /**< total number of error bits the module sent so far in all keys */    
     Q_PROPERTY(qulonglong disclosed_bits_incoming READ disclosed_bits_incoming)                 /**< total number of disclosed bits the module received so far in all keys */    
     Q_PROPERTY(qulonglong disclosed_bits_outgoing READ disclosed_bits_outgoing)                 /**< total number of disclosed bits the module sent so far in all keys */    
 
@@ -539,8 +527,6 @@ class module : public QObject {
     Q_PROPERTY(qulonglong keys_outgoing_rate READ keys_outgoing_rate)                           /**< total number of keys the module sent so far */    
     Q_PROPERTY(qulonglong key_bits_incoming_rate READ key_bits_incoming_rate)                   /**< total number of key bits the module received so far */    
     Q_PROPERTY(qulonglong key_bits_outgoing_rate READ key_bits_outgoing_rate)                   /**< total number of key bits the module sent so far */    
-    Q_PROPERTY(qulonglong error_bits_incoming_rate READ error_bits_incoming_rate)               /**< total number of error bits the module received so far in all keys */    
-    Q_PROPERTY(qulonglong error_bits_outgoing_rate READ error_bits_outgoing_rate)               /**< total number of error bits the module sent so far in all keys */    
     Q_PROPERTY(qulonglong disclosed_bits_incoming_rate READ disclosed_bits_incoming_rate)       /**< total number of disclosed bits the module received so far in all keys */    
     Q_PROPERTY(qulonglong disclosed_bits_outgoing_rate READ disclosed_bits_outgoing_rate)       /**< total number of disclosed bits the module sent so far in all keys */    
 
@@ -570,8 +556,6 @@ public:
             nKeysOutgoing = 0;
             nKeyBitsIncoming = 0;
             nKeyBitsOutgoing = 0;
-            nErrorBitsIncoming = 0;
-            nErrorBitsOutgoing = 0;
             nDisclosedBitsIncoming = 0;
             nDisclosedBitsOutgoing = 0;
             
@@ -579,8 +563,6 @@ public:
             cKeysOutgoingRate = qkd::utility::average_technique::create("time", 1000);
             cKeyBitsIncomingRate = qkd::utility::average_technique::create("time", 1000);
             cKeyBitsOutgoingRate = qkd::utility::average_technique::create("time", 1000);
-            cErrorBitsIncomingRate = qkd::utility::average_technique::create("time", 1000);
-            cErrorBitsOutgoingRate = qkd::utility::average_technique::create("time", 1000);
             cDisclosedBitsIncomingRate = qkd::utility::average_technique::create("time", 1000);
             cDisclosedBitsOutgoingRate = qkd::utility::average_technique::create("time", 1000);
         };
@@ -595,8 +577,6 @@ public:
         uint64_t nKeysOutgoing;                             /**< number of keys outgoing  */
         uint64_t nKeyBitsIncoming;                          /**< number of keys bits incoming */
         uint64_t nKeyBitsOutgoing;                          /**< number of keys bits outgoing */
-        uint64_t nErrorBitsIncoming;                        /**< total amount of error bits detected by previous modules */
-        uint64_t nErrorBitsOutgoing;                        /**< total amount of error bits detected by previous modules AND the current one */
         uint64_t nDisclosedBitsIncoming;                    /**< total amount of dislosed bits published by previous modules */
         uint64_t nDisclosedBitsOutgoing;                    /**< total amount of dislosed bits published by previous modules AND the current one */
         
@@ -604,8 +584,6 @@ public:
         qkd::utility::average cKeysOutgoingRate;            /**< calculate gain of keys outgoing of the last second */
         qkd::utility::average cKeyBitsIncomingRate;         /**< calculate gain of key bits incoming of the last second */
         qkd::utility::average cKeyBitsOutgoingRate;         /**< calculate gain of key bits outgoing of the last second */
-        qkd::utility::average cErrorBitsIncomingRate;       /**< calculate gain of error bits incoming of the last second */
-        qkd::utility::average cErrorBitsOutgoingRate;       /**< calculate gain of error bits outgoing of the last second */
         qkd::utility::average cDisclosedBitsIncomingRate;   /**< calculate gain of disclosed bits incoming of the last second */
         qkd::utility::average cDisclosedBitsOutgoingRate;   /**< calculate gain of disclosed bits outgoing of the last second */
 
@@ -645,7 +623,9 @@ public:
      * 
      * @return  age of module
      */
-    inline std::chrono::high_resolution_clock::duration age() const { return (std::chrono::high_resolution_clock::now() - birth()); };    
+    inline std::chrono::high_resolution_clock::duration age() const { 
+        return (std::chrono::high_resolution_clock::now() - birth()); 
+    };    
     
     
     /**
@@ -666,7 +646,9 @@ public:
      * @param   cOutgoingContext        the outgoing auth context
      * @return  a module communication object
      */
-    communicator comm(qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext) { return communicator(this, cIncomingContext, cOutgoingContext); };
+    communicator comm(qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext) { 
+        return communicator(this, cIncomingContext, cOutgoingContext); 
+    };
 
     
     /**
@@ -685,7 +667,9 @@ public:
      * 
      * @return  the config prefix
      */
-    inline std::string config_prefix() const { return std::string("module." + id().toStdString() + "."); };
+    inline std::string config_prefix() const { 
+        return std::string("module." + id().toStdString() + "."); 
+    };
      
     
     /**
@@ -738,7 +722,10 @@ public:
      * 
      * @return  the number of all disclosed bits in all keys received so far
      */
-    inline qulonglong disclosed_bits_incoming() const { std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); return statistics().nDisclosedBitsIncoming; };
+    inline qulonglong disclosed_bits_incoming() const { 
+        std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
+        return statistics().nDisclosedBitsIncoming; 
+    };
     
     
     /**
@@ -746,7 +733,10 @@ public:
      * 
      * @return  the gain of disclosed bits incoming of the last second 
      */
-    inline qulonglong disclosed_bits_incoming_rate() const { std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); return statistics().cDisclosedBitsIncomingRate->slope(); };
+    inline qulonglong disclosed_bits_incoming_rate() const { 
+        std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
+        return statistics().cDisclosedBitsIncomingRate->slope(); 
+    };
 
     
     /**
@@ -754,7 +744,10 @@ public:
      * 
      * @return  the number of all disclosed bits in all keys sent so far
      */
-    inline qulonglong disclosed_bits_outgoing() const { std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); return statistics().nDisclosedBitsOutgoing; };
+    inline qulonglong disclosed_bits_outgoing() const { 
+        std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
+        return statistics().nDisclosedBitsOutgoing; 
+    };
     
     
     /**
@@ -762,41 +755,12 @@ public:
      * 
      * @return  the gain of disclosed bits outgoing of the last second 
      */
-    inline qulonglong disclosed_bits_outgoing_rate() const { std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); return statistics().cDisclosedBitsOutgoingRate->slope(); };
+    inline qulonglong disclosed_bits_outgoing_rate() const { 
+        std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
+        return statistics().cDisclosedBitsOutgoingRate->slope(); 
+    };
     
-    
-    /**
-     * return the number of error bits in all keys received so far
-     * 
-     * @return  the number of all error bits in all keys received so far
-     */
-    inline qulonglong error_bits_incoming() const { std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); return statistics().nErrorBitsIncoming; };
-    
-    
-    /**
-     * return gain of error bits incoming of the last second 
-     * 
-     * @return  the gain of error bits incoming of the last second 
-     */
-    inline qulonglong error_bits_incoming_rate() const { std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); return statistics().cErrorBitsIncomingRate->slope(); };
-
-    
-    /**
-     * return the number of error bits in all keys sent so far
-     * 
-     * @return  the number of all error bits in all keys sent so far
-     */
-    inline qulonglong error_bits_outgoing() const { std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); return statistics().nErrorBitsOutgoing; };
-    
-    
-    /**
-     * return gain of error bits outgoing of the last second 
-     * 
-     * @return  the gain of error bits outgoing of the last second 
-     */
-    inline qulonglong error_bits_outgoing_rate() const { std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); return statistics().cErrorBitsOutgoingRate->slope(); };
-
-    
+  
     /**
      * get the current state
      * 
@@ -845,7 +809,9 @@ public:
      * 
      * @return  true, if this module act as Alice
      */
-    inline bool is_alice() const { return (role() == (unsigned long)qkd::module::module_role::ROLE_ALICE); };
+    inline bool is_alice() const { 
+        return (role() == (unsigned long)qkd::module::module_role::ROLE_ALICE); 
+    };
     
     
     /**
@@ -853,7 +819,9 @@ public:
      * 
      * @return  true, if this module act as Bob
      */
-    inline bool is_bob() const { return (role() == (unsigned long)qkd::module::module_role::ROLE_BOB); };
+    inline bool is_bob() const { 
+        return (role() == (unsigned long)qkd::module::module_role::ROLE_BOB); 
+    };
     
     
     /**
@@ -862,7 +830,9 @@ public:
      * @param   sKey            a module key
      * @return  true, if the the given string does comply to a module config key
      */
-    inline bool is_config_key(std::string const & sKey) const { return (sKey.substr(0, config_prefix().size()) == config_prefix()); };
+    inline bool is_config_key(std::string const & sKey) const { 
+        return (sKey.substr(0, config_prefix().size()) == config_prefix()); 
+    };
     
     
     /**
@@ -870,7 +840,9 @@ public:
      * 
      * @return  true, if the module's state is about to terminate
      */
-    inline bool is_dying_state() const { return is_dying_state(get_state()); };
+    inline bool is_dying_state() const { 
+        return is_dying_state(get_state()); 
+    };
     
     
     /**
@@ -879,7 +851,9 @@ public:
      * @param   eState      the state to check
      * @return  true, if the module's state is about to terminate
      */
-    static bool is_dying_state(module_state eState) { return ((eState == module_state::STATE_TERMINATED) || (eState == module_state::STATE_TERMINATING)); };
+    static bool is_dying_state(module_state eState) { 
+        return ((eState == module_state::STATE_TERMINATED) || (eState == module_state::STATE_TERMINATING)); 
+    };
     
     
     /**
@@ -887,7 +861,9 @@ public:
      * 
      * @return  true if we intenisve working on keys
      */
-    inline bool is_running() const { return (get_state() == module_state::STATE_RUNNING); };
+    inline bool is_running() const { 
+        return (get_state() == module_state::STATE_RUNNING); 
+    };
     
     
     /**
@@ -904,7 +880,9 @@ public:
      * 
      * @return  true, if keys read from the previous module will be synchronized
      */
-    inline bool is_synchronizing() const { return (paired() && synchronize_keys() && !url_pipe_in().isEmpty()); };
+    inline bool is_synchronizing() const { 
+        return (paired() && synchronize_keys() && !url_pipe_in().isEmpty()); 
+    };
     
     
     /**
@@ -912,7 +890,9 @@ public:
      * 
      * @return  true, if the module's state can take some workload (even if currently paused)
      */
-    inline bool is_working_state() const { return is_working_state(get_state()); };
+    inline bool is_working_state() const { 
+        return is_working_state(get_state()); 
+    };
     
     
     /**
@@ -921,7 +901,9 @@ public:
      * @param   eState      the state to check
      * @return  true, if the module's state can take some workload (even if currently paused)
      */
-    static bool is_working_state(module_state eState) { return ((eState == module_state::STATE_READY) || (eState == module_state::STATE_RUNNING)); };
+    static bool is_working_state(module_state eState) { 
+        return ((eState == module_state::STATE_READY) || (eState == module_state::STATE_RUNNING)); 
+    };
     
     
     /**
@@ -944,7 +926,10 @@ public:
      * 
      * @return  the number of all keys bits received so far
      */
-    inline qulonglong key_bits_incoming() const { std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); return statistics().nKeyBitsIncoming; };
+    inline qulonglong key_bits_incoming() const { 
+        std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
+        return statistics().nKeyBitsIncoming; 
+    };
     
     
     /**
@@ -952,7 +937,10 @@ public:
      * 
      * @return  the gain of key bits incoming of the last second 
      */
-    inline qulonglong key_bits_incoming_rate() const { std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); return statistics().cKeyBitsIncomingRate->slope(); };
+    inline qulonglong key_bits_incoming_rate() const { 
+        std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
+        return statistics().cKeyBitsIncomingRate->slope(); 
+    };
 
     
     /**
@@ -960,7 +948,10 @@ public:
      * 
      * @return  the number of all all keys bits sent so far
      */
-    inline qulonglong key_bits_outgoing() const { std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); return statistics().nKeyBitsOutgoing; };
+    inline qulonglong key_bits_outgoing() const { 
+        std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
+        return statistics().nKeyBitsOutgoing; 
+    };
     
     
     /**
@@ -968,7 +959,10 @@ public:
      * 
      * @return  the gain of key bits outgoing of the last second 
      */
-    inline qulonglong key_bits_outgoing_rate() const { std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); return statistics().cKeyBitsOutgoingRate->slope(); };
+    inline qulonglong key_bits_outgoing_rate() const { 
+        std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
+        return statistics().cKeyBitsOutgoingRate->slope(); 
+    };
 
     
     /**
@@ -976,7 +970,10 @@ public:
      * 
      * @return  the number of all keys received so far
      */
-    inline qulonglong keys_incoming() const { std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); return statistics().nKeysIncoming; };
+    inline qulonglong keys_incoming() const { 
+        std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
+        return statistics().nKeysIncoming; 
+    };
     
     
     /**
@@ -984,7 +981,10 @@ public:
      * 
      * @return  the gain of keys incoming of the last second 
      */
-    inline qulonglong keys_incoming_rate() const { std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); return statistics().cKeysIncomingRate->slope(); };
+    inline qulonglong keys_incoming_rate() const { 
+        std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
+        return statistics().cKeysIncomingRate->slope(); 
+    };
 
     
     /**
@@ -992,7 +992,10 @@ public:
      * 
      * @return  the number of all keys sent so far
      */
-    inline qulonglong keys_outgoing() const { std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); return statistics().nKeysOutgoing; };
+    inline qulonglong keys_outgoing() const { 
+        std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
+        return statistics().nKeysOutgoing; 
+    };
     
     
     /**
@@ -1000,7 +1003,10 @@ public:
      * 
      * @return  the gain of keys outgoing of the last second 
      */
-    inline qulonglong keys_outgoing_rate() const { std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); return statistics().cKeysOutgoingRate->slope(); };
+    inline qulonglong keys_outgoing_rate() const { 
+        std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
+        return statistics().cKeysOutgoingRate->slope(); 
+    };
 
     
     /**
@@ -1019,7 +1025,9 @@ public:
      * 
      * @return  true, if the module 
      */
-    inline bool paired() const { return (!url_listen().isEmpty() || !url_peer().isEmpty()); };
+    inline bool paired() const { 
+        return (!url_listen().isEmpty() || !url_peer().isEmpty()); 
+    };
     
 
     /**
@@ -1035,7 +1043,9 @@ public:
      * 
      * @return  the operating system process id of the key store
      */
-    inline unsigned int process_id() const { return qkd::utility::environment::process_id(); };
+    inline unsigned int process_id() const { 
+        return qkd::utility::environment::process_id(); 
+    };
     
     
     /**
@@ -1043,7 +1053,9 @@ public:
      * 
      * @return  the operating system process image of this key store
      */
-    inline QString process_image() const { return QString::fromStdString(qkd::utility::environment::process_image_path().string()); };
+    inline QString process_image() const { 
+        return QString::fromStdString(qkd::utility::environment::process_image_path().string()); 
+    };
     
     
     /**
@@ -1089,7 +1101,9 @@ public:
      * 
      * @return  the human readable role name 
      */
-    inline QString role_name() const { return role_name((module_role)role()); };
+    inline QString role_name() const { 
+        return role_name((module_role)role()); 
+    };
     
     
     /**
@@ -1118,7 +1132,9 @@ public:
      * 
      * @param   bDebug      new debug value
      */
-    inline void set_debug(bool bDebug) { qkd::utility::debug::enabled() = bDebug; };
+    inline void set_debug(bool bDebug) { 
+        qkd::utility::debug::enabled() = bDebug; 
+    };
     
     
     /**
@@ -1214,7 +1230,7 @@ public:
      *
      * @param   sURL        the new LISTEN URL
      */
-    void set_url_listen(QString sURL);
+    virtual void set_url_listen(QString sURL);
     
     
     /**
@@ -1222,7 +1238,7 @@ public:
      *
      * @param   sURL        the new PEER URL
      */
-    void set_url_peer(QString sURL);
+    virtual void set_url_peer(QString sURL);
     
     
     /**
@@ -1230,7 +1246,7 @@ public:
      *
      * @param   sURL        the new pipe in URL
      */
-    void set_url_pipe_in(QString sURL);
+    virtual void set_url_pipe_in(QString sURL);
     
     
     /**
@@ -1238,7 +1254,7 @@ public:
      *
      * @param   sURL        the new pipe out URL
      */
-    void set_url_pipe_out(QString sURL);
+    virtual void set_url_pipe_out(QString sURL);
     
     
     /**
@@ -1286,7 +1302,9 @@ public:
      * 
      * @return  the human readable state name 
      */
-    inline QString state_name() const { return state_name((module_state)state()); };
+    inline QString state_name() const { 
+        return state_name((module_state)state()); 
+    };
     
     
     /**
@@ -1375,7 +1393,9 @@ public:
      * 
      * @return  the human readable module-type name 
      */
-    inline QString type_name() const { return type_name((module_type)type()); };
+    inline QString type_name() const { 
+        return type_name((module_type)type()); 
+    };
     
     
     /**
@@ -1594,7 +1614,10 @@ protected:
      * @param   nTimeOut            timeout in ms
      * @return  true, if we have receuived a message
      */
-    virtual bool recv(qkd::module::message & cMessage, qkd::crypto::crypto_context & cAuthContext, qkd::module::message_type eType = qkd::module::message_type::MESSAGE_TYPE_DATA, int nTimeOut = -1) throw (std::runtime_error);
+    virtual bool recv(qkd::module::message & cMessage, 
+            qkd::crypto::crypto_context & cAuthContext, 
+            qkd::module::message_type eType = qkd::module::message_type::MESSAGE_TYPE_DATA, 
+            int nTimeOut = -1) throw (std::runtime_error);
 
     
     /**
@@ -1624,12 +1647,17 @@ protected:
      * 
      * Note: this function takes ownership of the message's data sent! 
      * Afterwards the message's data will be void
-     * 
+     *
+     * Sending might fail on interrupt.
+     *
      * @param   cMessage            the message to send
      * @param   cAuthContext        the authentication context involved
      * @param   nTimeOut            timeout in ms
+     * @returns true, if successfully sent
      */
-    virtual void send(qkd::module::message & cMessage, qkd::crypto::crypto_context & cAuthContext, int nTimeOut = -1) throw (std::runtime_error);
+    virtual bool send(qkd::module::message & cMessage, 
+            qkd::crypto::crypto_context & cAuthContext, 
+            int nTimeOut = -1) throw (std::runtime_error);
 
     
     /**
@@ -1748,7 +1776,9 @@ private:
      * @param   cOutgoingContext        outgoing crypto context
      * @return  true, if the key is to be pushed to the output pipe
      */
-    virtual bool process(qkd::key::key & cKey, qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext) = 0;
+    virtual bool process(qkd::key::key & cKey, 
+            qkd::crypto::crypto_context & cIncomingContext, 
+            qkd::crypto::crypto_context & cOutgoingContext) = 0;
     
     
     /**
@@ -1815,8 +1845,8 @@ private:
     
     
     // pimpl
-    class module_data;
-    boost::shared_ptr<module_data> d;
+    class module_internal;
+    boost::shared_ptr<module_internal> d;
 };
 
 

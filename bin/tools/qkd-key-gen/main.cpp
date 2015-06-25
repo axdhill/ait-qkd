@@ -472,9 +472,7 @@ int generate(config const & cConfig) {
         
         // check for setting error bits
         if (cConfig.bSetErrorBits) {
-            cKeyAlice.meta().nErrorBits = nErrorBits;
             cKeyAlice.meta().nErrorRate = (double)nErrorBits / (double)(cKeyAlice.data().size() * 8);
-            cKeyBob.meta().nErrorBits = nErrorBits;
             cKeyBob.meta().nErrorRate = (double)nErrorBits / (double)(cKeyBob.data().size() * 8);
         }
         

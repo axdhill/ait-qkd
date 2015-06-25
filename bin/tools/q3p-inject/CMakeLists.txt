@@ -31,6 +31,8 @@
 # ------------------------------------------------------------
 # q3p-inject
 
+configure_file(q3p-inject ${CMAKE_CURRENT_BINARY_DIR}/q3p-inject)
+
 # install
 install(PROGRAMS q3p-inject DESTINATION bin COMPONENT tools)
 

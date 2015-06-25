@@ -91,10 +91,6 @@ qkd_throttle::qkd_throttle() : qkd::module::module("throttle", qkd::module::modu
     d->m_cBitsPerSecond = qkd::utility::average_technique::create("time", 1000);
     d->m_cKeysPerSecond = qkd::utility::average_technique::create("time", 1000);
     
-    // apply default values
-    set_max_bits_per_second(8192);
-    set_max_keys_per_second(10);
-    
     // enforce DBus registration
     new ThrottleAdaptor(this);
 }
@@ -230,6 +226,7 @@ bool qkd_throttle::process(UNUSED qkd::key::key & cKey, UNUSED qkd::crypto::cryp
         volatile double nKeysPerSecond = keys_per_second();
         if (nMaxBitsPerSecond != 0.0) bDelayCausedByBits = (nBitsPerSecond >= nMaxBitsPerSecond);
         if (nMaxKeysPerSecond != 0.0) bDelayCausedByKeys = (nKeysPerSecond >= nMaxKeysPerSecond);
+
         bDelay = (bDelayCausedByBits || bDelayCausedByKeys);
         
         // debug to the user

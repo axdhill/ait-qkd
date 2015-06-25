@@ -31,12 +31,13 @@
 # ------------------------------------------------------------
 # go through the subs
 
-add_subdirectory(q3p-inject)
 add_subdirectory(q3p-keystore-dump)
 add_subdirectory(q3p-mq-reader)
+add_subdirectory(qkd-blob-keystream)
 add_subdirectory(qkd-key-dump)
 add_subdirectory(qkd-key-gen)
 add_subdirectory(qkd-pipeline)
 add_subdirectory(qkd-module-manager)
+add_subdirectory(qkd-statistics-average)
 add_subdirectory(qkd-simulate)
 add_subdirectory(qkd-view)

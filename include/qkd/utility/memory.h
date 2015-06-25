@@ -192,9 +192,10 @@ public:
      *
      * This is a canonical output like "hexdump".
      *
+     * @param   sIndent     indent of each line of dump
      * @return  a string holding the canonical hex representation
      */
-    std::string canonical() const;
+    std::string canonical(std::string const sIndent) const;
 
 
     /**

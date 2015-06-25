@@ -49,7 +49,7 @@ function setup_debian() {
         libssl-dev \
         uuid-dev \
         libgmp3-dev \
-        libzmq-dev \
+        libzmq3-dev \
         libdbus-1-dev \
         libqt4-dev \
         libqwt-dev \

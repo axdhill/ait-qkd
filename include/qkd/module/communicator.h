@@ -111,7 +111,12 @@ private:
      * @param   cIncomingContext    the incoming auth context
      * @param   cOutgoingContext    the outgoing auth context
      */
-    communicator(module * cModule, qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext) : m_cModule(cModule), m_cIncomingContext(cIncomingContext), m_cOutgoingContext(cOutgoingContext) {};
+    communicator(module * cModule, 
+            qkd::crypto::crypto_context & cIncomingContext, 
+            qkd::crypto::crypto_context & cOutgoingContext) : 
+                    m_cModule(cModule), 
+                    m_cIncomingContext(cIncomingContext), 
+                    m_cOutgoingContext(cOutgoingContext) {};
 
 
 public:
@@ -125,7 +130,14 @@ public:
      * @param   cBuffer         blob to receive
      * @return  true for success
      */
-    inline bool operator>>(qkd::utility::buffer & cBuffer) throw (std::runtime_error) { qkd::module::message cMessage; if (recv(cMessage)) { cMessage.data() >> cBuffer; return true; } return false; };
+    inline bool operator>>(qkd::utility::buffer & cBuffer) throw (std::runtime_error) { 
+        qkd::module::message cMessage; 
+        if (recv(cMessage)) { 
+            cMessage.data() >> cBuffer; 
+            return true; 
+        } 
+        return false; 
+    };
 
 
     /**
@@ -136,7 +148,14 @@ public:
      * @param   cMemory         blob to receive
      * @return  true for success
      */
-    inline bool operator>>(qkd::utility::memory & cMemory) throw (std::runtime_error) { qkd::module::message cMessage; if (recv(cMessage)) { cMessage.data() >> cMemory; return true; } return false; };
+    inline bool operator>>(qkd::utility::memory & cMemory) throw (std::runtime_error) { 
+        qkd::module::message cMessage; 
+        if (recv(cMessage)) { 
+            cMessage.data() >> cMemory; 
+            return true; 
+        } 
+        return false; 
+    };
 
 
     /**
@@ -147,7 +166,9 @@ public:
      * @param   cMessage        message to receive
      * @return  true for success
      */
-    inline bool operator>>(qkd::module::message & cMessage) throw (std::runtime_error) {  return recv(cMessage); };
+    inline bool operator>>(qkd::module::message & cMessage) throw (std::runtime_error) {  
+        return recv(cMessage); 
+    };
 
 
     /**
@@ -158,7 +179,11 @@ public:
      * @param   cBuffer         blob to send
      * @return  true for success
      */
-    inline void operator<<(qkd::utility::buffer const & cBuffer) throw (std::runtime_error) { qkd::module::message cMessage; cMessage.data() << cBuffer; send(cMessage); };
+    inline void operator<<(qkd::utility::buffer const & cBuffer) throw (std::runtime_error) { 
+        qkd::module::message cMessage; 
+        cMessage.data() << cBuffer; 
+        send(cMessage); 
+    };
 
 
     /**
@@ -169,7 +194,11 @@ public:
      * @param   cMemory         blob to send
      * @return  true for success
      */
-    inline void operator<<(qkd::utility::memory const & cMemory) throw (std::runtime_error) { qkd::module::message cMessage; cMessage.data() << cMemory; send(cMessage); };
+    inline void operator<<(qkd::utility::memory const & cMemory) throw (std::runtime_error) { 
+        qkd::module::message cMessage; 
+        cMessage.data() << cMemory; 
+        send(cMessage); 
+    };
 
 
     /**
@@ -180,7 +209,9 @@ public:
      * @param   cMessage        message to send
      * @return  true for success
      */
-    inline void operator<<(qkd::module::message & cMessage) throw (std::runtime_error) {  send(cMessage); };
+    inline void operator<<(qkd::module::message & cMessage) throw (std::runtime_error) { 
+        send(cMessage); 
+    };
 
 
     /**
@@ -218,7 +249,9 @@ public:
      * @param   nTimeOut            timeout in ms
      * @return  true, if we have receuived a message
      */
-    bool recv(qkd::module::message & cMessage, qkd::module::message_type eType = qkd::module::message_type::MESSAGE_TYPE_DATA, int nTimeOut = std::numeric_limits< int >::min()) throw (std::runtime_error); 
+    bool recv(qkd::module::message & cMessage, 
+            qkd::module::message_type eType = qkd::module::message_type::MESSAGE_TYPE_DATA, 
+            int nTimeOut = -1) throw (std::runtime_error); 
 
 
     /**
@@ -242,10 +275,13 @@ public:
      * Note: this function takes ownership of the message's data sent! 
      * Afterwards the message's data will be void
      * 
+     * Sending might fail on interrupt.
+     *
      * @param   cMessage            the message to send
      * @param   nTimeOut            timeout in ms
+     * @returns true, if the message has been sent
      */
-    void send(qkd::module::message & cMessage, int nTimeOut = std::numeric_limits< int >::min()) throw (std::runtime_error);
+    bool send(qkd::module::message & cMessage, int nTimeOut = -1) throw (std::runtime_error);
 
 
 private:

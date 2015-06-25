@@ -49,10 +49,10 @@ rm -rf killer-keys.* &> /dev/null
 ${TEST_BASE}/bin/qkd-key-gen --keys=100 killer-keys
 
 # create a pipeline: cat --> throttle --> tee
-${TEST_BASE}/bin/qkd-cat &
-${TEST_BASE}/bin/qkd-throttle &
-${TEST_BASE}/bin/qkd-tee &
-sleep 1
+${TEST_BASE}/bin/qkd-cat --debug 2> qkd-cat.debug &
+${TEST_BASE}/bin/qkd-throttle --debug 2> qkd-throttle.debug &
+${TEST_BASE}/bin/qkd-tee --debug 2> qkd-tee.1.debug &
+sleep 2
 
 # grab the CAT
 MODULE_CAT=$(qkd_qdbus | grep at.ac.ait.qkd.module.cat)
@@ -89,7 +89,6 @@ qkd_qdbus ${MODULE_THROTTLE} /Module set_urls "ipc://$(pwd)/killer-throttle.in" 
 qkd_qdbus ${MODULE_THROTTLE} /Module run 
 qkd_qdbus ${MODULE_THROTTLE} /Module resume
 
-
 # start the TEE
 echo "starting module: ${MODULE_TEE} ..."
 qkd_qdbus ${MODULE_TEE} /Module Set at.ac.ait.qkd.tee file_url "file://$(pwd)/killer-keys.1.tee"
@@ -111,7 +110,7 @@ sleep 2
 
 # relaunch the module and reconnect
 echo "relaunching TEE module ..."
-${TEST_BASE}/bin/qkd-tee &
+${TEST_BASE}/bin/qkd-tee --debug 2> qkd-tee.2.debug &
 sleep 1
 
 MODULE_TEE=$(qkd_qdbus | grep at.ac.ait.qkd.module.tee)
@@ -126,13 +125,7 @@ qkd_qdbus ${MODULE_TEE} /Module resume
 
 sleep 1
 
-wait_stalled cat throttle tee
-
-## wait until we have processed all keys
-#while [ "$(qkd_qdbus ${MODULE_THROTTLE} /Module keys_outgoing)" -lt "100" ]; do
-#    echo "waiting for all keys to be processed ..."
-#    sleep 1
-#done
+wait_stalled tee throttle cat
 
 # add the output from the 1st TEE to the 2nd TEE and check
 cat killer-keys.1.tee killer-keys.2.tee > killer-keys.total.tee

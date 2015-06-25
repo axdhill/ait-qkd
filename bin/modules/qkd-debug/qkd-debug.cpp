@@ -191,7 +191,6 @@ bool qkd_debug::process(qkd::key::key & cKey, UNUSED qkd::crypto::crypto_context
     ss << "key #" << cKey.id() << "\n";
     ss << "\tbits:                \t" << nBits << "\n";
     ss << "\tdisclosed bits:      \t" << cKey.meta().nDisclosedBits << " (" << boost::format("%05.2f") % (nDisclosedBitsRate * 100.0) << "%)\n";
-    ss << "\terror bits:          \t" << cKey.meta().nErrorBits << "\n";
     ss << "\terror rate:          \t" << cKey.meta().nErrorRate << "\n";
     ss << "\tauth-scheme-incoming:\t" << cKey.meta().sCryptoSchemeIncoming << "\n";
     ss << "\tauth-scheme-outgoing:\t" << cKey.meta().sCryptoSchemeOutgoing << "\n";
