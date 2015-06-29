@@ -86,7 +86,7 @@ public:
 
 
 // fwd
-static void eat(qkd::key::key & cKey, qkd::q3p::key_db & cKeyDB, uint64_t nThreshold);
+static void nibble(qkd::key::key & cKey, qkd::q3p::key_db & cKeyDB, uint64_t nThreshold);
 static void store(qkd::utility::memory cMemory, qkd::q3p::key_db & cKeyDB);
 static qkd::utility::memory tag(bool bAlice, qkd::crypto::crypto_context & cContext, qkd::q3p::key_db & cKeyDB, qkd::key::key_vector & cKeys);
 static bool verify_scheme(qkd::crypto::scheme const & cScheme);
@@ -458,20 +458,20 @@ bool qkd_auth::process(qkd::key::key & cKey,
             if (is_alice()) {
             
                 if (available_keys_incoming() < threshold()) {
-                    eat(cKey, d->cKeysIncoming, threshold());
+                    nibble(cKey, d->cKeysIncoming, threshold());
                 }
                 if (available_keys_outgoing() < threshold()) {
-                    eat(cKey, d->cKeysOutgoing, threshold());
+                    nibble(cKey, d->cKeysOutgoing, threshold());
                 }
             }
             
             if (is_bob()) {
                 
                 if (available_keys_outgoing() < threshold()) {
-                    eat(cKey, d->cKeysOutgoing, threshold());
+                    nibble(cKey, d->cKeysOutgoing, threshold());
                 }
                 if (available_keys_incoming() < threshold()) {
-                    eat(cKey, d->cKeysIncoming, threshold());
+                    nibble(cKey, d->cKeysIncoming, threshold());
                 }
             }
         }
@@ -669,7 +669,7 @@ qulonglong qkd_auth::threshold() const {
  * @param   cKeyDB                  the database to put the key into
  * @param   nThreshold              the maximum amount to eat
  */
-void eat(qkd::key::key & cKey, qkd::q3p::key_db & cKeyDB, uint64_t nThreshold) {
+void nibble(qkd::key::key & cKey, qkd::q3p::key_db & cKeyDB, uint64_t nThreshold) {
 
     uint64_t nKeySize = cKey.data().size();
     uint64_t nEat = std::min(nKeySize, nThreshold);
