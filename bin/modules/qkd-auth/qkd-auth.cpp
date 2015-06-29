@@ -352,6 +352,57 @@ qulonglong qkd_auth::available_keys_outgoing() const {
 
 
 /**
+ * create new authenticate context 
+ * 
+ * @param   cIncomingContext        incoming crypto context
+ * @param   cOutgoingContext        outgoing crypto context
+ */
+void qkd_auth::create_context(qkd::crypto::crypto_context & cIncomingContext, 
+        qkd::crypto::crypto_context & cOutgoingContext) {
+
+    std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
+    
+    // change to a new context if requested
+    // TODO: this should be in sync with the peer: how to achieve this?
+    if (d->bChangeSchemeIncoming && !d->cNextSchemeIncoming.null()) {
+            d->cCurrentSchemeIncoming = d->cNextSchemeIncoming;
+            d->cNextSchemeIncoming = qkd::crypto::scheme();
+            d->bChangeSchemeIncoming = false;
+    }
+    if (d->bChangeSchemeOutgoing && !d->cNextSchemeOutgoing.null()) {
+            d->cCurrentSchemeOutgoing = d->cNextSchemeOutgoing;
+            d->cNextSchemeOutgoing = qkd::crypto::scheme();
+            d->bChangeSchemeOutgoing = false;
+    }
+    
+    try {
+        if (!d->cCurrentSchemeIncoming.null()) {
+            cIncomingContext = qkd::crypto::engine::create(d->cCurrentSchemeIncoming);
+        }
+    }
+    catch (...) {
+        qkd::utility::syslog::crit() << __FILENAME__ 
+                << '@' 
+                << __LINE__ 
+                << ": " 
+                << "failed to setup incoming crypto context";
+    }
+    try {
+        if (!d->cCurrentSchemeOutgoing.null()) {
+            cOutgoingContext = qkd::crypto::engine::create(d->cCurrentSchemeOutgoing);
+        }
+    }
+    catch (...) {
+        qkd::utility::syslog::crit() << __FILENAME__ 
+                << '@' 
+                << __LINE__ 
+                << ": " 
+                << "failed to setup outgoing crypto context";
+    }
+}
+
+
+/**
  * get the current incoming authentication scheme
  * 
  * @return  the current incoming authentication scheme
@@ -450,53 +501,8 @@ bool qkd_auth::process(qkd::key::key & cKey,
         
         cIncomingContext = qkd::crypto::engine::create("null");
         cOutgoingContext = qkd::crypto::engine::create("null");
-        
-        if (cKey.meta().eKeyState == qkd::key::key_state::KEY_STATE_AMPLIFIED) {
-            
-            // alice starts filling incoming, bob starts filling outgoing
-            
-            if (is_alice()) {
-            
-                if (available_keys_incoming() < threshold()) {
-                    nibble(cKey, d->cKeysIncoming, threshold());
-                }
-                if (available_keys_outgoing() < threshold()) {
-                    nibble(cKey, d->cKeysOutgoing, threshold());
-                }
-            }
-            
-            if (is_bob()) {
-                
-                if (available_keys_outgoing() < threshold()) {
-                    nibble(cKey, d->cKeysOutgoing, threshold());
-                }
-                if (available_keys_incoming() < threshold()) {
-                    nibble(cKey, d->cKeysIncoming, threshold());
-                }
-            }
-        }
-            
-        // still in need of keys?
-        if ((available_keys_incoming() < threshold()) || (available_keys_outgoing() < threshold())) {
-            qkd::utility::debug() << "key material famine in a key database: " 
-                    << "incoming: " 
-                    << available_keys_incoming() 
-                    << "/" 
-                    << threshold() 
-                    << " " 
-                    << "outgoing: " 
-                    << available_keys_outgoing() 
-                    << "/" 
-                    << threshold();
-
-            emit starving();
-        }
-        
-        // eat up all key? garfield?
-        if (cKey.data().size() == 0) {
-            qkd::utility::syslog::info() << "ate up the whole key by myself, nothing left to forward";
-            return false;
-        }
+       
+        refill_local_keystores(cKey);
     }
     
     //
@@ -507,48 +513,62 @@ bool qkd_auth::process(qkd::key::key & cKey,
     //          This usually starts pipeline processing       
     //
 
+    create_context(cIncomingContext, cOutgoingContext);
     
-    std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
-    
-    // change to a new context if requested
-    // TODO: this should be in sync with the peer: how to achieve this?
-    if (d->bChangeSchemeIncoming && !d->cNextSchemeIncoming.null()) {
-            d->cCurrentSchemeIncoming = d->cNextSchemeIncoming;
-            d->cNextSchemeIncoming = qkd::crypto::scheme();
-            d->bChangeSchemeIncoming = false;
-    }
-    if (d->bChangeSchemeOutgoing && !d->cNextSchemeOutgoing.null()) {
-            d->cCurrentSchemeOutgoing = d->cNextSchemeOutgoing;
-            d->cNextSchemeOutgoing = qkd::crypto::scheme();
-            d->bChangeSchemeOutgoing = false;
-    }
-    
-    try {
-        if (!d->cCurrentSchemeIncoming.null()) cIncomingContext = qkd::crypto::engine::create(d->cCurrentSchemeIncoming);
-    }
-    catch (...) {
-        qkd::utility::syslog::crit() << __FILENAME__ 
-                << '@' 
-                << __LINE__ 
-                << ": " 
-                << "failed to setup incoming crypto context";
-        return false;
-    }
-    try {
-        if (!d->cCurrentSchemeOutgoing.null()) {
-            cOutgoingContext = qkd::crypto::engine::create(d->cCurrentSchemeOutgoing);
+    return (cKey.size() > 0);
+}
+
+
+/**
+ * ensure the local key stores for authentication have enough keys
+ *
+ * @param   cKey        the key incoming
+ */
+void qkd_auth::refill_local_keystores(qkd::key::key & cKey) {
+
+    if (cKey.meta().eKeyState == qkd::key::key_state::KEY_STATE_AMPLIFIED) {
+        
+        // alice starts filling incoming, bob starts filling outgoing
+        
+        if (is_alice()) {
+            if (available_keys_incoming() < threshold()) {
+                nibble(cKey, d->cKeysIncoming, threshold());
+            }
+            if (available_keys_outgoing() < threshold()) {
+                nibble(cKey, d->cKeysOutgoing, threshold());
+            }
+        }
+        
+        if (is_bob()) {
+            if (available_keys_outgoing() < threshold()) {
+                nibble(cKey, d->cKeysOutgoing, threshold());
+            }
+            if (available_keys_incoming() < threshold()) {
+                nibble(cKey, d->cKeysIncoming, threshold());
+            }
         }
     }
-    catch (...) {
-        qkd::utility::syslog::crit() << __FILENAME__ 
-                << '@' 
-                << __LINE__ 
-                << ": " 
-                << "failed to setup outgoing crypto context";
-        return false;
-    }
+        
+    // still in need of keys?
+    if ((available_keys_incoming() < threshold()) || (available_keys_outgoing() < threshold())) {
+        qkd::utility::debug() << "key material famine in a key database: " 
+                << "incoming: " 
+                << available_keys_incoming() 
+                << "/" 
+                << threshold() 
+                << " " 
+                << "outgoing: " 
+                << available_keys_outgoing() 
+                << "/" 
+                << threshold();
 
-    return true;
+        emit starving();
+    }
+    
+    // eat up all key? garfield?
+    if (cKey.data().size() == 0) {
+        qkd::utility::syslog::info() << "ate up the whole key by myself, nothing left to forward";
+    }
 }
 
 

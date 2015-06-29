@@ -256,9 +256,21 @@ private:
      * @param   cOutgoingContext        outgoing crypto context
      * @return  true, if authentication run successfully
      */
-    bool authenticate(qkd::key::key & cKey, qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext);
+    bool authenticate(qkd::key::key & cKey, 
+            qkd::crypto::crypto_context & cIncomingContext, 
+            qkd::crypto::crypto_context & cOutgoingContext);
     
     
+    /**
+     * create new authenticate context 
+     * 
+     * @param   cIncomingContext        incoming crypto context
+     * @param   cOutgoingContext        outgoing crypto context
+     */
+    void create_context(qkd::crypto::crypto_context & cIncomingContext, 
+            qkd::crypto::crypto_context & cOutgoingContext);
+    
+
     /**
      * module work
      * 
@@ -267,9 +279,19 @@ private:
      * @param   cOutgoingContext        outgoing crypto context
      * @return  always true
      */
-    virtual bool process(qkd::key::key & cKey, qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext);
+    virtual bool process(qkd::key::key & cKey, 
+            qkd::crypto::crypto_context & cIncomingContext, 
+            qkd::crypto::crypto_context & cOutgoingContext);
 
     
+    /**
+     * ensure the local key stores for authentication have enough keys
+     *
+     * @param   cKey        the key incoming
+     */
+    void refill_local_keystores(qkd::key::key & cKey);
+
+
     // pimpl
     class qkd_auth_data;
     boost::shared_ptr<qkd_auth_data> d;
