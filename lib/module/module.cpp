@@ -1061,7 +1061,7 @@ void module::register_dbus() {
 
 
 /**
- * rest timeout() milliseconds for a next communication try
+ * rest 50 milliseconds for a next communication try
  */
 void module::rest() const {
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -1961,10 +1961,22 @@ void module::work() {
             if (cKey.meta().sCryptoSchemeIncoming == "null") cKey.meta().sCryptoSchemeIncoming = "";
             if (cKey.meta().sCryptoSchemeOutgoing == "null") cKey.meta().sCryptoSchemeOutgoing = "";
 
-            if (!write(cKey)) {
-                if (get_state() != qkd::module::module_state::STATE_RUNNING) break;
-                qkd::utility::debug() << "failed to write key to next module in pipe.";
-            }
+            bool bWrittenToNextModule = false;
+            do {
+
+                // the write might fail for EINTR or EAGAIN --> wait or break processing loop
+                // other errors are turned into severe exception
+                bWrittenToNextModule = write(cKey);
+                if (!bWrittenToNextModule ) {
+                    if (get_state() != qkd::module::module_state::STATE_RUNNING) break;
+                    qkd::utility::debug() << "failed to write key to next module in pipe.";
+                }
+
+                rest();
+
+            } while (!bWrittenToNextModule);
+
+            if (get_state() != qkd::module::module_state::STATE_RUNNING) break;
         }
 
         if (d->nTerminateAfter != 0) {
@@ -2018,6 +2030,11 @@ bool module::write(qkd::key::key const & cKey) {
 
             // EINTR is not critical
             if (zmq_errno() == EINTR) {
+                return false;
+            }
+
+            // EAGAIN: currently the next peer is not able to send
+            if (zmq_errno() == EAGAIN) {
                 return false;
             }
 

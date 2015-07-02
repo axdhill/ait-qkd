@@ -650,7 +650,7 @@ bool module::module_internal::setup_pipe_in() {
         
         // create the ZMQ socket
         cSocketPipeIn = zmq_socket(g_cInit.zmq_ctx(), ZMQ_PULL);
-        setup_socket(cSocketPipeIn, 1000, nTimeoutPipe); 
+        setup_socket(cSocketPipeIn, 10, nTimeoutPipe); 
         
         // warn if we use a "*" or empty host here
         bool bAmbiguousHost = (cURLPipeIn.scheme() == "tcp") && ((cURLPipeIn.host().isEmpty()) || (cURLPipeIn.host() == "*") || (cURLPipeIn.host() == "0.0.0.0"));
@@ -735,7 +735,7 @@ bool module::module_internal::setup_pipe_out() {
         
         // create the ZMQ socket
         cSocketPipeOut = zmq_socket(g_cInit.zmq_ctx(), ZMQ_PUSH);
-        setup_socket(cSocketPipeOut, 1000, nTimeoutPipe);
+        setup_socket(cSocketPipeOut, 10, nTimeoutPipe);
         
         // warn if we use a "*" or empty host here
         bool bAmbiguousHost = (cURLPipeOut.scheme() == "tcp") && ((cURLPipeOut.host().isEmpty()) || (cURLPipeOut.host() == "*") || (cURLPipeOut.host() == "0.0.0.0"));

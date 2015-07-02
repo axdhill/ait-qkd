@@ -421,7 +421,7 @@ void channel::set_pipe(void * & cSocket, std::string const & sPipe) {
     
     cSocket = zmq_socket(m_cZMQContext, ZMQ_PUSH);
 
-    int nHighWaterMark = 1000;
+    int nHighWaterMark = 10;
     if (zmq_setsockopt(cSocket, ZMQ_SNDHWM, &nHighWaterMark, sizeof(nHighWaterMark)) == -1) {
         std::stringstream ss;
         ss << "failed to set high water mark on socket: " << strerror(zmq_errno());

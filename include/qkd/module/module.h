@@ -1083,7 +1083,7 @@ public:
     
     
     /**
-     * rest timeout() milliseconds for a next communication try
+     * rest 50 milliseconds for a next communication try
      */
     void rest() const;
 
