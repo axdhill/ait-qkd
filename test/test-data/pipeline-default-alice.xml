@@ -75,11 +75,11 @@
         <log path="qkd-cat.alice.log" />
     </module>
 
-    <module path="bin/modules/qkd-bb84/qkd-bb84" start="yes">
+    <module path="bin/modules/qkd-sifting-bb84/qkd-sifting-bb84" start="yes">
         <config path="test/test-data/full-pipeline.conf" />
         <role value="alice" />
         <args value="--debug" />
-        <log path="qkd-bb84.alice.log" />
+        <log path="qkd-sifting-bb84.alice.log" />
     </module>
 
     <module path="bin/modules/qkd-cascade/qkd-cascade" start="yes">

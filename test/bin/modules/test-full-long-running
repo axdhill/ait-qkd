@@ -83,8 +83,8 @@ PIPELINE_POST_CONFIG="auth_post.config"
 # start the modules
 ( ${TEST_BASE}/bin/qkd-auth --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> auth_pre_debug.alice ) &
 ( ${TEST_BASE}/bin/qkd-auth --debug --bob --run --config ${PIPELINE_PRE_CONFIG} 2>> auth_pre_debug.bob ) &
-( ${TEST_BASE}/bin/qkd-bb84 --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> bb84_debug.alice ) &
-( ${TEST_BASE}/bin/qkd-bb84 --debug --bob --run --config ${PIPELINE_PRE_CONFIG} 2>> bb84_debug.bob ) &
+( ${TEST_BASE}/bin/qkd-sifting-bb84 --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> bb84_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-sifting-bb84 --debug --bob --run --config ${PIPELINE_PRE_CONFIG} 2>> bb84_debug.bob ) &
 ( ${TEST_BASE}/bin/qkd-cascade --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> cascade_debug.alice ) &
 ( ${TEST_BASE}/bin/qkd-cascade --debug --bob --run --config ${PIPELINE_PRE_CONFIG} 2>> cascade_debug.bob ) &
 ( ${TEST_BASE}/bin/qkd-confirmation --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> confirmation_debug.alice ) &

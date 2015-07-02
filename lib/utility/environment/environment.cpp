@@ -732,7 +732,7 @@ std::list<boost::filesystem::path> environment::qkd_modules() {
     
     static const std::list<std::string> cKnownModules = {
         "qkd-auth", 
-        "qkd-bb84", 
+        "qkd-sifting-bb84", 
         "qkd-buffer", 
         "qkd-cascade", 
         "qkd-cat", 

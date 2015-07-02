@@ -62,8 +62,8 @@ PIPELINE_CONFIG="bb84.config"
 # start the modules
 ( ${TEST_BASE}/bin/qkd-cat --run --config ${PIPELINE_CONFIG} --file "cat_keys.alice" ) &
 ( ${TEST_BASE}/bin/qkd-cat --bob --run --config ${PIPELINE_CONFIG} --file "cat_keys.bob" ) &
-( ${TEST_BASE}/bin/qkd-bb84 --debug --run --config ${PIPELINE_CONFIG} 1> bb84_keys.alice 2>> bb84_debug.alice ) &
-( ${TEST_BASE}/bin/qkd-bb84 --debug --bob --run --config ${PIPELINE_CONFIG} 1> bb84_keys.bob 2>> bb84_debug.bob ) &
+( ${TEST_BASE}/bin/qkd-sifting-bb84 --debug --run --config ${PIPELINE_CONFIG} 1> bb84_keys.alice 2>> bb84_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-sifting-bb84 --debug --bob --run --config ${PIPELINE_CONFIG} 1> bb84_keys.bob 2>> bb84_debug.bob ) &
 
 # wait until the modules are up
 while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module.bb84 | wc -l)" = "0" ]; do

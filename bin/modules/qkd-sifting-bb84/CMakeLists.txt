@@ -1,7 +1,7 @@
 # ------------------------------------------------------------
 # CMakeLists.txt 
 # 
-# make: qkd/bin/modules/qkd-bb84
+# make: qkd/bin/modules/qkd-sifting-bb84
 #
 # Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
@@ -29,37 +29,37 @@
 
 
 # ------------------------------------------------------------
-# qkd-bb84
+# qkd-sifting-bb84
 
 # additional includes
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 # sources
-set(QKD_BB84_SRC
+set(QKD_SIFTING_BB84_SRC
     main.cpp
-    qkd-bb84.cpp
+    qkd-sifting-bb84.cpp
 )
 
 # Qt MOC
-QT4_GENERATE_MOC(qkd-bb84.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-bb84.moc.cpp) 
-set(QKD_BB84_MOC
-    qkd-bb84.moc.cpp
+QT4_GENERATE_MOC(qkd-sifting-bb84.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-sifting-bb84.moc.cpp) 
+set(QKD_SIFTING_BB84_MOC
+    qkd-sifting-bb84.moc.cpp
 )
 
 # DBus Integration
-QT4_GENERATE_DBUS_INTERFACE(qkd-bb84.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-bb84.xml)
-QT4_ADD_DBUS_ADAPTOR(QKD_BB84_DBUS_SRC
-    ${CMAKE_CURRENT_BINARY_DIR}/qkd-bb84.xml 
-    ${CMAKE_CURRENT_SOURCE_DIR}/qkd-bb84.h 
-    qkd_bb84
-    qkd_bb84_dbus)
+QT4_GENERATE_DBUS_INTERFACE(qkd-sifting-bb84.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-sifting-bb84.xml)
+QT4_ADD_DBUS_ADAPTOR(QKD_SIFTING_BB84_DBUS_SRC
+    ${CMAKE_CURRENT_BINARY_DIR}/qkd-sifting-bb84.xml 
+    ${CMAKE_CURRENT_SOURCE_DIR}/qkd-sifting-bb84.h 
+    qkd_sifting_bb84
+    qkd_sifting_bb84_dbus)
 
 # bin definition
-add_executable(qkd-bb84 ${QKD_BB84_SRC} ${QKD_BB84_MOC} ${QKD_BB84_DBUS_SRC})
+add_executable(qkd-sifting-bb84 ${QKD_SIFTING_BB84_SRC} ${QKD_SIFTING_BB84_MOC} ${QKD_SIFTING_BB84_DBUS_SRC})
 
 # linkage
-target_link_libraries(qkd-bb84 ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(qkd-sifting-bb84 ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
-install(TARGETS qkd-bb84 RUNTIME DESTINATION bin COMPONENT modules)
+install(TARGETS qkd-sifting-bb84 RUNTIME DESTINATION bin COMPONENT modules)
 

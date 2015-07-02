@@ -32,7 +32,6 @@
 # go through the subs
 
 add_subdirectory(qkd-auth)
-add_subdirectory(qkd-bb84)
 add_subdirectory(qkd-buffer)
 add_subdirectory(qkd-cascade)
 add_subdirectory(qkd-cat)
@@ -45,6 +44,7 @@ add_subdirectory(qkd-error-estimation)
 add_subdirectory(qkd-ping)
 add_subdirectory(qkd-privacy-amplification)
 add_subdirectory(qkd-reorder)
+add_subdirectory(qkd-sifting-bb84)
 add_subdirectory(qkd-statistics)
 add_subdirectory(qkd-tee)
 add_subdirectory(qkd-throttle)

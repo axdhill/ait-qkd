@@ -1,7 +1,7 @@
 /*
- * qkd-bb84.h
+ * qkd-sifting-bb84.h
  * 
- * The qkd-bb84 runs the well know BB84 protocol
+ * The qkd-sifting-bb84 runs the well know BB84 protocol
  * 
  * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
@@ -28,8 +28,8 @@
  */
 
 
-#ifndef __QKD_MODULE_QKD_BB84_H_
-#define __QKD_MODULE_QKD_BB84_H_
+#ifndef __QKD_MODULE_QKD_SIFTING_BB84_H_
+#define __QKD_MODULE_QKD_SIFTING_BB84_H_
 
 
 // ------------------------------------------------------------
@@ -44,13 +44,13 @@
 
 
 /**
- * The qkd-bb84 runs the well known BB84 protocol
+ * The qkd-sifting-bb84 runs the well known BB84 protocol
  * 
  * The "keys" read from the BB84 module are not really keys.
  * The "keys" really contain the quantum table in the data() area
  * of the key.
  * 
- * The qkd-bb84 QKD module supports the "at.ac.ait.qkd.bb84" Interface.
+ * The qkd-sifting-bb84 QKD module supports the "at.ac.ait.qkd.bb84" Interface.
  * 
  * About the base_ratio value: this value is a moving average of the
  * detected base comparisons. Any equal basis from this instance and the
@@ -88,7 +88,7 @@
  *      rawkey_length           R/W         the minimum length of the raw key generated in bytes
  * 
  */
-class qkd_bb84 : public qkd::module::module {
+class qkd_sifting_bb84 : public qkd::module::module {
     
     
     Q_OBJECT
@@ -108,7 +108,7 @@ public:
     /**
      * ctor
      */
-    qkd_bb84();
+    qkd_sifting_bb84();
     
     
     /**
@@ -198,18 +198,22 @@ private:
      * @param   cOutgoingContext        outgoing crypto context
      * @return  always true
      */
-    virtual bool process(qkd::key::key & cKey, qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext);
+    virtual bool process(qkd::key::key & cKey, 
+            qkd::crypto::crypto_context & cIncomingContext, 
+            qkd::crypto::crypto_context & cOutgoingContext);
 
     
     /**
      * module work as alice
      * 
-    * @param   cKey                    the raw key with quantum events encoded
+     * @param   cKey                    the raw key with quantum events encoded
      * @param   cIncomingContext        incoming crypto context
      * @param   cOutgoingContext        outgoing crypto context
      * @return  always true
      */
-    bool process_alice(qkd::key::key & cKey, qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext);
+    bool process_alice(qkd::key::key & cKey, 
+            qkd::crypto::crypto_context & cIncomingContext, 
+            qkd::crypto::crypto_context & cOutgoingContext);
 
     
     /**
@@ -220,12 +224,14 @@ private:
      * @param   cOutgoingContext        outgoing crypto context
      * @return  always true
      */
-    bool process_bob(qkd::key::key & cKey, qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext);
+    bool process_bob(qkd::key::key & cKey, 
+            qkd::crypto::crypto_context & cIncomingContext, 
+            qkd::crypto::crypto_context & cOutgoingContext);
 
     
     // pimpl
-    class qkd_bb84_data;
-    boost::shared_ptr<qkd_bb84_data> d;
+    class qkd_sifting_bb84_data;
+    boost::shared_ptr<qkd_sifting_bb84_data> d;
     
 };
 

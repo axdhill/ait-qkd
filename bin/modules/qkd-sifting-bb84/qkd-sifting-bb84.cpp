@@ -1,5 +1,5 @@
 /*
- * qkd-bb84.cpp
+ * qkd-sifting-bb84.cpp
  * 
  * This is the implementation of the famous BB84 protocol
  * 
@@ -38,14 +38,14 @@
 #include <qkd/utility/memory.h>
 #include <qkd/utility/syslog.h>
 
-#include "qkd-bb84.h"
-#include "qkd_bb84_dbus.h"
+#include "qkd-sifting-bb84.h"
+#include "qkd_sifting_bb84_dbus.h"
 
 
 // ------------------------------------------------------------
 // defs
 
-#define MODULE_DESCRIPTION      "This is the qkd-bb84 QKD Module."
+#define MODULE_DESCRIPTION      "This is the qkd-sifting-bb84 QKD Module."
 #define MODULE_ORGANISATION     "(C)opyright 2012-2015 AIT Austrian Institute of Technology, http://www.ait.ac.at"
 
 
@@ -66,9 +66,9 @@ enum class bb84_base : uint8_t {
 
 
 /**
- * the qkd-bb84 pimpl
+ * the qkd-sifting-bb84 pimpl
  */
-class qkd_bb84::qkd_bb84_data {
+class qkd_sifting_bb84::qkd_sifting_bb84_data {
     
 public:
 
@@ -76,7 +76,7 @@ public:
     /**
      * ctor
      */
-    qkd_bb84_data() : nRawKeyLength(1024), nKeyId(1), nCurrentPosition(0) {
+    qkd_sifting_bb84_data() : nRawKeyLength(1024), nKeyId(1), nCurrentPosition(0) {
         cAvgBaseRatio = qkd::utility::average_technique::create("value", 10);        
     };
     
@@ -133,16 +133,17 @@ static uint8_t const g_nParity[] = {
 /**
  * ctor
  */
-qkd_bb84::qkd_bb84() : qkd::module::module("bb84", qkd::module::module_type::TYPE_SIFTING, MODULE_DESCRIPTION, MODULE_ORGANISATION) {
+qkd_sifting_bb84::qkd_sifting_bb84() : qkd::module::module("bb84", 
+        qkd::module::module_type::TYPE_SIFTING, 
+        MODULE_DESCRIPTION, 
+        MODULE_ORGANISATION) {
 
-    d = boost::shared_ptr<qkd_bb84::qkd_bb84_data>(new qkd_bb84::qkd_bb84_data());
+    d = boost::shared_ptr<qkd_sifting_bb84::qkd_sifting_bb84_data>(new qkd_sifting_bb84::qkd_sifting_bb84_data());
     
-    // setup the key id pattern
     set_key_id_pattern("0/0");
     set_rawkey_length(1024);
     set_key_id_pattern("0/0");
     
-    // enforce DBus registration
     new Bb84Adaptor(this);
 }
 
@@ -153,15 +154,11 @@ qkd_bb84::qkd_bb84() : qkd::module::module("bb84", qkd::module::module_type::TYP
  * @param   sURL            URL of config file loaded
  * @param   cConfig         map of key --> value
  */
-void qkd_bb84::apply_config(UNUSED std::string const & sURL, qkd::utility::properties const & cConfig) {
+void qkd_sifting_bb84::apply_config(UNUSED std::string const & sURL, qkd::utility::properties const & cConfig) {
     
-    // delve into the given config
     for (auto const & cEntry : cConfig) {
         
-        // grab any key which is intended for us
         if (!is_config_key(cEntry.first)) continue;
-        
-        // ignore standard config keys: they should have been applied already
         if (is_standard_config_key(cEntry.first)) continue;
         
         std::string sKey = cEntry.first.substr(config_prefix().size());
@@ -178,7 +175,13 @@ void qkd_bb84::apply_config(UNUSED std::string const & sURL, qkd::utility::prope
             set_rawkey_length(nLength);
         }
         else {
-            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "found unknown key: \"" << cEntry.first << "\" - don't know how to handle this.";
+            qkd::utility::syslog::warning() << __FILENAME__ 
+                    << '@' 
+                    << __LINE__ 
+                    << ": " 
+                    << "found unknown key: \"" 
+                    << cEntry.first 
+                    << "\" - don't know how to handle this.";
         }
     }
 }
@@ -189,8 +192,7 @@ void qkd_bb84::apply_config(UNUSED std::string const & sURL, qkd::utility::prope
  * 
  * @return  the moving average of good shared bases
  */
-double qkd_bb84::base_ratio() const {
-    // get exclusive access to properties
+double qkd_sifting_bb84::base_ratio() const {
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     return d->cAvgBaseRatio->sum();
 }
@@ -201,8 +203,7 @@ double qkd_bb84::base_ratio() const {
  * 
  * @return  the current key id we are sifting
  */
-qulonglong qkd_bb84::current_id() const {
-    // get exclusive access to properties
+qulonglong qkd_sifting_bb84::current_id() const {
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     return d->nKeyId;
 }
@@ -213,8 +214,7 @@ qulonglong qkd_bb84::current_id() const {
  * 
  * @return  the current key length in bits we have sifted so far
  */
-qulonglong qkd_bb84::current_length() const {
-    // get exclusive access to properties
+qulonglong qkd_sifting_bb84::current_length() const {
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     return d->nCurrentPosition;
 }
@@ -229,8 +229,7 @@ qulonglong qkd_bb84::current_length() const {
  * 
  * @return  the key-id generation pattern string
  */
-QString qkd_bb84::key_id_pattern() const {
-    
+QString qkd_sifting_bb84::key_id_pattern() const {
     std::stringstream ss;
     ss << qkd::key::key::counter().shift_value() << "/" << qkd::key::key::counter().add_value();
     return QString::fromStdString(ss.str());
@@ -245,7 +244,9 @@ QString qkd_bb84::key_id_pattern() const {
  * @param   cOutgoingContext        outgoing crypto context
  * @return  always true
  */
-bool qkd_bb84::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext) {
+bool qkd_sifting_bb84::process(qkd::key::key & cKey, 
+        qkd::crypto::crypto_context & cIncomingContext, 
+        qkd::crypto::crypto_context & cOutgoingContext) {
 
     if (is_alice()) return process_alice(cKey, cIncomingContext, cOutgoingContext);
     if (is_bob()) return process_bob(cKey, cIncomingContext, cOutgoingContext);
@@ -264,7 +265,9 @@ bool qkd_bb84::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cInco
  * @param   cOutgoingContext        outgoing crypto context
  * @return  always true
  */
-bool qkd_bb84::process_alice(qkd::key::key & cKey, qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext) {
+bool qkd_sifting_bb84::process_alice(qkd::key::key & cKey, 
+        qkd::crypto::crypto_context & cIncomingContext, 
+        qkd::crypto::crypto_context & cOutgoingContext) {
     
     bool bForwardKey = false;
     
@@ -275,38 +278,36 @@ bool qkd_bb84::process_alice(qkd::key::key & cKey, qkd::crypto::crypto_context &
     cMessage.data() << cKey.size();
     cMessage.data() << (uint64_t)rawkey_length();
 
-    // send metadata to bob
     try {
         send(cMessage, cOutgoingContext);
     }
     catch (std::runtime_error const & cRuntimeError) {
-        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to send message: " << cRuntimeError.what();
+        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
+                << "failed to send message: " << cRuntimeError.what();
         return false;
     }
     
-    // extract the bases
     qkd::utility::memory cBases = quantum_table_to_base_table(cKey.data());
 
-    // get bases from bob
     cMessage = qkd::module::message();
     try {
         if (!recv(cMessage, cIncomingContext)) return false;
     }
     catch (std::runtime_error const & cRuntimeError) {
-        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to receive message: " << cRuntimeError.what();
+        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
+                << "failed to receive message: " << cRuntimeError.what();
         return false;
     }
     qkd::utility::memory cBasesPeer;
     cMessage.data() >> cBasesPeer;
     
-    // sanity check
     if (cBases.size() != cBasesPeer.size()) {
-        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "base tables differ - this must not happen";
+        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
+                << "base tables differ - this must not happen";
         terminate();
         return false;
     }
 
-    // merge our basis
     for (unsigned int i = 0; i < cBases.size(); i++) {
         
         // different bases? --> Alice sets here resp. basis to invalid
@@ -316,30 +317,30 @@ bool qkd_bb84::process_alice(qkd::key::key & cKey, qkd::crypto::crypto_context &
         if ((cBasesPeer.get()[i] & 0x03) != (cBases.get()[i] & 0x03)) cBases.get()[i] &= 0xFC;
     }
     
-    // send bases back to Bob
     cMessage = qkd::module::message();
     cMessage.data() << cBases;
     try {
         send(cMessage, cOutgoingContext);
     }
     catch (std::runtime_error const & cRuntimeError) {
-        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to send message: " << cRuntimeError.what();
+        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
+                << "failed to send message: " << cRuntimeError.what();
         return false;
     }
     
     // convert the bases to bits
     double nBaseRatio = 1.0;
     bases_to_bits(d->cBits, d->nCurrentPosition, nBaseRatio, true, cBases, cKey.data());
-
-    // set base ratio
     {
         std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
         d->cAvgBaseRatio << nBaseRatio;
     }
     
-    // debug
     if (qkd::utility::debug::enabled()) {
-        qkd::utility::debug() << "sifted bases: " << cBases.size() * 4 << " used ratio: " << nBaseRatio << " total sifted bits for next key: " << d->nCurrentPosition << " (min. " << rawkey_length() * 8 << ")";
+        qkd::utility::debug() << "sifted bases: " << cBases.size() * 4 
+                << " used ratio: " << nBaseRatio 
+                << " total sifted bits for next key: " << d->nCurrentPosition 
+                << " (min. " << rawkey_length() * 8 << ")";
     }
 
     // check if we have a key to forward
@@ -351,7 +352,6 @@ bool qkd_bb84::process_alice(qkd::key::key & cKey, qkd::crypto::crypto_context &
         cKeyBits.resize(d->nCurrentPosition / 8);
         cKey = qkd::key::key(d->nKeyId, cKeyBits);
         
-        // housekeeping key data
         cKey.meta().eKeyState = qkd::key::key_state::KEY_STATE_SIFTED;
         d->nKeyId = qkd::key::key::counter().inc();
         d->cBits = qkd::utility::bigint(d->nRawKeyLength);
@@ -371,18 +371,20 @@ bool qkd_bb84::process_alice(qkd::key::key & cKey, qkd::crypto::crypto_context &
  * @param   cOutgoingContext        outgoing crypto context
  * @return  always true
  */
-bool qkd_bb84::process_bob(qkd::key::key & cKey, qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext) {
+bool qkd_sifting_bb84::process_bob(qkd::key::key & cKey, 
+        qkd::crypto::crypto_context & cIncomingContext, 
+        qkd::crypto::crypto_context & cOutgoingContext) {
     
     bool bForwardKey = false;
     
     qkd::module::message cMessage;
 
-    // receive meta data from alice
     try {
         if (!recv(cMessage, cIncomingContext)) return false;
     }
     catch (std::runtime_error const & cRuntimeError) {
-        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to receive message: " << cRuntimeError.what();
+        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
+                << "failed to receive message: " << cRuntimeError.what();
         return false;
     }
 
@@ -395,15 +397,14 @@ bool qkd_bb84::process_bob(qkd::key::key & cKey, qkd::crypto::crypto_context & c
     
     // check if we both have the same input
     if ((nPeerKeyId != cKey.id()) || (nPeerSize != cKey.size())) {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "alice has different input data than me - this must not happen";
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " 
+                << "alice has different input data than me - this must not happen";
         terminate();
         return false;
     }
 
-    // fix raw key length
     set_rawkey_length(nLength);
     
-    // send bases to alice
     qkd::utility::memory cBases = quantum_table_to_base_table(cKey.data());
     cMessage = qkd::module::message();
     cMessage.data() << cBases;
@@ -411,16 +412,17 @@ bool qkd_bb84::process_bob(qkd::key::key & cKey, qkd::crypto::crypto_context & c
         send(cMessage, cOutgoingContext);
     }
     catch (std::runtime_error const & cRuntimeError) {
-        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to send message: " << cRuntimeError.what();
+        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
+                << "failed to send message: " << cRuntimeError.what();
         return false;
     }
     
-    // get bases from alice
     try {
         if (!recv(cMessage, cIncomingContext)) return false;
     }
     catch (std::runtime_error const & cRuntimeError) {
-        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to receive message: " << cRuntimeError.what();
+        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
+                << "failed to receive message: " << cRuntimeError.what();
         return false;
     }
     cMessage.data() >> cBases;
@@ -428,16 +430,16 @@ bool qkd_bb84::process_bob(qkd::key::key & cKey, qkd::crypto::crypto_context & c
     // convert the bases to bits
     double nBaseRatio = 1.0;
     bases_to_bits(d->cBits, d->nCurrentPosition, nBaseRatio, false, cBases, cKey.data());
-
-    // set base ratio
     {
         std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
         d->cAvgBaseRatio << nBaseRatio;
     }
     
-    // debug
     if (qkd::utility::debug::enabled()) {
-        qkd::utility::debug() << "sifted bases: " << cBases.size() * 4 << " used ratio: " << nBaseRatio << " total sifted bits for next key: " << d->nCurrentPosition << " (min. " << rawkey_length() * 8 << ")";
+        qkd::utility::debug() << "sifted bases: " << cBases.size() * 4 
+                << " used ratio: " << nBaseRatio 
+                << " total sifted bits for next key: " << d->nCurrentPosition 
+                << " (min. " << rawkey_length() * 8 << ")";
     }
 
     // check if we have a key to forward
@@ -449,7 +451,6 @@ bool qkd_bb84::process_bob(qkd::key::key & cKey, qkd::crypto::crypto_context & c
         cKeyBits.resize(d->nCurrentPosition / 8);
         cKey = qkd::key::key(d->nKeyId, cKeyBits);
         
-        // housekeeping key data
         cKey.meta().eKeyState = qkd::key::key_state::KEY_STATE_SIFTED;
         d->nKeyId = qkd::key::key::counter().inc();
         d->cBits = qkd::utility::bigint(d->nRawKeyLength);
@@ -466,9 +467,7 @@ bool qkd_bb84::process_bob(qkd::key::key & cKey, qkd::crypto::crypto_context & c
  * 
  * @return  the minimum length of the generated raw key length in bytes
  */
-qulonglong qkd_bb84::rawkey_length() const {
-    
-    // get exclusive access to properties
+qulonglong qkd_sifting_bb84::rawkey_length() const {
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     return d->nRawKeyLength;
 }
@@ -483,30 +482,28 @@ qulonglong qkd_bb84::rawkey_length() const {
  * 
  * @param   sPattern    the new key generation pattern
  */
-void qkd_bb84::set_key_id_pattern(QString sPattern) {
+void qkd_sifting_bb84::set_key_id_pattern(QString sPattern) {
     
-    // get the tokens
     std::string sPatternStdString = sPattern.toStdString();
     std::vector<std::string> sTokens;
     boost::split(sTokens, sPatternStdString, boost::is_any_of("/"));
     if (sTokens.size() != 2) {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to parse '" << sPatternStdString << "' for new key-id pattern";
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " 
+                << "failed to parse '" << sPatternStdString << "' for new key-id pattern";
         return;
     }
     
-    // extract the values
     uint32_t nShift = atol(sTokens[0].c_str());
     uint32_t nAdd = atol(sTokens[1].c_str());
     
-    // debug to the user
     if (qkd::utility::debug::enabled()) {
-        qkd::utility::debug() << "parsed key-id pattern '" << sPatternStdString << "' as shift=" << nShift << " and add=" << nAdd << "; setting new key-id pattern";
+        qkd::utility::debug() << "parsed key-id pattern '" << sPatternStdString 
+                << "' as shift=" << nShift 
+                << " and add=" << nAdd 
+                << "; setting new key-id pattern";
     }
     
-    // setup a new key-id counter
     qkd::key::key::counter() = qkd::key::key::key_id_counter(nShift, nAdd);
-    
-    // pick the first id
     d->nKeyId = qkd::key::key::counter().inc();
 }
 
@@ -516,14 +513,12 @@ void qkd_bb84::set_key_id_pattern(QString sPattern) {
  * 
  * @param   nLength         the new minimum length of the generated raw key length in bytes
  */
-void qkd_bb84::set_rawkey_length(qulonglong nLength) {
+void qkd_sifting_bb84::set_rawkey_length(qulonglong nLength) {
     
-    // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
-    
-    // don't set a length when it ain't new
+
     if (d->nRawKeyLength == nLength) return;
-    
+
     d->nRawKeyLength = nLength;
     d->cBits.resize(d->nRawKeyLength * 8);
 }
@@ -571,19 +566,20 @@ bool base_to_bit(bool & bBit, bb84_base eBase, unsigned char nQuantumEvent) {
  * @param   cBases          the bases
  * @param   cQuantumTable   the quantum event table
  */
-void bases_to_bits(qkd::utility::bigint & cBits, uint64_t & nPosition, double & nBaseRatio, bool bAlice, qkd::utility::memory const & cBases, qkd::utility::memory const & cQuantumTable) {
+void bases_to_bits(qkd::utility::bigint & cBits, 
+        uint64_t & nPosition, 
+        double & nBaseRatio, 
+        bool bAlice, qkd::utility::memory const & cBases, 
+        qkd::utility::memory const & cQuantumTable) {
     
     // we have 4 bases in each byte encoded
     uint64_t nBases = cBases.size() * 4;
 
-    // ensure we have enought space to write to
     if ((nPosition + nBases) > cBits.bits()) cBits.resize(nPosition + nBases);
     
-    // walk over the bases
     uint64_t nErrors = 0;
     for (uint64_t i = 0; i < cBases.size(); i++) {
         
-        // pick the detector events
         bb84_base b0 = static_cast<bb84_base>((cBases[i] & 0xC0) >> 6);
         bb84_base b1 = static_cast<bb84_base>((cBases[i] & 0x30) >> 4);
         bb84_base b2 = static_cast<bb84_base>((cBases[i] & 0x0C) >> 2);
@@ -620,7 +616,6 @@ void bases_to_bits(qkd::utility::bigint & cBits, uint64_t & nPosition, double & 
         else nErrors++;
     }
     
-    // calculate the overall base_ratio
     if (!nBases) nBaseRatio = 0.0;
     else nBaseRatio = (nBases - nErrors) / (double)nBases;
 }
@@ -665,11 +660,9 @@ qkd::utility::memory quantum_table_to_base_table(qkd::utility::memory const & cQ
     // a base is 00, 01, 10 or 11
     qkd::utility::memory cBases((cQuantumTable.size() + 1) / 2);
     
-    // now go through the table and collect the bases
     unsigned char const * cQuantumEvent = cQuantumTable.get();
     for (uint64_t i = 0; i < cBases.size(); i++) {
 
-        // get the bases for 4 events
         unsigned char b0 = (unsigned char)get_measurement((cQuantumEvent[i * 2 + 0] & 0xF0) >> 4);
         unsigned char b1 = (unsigned char)get_measurement(cQuantumEvent[i * 2 + 0] & 0x0F);
         unsigned char b2 = (unsigned char)get_measurement((cQuantumEvent[i * 2 + 1] & 0xF0) >> 4);

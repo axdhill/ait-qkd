@@ -37,7 +37,7 @@
 
 #include <boost/program_options.hpp>
 
-#include "qkd-bb84.h"
+#include "qkd-sifting-bb84.h"
 
 
 // ------------------------------------------------------------
@@ -55,7 +55,7 @@ int main(int argc, char ** argv) {
     
     QCoreApplication cApp(argc, argv);
     
-    std::string sApplication = std::string("qkd-bb84 - AIT QKD Module 'BB84' V") + VERSION;
+    std::string sApplication = std::string("qkd-sifting-bb84 - AIT QKD Module 'Sifting BB84' V") + VERSION;
     std::string sDescription = std::string("\nThis is an AIT QKD module.\n\nThis runs the well known BB84 protocol.\n\nCopyright 2012-2015 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS]";
     
@@ -96,22 +96,22 @@ int main(int argc, char ** argv) {
     
     if (cVariableMap.count("debug")) qkd::utility::debug::enabled() = true;
     
-    qkd_bb84 cQKDBB84;
-    cQKDBB84.set_debug_message_flow(cVariableMap.count("debug-message-flow") > 0);
+    qkd_sifting_bb84 cQKDSiftingBB84;
+    cQKDSiftingBB84.set_debug_message_flow(cVariableMap.count("debug-message-flow") > 0);
     if (cVariableMap.count("bob")) {
-        cQKDBB84.set_role((unsigned long)qkd::module::module_role::ROLE_BOB);
+        cQKDSiftingBB84.set_role((unsigned long)qkd::module::module_role::ROLE_BOB);
     }
     else {
-        cQKDBB84.set_role((unsigned long)qkd::module::module_role::ROLE_ALICE);
+        cQKDSiftingBB84.set_role((unsigned long)qkd::module::module_role::ROLE_ALICE);
     }
     if (cVariableMap.count("config")) {
-        cQKDBB84.configure(QString::fromStdString(cVariableMap["config"].as<std::string>()), true);
+        cQKDSiftingBB84.configure(QString::fromStdString(cVariableMap["config"].as<std::string>()), true);
     }
-    if (cVariableMap.count("run")) cQKDBB84.start_later();
+    if (cVariableMap.count("run")) cQKDSiftingBB84.start_later();
     
-    cApp.connect(&cQKDBB84, SIGNAL(terminated()), SLOT(quit()));
+    cApp.connect(&cQKDSiftingBB84, SIGNAL(terminated()), SLOT(quit()));
     int nAppExit = cApp.exec();
-    cQKDBB84.join();
+    cQKDSiftingBB84.join();
     
     return nAppExit;
 }

@@ -61,11 +61,11 @@
 
 <pipeline name="default" autoconnect="true" pipein="ipc:///tmp/qkd/default.bob.in" pipeout="ipc:///tmp/qkd/default.bob.out">
 
-    <module path="qkd-bb84" >
+    <module path="qkd-sifting-bb84" >
         <config path="/etc/qkd/pipeline-default.conf" />
         <role value="bob" />
         <args value="--debug" />
-        <log path="qkd-bb84.bob.log" />
+        <log path="qkd-sifting-bb84.bob.log" />
     </module>
 
     <module path="qkd-cascade" >
@@ -98,10 +98,10 @@
 
     <module path="qkd-statistics" >
         <config path="/etc/qkd/pipeline-default.conf" />
-        <role value="alice" />
+        <role value="bob" />
         <args value="--debug" />
         <args value="--file">qkd-keys.bob.statistics</args>
-        <log path="qkd-statistics.alice.log" />
+        <log path="qkd-statistics.bob.log" />
     </module>
 
     <module path="qkd-tee" >

@@ -64,10 +64,10 @@
 
 <pipeline name="default">
 
-    <module path="bin/modules/qkd-bb84/qkd-bb84" start="yes">
+    <module path="bin/modules/qkd-sifting-bb84/qkd-sifting-bb84" start="yes">
         <config path="test/test-data/sifting-pipeline.conf" />
         <role value="bob" />
-        <log path="qkd-bb84.bob.log" />
+        <log path="qkd-sifting-bb84.bob.log" />
     </module>
 
     <module path="bin/modules/qkd-cascade/qkd-cascade" start="yes">

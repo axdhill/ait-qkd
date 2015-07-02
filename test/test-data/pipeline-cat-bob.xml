@@ -75,11 +75,11 @@
         <log path="qkd-auth-starting.bob.log" />
     </module>
 
-    <module path="bin/modules/qkd-bb84/qkd-bb84" >
+    <module path="bin/modules/qkd-sifting-bb84/qkd-sifting-bb84" >
         <config path="test/test-data/cat-pipeline.conf" />
         <role value="bob" />
         <args value="--debug" />
-        <log path="qkd-bb84.bob.log" />
+        <log path="qkd-sifting-bb84.bob.log" />
     </module>
 
     <module path="bin/modules/qkd-cascade/qkd-cascade" >
