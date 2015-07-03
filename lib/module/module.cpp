@@ -330,9 +330,7 @@ bool module::configure(QString sConfigURL, bool bRequired) {
             qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << ss.str();
 
             if (bRequired) {
-                qkd::utility::syslog::warning() << __FILENAME__ 
-                        << '@' 
-                        << __LINE__ 
+                qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
                         << ": as configuration is required, this is futile --> aborted"; 
                 std::exit(1);
             }
@@ -354,9 +352,7 @@ bool module::configure(QString sConfigURL, bool bRequired) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << ss.str();
 
         if (bRequired) {
-            qkd::utility::syslog::warning() << __FILENAME__ 
-                    << '@' 
-                    << __LINE__ 
+            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
                     << ": as configuration is required, this is futile --> aborted"; 
             std::exit(1);
         }
@@ -368,18 +364,11 @@ bool module::configure(QString sConfigURL, bool bRequired) {
     std::string sFile = cConfigURL.toLocalFile().toStdString();
     std::ifstream cConfigFile(sFile);
     if (!cConfigFile.is_open()) {
-        qkd::utility::syslog::warning() << __FILENAME__ 
-                << '@' 
-                << __LINE__ 
-                << ": " 
-                << "failed to open configuration '" 
-                << sFile 
-                << "'";
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                << ": failed to open configuration '" << sFile << "'";
 
         if (bRequired) {
-            qkd::utility::syslog::warning() << __FILENAME__ 
-                    << '@' 
-                    << __LINE__ 
+            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
                     << ": as configuration is required, this is futile --> aborted"; 
             std::exit(1);
         }
@@ -411,25 +400,14 @@ bool module::configure(QString sConfigURL, bool bRequired) {
         
     }
     catch (boost::program_options::invalid_syntax const & cErrInvalidSyntax) {
-        qkd::utility::syslog::crit() << __FILENAME__ 
-                << '@' 
-                << __LINE__ 
-                << ": " 
-                << "failed to parse config file: " 
-                << sFile 
-                << " invalid syntax at: '" 
-                << cErrInvalidSyntax.tokens() 
-                << "'";
+        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ 
+                << ": failed to parse config file: " << sFile 
+                << " invalid syntax at: '" << cErrInvalidSyntax.tokens() << "'";
     }
     catch (std::exception const & cException) {
-        qkd::utility::syslog::crit() << __FILENAME__ 
-                << '@' 
-                << __LINE__ 
-                << ": " 
-                << "failed to parse config file: " 
-                << sFile 
-                << " exception: " 
-                << cException.what();
+        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ 
+                << ": failed to parse config file: " << sFile 
+                << " exception: "    << cException.what();
     }
 
     return true;
@@ -873,11 +851,8 @@ bool module::recv_internal(qkd::module::message & cMessage, int nTimeOut) throw 
     if (bIsBob) cSocket = d->cSocketListener;
     
     if (!cSocket) {
-        qkd::utility::syslog::warning() << __FILENAME__ 
-                << '@' 
-                << __LINE__ 
-                << ": " 
-                << "failed to decide which channel to use for receive";
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                << ": failed to decide which channel to use for receive";
         throw std::runtime_error("failed to decide which channel to use for recv");
     }
     
@@ -1044,11 +1019,8 @@ void module::register_dbus() {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << sMessage.toStdString();
     }
     
-    qkd::utility::syslog::info() << "connected to DBus:" 
-            << getenv("DBUS_SESSION_BUS_ADDRESS") 
-            << " as \"" 
-            << sServiceName.toStdString() 
-            << "\"";
+    qkd::utility::syslog::info() << "connected to DBus:" << getenv("DBUS_SESSION_BUS_ADDRESS") 
+            << " as \"" << sServiceName.toStdString() << "\"";
 
     if (!cDBus.registerObject("/Module", this)) {
         QString sMessage = QString("failed to register DBus object /Module");
@@ -1173,11 +1145,8 @@ bool module::send(qkd::module::message & cMessage,
     if (bIsBob) cSocket = d->cSocketListener;
     
     if (!cSocket) {
-        qkd::utility::syslog::warning() << __FILENAME__ 
-                << '@' 
-                << __LINE__ 
-                << ": " 
-                << "failed to decide which channel to use for send";
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                << ": failed to decide which channel to use for send";
         throw std::runtime_error("failed to decide which channel to use for send");
     }
 
@@ -1238,13 +1207,9 @@ QString module::service_name() const {
     ss << id().toStdString() << "-" << process_id();
     
     if (!qkd::utility::dbus::valid_service_name_particle(ss.str())) {
-        qkd::utility::syslog::crit() << __FILENAME__ 
-                << '@' 
-                << __LINE__ 
-                << ": " 
-                << "DBus service name 'at.ac.ait.qkd.module." 
-                << ss.str() 
-                << "' is not valid - impossible to register on DBus";
+        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ 
+                << ": DBus service name 'at.ac.ait.qkd.module." 
+                << ss.str() << "' is not valid - impossible to register on DBus";
     }
     
     // try anyway to connect to DBus
@@ -1284,11 +1249,8 @@ void module::set_pipeline(QString sPipeline) {
         // warn user: the module is already up and working
         // changing the pipeline should have been done earlier
         // this may cause problems ...
-        qkd::utility::syslog::warning() << __FILENAME__ 
-                << '@' 
-                << __LINE__ 
-                << ": " 
-                << "warning: setting pipeline in working state.";
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                << ": warning: setting pipeline in working state.";
     }
     
     d->sPipeline = sPipeline.toStdString();
@@ -1334,13 +1296,8 @@ void module::set_role(qulonglong nRole) {
         d->eRole = module_role::ROLE_BOB;
     }
     else {
-        qkd::utility::syslog::warning() << __FILENAME__ 
-                << '@' 
-                << __LINE__ 
-                << ": " 
-                << "refusing to set role to " 
-                << nRole 
-                << " - unknown role id.";
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                << ": refusing to set role to " << nRole << " - unknown role id.";
     }
 }
 
@@ -1625,12 +1582,8 @@ void module::synchronize() {
         send(cMessage, cNullContxt, timeout_network());
     }
     catch (std::runtime_error & cException) {
-        qkd::utility::syslog::warning() << __FILENAME__ 
-                << '@' 
-                << __LINE__ 
-                << ": " 
-                << "failed to send list of stashed keys to peer: " 
-                << cException.what();
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                << ": failed to send list of stashed keys to peer: " << cException.what();
         return;
     }
     
@@ -1691,11 +1644,8 @@ void module::terminate() {
 void module::thread() {
 
     if (!d->setup()) {
-        qkd::utility::syslog::crit() << __FILENAME__ 
-                << '@' 
-                << __LINE__ 
-                << ": " 
-                << "unable to setup module thread: terminating";
+        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ 
+                << ": unable to setup module thread: terminating";
         d->release();
         emit terminated();
         return;
@@ -1925,11 +1875,8 @@ void module::work() {
             }
         }
         catch (...) {
-            qkd::utility::syslog::warning() << __FILENAME__ 
-                    << '@' 
-                    << __LINE__ 
-                    << ": " 
-                    << "failed to create incoming crypto context for key";
+            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                    << ": failed to create incoming crypto context for key";
         }
         try {
             if (!cKey.meta().sCryptoSchemeOutgoing.empty()) {
@@ -1938,11 +1885,8 @@ void module::work() {
             }
         }
         catch (...) {
-            qkd::utility::syslog::warning() << __FILENAME__ 
-                    << '@' 
-                    << __LINE__ 
-                    << ": " 
-                    << "failed to create outgoing crypto context for key";
+            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                    << ": failed to create outgoing crypto context for key";
         }
 
         d->bProcessing = true;
@@ -2047,12 +1991,8 @@ bool module::write(qkd::key::key const & cKey) {
     }
     
     if (bFailed) {
-        qkd::utility::syslog::warning() << __FILENAME__ 
-                << '@' 
-                << __LINE__ 
-                << ": " 
-                << "failed to send key to next module - key-id: " 
-                << cKey.id();
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                << ": failed to send key to next module - key-id: " << cKey.id();
         return false;
     }
 

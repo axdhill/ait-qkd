@@ -30,7 +30,6 @@
 # Boston, MA  02110-1301, USA.
 # ------------------------------------------------------------
 
-
 # base source
 export TEST_BASE="@CMAKE_BINARY_DIR@"
 source ${TEST_BASE}/test/bin/test-functions
@@ -38,27 +37,28 @@ source ${TEST_BASE}/test/bin/test-functions
 
 # ------------------------------------------------------------
 
-# init test environment
 test_init
 
-# number of qkd-tee modules in the pipe
 NUMBER_KEYS=100
 NUMBER_TEE=10
 
-# zap previous keys
 rm -rf tcp-keys.* &> /dev/null
 
-# create keys
 ${TEST_BASE}/bin/qkd-key-gen --keys=${NUMBER_KEYS} tcp-keys
-
-# remove the bob key variant (would be confusing)
 rm -f tcp-keys.bob &> /dev/null
 
 # start the modules in the background
-${TEST_BASE}/bin/qkd-cat --file "tcp-keys.alice" &
-for i in $(seq 1 ${NUMBER_TEE}); do
-    ${TEST_BASE}/bin/qkd-tee --debug 2>>qkd_tee_${i}.debug & 
-done
+( ${TEST_BASE}/bin/qkd-cat --run --debug --config ${TEST_BASE}/test/test-data/tcp-cat-tee/cat.conf 2> qkd_cat.debug ) &
+( ${TEST_BASE}/bin/qkd-tee --run --debug --config ${TEST_BASE}/test/test-data/tcp-cat-tee/tee-1.conf --file tcp-keys.1 2> qkd_tee.1.debug ) &
+( ${TEST_BASE}/bin/qkd-tee --run --debug --config ${TEST_BASE}/test/test-data/tcp-cat-tee/tee-2.conf --file tcp-keys.2 2> qkd_tee.2.debug ) &
+( ${TEST_BASE}/bin/qkd-tee --run --debug --config ${TEST_BASE}/test/test-data/tcp-cat-tee/tee-3.conf --file tcp-keys.3 2> qkd_tee.3.debug ) &
+( ${TEST_BASE}/bin/qkd-tee --run --debug --config ${TEST_BASE}/test/test-data/tcp-cat-tee/tee-4.conf --file tcp-keys.4 2> qkd_tee.4.debug ) &
+( ${TEST_BASE}/bin/qkd-tee --run --debug --config ${TEST_BASE}/test/test-data/tcp-cat-tee/tee-5.conf --file tcp-keys.5 2> qkd_tee.5.debug ) &
+( ${TEST_BASE}/bin/qkd-tee --run --debug --config ${TEST_BASE}/test/test-data/tcp-cat-tee/tee-6.conf --file tcp-keys.6 2> qkd_tee.6.debug ) &
+( ${TEST_BASE}/bin/qkd-tee --run --debug --config ${TEST_BASE}/test/test-data/tcp-cat-tee/tee-7.conf --file tcp-keys.7 2> qkd_tee.7.debug ) &
+( ${TEST_BASE}/bin/qkd-tee --run --debug --config ${TEST_BASE}/test/test-data/tcp-cat-tee/tee-8.conf --file tcp-keys.8 2> qkd_tee.8.debug ) &
+( ${TEST_BASE}/bin/qkd-tee --run --debug --config ${TEST_BASE}/test/test-data/tcp-cat-tee/tee-9.conf --file tcp-keys.9 2> qkd_tee.9.debug ) &
+( ${TEST_BASE}/bin/qkd-tee --run --debug --config ${TEST_BASE}/test/test-data/tcp-cat-tee/tee-10.conf --file tcp-keys.10 2> qkd_tee.10.debug ) &
 
 # wait until the modules are up
 while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module.cat | wc -l)" != "1" ]; do
@@ -71,57 +71,6 @@ while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module.tee | wc -l)" !
 done
 echo "modules created"
 
-# walk through the tee modules, adjust and start them
-MODULE_PORT="11200"
-MODULE_OUT="ipc://*"
-MODULE_IN=""
-qkd_qdbus | grep at.ac.ait.qkd.module.tee | while read MODULE_TEE; do
-
-    echo "preparing ${MODULE_TEE}"
-    
-    # adjust file out
-    FILE_URL="file://$(pwd)/tcp-keys.${MODULE_TEE}"
-    qkd_qdbus ${MODULE_TEE} /Module Set at.ac.ait.qkd.tee file_url "${FILE_URL}"
-    
-    # start the module
-    MODULE_IN="tcp://127.0.0.1:${MODULE_PORT}"
-    qkd_qdbus ${MODULE_TEE} /Module set_urls "${MODULE_IN}" "${MODULE_OUT}" "" ""
-    qkd_qdbus ${MODULE_TEE} /Module run
-    
-    # set up the values for the next round
-    MODULE_PORT=$((${MODULE_PORT} + 1))
-    MODULE_OUT=${MODULE_IN}
-    
-    # ensure the module is running
-    while [ "$(qkd_qdbus ${MODULE_TEE} /Module state)" != "2" ]; do
-        qkd_qdbus ${MODULE_TEE} /Module resume
-        if [ "$?" != "0" ]; then
-            echo "failed to resume on module ${MODULE_TEE}"
-            exit 1
-        fi
-    done
-    
-    # remember the last module_in for the first module: cat
-    echo ${MODULE_IN} > tcp_to_next_module
-    
-done
-TCP_TO_NEXT_MODULE=$(cat tcp_to_next_module)
-rm -f tcp_to_next_module &> /dev/null
-
-# grab the CAT
-MODULE_CAT=$(qkd_qdbus | grep at.ac.ait.qkd.module.cat)
-if [ "${MODULE_CAT}" = "" ]; then
-    echo "failed to start QKD module: cat"
-    exit 1
-fi
-
-# start the CAT
-echo "starting the starter module: ${MODULE_CAT} ..."
-qkd_qdbus ${MODULE_CAT} /Module set_urls "" "${TCP_TO_NEXT_MODULE}" "" ""
-qkd_qdbus ${MODULE_CAT} /Module run 
-qkd_qdbus ${MODULE_CAT} /Module resume
-
-# wait until finish
 wait_stalled cat tee
 echo "got keys"
 
@@ -139,5 +88,3 @@ test_cleanup
 # state that test ok
 echo "=== TEST SUCCESS ==="
 
-
-exit 0

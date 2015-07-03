@@ -92,6 +92,10 @@ private:
 };
 
 
+// fwd
+bool is_ambiguous(QUrl const & cURL);
+
+
 // ------------------------------------------------------------
 // vars
 
@@ -193,12 +197,13 @@ boost::filesystem::path module::module_internal::create_ipc_in() const {
         if (!boost::filesystem::create_directory(cIPCPath)) {
             
             // fail
-            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to create folder " << cIPCPath.string();
+            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ 
+                    << ": failed to create folder " << cIPCPath.string();
+
             return boost::filesystem::path();
         }
     }
     
-    // now add id and pid()
     std::stringstream ss;
     ss << sId << "-" << qkd::utility::environment::process_id() << ".in";
     cIPCPath /= ss.str();
@@ -219,12 +224,12 @@ boost::filesystem::path module::module_internal::create_ipc_out() const {
         if (!boost::filesystem::create_directory(cIPCPath)) {
             
             // fail
-            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to create folder " << cIPCPath.string();
+            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ 
+                << ": failed to create folder " << cIPCPath.string();
             return boost::filesystem::path();
         }
     }
     
-    // now add id and pid()
     std::stringstream ss;
     ss << sId << "-" << qkd::utility::environment::process_id() << ".out";
     cIPCPath /= ss.str();
@@ -330,19 +335,13 @@ void module::module_internal::debug_key_push(qkd::key::key const & cKey) {
  */
 std::string module::module_internal::fix_url(std::string const & sURL) {
 
-    // check for standard urls
     if (sURL == "stdin://") return sURL;
     if (sURL == "stdout://") return sURL;
 
-    // check URL
     QUrl cURL(QString::fromStdString(sURL));
-    
-    // ipc
     if (cURL.scheme() == "ipc") {
         return fix_url_ipc(sURL);
     }
-    
-    // tcp
     if (cURL.scheme() == "tcp") {
         return fix_url_tcp(sURL);
     }
@@ -360,13 +359,13 @@ std::string module::module_internal::fix_url(std::string const & sURL) {
  */
 std::string module::module_internal::fix_url_ipc(std::string const & sURL) {
 
-    // decuce proper filename from "ipc://" part
     static const std::string::size_type nSchemeHeader = std::string("ipc://").size();
     std::string sAddress = sURL.substr(nSchemeHeader);
     if (sAddress.empty() || sAddress == "*") {
         
         // we got an unspecified socket file to bind
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to setup url: this is a unspecified IPC url: " << sURL;
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                << ": failed to setup url: this is a unspecified IPC url: " << sURL;
         return std::string();
     }
     
@@ -375,7 +374,8 @@ std::string module::module_internal::fix_url_ipc(std::string const & sURL) {
     cPath = cPath.parent_path();
     if (!boost::filesystem::exists(cPath)) {
         if (!create_directory(cPath)) {
-            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to setup url: can't access ipc location: " << sURL;
+            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                    << ": failed to setup url: can't access ipc location: " << sURL;
             return std::string();
         }
     }
@@ -397,22 +397,22 @@ std::string module::module_internal::fix_url_tcp(std::string const & sURL) {
     QString sAddress = cURL.host();
     if (sAddress.isEmpty() || sAddress == "*") {
         
-        // we got an unspecified IP to bind
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "provided '*' as host to listen on";
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                << ": provided '*' as host to listen on";
         sAddress = QString::fromStdString("0.0.0.0");
     }
     
     // turn any (possible) hostname into an IP address
     std::set<std::string> cAddressesForHost = qkd::utility::environment::host_lookup(sAddress.toStdString());
     if (cAddressesForHost.empty()) {
-        qkd::utility::syslog::warning() << "failed to listen: unable to get IP address for hostname: " << sAddress.toStdString();
+        qkd::utility::syslog::warning() << "failed to listen: unable to get IP address for hostname: " 
+                << sAddress.toStdString();
         return std::string();
     }
     
     // pick the first
     sAddress = QString::fromStdString(*cAddressesForHost.begin());
     
-    // construct good url
     std::stringstream ss;
     ss << "tcp://";
     ss << sAddress.toStdString();
@@ -472,7 +472,6 @@ void module::module_internal::release() {
  * @param   cSocket     the socket to release
  */
 void module::module_internal::release_socket(void * & cSocket) {
-
     if (cSocket != nullptr) {
         zmq_close(cSocket);
     }
@@ -488,7 +487,6 @@ void module::module_internal::release_socket(void * & cSocket) {
  * @param   eNewState       the new module state
  */
 void module::module_internal::set_state(module_state eNewState) {
-    
     std::unique_lock<std::mutex> cLock(cStateMutex);
     eState = eNewState;
     cStateCondition.notify_all();
@@ -501,14 +499,10 @@ void module::module_internal::set_state(module_state eNewState) {
  * @return  true, if all is laid out properly
  */
 bool module::module_internal::setup() {
-    
     bool bRes = true;
-    
-    // setup the connection endpoints
     bRes = bRes && setup_pipe_in();
     bRes = bRes && setup_pipe_out();
     bRes = bRes && setup_listen();
-        
     return bRes;
 }
 
@@ -520,25 +514,18 @@ bool module::module_internal::setup() {
  */
 bool module::module_internal::setup_listen() {
 
-    // do not change URL settings yet
     std::lock_guard<std::mutex> cLock(cURLMutex);
     
-    // from now on we have tried to setup listen
     bSetupListen = false;
-    
-    // reset peer connection stuff
     if (cSocketListener) zmq_close(cSocketListener);
     cSocketListener = nullptr;
     
-    // if we ain't got a URL then we are already finished
     if (!sURLListen.empty()) sURLListen = fix_url(sURLListen);
     if (sURLListen.empty()) return true;
     
-    // create the ZMQ socket
     cSocketListener = zmq_socket(g_cInit.zmq_ctx(), ZMQ_DEALER);
     setup_socket(cSocketListener, 1000, nTimeoutNetwork);
     
-    // bind!
     qkd::utility::syslog::info() << "binding module listen on " << sURLListen;
     if (zmq_bind(cSocketListener, sURLListen.c_str()) == -1) {
         std::stringstream ss;
@@ -546,8 +533,7 @@ bool module::module_internal::setup_listen() {
         throw std::runtime_error(ss.str());
     }
     
-    // debug
-    if (qkd::utility::debug::enabled()) qkd::utility::debug() << "listen set to '" << sURLListen << "'";
+    qkd::utility::debug() << "listen set to '" << sURLListen << "'";
         
     return true;
 }
@@ -560,28 +546,21 @@ bool module::module_internal::setup_listen() {
  */
 bool module::module_internal::setup_peer() {
 
-    // do not change URL settings yet
     std::lock_guard<std::mutex> cLock(cURLMutex);
     
-    // from now on we have tried to setup listen
     bSetupPeer = false;
-    
-    // reset peer connection stuff
     if (cSocketPeer) zmq_close(cSocketPeer);
     cSocketPeer = nullptr;
     
-    // if we ain't got a URL then we are already finished
     if (!sURLPeer.empty()) sURLPeer = fix_url(sURLPeer);
     if (sURLPeer.empty()) return true;
 
     cSocketPeer = zmq_socket(g_cInit.zmq_ctx(), ZMQ_DEALER);
     setup_socket(cSocketPeer, 1000, nTimeoutNetwork);
 
-    // connect
     zmq_connect(cSocketPeer, sURLPeer.c_str());
     
-    // debug
-    if (qkd::utility::debug::enabled()) qkd::utility::debug() << "connected to '" << sURLPeer << "'";
+    qkd::utility::debug() << "connected to '" << sURLPeer << "'";
 
     return true;
 }
@@ -594,29 +573,23 @@ bool module::module_internal::setup_peer() {
  */
 bool module::module_internal::setup_pipe_in() {
     
-    // do not change URL settings yet
     std::lock_guard<std::mutex> cLock(cURLMutex);
     
-    // from now on we have tried to setup pipe-in
     bSetupPipeIn = false;
-    
-    // reset pipe in stuff
     if (cSocketPipeIn) zmq_close(cSocketPipeIn);
     cSocketPipeIn = nullptr;
     bPipeInStdin = false;
     bPipeInVoid = true;
 
-    // if we ain't got an URL then we are already finished
     if (sURLPipeIn.empty()) return true;
     
-    // check URL
     QUrl cURLPipeIn(QString::fromStdString(sURLPipeIn));
     if (cURLPipeIn.scheme() == "stdout") {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "input pipe stream can't be 'stdout'";
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                << ": input pipe stream can't be 'stdout'";
         return false;
     }
     
-    // stdin://
     if (cURLPipeIn.scheme() == "stdin") {
         if (qkd::utility::debug::enabled()) qkd::utility::debug() << "input pipe stream set to 'stdin://'";
         bPipeInStdin = true;
@@ -624,49 +597,39 @@ bool module::module_internal::setup_pipe_in() {
         return true;
     }
     
-    // fix ipc:// URLs in advance
     if (cURLPipeIn.scheme() == "ipc") {
         
         // pick the correct IPC path
         boost::filesystem::path cIPC(cURLPipeIn.path().toStdString());
         if (cIPC.empty()) cIPC = create_ipc_in();
         if (cIPC.empty()) {
-            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to create input IPC for '" << sURLPipeIn << "'";
+            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ 
+                    << ": failed to create input IPC for '" << sURLPipeIn << "'";
             return false;
         }
         
-        // remember fixed URL
         sURLPipeIn = fix_url_ipc("ipc://" + cIPC.string());
-        
-        // reread url
         cURLPipeIn = QUrl(QString::fromStdString(sURLPipeIn));
     }
         
-    // ipc:// or tcp://
     if ((cURLPipeIn.scheme() == "ipc") || (cURLPipeIn.scheme() == "tcp")) {
         
         bPipeInStdin = false;
         bPipeInVoid = false;
         
-        // create the ZMQ socket
         cSocketPipeIn = zmq_socket(g_cInit.zmq_ctx(), ZMQ_PULL);
         setup_socket(cSocketPipeIn, 10, nTimeoutPipe); 
         
-        // warn if we use a "*" or empty host here
-        bool bAmbiguousHost = (cURLPipeIn.scheme() == "tcp") && ((cURLPipeIn.host().isEmpty()) || (cURLPipeIn.host() == "*") || (cURLPipeIn.host() == "0.0.0.0"));
-        if (bAmbiguousHost) qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "warning: pipe-in URL '" << sURLPipeIn << "' contains ambiguous host address - this may fail!";
-    
-        // bind!
         zmq_bind(cSocketPipeIn, sURLPipeIn.c_str());
         
-        // debug
-        if (qkd::utility::debug::enabled()) qkd::utility::debug() << "input pipe stream set to '" << sURLPipeIn << "'";
+        qkd::utility::debug() << "input pipe stream set to '" << sURLPipeIn << "'";
             
         return true;
     }
     
-    // we do not know how to handle this type of URL
-    qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "input pipe url scheme not recognized: " << cURLPipeIn.scheme().toStdString();
+    // at this line: we do not know how to handle this type of URL
+    qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+            << ": input pipe url scheme not recognized: " << cURLPipeIn.scheme().toStdString();
     
     return false;
 }
@@ -679,79 +642,70 @@ bool module::module_internal::setup_pipe_in() {
  */
 bool module::module_internal::setup_pipe_out() {
 
-    // do not change URL settings yet
     std::lock_guard<std::mutex> cLock(cURLMutex);
     
-    // from now on we have tried to setup pipe-out
     bSetupPipeOut = false;
-    
-    // reset pipe out stuff
     if (cSocketPipeOut) zmq_close(cSocketPipeOut);
     cSocketPipeOut = nullptr;
     bPipeOutStdout = false;
     bPipeOutVoid = true;
     
-    // if we ain't got a URL then we are already finished
     if (sURLPipeOut.empty()) return true;
     
-    // check URL scheme
     QUrl cURLPipeOut(QString::fromStdString(sURLPipeOut));
     if (cURLPipeOut.scheme() == "stdin") {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "output pipe stream can't be 'stdin'";
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                << ": output pipe stream can't be 'stdin'";
         return false;
     }
     
-    // stdout://
     if (cURLPipeOut.scheme() == "stdout") {
-        if (qkd::utility::debug::enabled()) qkd::utility::debug() << "output pipe stream set to 'stdout://'";
+        qkd::utility::debug() << "output pipe stream set to 'stdout://'";
         bPipeOutStdout = true;
         bPipeOutVoid = false;
         return true;
     }
     
-    // fix ipc:// URL strings in advance
     if (cURLPipeOut.scheme() == "ipc") {
         
         // pick the correct IPC path
         boost::filesystem::path cIPC(cURLPipeOut.path().toStdString());
         if (cIPC.empty()) cIPC = create_ipc_out();
         if (cIPC.empty()) {
-            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to create output IPC for '" << sURLPipeOut  << "'";
+            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ 
+                    << ": failed to create output IPC for '" << sURLPipeOut  << "'";
             return false;
         }
         
-        // remember fixed URL
         sURLPipeOut = fix_url_ipc("ipc://" + cIPC.string());
-        
-        // reread url
         cURLPipeOut = QUrl(QString::fromStdString(sURLPipeOut));
     }
         
-    // ipc:// or tcp://
     if ((cURLPipeOut.scheme() == "ipc") || (cURLPipeOut.scheme() == "tcp")) {
         
         bPipeOutStdout = false;
         bPipeOutVoid = false;
         
-        // create the ZMQ socket
         cSocketPipeOut = zmq_socket(g_cInit.zmq_ctx(), ZMQ_PUSH);
         setup_socket(cSocketPipeOut, 10, nTimeoutPipe);
         
         // warn if we use a "*" or empty host here
-        bool bAmbiguousHost = (cURLPipeOut.scheme() == "tcp") && ((cURLPipeOut.host().isEmpty()) || (cURLPipeOut.host() == "*") || (cURLPipeOut.host() == "0.0.0.0"));
-        if (bAmbiguousHost) qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "warning: pipe-out URL '" << sURLPipeOut << "' contains ambiguous host address - this may fail!";
+        if (is_ambiguous(cURLPipeOut)) {
+            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                << ": warning: pipe-out URL '" << sURLPipeOut << "' "
+                << "contains ambiguous host address - this may fail!";
+        }
         
-        // connect!
         zmq_connect(cSocketPipeOut, sURLPipeOut.c_str());
         
-        // debug
-        if (qkd::utility::debug::enabled()) qkd::utility::debug() << "output pipe stream set to '" << sURLPipeOut << "'";
+        qkd::utility::debug() << "output pipe stream set to '" << sURLPipeOut << "'";
         
         return true;
     }
     
-    // we do not know how to handle this type of URL
-    qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "output pipe url scheme not recognized: " << cURLPipeOut.scheme().toStdString();
+    // at this line: we do not know how to handle this type of URL
+    qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+            << ": output pipe url scheme not recognized: " << cURLPipeOut.scheme().toStdString();
     
     return false;
 }
@@ -824,4 +778,25 @@ module_state module::module_internal::wait_for_state_change(module_state eWorkin
     return eState;
 }
 
+
+/**
+ * check if the given URL holds an ambiguous address
+ *
+ * This is only valid for tcp schemes. So this returns true
+ * on 
+ *          tcp:// *:PORT/...
+ *
+ * @param   cURL        an url to check
+ * @return  true, if the URL contains an ambiguous host
+ */
+bool is_ambiguous(QUrl const & cURL) {
+
+    if (cURL.scheme() != "tcp") return false;
+
+    if (cURL.host().isEmpty()) return true;
+    if (cURL.host() == "*") return true;
+    if (cURL.host() == "0.0.0.0") return true;
+
+    return false;
+}
 
