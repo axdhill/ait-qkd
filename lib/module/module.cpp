@@ -1914,9 +1914,8 @@ void module::work() {
                 if (!bWrittenToNextModule ) {
                     if (get_state() != qkd::module::module_state::STATE_RUNNING) break;
                     qkd::utility::debug() << "failed to write key to next module in pipe.";
+                    std::this_thread::yield();
                 }
-
-                rest();
 
             } while (!bWrittenToNextModule);
 

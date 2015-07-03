@@ -62,7 +62,7 @@
     
 -->
 
-<pipeline name="default" autoconnect="true" pipein="ipc:///tmp/qkd/default.bob.in" pipeout="ipc:///tmp/qkd/default.bob.out">
+<pipeline name="default" autoconnect="true" pipein="ipc:///tmp/qkd/default.bob.in" pipeout="stdout://">
 
     <module path="bin/modules/qkd-cat/qkd-cat">
         <config path="test/test-data/autoconnect/cat-pipeline.conf" />
