@@ -57,13 +57,13 @@ namespace crypto {
  * 
  * A scheme is initialized by a string which has this syntax
  * 
- *          "ALGORITHM[-VARIANT][:INITKEY[:STATE]]"
+ *          "ALGORITHM[-VARIANT][:INITKEY[:STATE:BLOCKS]]"
  * 
  * E.g.:
  * 
  *          "evhash-96"
  *          "evhash-96:87103893a579"
- *          "evhash-96:02cc942de299:f4b0d86ffd53"
+ *          "evhash-96:02cc942de299:f4b0d86ffd53:1489"
  *          "xor"
  *          "null"
  */
@@ -89,6 +89,14 @@ public:
     inline qkd::key::key const & init_key() const { return m_cInitKey; };
     
     
+    /**
+     * returns the blocks done so far
+     * 
+     * @return  the blocks calculated so far
+     */
+    inline uint64_t blocks() const { return m_nBlocks; };
+
+
     /**
      * return the algorithm name
      * 
@@ -123,7 +131,13 @@ public:
 
 private:    
     
-    
+   
+    /**
+     * the number of blocks done
+     */
+    uint64_t m_nBlocks;
+
+
     /**
      * the init key stored
      */

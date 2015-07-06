@@ -89,7 +89,7 @@ typedef boost::shared_ptr<context> crypto_context;
  * 
  *  3. Add memory to the context: method add()
  * 
- *  4. Compute the result with an final key if neeeded: method finalize()
+ *  4. Compute the result with an final key if needed: method finalize()
  * 
  * 
  *      Code sample:
@@ -131,7 +131,7 @@ public:
     
 
     /**
-     * exception type thrown when something unexpected happend during init
+     * exception type thrown when something unexpected happened during init
      */
     struct context_init : virtual std::exception, virtual boost::exception { };
     
@@ -162,7 +162,10 @@ public:
      * @param   cMemory         memory block to stream into algorithm
      * @return  the crypto context
      */
-    inline context & operator<<(qkd::utility::memory const & cMemory) { add(cMemory); return *this; }
+    inline context & operator<<(qkd::utility::memory const & cMemory) { 
+        add(cMemory); 
+        return *this; 
+    };
 
 
     /**
@@ -171,21 +174,35 @@ public:
      * @param   cMemory         memory block to be added
      * @throws  context_final
      */
-    inline void add(qkd::utility::memory const & cMemory) { if (is_finalized()) throw context_final(); add_internal(cMemory); };
+    inline void add(qkd::utility::memory const & cMemory) { 
+        if (is_finalized()) throw context_final(); 
+        add_internal(cMemory); 
+    };
     
     
+    /**
+     * number of blocks done so far
+     *
+     * @return  number of encoded blocks with this algorithms
+     */
+    virtual uint64_t blocks() const { return 0; };
+
+
     /**
      * clone the current context
      * 
      * @return  a new cloned context
      */
-    crypto_context clone() const { if (!is_cloneable()) throw context_not_clonable(); return clone_internal(); };
+    crypto_context clone() const { 
+        if (!is_cloneable()) throw context_not_clonable(); 
+        return clone_internal(); 
+    };
 
 
     /**
      * check if this context allows to reuse the final key
      * 
-     * @return  true, if the final key can be resued
+     * @return  true, if the final key can be reused
      */
     inline bool final_key_reusable() const { return final_key_reusable_internal(); };
     
@@ -193,7 +210,7 @@ public:
     /**
      * get the size of the final key in bytes
      * 
-     * @return  the size of the final key or 0 if inapprobiate
+     * @return  the size of the final key or 0 if inappropriate
      */
     inline uint64_t final_key_size() const { return final_key_size_internal(); };
     
@@ -206,7 +223,11 @@ public:
      * @throws  context_wrong_key
      * @throws  context_final
      */
-    inline qkd::utility::memory finalize(qkd::key::key const & cKey = qkd::key::key::null()) { if (is_finalized()) throw context_final(); m_bFinalized = true; return finalize_internal(cKey); };
+    inline qkd::utility::memory finalize(qkd::key::key const & cKey = qkd::key::key::null()) { 
+        if (is_finalized()) throw context_final(); 
+        m_bFinalized = true; 
+        return finalize_internal(cKey); 
+    };
     
     
     /**
@@ -220,7 +241,7 @@ public:
     /**
      * check if this context allows to reuse the init key
      * 
-     * @return  true, if the init key can be resued
+     * @return  true, if the init key can be reused
      */
     inline bool init_key_reusable() const { return init_key_reusable_internal(); };
     
@@ -228,7 +249,7 @@ public:
     /**
      * get the size of the init key in bytes
      * 
-     * @return  the size of the init key or 0 if inapprobiate
+     * @return  the size of the init key or 0 if inappropriate
      */
     inline uint64_t init_key_size() const { return init_key_size_internal(); };
     
@@ -310,7 +331,15 @@ public:
      */
     inline qkd::crypto::scheme scheme() const { return scheme_internal(); };
     
-    
+
+    /**
+     * set the number of blocks calculated
+     *
+     * @param   nBlocks         the new number of blocks done
+     */
+    void set_blocks(uint64_t nBlocks) { m_nBlocks = nBlocks; };
+
+
     /**
      * sets the state as specified in the memory block
      * 
@@ -335,9 +364,11 @@ protected:
      * ctor
      * 
      * @param   cKey        the initial key
+     * @param   nBlocks     the blocks done with this algorithm
      * @throws  context_wrong_key
      */
-    explicit context(qkd::key::key const & cKey = qkd::key::key::null()) : m_bFinalized(false), m_cKey(cKey) {};
+    explicit context(qkd::key::key const & cKey = qkd::key::key::null(), uint64_t nBlocks = 0) 
+            : m_nBlocks(nBlocks), m_bFinalized(false), m_cKey(cKey) {};
 
     
 private:
@@ -377,7 +408,7 @@ private:
     /**
      * check if this context allows to reuse the final key
      * 
-     * @return  true, if the final key can be resued
+     * @return  true, if the final key can be reused
      */
     virtual bool final_key_reusable_internal() const = 0;
     
@@ -385,7 +416,7 @@ private:
     /**
      * get the size of the final key
      * 
-     * @return  the size of the final key or 0 if inapprobiate
+     * @return  the size of the final key or 0 if inappropriate
      */
     virtual uint64_t final_key_size_internal() const = 0;
     
@@ -403,7 +434,7 @@ private:
     /**
      * check if this context allows to reuse the init key
      * 
-     * @return  true, if the init key can be resued
+     * @return  true, if the init key can be reused
      */
     virtual bool init_key_reusable_internal() const = 0;
     
@@ -411,7 +442,7 @@ private:
     /**
      * get the size of the init key
      * 
-     * @return  the size of the init key or 0 if inapprobiate
+     * @return  the size of the init key or 0 if inappropriate
      */
     virtual uint64_t init_key_size_internal() const = 0;
     
@@ -456,7 +487,7 @@ private:
     /**
      * return the scheme string (at the current state) of this context
      * 
-     * @return  the scheme identifiying this context
+     * @return  the scheme identifying this context
      */
     virtual qkd::crypto::scheme scheme_internal() const = 0;
     
@@ -479,11 +510,17 @@ private:
     
     
     /**
+     * the blocks calculated so far
+     */
+    uint64_t m_nBlocks;
+
+
+    /**
      * finalized flag
      */
     bool m_bFinalized;
     
-    
+
     /**
      * the initial key
      */

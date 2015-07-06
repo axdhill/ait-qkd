@@ -164,6 +164,7 @@ crypto_context engine::create(std::string sAlgorithm, qkd::key::key const & cKey
  *          "evhash-96"
  *          "evhash-96:87103893a579"
  *          "evhash-96:02cc942de299:f4b0d86ffd53"
+ *          "evhash-96:02cc942de299:f4b0d86ffd53:12345"
  *          "xor"
  *          "null"
  * 
@@ -181,8 +182,11 @@ crypto_context engine::create(qkd::crypto::scheme const & cScheme) {
     // get the context based on the info we have now
     crypto_context cCryptoContext = create(cScheme.name(), cScheme.init_key());
     
-    // apply state
-    if (cScheme.state().get() != nullptr) cCryptoContext->set_state(cScheme.state());
+    // apply state and blocks
+    if (cScheme.state().get() != nullptr) {
+        cCryptoContext->set_state(cScheme.state());
+        cCryptoContext->set_blocks(cScheme.blocks());
+    }
     
     return cCryptoContext;
 }
@@ -205,3 +209,4 @@ bool engine::valid_scheme(qkd::crypto::scheme const & cScheme) {
  
     return false;
 }
+

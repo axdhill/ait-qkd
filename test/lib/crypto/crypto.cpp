@@ -91,13 +91,14 @@ int test() {
     // --- SCHEMES ---
     
     // arbitrary schemes
-    std::string sScheme = "evhash-96:02cc942de299f4b0d86ffd53:fd2cf893f0cfe670d89183dd";
+    std::string sScheme = "evhash-96:02cc942de299f4b0d86ffd53:fd2cf893f0cfe670d89183dd:12345";
     qkd::crypto::scheme cScheme(sScheme);
     
     assert(cScheme.str() == sScheme);
     assert(qkd::crypto::engine::valid_scheme(cScheme));
     assert(cScheme.init_key().data().as_hex() == "02cc942de299f4b0d86ffd53");
     assert(cScheme.state().as_hex() == "fd2cf893f0cfe670d89183dd");
+    assert(cScheme.blocks() == 12345);
     
     assert(qkd::crypto::engine::valid_scheme(qkd::crypto::scheme("evhash-96::")));
     assert(qkd::crypto::engine::valid_scheme(qkd::crypto::scheme("evhash-96")));
@@ -284,8 +285,8 @@ int test() {
     // check result
     assert(cMemoryOutput.as_hex() == "05df48f9ff890eb250b18178264ced0e8d311042bb3d3495f7bd195d79b44acc");
     assert(cCloneContext->finalize(cKeyFinal).equal(cMemoryOutput));
-    
-    
+   
+
     // --- context reuse
     
     // here we create 3 evhash with the same init key
