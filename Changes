@@ -5,6 +5,28 @@ This file holds the changes of the AIT QKD R10 throughout the versions
 Changes from 9.9999.4 to 9.9999.5
 ---------------------------------
 
+* the number of keys "in transit" between two modules is now a maximimum of 10
+
+    This lowers the amount of keys if somewhere at the end of the pipe
+    a security breach has been detected. The module itself has no knowledge
+    why the next module does not accept keys. This event can be due to 
+    several reasons. But one of them is triggered by qkd-auth on failed
+    authentications with the impact, that this module (qkd-auth) totally
+    stops accepting keys.
+
+    This has a feedback triggered since now the modules back in the pipe
+    cannot forward their keys up to a maximum of 10 keys.
+
+    So if the pipeline is winded down by an administrator to inspect the
+    problem the overall loss of key material is somehow limited by the
+    amount of (modules - 1) times 10 keys (in transit between modules).
+    
+
+* qkd-pipeline autoconnect accepts now void ("", empty, NULL) pipe-outs.
+
+    This is intended for pipelines for which main interest is the performance
+    of some modules in between. The resulted key is then discarded if not 
+    written to a file via qkd-tee somewhere in the pipe.
 
 
 
