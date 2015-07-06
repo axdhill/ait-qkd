@@ -42,7 +42,6 @@
 
 #include "crypto_evhash.h"
 #include "crypto_null.h"
-#include "crypto_umac.h"
 #include "crypto_xor.h"
 
 using namespace qkd::crypto;

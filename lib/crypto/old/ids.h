@@ -61,13 +61,5 @@
     be encrypted to achieve epsilon-AXUity! */
 #define HASH_ALG_EVHASH_256 0x100
 
-/** UHASH, part of UMAC, generating 32bit tags. */
-#define HASH_ALG_UHASH_32 0x120
-/** UHASH, part of UMAC, generating 64bit tags. */
-#define HASH_ALG_UHASH_64 0x140
-/** UHASH, part of UMAC, generating 96bit tags. */
-#define HASH_ALG_UHASH_96 0x160
-/** UHASH, part of UMAC, generating 128bit tags. */
-#define HASH_ALG_UHASH_128 0x180
+#endif
 
-#endif // defined Q3P_CRYPTO_IDS_H_INCLUDED 

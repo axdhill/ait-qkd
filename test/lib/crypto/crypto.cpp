@@ -112,7 +112,6 @@ int test() {
     assert(qkd::crypto::engine::valid_scheme(qkd::crypto::scheme("evhash-96")));
     assert(qkd::crypto::engine::valid_scheme(qkd::crypto::scheme("evhash-128")));
     assert(qkd::crypto::engine::valid_scheme(qkd::crypto::scheme("evhash-256")));
-    assert(qkd::crypto::engine::valid_scheme(qkd::crypto::scheme("umac-128")));
     assert(qkd::crypto::engine::valid_scheme(qkd::crypto::scheme("xor")));
     
     
@@ -327,30 +326,6 @@ int test() {
     cMemoryOutput = cEvHash96->finalize(cKeyFinal);
     
 
-    // --- UMAC ---
-    
-    // prepare input
-    cMemoryInput = qkd::utility::memory(strlen(sInputText));
-    memcpy(cMemoryInput.get(), sInputText, strlen(sInputText));
-    
-    // create init key
-    cKeyInit = qkd::key::key(301, qkd::utility::memory(128/8));
-    memcpy(cKeyInit.data().get(), sInputKeyText128, 128/8);
-    
-    // get context
-    qkd::crypto::crypto_context cUMAC128 = qkd::crypto::engine::create("umac", cKeyInit);
-    assert(cUMAC128->name() == "umac");
-    
-    // add 10 times some data
-    for (uint32_t i = 0; i < 10; i++) cUMAC128 << cMemoryInput;
-
-    // get the final tag
-    cMemoryOutput = cUMAC128->finalize();
-    
-    // check result
-    assert(cMemoryOutput.as_hex() == "2328d826a97727db1f1dea0313e4332e");
-    
-    
     // --- the unknown algorithm ---
     
     try {
@@ -415,11 +390,9 @@ int test() {
     
     assert(cTag_A.equal(cTag_E));
     
-    // Scheme string for UMAC is broken, NULL and XOR do not make sense
-    
-    
     return 0;
 }
+
 
 int main(UNUSED int argc, UNUSED char** argv) {
     return test();

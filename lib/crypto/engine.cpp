@@ -38,7 +38,6 @@
 
 #include "crypto_evhash.h"
 #include "crypto_null.h"
-#include "crypto_umac.h"
 #include "crypto_xor.h"
 
 using namespace qkd::crypto;
@@ -57,7 +56,6 @@ using namespace qkd::crypto;
  * 
  *      "null"          The empty NULL instance (does not do any crpto stuff)
  *      "evhash"        evaluation hash
- *      "umac"          UMAC
  *      "xor"           binary xor encryption (init key is ignored)
  * 
  * Some algorithms need keys as input, some need keys as output and
@@ -95,12 +93,6 @@ using namespace qkd::crypto;
  *      input key bit size:     32, 64, 96, 128, 256
  *      remarks:                evhash with at least 96 bit is recommended
  * 
- * name:    "umac"
- *      need input key:         yes
- *      need output key:        no
- *      input key bit size:     128
- *      remarks:                this is the standard UMAC implementation
- * 
  * name:    "xor"
  *      need input key:         no
  *      need output key:        yes
@@ -135,12 +127,7 @@ crypto_context engine::create(std::string sAlgorithm, qkd::key::key const & cKey
         if (!crypto_evhash::is_valid_input_key(cKey)) throw qkd::crypto::context::context_wrong_key();
         return boost::shared_ptr<context>(new crypto_evhash(cKey));
     }
-    
-    if (sAlgorithm == "umac") {
-        if (!crypto_umac::is_valid_input_key(cKey)) throw qkd::crypto::context::context_wrong_key();
-        return boost::shared_ptr<context>(new crypto_umac(cKey));
-    }
-    
+   
     if (sAlgorithm == "xor") {
         if (!crypto_xor::is_valid_input_key(cKey)) throw qkd::crypto::context::context_wrong_key();
         return boost::shared_ptr<context>(new crypto_xor(cKey));

@@ -67,13 +67,13 @@ int test() {
     assert(48 == qkd::crypto::association::key_consumption(cDefintion));
     
     // fancy values
-    cDefintion.sAuthenticationIncoming = "umac-128";
+    cDefintion.sAuthenticationIncoming = "evhash-32";
     cDefintion.sAuthenticationOutgoing = "evhash-256";
     cDefintion.sEncryptionIncoming = "null";
     cDefintion.sEncryptionOutgoing = "xor";
     
     // check key consumption for one round
-    assert(80 == qkd::crypto::association::key_consumption(cDefintion));
+    assert(72 == qkd::crypto::association::key_consumption(cDefintion));
     
     return 0;
 }

@@ -102,7 +102,6 @@ public:
      * 
      *      "null"          The empty NULL instance (does not do any crpto stuff)
      *      "evhash"        evaluation hash
-     *      "umac"          UMAC
      *      "xor"           binary xor encryption (init key is ignored)
      * 
      * Some algorithms need keys as input, some need keys as output and
@@ -139,12 +138,6 @@ public:
      *      need output key:        yes
      *      input key bit size:     32, 64, 96, 128, 256
      *      remarks:                evhash with at least 96 bit is recommended
-     * 
-     * name:    "umac"
-     *      need input key:         yes
-     *      need output key:        no
-     *      input key bit size:     128
-     *      remarks:                this is the standard UMAC implementation
      * 
      * name:    "xor"
      *      need input key:         no

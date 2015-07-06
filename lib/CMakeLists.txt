@@ -46,7 +46,6 @@ set(QKD_SRC
     crypto/context.cpp
     crypto/crypto_evhash.cpp
     crypto/crypto_null.cpp
-    crypto/crypto_umac.cpp
     crypto/crypto_xor.cpp
     crypto/engine.cpp
     crypto/scheme.cpp
@@ -57,11 +56,6 @@ set(QKD_SRC
     crypto/old/evhash/evhash-96.c
     crypto/old/evhash/evhash-128.c
     crypto/old/evhash/evhash-256.c
-    crypto/old/umac/rijndael-alg-fst.c
-    crypto/old/umac/umac-32.c
-    crypto/old/umac/umac-64.c
-    crypto/old/umac/umac-96.c
-    crypto/old/umac/umac-128.c
     crypto/old/simple-state.c
     crypto/old/utility.c
     
