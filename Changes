@@ -5,6 +5,8 @@ This file holds the changes of the AIT QKD R10 throughout the versions
 Changes from 9.9999.4 to 9.9999.5
 ---------------------------------
 
+* dopped UMAC authentication support, fixes #987
+
 * the number of keys "in transit" between two modules is now a maximimum of 10
 
     This lowers the amount of keys if somewhere at the end of the pipe
@@ -20,7 +22,6 @@ Changes from 9.9999.4 to 9.9999.5
     So if the pipeline is winded down by an administrator to inspect the
     problem the overall loss of key material is somehow limited by the
     amount of (modules - 1) times 10 keys (in transit between modules).
-    
 
 * qkd-pipeline autoconnect accepts now void ("", empty, NULL) pipe-outs.
 
