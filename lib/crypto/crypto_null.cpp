@@ -58,6 +58,16 @@ crypto_null::crypto_null(qkd::key::key const & cKey) : context(cKey) {
 
 
 /**
+ * add another crypto context
+ *
+ * @param   cContext        the crypto context to add
+ * @throws  context_final, if the algorithm has finished and does not allow another addition
+ */
+void crypto_null::add_internal(UNUSED qkd::crypto::crypto_context const & cContext) {
+}
+
+
+/**
  * add a memory BLOB to the algorithm
  *
  * The NULL context does not add

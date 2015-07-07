@@ -72,6 +72,14 @@ public:
 
 
     /**
+     * number of blocks done so far
+     *
+     * @return  number of encoded blocks with this algorithms
+     */
+    virtual uint64_t blocks() const; 
+
+
+    /**
      * check if the given key is suitable as final key
      * 
      * @param   cKey        the key candidate
@@ -104,8 +112,25 @@ public:
     bool null() const { return false; };
 
     
+    /**
+     * set the number of blocks calculated
+     *
+     * @param   nBlocks         the new number of blocks done
+     */
+    virtual void set_blocks(uint64_t nBlocks);
+
+
 private:
     
+
+    /**
+     * add another crypto context
+     *
+     * @param   cContext        the crypto context to add
+     * @throws  context_final, if the algorithm has finished and does not allow another addition
+     */
+    void add_internal(qkd::crypto::crypto_context const & cContext);
+
 
     /**
      * add a memory BLOB to the algorithm

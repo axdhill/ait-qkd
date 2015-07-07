@@ -1,7 +1,7 @@
 /*
- * simple-state.c
+ * evhash-32.c
  *
- * Base class functionality for algorithm state objects
+ * 32bit evaluation hash algorithm for the q3p crypto engine
  * 
  * Author: Thomas Themel - thomas.themel@ait.ac.at
  *
@@ -27,42 +27,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <assert.h>
-#include <stdlib.h>
 
-// ait
-#include "algorithm.h"
-#include "context.h"
-#include "utility.h"
+#define GF_BITS 32
 
-#include "simple-state.h"
+/* GF(2^32) as GF(2)[x] mod x^32+x^7+x^3+x^2+1*/
+/* field element congruent with irreducible polynomial: 141 */
+static unsigned int gf_modulus = 0x8d;
 
+#include "evhash-impl.cpp"
 
-ce_state* simple_state_alloc(ce_context* ctx)
-{
-    assert(ctx);
-
-    ce_state* ps = (ce_state*)malloc(sizeof(ce_state));
-    if (!ps) {
-        return NULL ; 
-    }
-
-    simple_state_init(ctx, ps);
-
-    return ps ; 
-}
-
-void simple_state_destroy(ce_state* ps)
-{
-   assert(ps);
-   ce_block_buffer_destroy(&ps->buf);
-   free(ps->output);
-}
-
-void simple_state_init(ce_context* ctx, ce_state* ps)
-{
-    ps->pctx = ctx ;
-    ps->output = NULL ;
-    ce_block_buffer_init(&ps->buf, (ctx->algorithm->block_bits+7)/8);
-    ps->destroy = simple_state_destroy ; 
-}

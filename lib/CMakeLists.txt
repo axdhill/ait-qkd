@@ -51,14 +51,14 @@ set(QKD_SRC
     crypto/scheme.cpp
     
     # old and dirty crypto stuff
-    crypto/old/evhash/evhash-32.c
-    crypto/old/evhash/evhash-64.c
-    crypto/old/evhash/evhash-96.c
-    crypto/old/evhash/evhash-128.c
-    crypto/old/evhash/evhash-256.c
-    crypto/old/simple-state.c
-    crypto/old/utility.c
-    
+    crypto/old/evhash/evhash-32.cpp
+    crypto/old/evhash/evhash-64.cpp
+    crypto/old/evhash/evhash-96.cpp
+    crypto/old/evhash/evhash-128.cpp
+    crypto/old/evhash/evhash-256.cpp
+    crypto/old/simple-state.cpp
+    crypto/old/utility.cpp
+
     # atof - locale "C" version enforced
     utility/atof/atof.cpp
 

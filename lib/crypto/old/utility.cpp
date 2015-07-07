@@ -47,7 +47,7 @@ char* ce_output_alloc(ce_context* ctx)
 
     if (size > 0)
     {
-        return malloc(size);
+        return static_cast<char *>(malloc(size));
     }
     
     return NULL ; 

@@ -157,6 +157,20 @@ public:
     /**
      * stream into
      * 
+     * add another crypto context
+     *
+     * @param   cContext        the crypto context to add
+     * @return  the crypto context
+     */
+    inline context & operator<<(qkd::crypto::crypto_context const & cContext) { 
+        add(cContext); 
+        return *this; 
+    };
+
+
+    /**
+     * stream into
+     * 
      * add a memory blob to the algorithm
      *
      * @param   cMemory         memory block to stream into algorithm
@@ -168,6 +182,18 @@ public:
     };
 
 
+    /**
+     * add another crypto context
+     *
+     * @param   cContext        the crypto context to add
+     * @throws  context_final
+     */
+    inline void add(qkd::crypto::crypto_context const & cContext) { 
+        if (is_finalized()) throw context_final(); 
+        add_internal(cContext); 
+    };
+
+    
     /**
      * add a memory BLOB to the algorithm
      *
@@ -337,7 +363,7 @@ public:
      *
      * @param   nBlocks         the new number of blocks done
      */
-    void set_blocks(uint64_t nBlocks) { m_nBlocks = nBlocks; };
+    virtual void set_blocks(uint64_t nBlocks) { m_nBlocks = nBlocks; };
 
 
     /**
@@ -382,6 +408,15 @@ private:
     context() {};
     
     
+    /**
+     * add another crypto context
+     *
+     * @param   cContext        the crypto context to add
+     * @throws  context_final, if the algorithm has finished and does not allow another addition
+     */
+    virtual void add_internal(qkd::crypto::crypto_context const & cContext) = 0;
+
+
     /**
      * add a memory BLOB to the algorithm
      *
@@ -535,10 +570,28 @@ private:
  * Add some memory data to the crypto algorithm
  * 
  * @param   lhs     the crypto context object
+ * @param   rhs     the crypto context to add
+ * @return  the crypto context object
+ */
+inline crypto_context & operator<<(crypto_context & lhs, qkd::crypto::crypto_context const & rhs) { 
+    (*lhs) << rhs; 
+    return lhs; 
+}
+
+
+/**
+ * stream into
+ * 
+ * Add some memory data to the crypto algorithm
+ * 
+ * @param   lhs     the crypto context object
  * @param   rhs     the memory to add
  * @return  the crypto context object
  */
-inline crypto_context & operator<<(crypto_context & lhs, qkd::utility::memory const & rhs) { (*lhs) << rhs; return lhs; }
+inline crypto_context & operator<<(crypto_context & lhs, qkd::utility::memory const & rhs) { 
+    (*lhs) << rhs; 
+    return lhs; 
+}
 
 
 }

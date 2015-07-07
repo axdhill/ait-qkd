@@ -1,7 +1,7 @@
 /*
- * evhash-128.c
+ * evhash-96.c
  *
- * 128bit evaluation hash algorithm for the q3p crypto engine
+ * 96bit evaluation hash algorithm for the q3p crypto engine
  * 
  * Author: Thomas Themel - thomas.themel@ait.ac.at
  *
@@ -27,13 +27,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define GF_BITS 128
-#define TWO_STEP_PRECALC
 
-/* GF(2^128) as GF(2)[x] mod x^128+x^7+x^2+x+1 */
-/* field element congruent with irreducible polynomial: 135 */
-static unsigned int gf_modulus = 0x87 ;
+#define GF_BITS 96
 
+/* GF(2^96) as GF(2)[x] mod x^96+x^10+x^9+x^6+1*/
+/* field element congruent with irreducible polynomial: 1601 */
+static unsigned int gf_modulus  =  0x641;
 
-#include "evhash-impl.c"
+#include "evhash-impl.cpp"
 

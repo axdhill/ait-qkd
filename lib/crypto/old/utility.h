@@ -55,38 +55,27 @@ typedef struct _algorithm_state
     char* output ; 
     ce_context* pctx ; 
     void (*destroy)(struct _algorithm_state* ps);
+    uint64_t nRound;
 } ce_state ;
-
-
-typedef struct uhash_ctx *uhash_ctx_t;
-  /* The uhash_ctx structure is defined by the implementation of the    */
-  /* UHASH functions.                                                   */
- 
-struct uhash_state
-{
-    ce_state h;
-    /* Used to deal with the reference
-       implementation's limitation to 16MB 
-       streams. */
-    size_t bytes_done;
-    uhash_ctx_t impl;    
-};
-
-
 
 
 /** Initialize a block buffer with a given capacity. */
 void ce_block_buffer_init(ce_block_buffer* pbuf, size_t capacity);
+
 /** Allocate and initialize a block buffer with the given capacity. */
 ce_block_buffer* ce_block_buffer_alloc(size_t capacity);
+
 /** Destroy the block buffer at pbuf. */
 void ce_block_buffer_destroy(ce_block_buffer* pbuf);
+
 /** Store up to length bytes starting from data in the block buffer at pbuf.
  *  @return Returns the number of bytes stored in the buffer.
  */
 size_t ce_block_buffer_stow(ce_block_buffer* pbuf, const char* data, size_t length);
+
 /** Clear the block buffer at pbuf. */
 void ce_block_buffer_clear(ce_block_buffer* pbuf);
+
 /** Returns 0 if the ce_block_buffer_stow would not return 0. */
 int ce_block_buffer_full(ce_block_buffer* pbuf);
 

@@ -41,8 +41,10 @@ struct _algorithm_state ;
     a specific key together. All operations on a algorithm context are
     read-only and thus inherently thread-safe. */
 typedef struct _algorithm_ctx {
+
     /** Associated hash algorithm descriptor. */
     struct _algorithm* algorithm ; 
+    
     /** "Destructor" function to release the context when
         it's no longer used. */
     void (*destroy) (struct _algorithm_ctx*);
@@ -64,6 +66,7 @@ typedef struct _algorithm_ctx {
         output is long. 
         @return A pointer to the algorithm's result. */
     char* (*finalize_state) (struct _algorithm_state* state, size_t* output_length);
+
 } ce_context ; 
 
 
@@ -114,4 +117,5 @@ const struct gb_list* ce_algorithm_list(void);
 }
 #endif
 
-#endif // defined Q3P_CENGINE_ALGORITHM_H_INCLUDED
+#endif
+

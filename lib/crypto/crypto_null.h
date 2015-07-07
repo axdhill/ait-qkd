@@ -108,6 +108,15 @@ private:
     
 
     /**
+     * add another crypto context
+     *
+     * @param   cContext        the crypto context to add
+     * @throws  context_final, if the algorithm has finished and does not allow another addition
+     */
+    void add_internal(qkd::crypto::crypto_context const & cContext);
+
+
+    /**
      * add a memory BLOB to the algorithm
      *
      * @param   cMemory         memory block to be added

@@ -35,6 +35,7 @@
 #include <sstream>
 
 // ait
+#include <qkd/common_macros.h>
 #include <qkd/crypto/context.h>
 #include <qkd/crypto/engine.h>
 #include <qkd/utility/buffer.h>
@@ -426,6 +427,17 @@ crypto_evhash::crypto_evhash(qkd::key::key const & cKey) : context(cKey) {
 
 
 /**
+ * add another crypto context
+ *
+ * @param   cContext        the crypto context to add
+ * @throws  context_final, if the algorithm has finished and does not allow another addition
+ */
+void crypto_evhash::add_internal(UNUSED qkd::crypto::crypto_context const & cContext) {
+    throw std::logic_error("evhash crypto context cannot be added");
+}
+
+
+/**
  * add a memory BLOB to the algorithm
  *
  * @param   cMemory         memory block to be added
@@ -433,6 +445,18 @@ crypto_evhash::crypto_evhash(qkd::key::key const & cKey) : context(cKey) {
  */
 void crypto_evhash::add_internal(qkd::utility::memory const & cMemory) {
     d->update((char const *)cMemory.get(), cMemory.size());
+}
+
+
+/**
+ * number of blocks done so far
+ *
+ * @return  number of encoded blocks with this algorithms
+ */
+uint64_t crypto_evhash::blocks() const {
+    ce_state * cState = d->state();
+    assert(cState != nullptr);
+    return cState->nRound;
 }
 
 
@@ -538,6 +562,18 @@ uint64_t crypto_evhash::result_size_internal() const {
 
 
 /**
+ * set the number of blocks calculated
+ *
+ * @param   nBlocks         the new number of blocks done
+ */
+void crypto_evhash::set_blocks(uint64_t nBlocks) {
+    ce_state * cState = d->state();
+    assert(cState != nullptr);
+    cState->nRound = nBlocks;
+}
+
+
+/**
  * sets the state as specified in the memory block
  * 
  * @param   cMemory         the BLOB holding the state data
@@ -549,7 +585,7 @@ void crypto_evhash::set_state_internal(qkd::utility::memory const & cMemory) {
     if (cMemory.size() == 0) return;
     
     ce_state * cState = d->state();
-    if (!cState) return;
+    assert(cState != nullptr);
 
     // stream out
     qkd::utility::buffer cBuffer(cMemory);

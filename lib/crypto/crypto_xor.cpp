@@ -58,6 +58,17 @@ crypto_xor::crypto_xor(qkd::key::key const & cKey) : context(cKey) {
 
 
 /**
+ * add another crypto context
+ *
+ * @param   cContext        the crypto context to add
+ * @throws  context_final, if the algorithm has finished and does not allow another addition
+ */
+void crypto_xor::add_internal(UNUSED qkd::crypto::crypto_context const & cContext) {
+    throw std::logic_error("xor crypto context cannot be added");
+}
+
+
+/**
  * add a memory BLOB to the algorithm
  *
  * @param   cMemory         memory block to be added

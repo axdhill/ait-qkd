@@ -654,7 +654,7 @@ static int transform (ce_state* ps, const char* data, size_t nblocks)
 
     if (tag == NULL)
     {
-        tag = calloc(BLOB_BYTES, 1);
+        tag = static_cast<char *>(calloc(BLOB_BYTES, 1));
         ps->output = tag ; 
         assert(tag != NULL);
     }
@@ -733,7 +733,7 @@ static ce_context* create_context(const char* key, size_t keysize)
         setup_precalc();
     }
 
-    evaluation_hash_ctx* pctx = malloc(sizeof(evaluation_hash_ctx));    
+    evaluation_hash_ctx* pctx = static_cast<evaluation_hash_ctx *>(malloc(sizeof(evaluation_hash_ctx)));    
 
     /* Byte order conversion: internally, we use host byte order so 
        that we can use C operators to do bit manipulation. The user,
