@@ -44,6 +44,8 @@ set(QKD_SRC
     # crypto engine
     crypto/association.cpp
     crypto/context.cpp
+    crypto/gf2.cpp
+    crypto/gf2_fast_alpha.cpp
     crypto/crypto_evhash.cpp
     crypto/crypto_null.cpp
     crypto/crypto_xor.cpp
