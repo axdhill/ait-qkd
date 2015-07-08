@@ -128,7 +128,6 @@ public:
  */
 std::string memory::as_hex() const {
     
-    // dump memory into stream
     std::stringstream ss;
     for (uint64_t i = 0; i < size(); ++i) { 
         ss << std::setw(2) << std::setfill('0') << std::hex << (int)m_cMemory.get()[i];
@@ -150,22 +149,18 @@ std::string memory::canonical(std::string const sIndent) const {
     
     std::stringstream ss;
     
-    // walk over the memory
     for (uint64_t i = 0; i < size(); i += 16) {
         
         if (i) ss << "\n";
     
-        // format each line with boost::format
         boost::format cLineFormater = boost::format("%s%08x   %-49s  |%-17s|");
-        
-        // get the hex and the ascii representation
+
         std::stringstream ss_hex;
         std::stringstream ss_ascii;
         
         // lower 8 bytes
         for (uint64_t j = i; j < std::min((uint64_t)size(), i + 8); j++) {
             
-            // the values
             ss_hex << boost::format("%02x ") % (int)m_cMemory[j];
             if ((m_cMemory[j] >= ' ') && (m_cMemory[j] <= '~')) ss_ascii << m_cMemory[j];
             else ss_ascii << '.';
@@ -178,13 +173,11 @@ std::string memory::canonical(std::string const sIndent) const {
         // upper 8 bytes
         for (uint64_t j = i + 8; j < std::min((uint64_t)size(), i + 16); j++) {
             
-            // the values
             ss_hex << boost::format("%02x ") % (int)m_cMemory[j];
             if ((m_cMemory[j] >= ' ') && (m_cMemory[j] <= '~')) ss_ascii << m_cMemory[j];
             else ss_ascii << '.';
         }
         
-        // construct the line
         cLineFormater % sIndent;
         cLineFormater % i;
         cLineFormater % ss_hex.str();
@@ -209,11 +202,7 @@ std::string memory::canonical(std::string const sIndent) const {
 memory memory::checksum(std::string const sAlgorithm) const {
     
     qkd::utility::memory cChecksum;
-    
-    // get an algorithm instance
     qkd::utility::checksum cAlgorithm = qkd::utility::checksum_algorithm::create(sAlgorithm);
-    
-    // do the algorithm
     cAlgorithm << (*this);
     cChecksum = cAlgorithm->finalize();
         
@@ -230,7 +219,6 @@ memory memory::checksum(std::string const sAlgorithm) const {
  */
 memory memory::duplicate(value_t const * cData, uint64_t nSize) {
     
-    // sanity check
     if (!cData) return memory(0);
     if (nSize == 0) return memory(0);
     
@@ -306,11 +294,9 @@ qkd::utility::memory memory::from_hex(std::string const & sHex) {
     std::string sLower = sHex;
     std::transform(sLower.begin(), sLower.end(), sLower.begin(), ::tolower);
     
-    // init space
     uint64_t nInitialSize = sHex.length() / 2 + 1;
     qkd::utility::memory cMemory(nInitialSize);
     
-    // walk over the string
     uint64_t i = 0;
     value_t nValue = 0;
     for (auto & c : sLower) {
@@ -330,7 +316,6 @@ qkd::utility::memory memory::from_hex(std::string const & sHex) {
 
         i++;
         
-        // write a full byte (if we had 2 read so far)
         if (!(i % 2)) {
             cMemory[(i - 1) / 2] = nValue;
             nValue = 0;
@@ -341,7 +326,6 @@ qkd::utility::memory memory::from_hex(std::string const & sHex) {
         i++;
     }
     
-    // correct the size
     cMemory.resize(i / 2);
     
     return cMemory;
@@ -355,12 +339,10 @@ qkd::utility::memory memory::from_hex(std::string const & sHex) {
  */
 void memory::read(std::istream & cStream) { 
 
-    // get proper size value
     uint64_t nSize = 0; 
     cStream.read((char *)&nSize, sizeof(nSize)); 
     nSize = be64toh(nSize); 
     
-    // read in blob
     resize(nSize); 
     cStream.read((char *)get(), nSize); 
 }
@@ -390,7 +372,6 @@ void memory::reserve(uint64_t nSize) {
  */
 memory memory::wrap(value_t * cData, uint64_t nSize) {
     
-    // sanity check
     if (!cData) return memory(0);
     if (nSize == 0) return memory(0);
     
@@ -411,11 +392,8 @@ memory memory::wrap(value_t * cData, uint64_t nSize) {
  */
 void memory::write(std::ostream & cStream) const { 
     
-    // write size value
     uint64_t nSize = htobe64(size()); 
     cStream.write((char *)&nSize, sizeof(nSize)); 
-    
-    // write blob
     cStream.write((char *)get(), size()); 
 }
 
@@ -427,3 +405,4 @@ void memory::write(std::ostream & cStream) const {
  */
 void wrapped_memory_deleter(UNUSED qkd::utility::memory::value_t * p) {
 }
+

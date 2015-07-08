@@ -105,7 +105,9 @@ public:
      *
      * @param   nSize       size of memory controlled
      */
-    explicit memory(uint64_t nSize) : m_bShallow(true), m_nSize(nSize), m_nInitialSize(nSize) { m_cMemory = boost::shared_array<value_t>(new value_t[nSize]); };
+    explicit memory(uint64_t nSize) : m_bShallow(true), m_nSize(nSize), m_nInitialSize(nSize) { 
+        m_cMemory = boost::shared_array<value_t>(new value_t[nSize]); 
+    };
 
 
     /**
@@ -117,7 +119,8 @@ public:
      * @param   cMemory     memory created with new char[]
      * @param   nSize       size of memory controlled
      */
-    explicit memory(value_t * cMemory, uint64_t nSize) : m_bShallow(true), m_cMemory(cMemory), m_nSize(nSize) , m_nInitialSize(nSize) {};
+    explicit memory(value_t * cMemory, uint64_t nSize) 
+            : m_bShallow(true), m_cMemory(cMemory), m_nSize(nSize) , m_nInitialSize(nSize) {};
 
 
     /**
@@ -133,7 +136,10 @@ public:
      * @return  a reference to the data char
      * @throws  memory_out_of_range
      */
-    inline value_t const & operator[](uint64_t i) const { if (i > size()) throw memory_out_of_range(); return m_cMemory[i]; };
+    inline value_t const & operator[](uint64_t i) const { 
+        if (i > size()) throw memory_out_of_range(); 
+        return m_cMemory[i]; 
+    };
 
 
     /**
@@ -143,7 +149,11 @@ public:
      * @return  a reference to the data char
      * @throws  memory_out_of_range
      */
-    inline value_t & operator[](uint64_t i) { if (i > size()) throw memory_out_of_range(); if (!is_shallow()) detach(); return m_cMemory[i]; };
+    inline value_t & operator[](uint64_t i) { 
+        if (i > size()) throw memory_out_of_range(); 
+        if (!is_shallow()) detach(); 
+        return m_cMemory[i]; 
+    };
 
 
     /**
@@ -172,7 +182,11 @@ public:
      * 
      * @param   cData       memory to add
      */
-    virtual void add(qkd::utility::memory const & cData) { uint64_t nOldSize = size(); resize(nOldSize + cData.size()); memcpy(get() + nOldSize, cData.get(), cData.size()); };
+    virtual void add(qkd::utility::memory const & cData) { 
+        uint64_t nOldSize = size(); 
+        resize(nOldSize + cData.size()); 
+        memcpy(get() + nOldSize, cData.get(), cData.size()); 
+    };
     
     
     /**
@@ -282,7 +296,10 @@ public:
      *
      * @return  the address of the memory block
      */
-    inline value_t * get() { if (!is_shallow()) detach(); return m_cMemory.get(); };
+    inline value_t * get() { 
+        if (!is_shallow()) detach(); 
+        return m_cMemory.get(); 
+    };
     
     
     /**
@@ -339,7 +356,14 @@ public:
      * 
      * @param   nSize       the new size of the array
      */
-    inline void resize(uint64_t nSize) { if (!is_shallow()) detach();  if (nSize < m_nInitialSize) { m_nSize = nSize; return; } enlarge(nSize); };
+    inline void resize(uint64_t nSize) { 
+        if (!is_shallow()) detach();  
+        if (nSize < m_nInitialSize) { 
+            m_nSize = nSize; 
+            return; 
+        } 
+        enlarge(nSize); 
+    };
 
 
     /**
@@ -462,7 +486,9 @@ private:
  * @param   rhs     the right hand side
  * @return  lhs
  */
-inline qkd::utility::memory & operator<<(qkd::utility::memory & lhs, qkd::utility::memory const & rhs) { lhs.add(rhs); return lhs; }
+inline qkd::utility::memory & operator<<(qkd::utility::memory & lhs, qkd::utility::memory const & rhs) { 
+    lhs.add(rhs); return lhs; 
+}
 
 
 /**
@@ -474,7 +500,9 @@ inline qkd::utility::memory & operator<<(qkd::utility::memory & lhs, qkd::utilit
  * @param   rhs     the right hand side
  * @return  the stream
  */
-inline std::ostream & operator<<(std::ostream & lhs, qkd::utility::memory const & rhs) { rhs.write(lhs); return lhs; }
+inline std::ostream & operator<<(std::ostream & lhs, qkd::utility::memory const & rhs) { 
+    rhs.write(lhs); return lhs; 
+}
 
 
 /**
@@ -486,7 +514,9 @@ inline std::ostream & operator<<(std::ostream & lhs, qkd::utility::memory const 
  * @param   rhs     the right hand side
  * @return  the stream
  */
-inline std::istream & operator>>(std::istream & lhs, qkd::utility::memory & rhs) { rhs.read(lhs); return lhs; }
+inline std::istream & operator>>(std::istream & lhs, qkd::utility::memory & rhs) { 
+    rhs.read(lhs); return lhs; 
+}
 
 
 #endif

@@ -82,7 +82,7 @@ public:
     /**
      * exception type thrown when reading beyond space
      */
-    struct buffer_out_of_bounds : virtual std::exception, virtual boost::exception { };
+    struct buffer_out_of_bounds : virtual std::exception, virtual boost::exception {};
     
     
     /**
@@ -111,7 +111,11 @@ public:
      * @param   cData       pointer to data
      * @param   nSize       size of data
      */
-    inline void add(void * cData, uint64_t nSize) { grow(nSize); memcpy(get() + m_nPosition, cData, nSize); m_nPosition += nSize; };
+    inline void add(void * cData, uint64_t nSize) { 
+        grow(nSize); 
+        memcpy(get() + m_nPosition, cData, nSize); 
+        m_nPosition += nSize; 
+    };
     
     
     /**
@@ -128,7 +132,11 @@ public:
      * @param   cData       pointer to receiving data
      * @param   nSize       size of data
      */
-    inline void pick(void * cData, uint64_t nSize) { if ((m_nPosition + nSize) > size()) throw buffer_out_of_bounds(); memcpy(cData, get() + m_nPosition, nSize); m_nPosition += nSize; };
+    inline void pick(void * cData, uint64_t nSize) { 
+        if ((m_nPosition + nSize) > size()) throw buffer_out_of_bounds(); 
+        memcpy(cData, get() + m_nPosition, nSize); 
+        m_nPosition += nSize; 
+    };
     
     
     /**
@@ -224,7 +232,11 @@ public:
      * 
      * @param   m       the memory to get (out)
      */
-    inline void pop(qkd::utility::memory & m) { uint64_t nSize; pop(nSize); m.resize(nSize); pick(m.get(), nSize); };
+    inline void pop(qkd::utility::memory & m) { 
+        uint64_t nSize; pop(nSize); 
+        m.resize(nSize); 
+        pick(m.get(), nSize); 
+    };
     
     
     /**
@@ -232,7 +244,13 @@ public:
      * 
      * @param   s       the string to get (out)
      */
-    inline void pop(std::string & s) { uint64_t nSize; pop(nSize); char * d = new char[nSize]; pick(d, nSize); s = std::string(d, nSize); delete [] d; };
+    inline void pop(std::string & s) { 
+        uint64_t nSize; pop(nSize); 
+        char * d = new char[nSize]; 
+        pick(d, nSize); 
+        s = std::string(d, nSize); 
+        delete [] d; 
+    };
     
     
     /**
@@ -336,7 +354,11 @@ public:
      * 
      * @param   m       the memory to add
      */
-    inline void push(qkd::utility::memory const & m) { uint64_t nSize = m.size(); push(nSize); add((void *)m.get(), nSize); };
+    inline void push(qkd::utility::memory const & m) { 
+        uint64_t nSize = m.size(); 
+        push(nSize); 
+        add((void *)m.get(), nSize); 
+    };
     
     
     /**
@@ -344,7 +366,11 @@ public:
      * 
      * @param   s       the string to add
      */
-    inline void push(std::string const & s) { uint64_t nSize = s.size(); push(nSize); add((void *)s.data(), nSize); };
+    inline void push(std::string const & s) { 
+        uint64_t nSize = s.size(); 
+        push(nSize); 
+        add((void *)s.data(), nSize); 
+    };
     
     
     /**
@@ -362,7 +388,10 @@ public:
      * 
      * @param   nPosition       the new read/write position
      */
-    inline void set_position(uint64_t nPosition) { if (nPosition > size()) grow(nPosition); m_nPosition = nPosition; };
+    inline void set_position(uint64_t nPosition) { 
+        if (nPosition > size()) grow(nPosition); 
+        m_nPosition = nPosition; 
+    };
     
     
 private:
@@ -380,7 +409,12 @@ private:
      * 
      * @param   nSize       amount of needed free size within the memory managed
      */
-    inline void grow(uint64_t nSize) { if (m_nPosition + nSize <= size()) return; uint64_t nNewSize = m_nPosition + nSize; resize(size() + nSize <= size() + grow_step() ? size() + grow_step() : size() + nSize); resize(nNewSize); };
+    inline void grow(uint64_t nSize) { 
+        if (m_nPosition + nSize <= size()) return; 
+        uint64_t nNewSize = m_nPosition + nSize; 
+        resize(size() + nSize <= size() + grow_step() ? size() + grow_step() : size() + nSize); 
+        resize(nNewSize); 
+    };
         
     
     /**
