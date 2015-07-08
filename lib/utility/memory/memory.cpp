@@ -228,7 +228,7 @@ memory memory::checksum(std::string const sAlgorithm) const {
  * @param   nSize       size of memory
  * @return  a memory object
  */
-memory memory::duplicate(value_t * const cData, uint64_t nSize) {
+memory memory::duplicate(value_t const * cData, uint64_t nSize) {
     
     // sanity check
     if (!cData) return memory(0);

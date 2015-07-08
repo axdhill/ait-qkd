@@ -237,7 +237,7 @@ public:
      * @param   nSize       size of memory
      * @return  a memory object
      */
-    static memory duplicate(value_t * const cData, uint64_t nSize);
+    static memory duplicate(value_t const * cData, uint64_t nSize);
 
 
     /**
