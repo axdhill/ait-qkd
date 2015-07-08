@@ -238,11 +238,11 @@ private:
         blob_t v ;
         for (int i = 0 ; i < PRECALC_SIZE; ++i) {
 
-            blob_set_ui(v, i);
+            blob_set_value(v, i);
             multiplication_table[i] = gf2_mul(alpha, v);
             if (bTwoStepPrecalculation) {
 
-                blob_set_ui(v, i << PRECALC_BITS);
+                blob_set_value(v, i << PRECALC_BITS);
                 multiplication_table_2[i] = gf2_mul(alpha, v);
             }
         }
@@ -258,7 +258,7 @@ private:
 
         for(int i = 0 ; i < PRECALC_SIZE ; ++i) {
 
-            blob_set_ui(tmp, i);
+            blob_set_value(tmp, i);
 
             // MAXVALUE is identical to MODULUS_EQUIV in GF(2^N) 
             tmp = mul(tmp, modulus());

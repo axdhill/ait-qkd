@@ -119,7 +119,7 @@ public:
      * @param   nModules                    signature of the irreducible polynom
      */
     explicit gf2(unsigned int nModulus) {
-        this->blob_set_ui(modulus_equiv, nModulus);
+        this->blob_set_value(modulus_equiv, nModulus);
         this->setup_gf2();
     };
 
@@ -277,6 +277,18 @@ public:
 
 
     /**
+     * Sets blob to an unsigned integer value.
+     *
+     * @param   blob        the blob to set
+     * @param   value       the value to set
+     */
+    inline void blob_set_value(blob_t & blob, unsigned int value) const {
+        blob.fill(0);
+        blob[BLOB_INTS - 1] = value; 
+    };
+
+
+    /**
      * shift left
      *
      * @param   bits        number of steps to shift left
@@ -309,18 +321,6 @@ protected:
      * Precalculated mapping of i -> x^i mod f(x). 
      */
     blob_t bitreduction_table[GF_BITS * 2];
-
-
-    /**
-     * Sets blob to an unsigned integer value.
-     *
-     * @param   blob        the blob to set
-     * @param   value       the value to set
-     */
-    inline void blob_set_ui(blob_t & blob, unsigned int value) const {
-        blob.fill(0);
-        blob[BLOB_INTS - 1] = value; 
-    };
 
 
     /**
@@ -441,7 +441,7 @@ protected:
      */
     inline void reduce_bit(blob_t rop, unsigned int bit) const {
         assert(bit <= BLOB_BITS * 2);
-        blob_set_ui(rop, bitreduction_table[bit]);
+        blob_set_value(rop, bitreduction_table[bit]);
     }
 
 
@@ -454,7 +454,7 @@ protected:
     inline void reduce_bit_slow(blob_t & blob, unsigned int bit) const {
 
         blob_t overflow;
-        blob_set_ui(blob, 1);
+        blob_set_value(blob, 1);
 
         if (bit < BLOB_BITS) {
             blob_shift_left(blob, overflow, bit);
