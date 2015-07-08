@@ -87,7 +87,7 @@ namespace crypto {
  * precalculated tables to speed up processing. This can be done in one step
  * or in two steps.
  */
-template <unsigned int GF_BITS> class gf2 {
+template<unsigned int GF_BITS> class gf2 {
 
 
 public:
@@ -195,6 +195,14 @@ public:
         }
         return res;
     };
+
+
+    /**
+     * get the cardinality of the GF2
+     *
+     * @return  the cardinality
+     */
+    unsigned int cardinality() const { return GF_BITS; };
 
 
     /**
@@ -496,6 +504,7 @@ private:
     };
 
 };
+
 
 }
 
