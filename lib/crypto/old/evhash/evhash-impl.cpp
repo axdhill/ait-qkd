@@ -40,6 +40,12 @@
 #include "../simple-state.h"
 
 
+    #include <qkd/utility/debug.h>
+    #include <qkd/utility/memory.h>
+
+    #define DUMP_BLOB(b, s) qkd::utility::debug() << s << qkd::utility::memory::wrap((unsigned char *)b, BLOB_BYTES).as_hex();
+
+
 /* Precalculation parameters - PRECALC_BITS must be a 
    multiple of 8 and a divisor of BLOB_BITS - which probably
    makes the only practical values 8 and 16 in 2006. 
@@ -647,6 +653,9 @@ static void gf2_times_alpha(blob_t rop, const evaluation_hash_ctx* pctx)
     polynomial evaluation that underlies the evaluation hash. */
 static int transform (ce_state* ps, const char* data, size_t nblocks)
 {   
+
+qkd::utility::debug::enabled() = true;
+
     size_t offset = 0 ;
     blob_t coefficient ;
     char* tag = ps->output ; 
@@ -666,7 +675,9 @@ static int transform (ce_state* ps, const char* data, size_t nblocks)
     {
         blob_from_memory(coefficient,data+offset) ;
         gf2_addto((unsigned int*)tag, coefficient) ;
+DUMP_BLOB(tag, "add: ")
         gf2_times_alpha((unsigned int*)tag, ctx) ;
+DUMP_BLOB(tag, "mul: ")
         offset += BLOB_BYTES ; 
     }
 

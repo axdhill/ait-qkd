@@ -36,12 +36,16 @@
 // ------------------------------------------------------------
 // incs
 
-#include <qkd/common_macros.h>
 #include <qkd/key/key.h>
 #include <qkd/utility/memory.h>
 
 #include "gf2_fast_alpha.h"
 
+
+    #include <qkd/utility/debug.h>
+    #include <qkd/utility/memory.h>
+
+    #define DUMP_BLOB(b, s) qkd::utility::debug() << s << qkd::utility::memory::wrap((unsigned char *)b, m_cGF2->BLOB_BYTES).as_hex();
 
 
 // ------------------------------------------------------------
@@ -53,7 +57,7 @@ namespace crypto {
 
 
 /**
- * class to deal with the template instances
+ * interface to the GF2 instances with necessary crypto methods
  */
 class evhash_abstract {
 
@@ -70,6 +74,8 @@ public:
     /**
      * add a memory BLOB to the algorithm
      *
+     * This transforms the tag stored in this object
+     *
      * @param   cMemory         memory block to be added
      */
     virtual void add(qkd::utility::memory const & cMemory) = 0; 
@@ -84,6 +90,30 @@ public:
 
 
     /**
+     * number of blocks added so far
+     *
+     * @return  number of blocks in the tag
+     */
+    virtual uint64_t blocks() const = 0;
+
+
+    /**
+     * size of a single block
+     *
+     * @return  size of a single block in bytes
+     */
+    virtual unsigned int block_size() const = 0;
+
+
+    /**
+     * get the final tag
+     *
+     * @return  the final tag
+     */
+    virtual qkd::utility::memory finalize() = 0;
+
+
+    /**
      * get the current tag
      *
      * @return  the current tag
@@ -94,7 +124,7 @@ public:
 
 
 /**
- * this class combines a modulus and a key with a certain GF2
+ * this class combines a modulus and a key with a certain GF2 plus interface methods to use it neatly
  */
 template <unsigned int GF_BITS> class evhash : public evhash_abstract {
 
@@ -105,7 +135,7 @@ public:
     /**
      * ctor
      */
-    explicit evhash(qkd::key::key const & cKey) {
+    explicit evhash(qkd::key::key const & cKey) : m_nBlocks(0) {
        
         unsigned int nModulus = 0;
         bool bTwoStepPrecalculation = false;
@@ -158,8 +188,14 @@ public:
 
         }
 
+        // create the GF2 implementation with bit width, modulus and precalulcation tables
         m_cGF2 = new gf2_fast_alpha<GF_BITS>(nModulus, bTwoStepPrecalculation, cKey.data());
         m_cGF2->blob_set_value(m_cTag, 0);
+
+        // we ain't got no history yet
+        m_cGF2->blob_set_value(m_cState.nLastBlob, 0);
+        m_cGF2->blob_set_value(m_cState.nRemainder, 0);
+        m_cState.nRemainderBytes = 0;
     }
 
 
@@ -174,9 +210,37 @@ public:
     /**
      * add a memory BLOB to the algorithm
      *
+     * This transforms the tag stored in this object
+     *
      * @param   cMemory         memory block to be added
      */
-    void add(UNUSED qkd::utility::memory const & cMemory) {}
+    void add(qkd::utility::memory const & cMemory) {
+
+        // we add pieces of blob_t to the GF2 field
+        // when the memory exceeds a multiple of sizeof(blob_t)
+        // the remainder is stored and added to the front
+        // on the next run
+
+        qkd::utility::memory cMessage(m_cState.nRemainderBytes + cMemory.size());
+        memcpy(cMessage.get(), (char *)m_cState.nRemainder.data(), m_cState.nRemainderBytes);
+        memcpy(cMessage.get() + m_cState.nRemainderBytes, cMemory.get(), cMemory.size());
+
+        // --- the hashing ---
+
+        uint64_t nBlocks = cMessage.size() / block_size();
+        typename gf2_fast_alpha<GF_BITS>::blob_t * blob = (typename gf2_fast_alpha<GF_BITS>::blob_t *)cMessage.get();
+        for (uint64_t i = 0; i < nBlocks; ++i, blob++) {
+
+            // Horner Rule: tag_n = (tag_(n-1) + m) * k
+            m_cTag = m_cGF2->add(*blob, m_cTag);
+DUMP_BLOB(m_cTag.data(), "add: ")
+            m_cTag = m_cGF2->times_alpha(m_cTag);
+DUMP_BLOB(m_cTag.data(), "mul: ")
+        }
+
+        m_nBlocks += nBlocks;
+
+    }
 
 
     /**
@@ -185,6 +249,30 @@ public:
      * @return  bit width of GF2
      */
     unsigned int bits() const { return GF_BITS; };
+
+
+    /**
+     * number of blocks added so far
+     *
+     * @return  number of blocks in the tag
+     */
+    uint64_t blocks() const { return m_nBlocks; };
+
+
+    /**
+     * size of a singel block
+     *
+     * @return  size of a single block in bytes
+     */
+    unsigned int block_size() const { return GF_BITS / 8; };
+
+
+    /**
+     * get the final tag
+     *
+     * @return  the final tag
+     */
+    qkd::utility::memory finalize() { return tag(); }
 
 
     /**
@@ -205,9 +293,27 @@ private:
 
 
     /**
+     * blocks done so far
+     */
+    uint64_t m_nBlocks;
+
+
+    /**
      * the current tag
      */
     typename gf2_fast_alpha<GF_BITS>::blob_t m_cTag;
+
+
+    /**
+     * last calculation remainder
+     */
+    struct state {
+
+         typename gf2_fast_alpha<GF_BITS>::blob_t nLastBlob;        /**< last blob calculated */
+         typename gf2_fast_alpha<GF_BITS>::blob_t nRemainder;       /**< remainder of last blob */
+         unsigned int nRemainderBytes;                              /**< remainding bytes of last blob */
+
+    } m_cState;
 
 };
 

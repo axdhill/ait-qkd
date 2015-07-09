@@ -33,7 +33,11 @@
 
 #include "evhash.h"
 
+using namespace qkd::crypto;
+
 
 // ------------------------------------------------------------
 // code
+
+
 

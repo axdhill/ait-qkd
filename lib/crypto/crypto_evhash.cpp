@@ -95,27 +95,26 @@ public:
             m_cEvhash = new evhash<32>(cKey);
             break;
 
-/*
         case 64:
 
-            m_cEvhash = new evhash_gf2<64>(cKey);
+            m_cEvhash = new evhash<64>(cKey);
             break;
 
         case 96:
             
-            m_cEvhash = new evhash_gf2<96>(cKey);
+            m_cEvhash = new evhash<96>(cKey);
             break;
 
         case 128:
             
-            m_cEvhash = new evhash_gf2<128>(cKey);
+            m_cEvhash = new evhash<128>(cKey);
             break;
 
         case 256:
             
-            m_cEvhash = new evhash_gf2<256>(cKey);
+            m_cEvhash = new evhash<256>(cKey);
             break;
-*/
+
         default:
 
             throw std::invalid_argument("evaluation hash bit width not implemented.");
@@ -136,7 +135,7 @@ private:
 
 
     /** 
-     * the evash instance
+     * the evhash instance
      */
     evhash_abstract * m_cEvhash;
 

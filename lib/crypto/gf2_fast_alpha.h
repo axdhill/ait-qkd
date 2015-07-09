@@ -96,7 +96,8 @@ public:
         blob_t res; 
         res.fill(0);
 
-        word_t b[BLOB_BITS / HORNER_BITS]; 
+        //word_t b[BLOB_BITS / HORNER_BITS]; 
+        word_t b[GF_BITS / (2 * PRECALC_BITS)]; 
         unsigned int k;
 
         k = 0 ;
@@ -113,7 +114,7 @@ public:
 
         for (unsigned int i = 0 ; i < BLOB_BITS / HORNER_BITS ; ++i) {
 
-            assert(b[i]<HORNER_SIZE);
+            assert(b[i] < HORNER_SIZE);
 
             precalc_shift(res);
             if (bTwoStepPrecalculation) {
