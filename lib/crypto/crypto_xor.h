@@ -28,8 +28,8 @@
  */
 
  
-#ifndef __QKD_CRYPTO_XOR_H_
-#define __QKD_CRYPTO_XOR_H_
+#ifndef __QKD_CRYPTO_CRYPTO_XOR_H_
+#define __QKD_CRYPTO_CRYPTO_XOR_H_
 
 
 // ------------------------------------------------------------

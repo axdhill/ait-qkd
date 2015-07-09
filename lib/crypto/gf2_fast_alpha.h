@@ -66,8 +66,7 @@ public:
     using gf2<GF_BITS>::BLOB_BITS;
     using gf2<GF_BITS>::WORD_BITS;
 
-    using gf2<GF_BITS>::blob_from_memory;
-    using gf2<GF_BITS>::modulus;
+    using gf2<GF_BITS>::blob_to_memory;
 
 
     /**
@@ -80,7 +79,7 @@ public:
     explicit gf2_fast_alpha(unsigned int nModulus, bool bTwoStepPrecalculation, qkd::utility::memory const & cKey) 
             : gf2<GF_BITS>(nModulus), bTwoStepPrecalculation(bTwoStepPrecalculation) {
 
-        alpha = blob_from_memory(cKey);
+        alpha = this->blob_from_memory(cKey);
         this->precalc_blob_multiplication();
     };
 
@@ -119,11 +118,11 @@ public:
             precalc_shift(res);
             if (bTwoStepPrecalculation) {
                 size_t index_v1 = b[i] >> PRECALC_BITS ;
-                res = add(res, multiplication_table_2[index_v1]);
+                res = this->add(res, multiplication_table_2[index_v1]);
                 b[i] &= PRECALC_SIZE - 1; 
             }
 
-            res = add(res, multiplication_table[b[i]]);
+            res = this->add(res, multiplication_table[b[i]]);
         }      
 
         return res;
@@ -146,7 +145,7 @@ protected:
         res.fill(0);
 
         blob_t overflow_blob;
-        res = blob_shift_left(blob, overflow_blob, HORNER_BITS);
+        res = this->blob_shift_left(blob, overflow_blob, HORNER_BITS);
 
         // get the lowest order (and only non-zero) 
         // overflow word 
@@ -238,12 +237,12 @@ private:
         blob_t v ;
         for (int i = 0 ; i < PRECALC_SIZE; ++i) {
 
-            blob_set_value(v, i);
-            multiplication_table[i] = gf2_mul(alpha, v);
+            this->blob_set_value(v, i);
+            multiplication_table[i] = this->mul(alpha, v);
             if (bTwoStepPrecalculation) {
 
-                blob_set_value(v, i << PRECALC_BITS);
-                multiplication_table_2[i] = gf2_mul(alpha, v);
+                this->blob_set_value(v, i << PRECALC_BITS);
+                multiplication_table_2[i] = this->mul(alpha, v);
             }
         }
     };
@@ -258,15 +257,15 @@ private:
 
         for(int i = 0 ; i < PRECALC_SIZE ; ++i) {
 
-            blob_set_value(tmp, i);
+            this->blob_set_value(tmp, i);
 
             // MAXVALUE is identical to MODULUS_EQUIV in GF(2^N) 
-            tmp = mul(tmp, modulus());
+            tmp = this->mul(tmp, this->modulus());
             overflow_table[i] = tmp[BLOB_INTS - 1];
 
             if (bTwoStepPrecalculation) {
                 tmp.fill(i << PRECALC_BITS);
-                tmp = mul(tmp, modulus());
+                tmp = this->mul(tmp, this->modulus());
                 overflow_table_2[i] = tmp[BLOB_INTS - 1];
             }
         }

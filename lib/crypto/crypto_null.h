@@ -28,8 +28,8 @@
  */
 
  
-#ifndef __QKD_CRYPTO_NULL_H_
-#define __QKD_CRYPTO_NULL_H_
+#ifndef __QKD_CRYPTO_CRYPTO_NULL_H_
+#define __QKD_CRYPTO_CRYPTO_NULL_H_
 
 
 // ------------------------------------------------------------

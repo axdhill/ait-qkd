@@ -59,12 +59,97 @@ extern ce_algorithm evhash_128;
 extern ce_algorithm evhash_256;
 
 
+    #include "evhash.h"
+
+
+
 // ------------------------------------------------------------
 // decl
 
 
 namespace qkd {
 namespace crypto {
+
+
+/**
+ * this class neatly switches GF2 implementations
+ */
+class evhash_data {
+
+
+public:
+
+
+    /**
+     * ctor
+     *
+     * @param   nBits       size of GF2
+     * @param   cKey        key to work on (--> alpha)
+     */
+    explicit evhash_data(unsigned int nBits, qkd::key::key const & cKey) {
+
+        switch (nBits) {
+
+        case 32:
+            
+            m_cEvhash = new evhash<32>(cKey);
+            break;
+
+/*
+        case 64:
+
+            m_cEvhash = new evhash_gf2<64>(cKey);
+            break;
+
+        case 96:
+            
+            m_cEvhash = new evhash_gf2<96>(cKey);
+            break;
+
+        case 128:
+            
+            m_cEvhash = new evhash_gf2<128>(cKey);
+            break;
+
+        case 256:
+            
+            m_cEvhash = new evhash_gf2<256>(cKey);
+            break;
+*/
+        default:
+
+            throw std::invalid_argument("evaluation hash bit width not implemented.");
+
+        }
+    }
+
+
+    /**
+     * dtor
+     */
+    ~evhash_data() {
+        delete m_cEvhash;
+    }
+
+
+private:
+
+
+    /** 
+     * the evash instance
+     */
+    evhash_abstract * m_cEvhash;
+
+};
+
+
+
+
+
+
+
+
+
 
 
 /**

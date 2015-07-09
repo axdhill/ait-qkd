@@ -28,8 +28,8 @@
  */
 
  
-#ifndef __QKD_CRYPTO_EVHASH_H_
-#define __QKD_CRYPTO_EVHASH_H_
+#ifndef __QKD_CRYPTO_CRYPTO_EVHASH__H_
+#define __QKD_CRYPTO_CRYPTO_EVHASH__H_
 
 
 // ------------------------------------------------------------

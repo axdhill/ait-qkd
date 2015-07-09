@@ -158,7 +158,7 @@ public:
     inline blob_t blob_from_memory(char const * bytes) const {
 
         blob_t res;
-        word_t * wordptr = dynamic_cast<word_t*>(bytes); 
+        word_t const * wordptr = reinterpret_cast<word_t const *>(bytes); 
         for (unsigned i = 0 ; i < BLOB_INTS ; ++i) {
             res[i] = htonl(*wordptr++);
         }
@@ -174,7 +174,7 @@ public:
      */
     inline blob_t blob_from_memory(qkd::utility::memory const & cMemory) const {
         assert(cMemory.size() >= BLOB_BYTES);
-        return blob_from_memory(cMemory.get());
+        return blob_from_memory((char const *)cMemory.get());
     };
 
 
@@ -188,9 +188,9 @@ public:
 
         qkd::utility::memory res(BLOB_BYTES);
         
-        word_t * wordptr = dynamic_cast<word_t*>(res.get()); 
+        word_t * wordptr = reinterpret_cast<word_t *>(res.get()); 
         for (unsigned i = 0 ; i < BLOB_INTS ; ++i) {
-            (*wordptr) = ntohl(res[i]);
+            (*wordptr) = ntohl(blob[i]);
             wordptr++;
         }
         return res;
@@ -439,9 +439,9 @@ protected:
      * Warning: Call only after setup_bitreduction_table is complete. 
      * Otherwise, use gf2_reduce_bit_slow!
      */
-    inline void reduce_bit(blob_t rop, unsigned int bit) const {
+    inline void reduce_bit(blob_t & blob, unsigned int bit) const {
         assert(bit <= BLOB_BITS * 2);
-        blob_set_value(rop, bitreduction_table[bit]);
+        blob = bitreduction_table[bit];
     }
 
 
