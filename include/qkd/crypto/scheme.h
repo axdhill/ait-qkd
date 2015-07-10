@@ -57,13 +57,13 @@ namespace crypto {
  * 
  * A scheme is initialized by a string which has this syntax
  * 
- *          "ALGORITHM[-VARIANT][:INITKEY[:STATE:BLOCKS]]"
+ *          "ALGORITHM[-VARIANT][:INITKEY[:STATE]]"
  * 
  * E.g.:
  * 
  *          "evhash-96"
  *          "evhash-96:87103893a579"
- *          "evhash-96:02cc942de299:f4b0d86ffd53:1489"
+ *          "evhash-96:02cc942de299:f4b0d86ffd53"
  *          "xor"
  *          "null"
  */

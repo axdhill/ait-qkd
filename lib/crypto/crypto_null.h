@@ -134,7 +134,7 @@ private:
     
 
     /**
-     * get the size of the final key in bits
+     * get the size of the final key in bytes
      * 
      * @return  the size of the final key or 0 if inapprobiate
      */

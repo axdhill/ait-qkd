@@ -207,14 +207,6 @@ public:
     
     
     /**
-     * number of blocks done so far
-     *
-     * @return  number of encoded blocks with this algorithms
-     */
-    virtual uint64_t blocks() const { return 0; };
-
-
-    /**
      * clone the current context
      * 
      * @return  a new cloned context
@@ -357,14 +349,6 @@ public:
      */
     inline qkd::crypto::scheme scheme() const { return scheme_internal(); };
     
-
-    /**
-     * set the number of blocks calculated
-     *
-     * @param   nBlocks         the new number of blocks done
-     */
-    virtual void set_blocks(uint64_t nBlocks) { m_nBlocks = nBlocks; };
-
 
     /**
      * sets the state as specified in the memory block

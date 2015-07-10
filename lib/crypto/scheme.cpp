@@ -106,11 +106,6 @@ scheme::scheme(std::string const sScheme) {
     if (sTokenScheme.size() >= 3) {
         m_cState = qkd::utility::memory::from_hex(sTokenScheme[2]);
     }
-
-    // get the blocks
-    if (sTokenScheme.size() >= 4) {
-        m_nBlocks = std::stoull(sTokenScheme[3]);
-    }
 }
 
 
@@ -128,7 +123,6 @@ std::string scheme::str() const {
         ss << "-" << m_cInitKey.size() * 8 << ":" << m_cInitKey.data().as_hex();
         if (m_cState.size()) {
             ss << ":" << m_cState.as_hex();
-            ss << ":" << m_nBlocks;
         }
     }
     
