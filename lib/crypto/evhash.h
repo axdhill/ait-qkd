@@ -37,9 +37,10 @@
 // incs
 
 #include <qkd/key/key.h>
+#include <qkd/utility/buffer.h>
 #include <qkd/utility/memory.h>
 
-#include "gf2_fast_alpha.h"
+#include "gf2.h"
 
 
     #include <qkd/utility/debug.h>
@@ -114,6 +115,22 @@ public:
 
 
     /**
+     * set the current state
+     *
+     * @param   cState      the state serialized
+     */
+    virtual void set_state(qkd::utility::buffer & cState) = 0;
+
+
+    /**
+     * get the current state
+     *
+     * @return  serialized current state
+     */
+    virtual qkd::utility::buffer state() const = 0;
+
+
+    /**
      * get the current tag
      *
      * @return  the current tag
@@ -137,6 +154,8 @@ public:
      */
     explicit evhash(qkd::key::key const & cKey) : m_nBlocks(0) {
        
+qkd::utility::debug::enabled() = true;
+
         unsigned int nModulus = 0;
         bool bTwoStepPrecalculation = false;
 
@@ -222,7 +241,7 @@ public:
         // on the next run
 
         qkd::utility::memory cMessage(m_cState.nRemainderBytes + cMemory.size());
-        memcpy(cMessage.get(), (char *)m_cState.nRemainder.data(), m_cState.nRemainderBytes);
+        memcpy(cMessage.get(), (char *)m_cState.nRemainder, m_cState.nRemainderBytes);
         memcpy(cMessage.get() + m_cState.nRemainderBytes, cMemory.get(), cMemory.size());
 
         // --- the hashing ---
@@ -232,14 +251,13 @@ public:
         for (uint64_t i = 0; i < nBlocks; ++i, blob++) {
 
             // Horner Rule: tag_n = (tag_(n-1) + m) * k
-            m_cTag = m_cGF2->add(*blob, m_cTag);
-DUMP_BLOB(m_cTag.data(), "add: ")
-            m_cTag = m_cGF2->times_alpha(m_cTag);
-DUMP_BLOB(m_cTag.data(), "mul: ")
+            m_cGF2->add(m_cTag, *blob, m_cTag);
+DUMP_BLOB(m_cTag, "add: ")
+            m_cGF2->times_alpha(m_cTag, m_cTag);
+DUMP_BLOB(m_cTag, "mul: ")
         }
 
         m_nBlocks += nBlocks;
-
     }
 
 
@@ -248,7 +266,7 @@ DUMP_BLOB(m_cTag.data(), "mul: ")
      *
      * @return  bit width of GF2
      */
-    unsigned int bits() const { return GF_BITS; };
+    unsigned int bits() const { return GF_BITS; }
 
 
     /**
@@ -256,15 +274,15 @@ DUMP_BLOB(m_cTag.data(), "mul: ")
      *
      * @return  number of blocks in the tag
      */
-    uint64_t blocks() const { return m_nBlocks; };
+    uint64_t blocks() const { return m_nBlocks; }
 
 
     /**
-     * size of a singel block
+     * size of a single block
      *
      * @return  size of a single block in bytes
      */
-    unsigned int block_size() const { return GF_BITS / 8; };
+    unsigned int block_size() const { return GF_BITS / 8; }
 
 
     /**
@@ -276,11 +294,46 @@ DUMP_BLOB(m_cTag.data(), "mul: ")
 
 
     /**
+     * set the current state
+     *
+     * @param   cState      the state serialized
+     */
+    void set_state(qkd::utility::buffer & cState) {
+        qkd::utility::memory m;
+        cState >> m;
+        m_cGF2->blob_from_memory(m_cTag, m);
+        cState >> m;
+        m_cGF2->blob_from_memory(m_cState.nLastBlob, m);
+        cState >> m;
+        m_cGF2->blob_from_memory(m_cState.nRemainder, m);
+        cState >> m_cState.nRemainderBytes;
+        cState >> m_nBlocks;
+    }
+
+
+    /**
+     * get the current state
+     *
+     * @return  serialized current state
+     */
+    qkd::utility::buffer state() const {
+
+        qkd::utility::buffer res;
+        res << m_cGF2->blob_to_memory(m_cTag);
+        res << m_cGF2->blob_to_memory(m_cState.nLastBlob);
+        res << m_cGF2->blob_to_memory(m_cState.nRemainder);
+        res << m_cState.nRemainderBytes;
+        res << m_nBlocks;
+        return res;
+    }
+
+
+    /**
      * get the current tag
      *
      * @return  the current tag
      */
-    qkd::utility::memory tag() const { return m_cGF2->blob_to_memory(m_cTag); };
+    qkd::utility::memory tag() const { return m_cGF2->blob_to_memory(m_cTag); }
 
 
 private:
@@ -316,6 +369,7 @@ private:
     } m_cState;
 
 };
+
 
 }
 

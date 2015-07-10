@@ -46,7 +46,6 @@ set(QKD_SRC
     crypto/context.cpp
     crypto/evhash.cpp
     crypto/gf2.cpp
-    crypto/gf2_fast_alpha.cpp
     crypto/crypto_evhash.cpp
     crypto/crypto_null.cpp
     crypto/crypto_xor.cpp

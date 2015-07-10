@@ -108,9 +108,9 @@ public:
 
     /**
      * a blob_t holds a full value in the current GF2
-     * congruent with the irreudcible polynom given in modulus_equiv
+     * congruent with the irreducible polynom given in modulus_equiv
      */
-    typedef std::array<word_t, GF_BITS / (sizeof(word_t) * 8)> blob_t;
+    typedef word_t blob_t[GF_BITS / (8 * sizeof(word_t))];
 
 
     /**
@@ -121,7 +121,7 @@ public:
     explicit gf2(unsigned int nModulus) {
         this->blob_set_value(modulus_equiv, nModulus);
         this->setup_gf2();
-    };
+    }
 
 
     /**
@@ -129,17 +129,15 @@ public:
      *
      * this is a simple XOR
      *
+     * @param   res         result
      * @param   num1        first number
      * @param   num2        second number
-     * @return  result of num1 + num2 in GF[2^GF_BITS]
      */
-    inline blob_t add(blob_t const & num1, blob_t const & num2) const {
-        blob_t res;
+    inline void add(blob_t & res, blob_t const & num1, blob_t const & num2) const {
         for (unsigned int i = 0; i < BLOB_INTS; ++i) {
             res[i] = num1[i] ^ num2[i];
         }
-        return res;
-    };
+    }
 
 
     /**
@@ -152,30 +150,49 @@ public:
      *          + x^33 + x^32 + x^29 + x^28 + x^26 + x^21 + x^20 + x^18 + x^16
      *          + x^13 + x^12 + x^10 + x^9 + x^5 + x^4 + x^2 + x^1 + x^0 
      *
+     * @param   res         result
      * @param   bytes       the memory to convert
-     * @return  a blob to use
      */
-    inline blob_t blob_from_memory(char const * bytes) const {
-
-        blob_t res;
+    inline void blob_from_memory(blob_t & res, char const * bytes) const {
         word_t const * wordptr = reinterpret_cast<word_t const *>(bytes); 
         for (unsigned i = 0 ; i < BLOB_INTS ; ++i) {
             res[i] = htonl(*wordptr++);
         }
-        return res;
-    };
+    }
 
 
     /**
      * Converts an arbitrary memory block to a blob and stores it in result. 
      *
+     * @param   res         result
      * @param   cMemory     the memory to convert
      * @return  a blob to use
      */
-    inline blob_t blob_from_memory(qkd::utility::memory const & cMemory) const {
+    inline void blob_from_memory(blob_t & res, qkd::utility::memory const & cMemory) const {
         assert(cMemory.size() >= BLOB_BYTES);
-        return blob_from_memory((char const *)cMemory.get());
-    };
+        blob_from_memory(res, (char const *)cMemory.get());
+    }
+
+
+    /**
+     * Assign blob to another
+     *
+     * @param   res         the blob to set - dst
+     * @param   value       the value to set - src
+     */
+    inline void blob_set(blob_t & blob, blob_t const & value) const { memcpy(blob, value, sizeof(blob_t)); }
+
+
+    /**
+     * Sets blob to an unsigned integer value.
+     *
+     * @param   blob        the blob to set
+     * @param   value       the value to set
+     */
+    inline void blob_set_value(blob_t & blob, unsigned int value) const {
+        memset(blob, 0, BLOB_INTS - 1);
+        blob[BLOB_INTS - 1] = value; 
+    }
 
 
     /**
@@ -194,7 +211,7 @@ public:
             wordptr++;
         }
         return res;
-    };
+    }
 
 
     /**
@@ -216,14 +233,14 @@ public:
     /**
      * multiply 
      *
+     * @param   res     result
      * @param   num1    first operand
      * @param   num2    second operand
-     * @return  result of num1 * num2
      */
-    blob_t mul(blob_t const & num1, blob_t const & num2) const {
+    void mul(blob_t & res, blob_t const & num1, blob_t const & num2) const {
     
-        blob_t res;
-        res.fill(0);
+        blob_t tmp;
+        blob_set_value(tmp, 0);
 
         for (int i = BLOB_INTS - 1; i >= 0; --i) {
 
@@ -236,27 +253,28 @@ public:
 
                     if (word & mask) {
 
-                        blob_t shifted = shift((BLOB_INTS - 1 - i) * WORD_BITS + j, num1);
-                        res = add(res, shifted);
+                        blob_t shifted;
+                        shift(shifted, (BLOB_INTS - 1 - i) * WORD_BITS + j, num1);
+                        add(tmp, tmp, shifted);
                     }
                 }
             }
         }
 
-        return res;
+        blob_set(res, tmp);
     }
 
 
     /**
      * Reduce a value that doesn't fit the field  over the modulus to an equivalent field element. 
      *
+     * @param   res         num % modulus
      * @param   num         the value to reduce
      * @param   overflow    the value's overflow
-     * @return  num % modules
      */
-    blob_t reduce(blob_t const & num, blob_t & overflow) const {
+    void reduce(blob_t & res, blob_t const & num, blob_t & overflow) const {
 
-        blob_t res = num;
+        blob_set(res, num);
         blob_t reduced_bit ;
 
         // for each bit in overflow ...
@@ -267,41 +285,23 @@ public:
 
                 // ... add the equivalent field element
                 reduce_bit(reduced_bit, i + BLOB_BITS);
-                res = add(res, reduced_bit);
+                add(res, res, reduced_bit);
             }
         }
-
-        return res;
-
     }
-
-
-    /**
-     * Sets blob to an unsigned integer value.
-     *
-     * @param   blob        the blob to set
-     * @param   value       the value to set
-     */
-    inline void blob_set_value(blob_t & blob, unsigned int value) const {
-        blob.fill(0);
-        blob[BLOB_INTS - 1] = value; 
-    };
 
 
     /**
      * shift left
      *
+     * @param   res         num << nSteps
      * @param   bits        number of steps to shift left
      * @param   num         number to shift left
-     * @return  num << nSteps
      */
-    blob_t shift(unsigned int bits, blob_t const & num) const {
-
+    void shift(blob_t & res, unsigned int bits, blob_t const & num) const {
         blob_t overflow;
-        blob_t res = blob_shift_left(num, overflow, bits);
-        res = reduce(res, overflow);
-
-        return res;
+        blob_shift_left(res, num, overflow, bits);
+        reduce(res, res, overflow);
     }
 
 
@@ -326,24 +326,24 @@ protected:
     /**
      * shift a blob to the left for an amount of bits
      *
+     * @param   res             num << bits plus oveflow
      * @param   num             the number to shift
      * @param   overflow        will contain the oveflow
      * @param   bits            amount of bits to shift
-     * @return  num << bits plus oveflow
      */
-    inline blob_t blob_shift_left(blob_t const & num, blob_t & overflow, unsigned int bits) const {
+    inline void blob_shift_left(blob_t & res, blob_t const & num, blob_t & overflow, unsigned int bits) const {
 
         assert(bits <= BLOB_BITS);
 
         unsigned int words = bits / WORD_BITS;
         unsigned int subbits = bits % WORD_BITS;
 
-        blob_t res = num;
+        blob_set(res, num);
         if (words) {
             blob_shift_left_words(res, overflow, bits);
         }
         else {
-            overflow.fill(0);
+            blob_set_value(overflow, 0);
         }
 
         if (subbits) {
@@ -353,9 +353,7 @@ protected:
 
             overflow[BLOB_INTS - 1] ^=  blob_shift_left_subbits(res, subbits);
         }
-
-        return res;
-    };
+    }
 
 
     /** 
@@ -396,7 +394,7 @@ protected:
         unsigned int srcidx = 0;
         int dstidx = srcidx - words; 
 
-        overflow.fill(0);
+        blob_set_value(overflow, 0);
 
         // shift blob -> overflow 
         while (dstidx < 0) {
@@ -441,7 +439,7 @@ protected:
      */
     inline void reduce_bit(blob_t & blob, unsigned int bit) const {
         assert(bit <= BLOB_BITS * 2);
-        blob = bitreduction_table[bit];
+        blob_set(blob, bitreduction_table[bit]);
     }
 
 
@@ -457,15 +455,15 @@ protected:
         blob_set_value(blob, 1);
 
         if (bit < BLOB_BITS) {
-            blob_shift_left(blob, overflow, bit);
+            blob_shift_left(blob, blob, overflow, bit);
         }
         else if (bit < BLOB_BITS * 2) {
 
             // Calling gf2_multiply_with here is slow and unnecessary, 
             //  but since we only use this code for precalc, let's keep 
             // it for the time being. 
-            blob = blob_shift_left(blob, overflow, bit - BLOB_BITS);
-            blob = mul(blob, modulus_equiv);
+            blob_shift_left(blob, blob, overflow, bit - BLOB_BITS);
+            mul(blob, blob, modulus_equiv);
         }
         else {
 
@@ -505,6 +503,230 @@ private:
 
 };
 
+
+/**
+ * this class represents a Galois Field 2 with optimizations to multiply a key alpha fast
+ */
+template <unsigned int GF_BITS> class gf2_fast_alpha : public gf2<GF_BITS> {
+
+
+public:
+
+    
+    // make template depended names explicit
+
+    using typename gf2<GF_BITS>::blob_t;
+    using typename gf2<GF_BITS>::word_t;
+    
+    using gf2<GF_BITS>::BLOB_INTS;
+    using gf2<GF_BITS>::BLOB_BITS;
+    using gf2<GF_BITS>::WORD_BITS;
+
+    using gf2<GF_BITS>::blob_set;
+    using gf2<GF_BITS>::blob_set_value;
+    using gf2<GF_BITS>::blob_to_memory;
+
+
+    /**
+     * ctor
+     *
+     * @param   nModules                    signature of the irreducible polynom
+     * @param   bTwoStepPrecalculation      do a single or double precalculation table
+     * @param   cKey                        the value for which fast multiplication is achieved
+     */
+    explicit gf2_fast_alpha(unsigned int nModulus, bool bTwoStepPrecalculation, qkd::utility::memory const & cKey) 
+            : gf2<GF_BITS>(nModulus), bTwoStepPrecalculation(bTwoStepPrecalculation) {
+
+        this->blob_from_memory(alpha, cKey);
+        this->precalc_blob_multiplication();
+    }
+
+
+    /** 
+     * Fast multiplication of a blob with alpha.
+     *
+     * @param   res         blob * alpha in this GF2
+     * @param   blob        the blob to multiply
+     */
+    void times_alpha(blob_t & res, blob_t blob) const {
+
+        blob_set_value(res, 0);
+
+        //word_t b[BLOB_BITS / HORNER_BITS]; 
+        word_t b[GF_BITS / (2 * PRECALC_BITS)]; 
+        unsigned int k;
+
+        k = 0 ;
+        for (unsigned int i = 0; i < BLOB_INTS ; ++i) {
+
+            word_t word = blob[i] ; 
+
+            // Split word into the correct number 
+            // of PRECALC_BITS sized chunks 
+            for (int j = WORD_BITS / HORNER_BITS - 1; j >= 0; --j) {
+                b[k++] = (word >> (HORNER_BITS * j)) & (HORNER_SIZE - 1);  
+            }
+        }
+
+        for (unsigned int i = 0 ; i < BLOB_BITS / HORNER_BITS ; ++i) {
+
+            assert(b[i] < HORNER_SIZE);
+            precalc_shift(res, res);
+
+            if (bTwoStepPrecalculation) {
+                size_t index_v1 = b[i] >> PRECALC_BITS ;
+                this->add(res, res, multiplication_table_2[index_v1]);
+                b[i] &= PRECALC_SIZE - 1; 
+            }
+
+            this->add(res, res, multiplication_table[b[i]]);
+        }      
+    }
+
+
+protected:
+
+
+
+    /**
+     * Performs fast left-shifting of overflow-free blobs  by HORNER_BITS bits. 
+     *
+     * @param   res         blob << HORNER_BITS
+     * @param   blob        blob to shift
+     */
+    void precalc_shift(blob_t & res, blob_t const & blob) const {    
+
+        blob_t tmp;
+        blob_set_value(tmp, 0);
+
+        blob_t overflow_blob;
+        this->blob_shift_left(tmp, blob, overflow_blob, HORNER_BITS);
+
+        // get the lowest order (and only non-zero) 
+        // overflow word 
+        word_t overflow = overflow_blob[BLOB_INTS - 1] ;
+
+        if (overflow != 0) {
+
+            if (bTwoStepPrecalculation) {
+
+                // v(x) = v1(x) * x^8 + v0(x) 
+                size_t index_v1 = overflow >> PRECALC_BITS ; 
+                assert(index_v1 < PRECALC_SIZE);
+
+                // lookup v1(x) * x^8 * x^BLOB_BITS
+                tmp[BLOB_INTS - 1] ^= overflow_table_2[index_v1];
+
+                // and reduce v(x) to v0(x)
+                overflow = overflow & (PRECALC_SIZE - 1);
+            }
+            else {
+                assert(overflow < PRECALC_SIZE);
+            }
+
+            // lookup v(x) * x^BLOB_BITS
+            tmp[BLOB_INTS - 1] ^= overflow_table[overflow];
+        }
+
+        blob_set(res, tmp);
+    }
+
+
+
+private:
+
+
+    std::size_t HORNER_BITS;
+    std::size_t HORNER_SIZE;
+
+    bool bTwoStepPrecalculation;        /**< perform single or double pre calculation */
+
+
+    /**
+     *  multiplication table of alpha 
+     */
+    blob_t multiplication_table[PRECALC_SIZE];
+
+
+    /**
+     * multiplication table 2 of alpha 
+     */
+    blob_t multiplication_table_2[PRECALC_SIZE];
+    
+    
+    /**
+     * Precalculated mapping of v(x) -> v(x) * x^BLOB_BITS mod f(x) 
+     * for deg(v(x)) < PRECALC_BITS 
+     */
+    unsigned int overflow_table[PRECALC_SIZE];
+
+
+    /**
+     * Precalculated mapping of v(x) -> v(x) * x^PRECALC_BITS * x^BLOB_BITS mod f(x)
+     * for deg(v(x)) < PRECALC_BITS 
+     */
+    unsigned int overflow_table_2[PRECALC_SIZE];
+
+
+    /**
+     * the value for which we do fast multiply
+     */
+    blob_t alpha;
+
+
+    /**
+     * setup the precalulation tables
+     */
+    void precalc_blob_multiplication() {
+
+        if (bTwoStepPrecalculation) {
+            HORNER_BITS = 2 * PRECALC_BITS;
+        }
+        else {
+            HORNER_BITS = PRECALC_BITS;
+        }
+        HORNER_SIZE = (1 << HORNER_BITS);
+
+        setup_overflow_table();
+
+        blob_t v ;
+        for (int i = 0 ; i < PRECALC_SIZE; ++i) {
+
+            this->blob_set_value(v, i);
+            this->mul(multiplication_table[i], alpha, v);
+            if (bTwoStepPrecalculation) {
+
+                this->blob_set_value(v, i << PRECALC_BITS);
+                this->mul(multiplication_table_2[i], alpha, v);
+            }
+        }
+    };
+
+
+    /** 
+     * Initializes the field's overflow table
+     */
+    void setup_overflow_table() {
+
+        blob_t tmp; 
+
+        for(int i = 0 ; i < PRECALC_SIZE ; ++i) {
+
+            this->blob_set_value(tmp, i);
+
+            // MAXVALUE is identical to MODULUS_EQUIV in GF(2^N) 
+            this->mul(tmp, tmp, this->modulus());
+            overflow_table[i] = tmp[BLOB_INTS - 1];
+
+            if (bTwoStepPrecalculation) {
+                blob_set_value(tmp, i << PRECALC_BITS);
+                this->mul(tmp, tmp, this->modulus());
+                overflow_table_2[i] = tmp[BLOB_INTS - 1];
+            }
+        }
+    };
+
+};
 
 }
 
