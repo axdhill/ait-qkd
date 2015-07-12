@@ -148,6 +148,8 @@ int test() {
 
     // --- 32 
 
+qkd::utility::debug::enabled() = true;
+
     // keys
     cKeyInit = qkd::key::key(101, qkd::utility::memory(32/8));
     memcpy(cKeyInit.data().get(), sInitKeyText32, 32/8);
@@ -156,14 +158,11 @@ int test() {
 
     // get context
     nStart = std::chrono::high_resolution_clock::now();
-std::cerr << __FILE__ << ':' << __LINE__ << std::endl;
     qkd::crypto::crypto_context cEvHash32 = qkd::crypto::engine::create("evhash", cKeyInit);
     assert(cEvHash32->name() == "evhash");
     
     // add some data
-std::cerr << __FILE__ << ':' << __LINE__ << std::endl;
     for (unsigned int i = 0; i < nInputLoop; i++) cEvHash32 << cInputData;
-std::cerr << __FILE__ << ':' << __LINE__ << std::endl;
     nStop = std::chrono::high_resolution_clock::now();
    
     // get the final tag

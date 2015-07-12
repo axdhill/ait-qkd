@@ -46,6 +46,7 @@
     #include <qkd/utility/debug.h>
     #include <qkd/utility/memory.h>
 
+    #undef DUMP_BLOB
     #define DUMP_BLOB(b, s) qkd::utility::debug() << s << qkd::utility::memory::wrap((unsigned char *)b, m_cGF2->BLOB_BYTES).as_hex();
 
 
@@ -154,8 +155,6 @@ public:
      */
     explicit evhash(qkd::key::key const & cKey) : m_nBlocks(0) {
        
-qkd::utility::debug::enabled() = true;
-
         unsigned int nModulus = 0;
         bool bTwoStepPrecalculation = false;
 
@@ -165,7 +164,7 @@ qkd::utility::debug::enabled() = true;
             
             // GF(2^32) as GF(2)[x] mod x^32 + x^7 + x^3 + x^2 + 1
             // field element congruent with irreducible polynomial: 141 
-            nModulus = 0x81;
+            nModulus = 0x8d;
             bTwoStepPrecalculation = false;
             break;
 
@@ -210,11 +209,6 @@ qkd::utility::debug::enabled() = true;
         // create the GF2 implementation with bit width, modulus and precalulcation tables
         m_cGF2 = new gf2_fast_alpha<GF_BITS>(nModulus, bTwoStepPrecalculation, cKey.data());
         m_cGF2->blob_set_value(m_cTag, 0);
-
-        // we ain't got no history yet
-        m_cGF2->blob_set_value(m_cState.nLastBlob, 0);
-        m_cGF2->blob_set_value(m_cState.nRemainder, 0);
-        m_cState.nRemainderBytes = 0;
     }
 
 
@@ -240,24 +234,27 @@ qkd::utility::debug::enabled() = true;
         // the remainder is stored and added to the front
         // on the next run
 
-        qkd::utility::memory cMessage(m_cState.nRemainderBytes + cMemory.size());
-        memcpy(cMessage.get(), (char *)m_cState.nRemainder, m_cState.nRemainderBytes);
-        memcpy(cMessage.get() + m_cState.nRemainderBytes, cMemory.get(), cMemory.size());
+        qkd::utility::memory cMessage(m_cRemainder.size() + cMemory.size());
+        memcpy(cMessage.get(), (char *)m_cRemainder.get(), m_cRemainder.size());
+        memcpy(cMessage.get() + m_cRemainder.size(), cMemory.get(), cMemory.size());
 
         // --- the hashing ---
 
         uint64_t nBlocks = cMessage.size() / block_size();
-        typename gf2_fast_alpha<GF_BITS>::blob_t * blob = (typename gf2_fast_alpha<GF_BITS>::blob_t *)cMessage.get();
-        for (uint64_t i = 0; i < nBlocks; ++i, blob++) {
+        char * data = (char *)cMessage.get();
+        for (uint64_t i = 0; i < nBlocks; ++i) {
 
             // Horner Rule: tag_n = (tag_(n-1) + m) * k
-            m_cGF2->add(m_cTag, *blob, m_cTag);
-DUMP_BLOB(m_cTag, "add: ")
+            typename gf2_fast_alpha<GF_BITS>::blob_t coefficient;
+            m_cGF2->blob_from_memory(coefficient, data);
+            m_cGF2->add(m_cTag, coefficient, m_cTag);
             m_cGF2->times_alpha(m_cTag, m_cTag);
-DUMP_BLOB(m_cTag, "mul: ")
+            data += m_cGF2->BLOB_BYTES;
         }
 
         m_nBlocks += nBlocks;
+        m_cRemainder = qkd::utility::memory(cMessage.size() % block_size());
+        memcpy(m_cRemainder.get(), cMessage.get() + nBlocks * block_size(), m_cRemainder.size());
     }
 
 
@@ -290,7 +287,20 @@ DUMP_BLOB(m_cTag, "mul: ")
      *
      * @return  the final tag
      */
-    qkd::utility::memory finalize() { return tag(); }
+    qkd::utility::memory finalize() { 
+
+        // add the remainder (bytes not yet authenticated)
+        if (m_cRemainder.size()) {
+
+            qkd::utility::memory cMemory(block_size());
+            cMemory.fill(0);
+            memcpy(cMemory.get(), m_cRemainder.get(), m_cRemainder.size());
+            m_cRemainder = qkd::utility::memory(0);
+            add(cMemory);
+        }
+
+        return tag(); 
+    }
 
 
     /**
@@ -302,11 +312,7 @@ DUMP_BLOB(m_cTag, "mul: ")
         qkd::utility::memory m;
         cState >> m;
         m_cGF2->blob_from_memory(m_cTag, m);
-        cState >> m;
-        m_cGF2->blob_from_memory(m_cState.nLastBlob, m);
-        cState >> m;
-        m_cGF2->blob_from_memory(m_cState.nRemainder, m);
-        cState >> m_cState.nRemainderBytes;
+        cState >> m_cRemainder;
         cState >> m_nBlocks;
     }
 
@@ -320,9 +326,7 @@ DUMP_BLOB(m_cTag, "mul: ")
 
         qkd::utility::buffer res;
         res << m_cGF2->blob_to_memory(m_cTag);
-        res << m_cGF2->blob_to_memory(m_cState.nLastBlob);
-        res << m_cGF2->blob_to_memory(m_cState.nRemainder);
-        res << m_cState.nRemainderBytes;
+        res << m_cRemainder;
         res << m_nBlocks;
         return res;
     }
@@ -352,21 +356,16 @@ private:
 
 
     /**
+     * remainder of last add (modulu blob size) 
+     */
+    qkd::utility::memory m_cRemainder;                           
+
+
+    /**
      * the current tag
      */
     typename gf2_fast_alpha<GF_BITS>::blob_t m_cTag;
 
-
-    /**
-     * last calculation remainder
-     */
-    struct state {
-
-         typename gf2_fast_alpha<GF_BITS>::blob_t nLastBlob;        /**< last blob calculated */
-         typename gf2_fast_alpha<GF_BITS>::blob_t nRemainder;       /**< remainder of last blob */
-         unsigned int nRemainderBytes;                              /**< remainding bytes of last blob */
-
-    } m_cState;
 
 };
 

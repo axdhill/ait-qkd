@@ -42,6 +42,12 @@
 #include <qkd/utility/memory.h>
 
 
+    #include <qkd/utility/debug.h>
+    #include <qkd/utility/memory.h>
+
+    #undef DUMP_BLOB
+    #define DUMP_BLOB(b, s) qkd::utility::debug() << s << qkd::utility::memory::wrap((unsigned char *)b, BLOB_BYTES).as_hex();
+
 // ------------------------------------------------------------
 // defs
 
@@ -118,7 +124,7 @@ public:
      *
      * @param   nModules                    signature of the irreducible polynom
      */
-    explicit gf2(unsigned int nModulus) {
+    explicit gf2(unsigned int nModulus) : BLOB_BYTES(GF_BITS / 8), BLOB_BITS(GF_BITS) {
         this->blob_set_value(modulus_equiv, nModulus);
         this->setup_gf2();
     }
@@ -190,7 +196,7 @@ public:
      * @param   value       the value to set
      */
     inline void blob_set_value(blob_t & blob, unsigned int value) const {
-        memset(blob, 0, BLOB_INTS - 1);
+        memset(blob, 0, BLOB_BYTES);
         blob[BLOB_INTS - 1] = value; 
     }
 
@@ -204,7 +210,6 @@ public:
     inline qkd::utility::memory blob_to_memory(blob_t const & blob) const {
 
         qkd::utility::memory res(BLOB_BYTES);
-        
         word_t * wordptr = reinterpret_cast<word_t *>(res.get()); 
         for (unsigned i = 0 ; i < BLOB_INTS ; ++i) {
             (*wordptr) = ntohl(blob[i]);
@@ -340,7 +345,7 @@ protected:
 
         blob_set(res, num);
         if (words) {
-            blob_shift_left_words(res, overflow, bits);
+            blob_shift_left_words(res, overflow, words);
         }
         else {
             blob_set_value(overflow, 0);
@@ -370,7 +375,7 @@ protected:
         unsigned int carry = 0; 
         unsigned int antibits = WORD_BITS - bits; 
 
-        for (int i = BLOB_INTS - 1; i >= 0 ; --i) {
+        for (int i = BLOB_INTS - 1; i >= 0; --i) {
             int newcarry = rop[i] >> antibits; 
             rop[i] = (rop[i] << bits) ^ carry;
             carry = newcarry; 
@@ -460,7 +465,7 @@ protected:
         else if (bit < BLOB_BITS * 2) {
 
             // Calling gf2_multiply_with here is slow and unnecessary, 
-            //  but since we only use this code for precalc, let's keep 
+            // but since we only use this code for precalc, let's keep 
             // it for the time being. 
             blob_shift_left(blob, blob, overflow, bit - BLOB_BITS);
             mul(blob, blob, modulus_equiv);
@@ -482,9 +487,6 @@ private:
      * setup the GF2 with precalculation tables
      */
     void setup_gf2() {
-
-        BLOB_BYTES = GF_BITS / 8;
-        BLOB_BITS = GF_BITS;
 
         setup_bitreduction_table();
     };
@@ -520,6 +522,7 @@ public:
     
     using gf2<GF_BITS>::BLOB_INTS;
     using gf2<GF_BITS>::BLOB_BITS;
+    using gf2<GF_BITS>::BLOB_BYTES;
     using gf2<GF_BITS>::WORD_BITS;
 
     using gf2<GF_BITS>::blob_set;
@@ -548,15 +551,15 @@ public:
      * @param   res         blob * alpha in this GF2
      * @param   blob        the blob to multiply
      */
-    void times_alpha(blob_t & res, blob_t blob) const {
+    void times_alpha(blob_t & res, blob_t const & blob) const {
 
-        blob_set_value(res, 0);
+        blob_t cProduct;
+        this->blob_set_value(cProduct, 0);
 
-        //word_t b[BLOB_BITS / HORNER_BITS]; 
-        word_t b[GF_BITS / (2 * PRECALC_BITS)]; 
+        word_t b[GF_BITS / PRECALC_BITS]; 
         unsigned int k;
 
-        k = 0 ;
+        k = 0;
         for (unsigned int i = 0; i < BLOB_INTS ; ++i) {
 
             word_t word = blob[i] ; 
@@ -568,19 +571,21 @@ public:
             }
         }
 
-        for (unsigned int i = 0 ; i < BLOB_BITS / HORNER_BITS ; ++i) {
+        for (unsigned int i = 0; i < BLOB_BITS / HORNER_BITS ; ++i) {
 
             assert(b[i] < HORNER_SIZE);
-            precalc_shift(res, res);
+            precalc_shift(cProduct, cProduct);
 
             if (bTwoStepPrecalculation) {
                 size_t index_v1 = b[i] >> PRECALC_BITS ;
-                this->add(res, res, multiplication_table_2[index_v1]);
+                this->add(cProduct, cProduct, multiplication_table_2[index_v1]);
                 b[i] &= PRECALC_SIZE - 1; 
             }
 
-            this->add(res, res, multiplication_table[b[i]]);
+            this->add(cProduct, cProduct, multiplication_table[b[i]]);
         }      
+
+        this->blob_set(res, cProduct);
     }
 
 
@@ -717,7 +722,6 @@ private:
             // MAXVALUE is identical to MODULUS_EQUIV in GF(2^N) 
             this->mul(tmp, tmp, this->modulus());
             overflow_table[i] = tmp[BLOB_INTS - 1];
-
             if (bTwoStepPrecalculation) {
                 blob_set_value(tmp, i << PRECALC_BITS);
                 this->mul(tmp, tmp, this->modulus());

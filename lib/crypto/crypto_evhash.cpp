@@ -267,10 +267,10 @@ qkd::utility::memory crypto_evhash::finalize_internal(qkd::key::key const & cKey
     
     // check if the key suits our needs
     if (!is_valid_final_key(cKey)) throw qkd::crypto::context::context_wrong_key();
-    
+
     // get the final tag
     qkd::utility::memory cHashTag;
-    d->finalize();
+    cHashTag = d->finalize();
     
     // encrypt it with the final key
     qkd::utility::memory cFinalTag;
