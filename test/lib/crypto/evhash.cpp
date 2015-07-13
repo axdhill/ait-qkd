@@ -62,19 +62,6 @@ Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at \
 nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris. Fusce nec \
 tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget nulla. \
 Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos \
-himenaeos. Curabitur sodales ligula in libero. Sed dignissim lacinia nunc."
-};
-
-
-
-/*
-char const * g_sText = {
-"\
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. \
-Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at \
-nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris. Fusce nec \
-tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget nulla. \
-Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos \
 himenaeos. Curabitur sodales ligula in libero. Sed dignissim lacinia nunc. \
 \
 Curabitur tortor. Pellentesque nibh. Aenean quam. In scelerisque sem at dolor. \
@@ -107,7 +94,6 @@ nisi lectus, commodo ac, facilisis ac, ultricies eu, pede. Ut orci risus, accums
 porttitor, cursus quis, aliquet eget, justo. Sed pretium blandit orci."
 
 };
-*/
 
 
 // ------------------------------------------------------------
@@ -117,9 +103,7 @@ porttitor, cursus quis, aliquet eget, justo. Sed pretium blandit orci."
 
 int test() {
 
-
-    //unsigned int const nInputLoop = 1000000;
-    unsigned int const nInputLoop = 1;
+    unsigned int const nInputLoop = 1000;
 
     std::chrono::high_resolution_clock::time_point nStart;
     std::chrono::high_resolution_clock::time_point nStop;
@@ -148,8 +132,6 @@ int test() {
 
     // --- 32 
 
-qkd::utility::debug::enabled() = true;
-
     // keys
     cKeyInit = qkd::key::key(101, qkd::utility::memory(32/8));
     memcpy(cKeyInit.data().get(), sInitKeyText32, 32/8);
@@ -159,7 +141,6 @@ qkd::utility::debug::enabled() = true;
     // get context
     nStart = std::chrono::high_resolution_clock::now();
     qkd::crypto::crypto_context cEvHash32 = qkd::crypto::engine::create("evhash", cKeyInit);
-    assert(cEvHash32->name() == "evhash");
     
     // add some data
     for (unsigned int i = 0; i < nInputLoop; i++) cEvHash32 << cInputData;
@@ -175,9 +156,8 @@ qkd::utility::debug::enabled() = true;
             << "in " << nNanoSec << " ns, "
             << nNanoSecPerBlock << " ns/block, "
             << "tag = " << cTag.as_hex() << std::endl;    
-    //assert(cTag.as_hex() == "3fdd4e0a");
+    assert(cTag.as_hex() == "62d0a35e");
 
-    
     // --- 64
 
     // keys
@@ -189,7 +169,6 @@ qkd::utility::debug::enabled() = true;
     // get context
     nStart = std::chrono::high_resolution_clock::now();
     qkd::crypto::crypto_context cEvHash64 = qkd::crypto::engine::create("evhash", cKeyInit);
-    assert(cEvHash64->name() == "evhash");
 
     // add some data
     for (unsigned int i = 0; i < nInputLoop; i++) cEvHash64 << cInputData;
@@ -205,7 +184,7 @@ qkd::utility::debug::enabled() = true;
             << "in " << nNanoSec << " ns, "
             << nNanoSecPerBlock << " ns/block, "
             << "tag = " << cTag.as_hex() << std::endl;    
-    //assert(cTag.as_hex() == "8eda6d76209ad7c3");
+    assert(cTag.as_hex() == "f3fc53805c170b32");
 
 
     // --- 96
@@ -219,7 +198,6 @@ qkd::utility::debug::enabled() = true;
     // get context
     nStart = std::chrono::high_resolution_clock::now();
     qkd::crypto::crypto_context cEvHash96 = qkd::crypto::engine::create("evhash", cKeyInit);
-    assert(cEvHash96->name() == "evhash");
 
     // add some data
     for (unsigned int i = 0; i < nInputLoop; i++) cEvHash96 << cInputData;
@@ -235,7 +213,7 @@ qkd::utility::debug::enabled() = true;
             << "in " << nNanoSec << " ns, "
             << nNanoSecPerBlock << " ns/block, "
             << "tag = " << cTag.as_hex() << std::endl;    
-    //assert(cTag.as_hex() == "94562490caf21f74e970b6ea");
+    assert(cTag.as_hex() == "7b87079d6129302b08f1ae06");
 
 
     // --- 128
@@ -249,7 +227,6 @@ qkd::utility::debug::enabled() = true;
     // get context
     nStart = std::chrono::high_resolution_clock::now();
     qkd::crypto::crypto_context cEvHash128 = qkd::crypto::engine::create("evhash", cKeyInit);
-    assert(cEvHash128->name() == "evhash");
     
     // add some data
     for (unsigned int i = 0; i < nInputLoop; i++) cEvHash128 << cInputData;
@@ -265,7 +242,7 @@ qkd::utility::debug::enabled() = true;
             << "in " << nNanoSec << " ns, "
             << nNanoSecPerBlock << " ns/block, "
             << "tag = " << cTag.as_hex() << std::endl;    
-    //assert(cTag.as_hex() == "1181efe0f3f97ea90c7f2f5bfe40a448");
+    assert(cTag.as_hex() == "590a849591980e31c0018ae8a0e3eb94");
 
 
     // --- 256
@@ -279,7 +256,6 @@ qkd::utility::debug::enabled() = true;
     // get context
     nStart = std::chrono::high_resolution_clock::now();
     qkd::crypto::crypto_context cEvHash256 = qkd::crypto::engine::create("evhash", cKeyInit);
-    assert(cEvHash256->name() == "evhash");
     
     // add some data
     for (unsigned int i = 0; i < nInputLoop; i++) cEvHash256 << cInputData;
@@ -295,7 +271,7 @@ qkd::utility::debug::enabled() = true;
             << "in " << nNanoSec << " ns, "
             << nNanoSecPerBlock << " ns/block, "
             << "tag = " << cTag.as_hex() << std::endl;    
-    //assert(cTag.as_hex() == "ef0fd5bff03091296466ac8dabdb3a9effeba59f82992750c48c95f3e79be7ce");
+    assert(cTag.as_hex() == "aee1908ca9743503d22373648f1ab495ed9e8b97cd4cfaf22f954a8227ced41f");
 
     return 0;
 }

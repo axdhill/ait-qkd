@@ -59,7 +59,9 @@ namespace crypto {
 
 
 /**
- * interface to the GF2 instances with necessary crypto methods
+ * interface to the GF2 instances with necessary 
+ * crypto methods to talk to gf2 in a uniform way 
+ * regardless of current GF_BITS size
  */
 class evhash_abstract {
 
@@ -153,7 +155,7 @@ public:
     /**
      * ctor
      */
-    explicit evhash(qkd::key::key const & cKey) : m_nBlocks(0) {
+    explicit evhash(qkd::key::key const & cKey) : m_nBlocks(0), m_cRemainder(nullptr), m_nRemainderBytes(0) {
        
         unsigned int nModulus = 0;
         bool bTwoStepPrecalculation = false;
@@ -209,6 +211,9 @@ public:
         // create the GF2 implementation with bit width, modulus and precalulcation tables
         m_cGF2 = new gf2_fast_alpha<GF_BITS>(nModulus, bTwoStepPrecalculation, cKey.data());
         m_cGF2->blob_set_value(m_cTag, 0);
+
+        m_cRemainder = new char[block_size()];
+        m_nRemainderBytes = 0;
     }
 
 
@@ -217,6 +222,7 @@ public:
      */
     virtual ~evhash() {
         delete m_cGF2;
+        delete [] m_cRemainder;
     }
 
 
@@ -234,27 +240,48 @@ public:
         // the remainder is stored and added to the front
         // on the next run
 
-        qkd::utility::memory cMessage(m_cRemainder.size() + cMemory.size());
-        memcpy(cMessage.get(), (char *)m_cRemainder.get(), m_cRemainder.size());
-        memcpy(cMessage.get() + m_cRemainder.size(), cMemory.get(), cMemory.size());
-
         // --- the hashing ---
+        // Horner Rule: tag_n = (tag_(n-1) + m) * k
 
-        uint64_t nBlocks = cMessage.size() / block_size();
-        char * data = (char *)cMessage.get();
-        for (uint64_t i = 0; i < nBlocks; ++i) {
+        char * data = (char *)cMemory.get();
+        int64_t nLeft = cMemory.size();
 
-            // Horner Rule: tag_n = (tag_(n-1) + m) * k
+
+        // first block might have remainding bytes of the previous block prepended
+        if (m_nRemainderBytes) {
+
+            memcpy(m_cRemainder + m_nRemainderBytes, cMemory.get(), block_size() - m_nRemainderBytes);
+
+            // first round with remainder
+            typename gf2_fast_alpha<GF_BITS>::blob_t coefficient;
+            m_cGF2->blob_from_memory(coefficient, m_cRemainder);
+            m_cGF2->add(m_cTag, coefficient, m_cTag);
+            m_cGF2->times_alpha(m_cTag, m_cTag);
+
+            m_nBlocks++;
+            data += block_size() - m_nRemainderBytes;
+            nLeft -= block_size() - m_nRemainderBytes;
+            m_nRemainderBytes = 0;
+        }
+
+        // walk over all blocks
+        while (nLeft - block_size() >= 0) {
+
             typename gf2_fast_alpha<GF_BITS>::blob_t coefficient;
             m_cGF2->blob_from_memory(coefficient, data);
             m_cGF2->add(m_cTag, coefficient, m_cTag);
             m_cGF2->times_alpha(m_cTag, m_cTag);
-            data += m_cGF2->BLOB_BYTES;
+
+            m_nBlocks++;
+            data += block_size();
+            nLeft -= block_size();
         }
 
-        m_nBlocks += nBlocks;
-        m_cRemainder = qkd::utility::memory(cMessage.size() % block_size());
-        memcpy(m_cRemainder.get(), cMessage.get() + nBlocks * block_size(), m_cRemainder.size());
+        // remember the last block % block_size
+        if (nLeft) {
+            memcpy(m_cRemainder, data, nLeft);
+            m_nRemainderBytes = nLeft;
+        }
     }
 
 
@@ -263,7 +290,7 @@ public:
      *
      * @return  bit width of GF2
      */
-    unsigned int bits() const { return GF_BITS; }
+    inline unsigned int bits() const { return GF_BITS; }
 
 
     /**
@@ -271,7 +298,7 @@ public:
      *
      * @return  number of blocks in the tag
      */
-    uint64_t blocks() const { return m_nBlocks; }
+    inline uint64_t blocks() const { return m_nBlocks; }
 
 
     /**
@@ -279,7 +306,7 @@ public:
      *
      * @return  size of a single block in bytes
      */
-    unsigned int block_size() const { return GF_BITS / 8; }
+    constexpr unsigned int block_size() { return GF_BITS / 8; }
 
 
     /**
@@ -290,13 +317,10 @@ public:
     qkd::utility::memory finalize() { 
 
         // add the remainder (bytes not yet authenticated)
-        if (m_cRemainder.size()) {
-
-            qkd::utility::memory cMemory(block_size());
-            cMemory.fill(0);
-            memcpy(cMemory.get(), m_cRemainder.get(), m_cRemainder.size());
-            m_cRemainder = qkd::utility::memory(0);
-            add(cMemory);
+        if (m_nRemainderBytes > 0) {
+            memset(m_cRemainder + m_nRemainderBytes, 0, block_size() - m_nRemainderBytes);
+            m_nRemainderBytes = 0;
+            add(qkd::utility::memory::wrap((qkd::utility::memory::value_t *)m_cRemainder, block_size()));
         }
 
         return tag(); 
@@ -312,7 +336,9 @@ public:
         qkd::utility::memory m;
         cState >> m;
         m_cGF2->blob_from_memory(m_cTag, m);
-        cState >> m_cRemainder;
+        cState >> m;
+        memcpy(m_cRemainder, m.get(), m.size());
+        m_nRemainderBytes = m.size();
         cState >> m_nBlocks;
     }
 
@@ -326,7 +352,7 @@ public:
 
         qkd::utility::buffer res;
         res << m_cGF2->blob_to_memory(m_cTag);
-        res << m_cRemainder;
+        res << qkd::utility::memory::wrap((qkd::utility::memory::value_t *)m_cRemainder, m_nRemainderBytes);
         res << m_nBlocks;
         return res;
     }
@@ -358,7 +384,13 @@ private:
     /**
      * remainder of last add (modulu blob size) 
      */
-    qkd::utility::memory m_cRemainder;                           
+    char * m_cRemainder;
+
+
+    /**
+     * remainder of last add (modulu blob size) in bytes
+     */
+    unsigned int m_nRemainderBytes;
 
 
     /**
