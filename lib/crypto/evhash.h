@@ -246,7 +246,6 @@ public:
         char * data = (char *)cMemory.get();
         int64_t nLeft = cMemory.size();
 
-
         // first block might have remainding bytes of the previous block prepended
         if (m_nRemainderBytes) {
 
@@ -278,7 +277,7 @@ public:
         }
 
         // remember the last block % block_size
-        if (nLeft) {
+        if (nLeft > 0) {
             memcpy(m_cRemainder, data, nLeft);
             m_nRemainderBytes = nLeft;
         }
