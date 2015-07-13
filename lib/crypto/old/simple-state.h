@@ -1,12 +1,11 @@
 /*
- * gf2.cpp
+ * simple-state.h
+ *
+ * Base class functionality for algorithm state objects
  * 
- * Galois Field 2^n
- *
  * Author: Thomas Themel - thomas.themel@ait.ac.at
- *         Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
- * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+ * Copyright (C) 2010-2015 Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
  * Donau-City-Strasse 1 | 1220 Vienna | Austria
  * http://www.ait.ac.at
@@ -28,15 +27,22 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
- 
-// ------------------------------------------------------------
-// incs
+#ifndef SIMPLE_STATE_H_INCLUDED
+#define SIMPLE_STATE_H_INCLUDED
 
-#include "gf2.h"
+/** Allocates a new execution state object for ctx. */
+ce_state* simple_state_alloc(ce_context* ctx);
 
-using namespace qkd::crypto;
+/** Initializes a standard execution state object for ctx at ps.
+    This should not be called explicitly by users but is rather
+    intended as a "base constructor" for algorithm implementations. */
+void simple_state_init(ce_context* ctx, ce_state* ps);
+
+/** Releases all resources held by a standard execution state object.
+    This should not be called explicitly by users but is rather
+    intended as a "base destructor" for algorithm implementations. */
+void simple_state_destroy(ce_state* ps);
 
 
-// ------------------------------------------------------------
-// code
 
+#endif // !defined  SIMPLE_STATE_H_INCLUDED

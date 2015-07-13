@@ -110,8 +110,8 @@ if (CMAKE_COMPILER_IS_GNUCC)
 
     endif (${CMAKE_C_COMPILER_VERSION} LESS 4.8)
     
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -Wall -Wextra -pedantic -g -ggdb3 -O2 -rdynamic")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x -Wall -Wextra -pedantic -g -ggdb3 -O2 -rdynamic")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -Wall -Wextra -pedantic -g -ggdb3 -rdynamic")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x -Wall -Wextra -pedantic -g -ggdb3 -rdynamic")
     
     # TODO: make speed tests with -fno-builtin especially to
     #       get a better memcpy performance

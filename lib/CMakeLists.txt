@@ -44,14 +44,21 @@ set(QKD_SRC
     # crypto engine
     crypto/association.cpp
     crypto/context.cpp
-    crypto/evhash.cpp
-    crypto/gf2.cpp
     crypto/crypto_evhash.cpp
     crypto/crypto_null.cpp
     crypto/crypto_xor.cpp
     crypto/engine.cpp
     crypto/scheme.cpp
     
+    # old and dirty crypto stuff
+    crypto/old/evhash/evhash-32.cpp
+    crypto/old/evhash/evhash-64.cpp
+    crypto/old/evhash/evhash-96.cpp
+    crypto/old/evhash/evhash-128.cpp
+    crypto/old/evhash/evhash-256.cpp
+    crypto/old/simple-state.cpp
+    crypto/old/utility.cpp
+
     # atof - locale "C" version enforced
     utility/atof/atof.cpp
 

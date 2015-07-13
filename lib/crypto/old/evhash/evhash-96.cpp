@@ -1,11 +1,11 @@
 /*
- * evhash.cpp
+ * evhash-96.c
+ *
+ * 96bit evaluation hash algorithm for the q3p crypto engine
  * 
- * implement the evaluation hash authentication
+ * Author: Thomas Themel - thomas.themel@ait.ac.at
  *
- * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
- *
- * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+ * Copyright (C) 2010-2015 Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
  * Donau-City-Strasse 1 | 1220 Vienna | Austria
  * http://www.ait.ac.at
@@ -27,17 +27,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
- 
-// ------------------------------------------------------------
-// incs
 
-#include "evhash.h"
+#define GF_BITS 96
 
-using namespace qkd::crypto;
+/* GF(2^96) as GF(2)[x] mod x^96+x^10+x^9+x^6+1*/
+/* field element congruent with irreducible polynomial: 1601 */
+static unsigned int gf_modulus  =  0x641;
 
-
-// ------------------------------------------------------------
-// code
-
-
+#include "evhash-impl.cpp"
 
