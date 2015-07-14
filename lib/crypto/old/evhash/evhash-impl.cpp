@@ -668,6 +668,7 @@ static int transform (ce_state* ps, const char* data, size_t nblocks)
         gf2_addto((unsigned int*)tag, coefficient) ;
         gf2_times_alpha((unsigned int*)tag, ctx) ;
         offset += BLOB_BYTES ; 
+        ps->nRound++;
     }
 
     return 0 ;
