@@ -5,6 +5,23 @@ This file holds the changes of the AIT QKD R10 throughout the versions
 Changes from 9.9999.4 to 9.9999.5
 ---------------------------------
 
+* Crypto Contexts are now concatenable!
+
+    A crypto context, especially the evalution hash algorithm, can
+    now be contacatenated. This enables two seperate message streams
+    to me melted into a single tag for later authentication.
+
+    This is needed when one concatenates keys to form a larger one.
+
+* revamp of the GF2 polynomial hashing algorithm
+
+    Yes, it is slower, but now it is expendible and more easy to
+    read and understand. It is included now in one single file 
+    (lib/crypto/evhash.cpp) instead spread across multiple sources.
+
+    Hopefully there's a volunteer to step forward to enhance performance
+    on this new implementation.
+
 * dopped UMAC authentication support, fixes #987
 
 * the number of keys "in transit" between two modules is now a maximimum of 10
