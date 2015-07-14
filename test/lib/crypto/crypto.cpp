@@ -140,14 +140,13 @@ int test() {
     // --- SCHEMES ---
     
     // arbitrary schemes
-    std::string sScheme = "evhash-96:02cc942de299f4b0d86ffd53:fd2cf893f0cfe670d89183dd:12345";
+    std::string sScheme = "evhash-96:02cc942de299f4b0d86ffd53:fd2cf893f0cfe670d89183dd";
     qkd::crypto::scheme cScheme(sScheme);
     
     assert(cScheme.str() == sScheme);
     assert(qkd::crypto::engine::valid_scheme(cScheme));
     assert(cScheme.init_key().data().as_hex() == "02cc942de299f4b0d86ffd53");
     assert(cScheme.state().as_hex() == "fd2cf893f0cfe670d89183dd");
-    assert(cScheme.blocks() == 12345);
     
     assert(qkd::crypto::engine::valid_scheme(qkd::crypto::scheme("evhash-96::")));
     assert(qkd::crypto::engine::valid_scheme(qkd::crypto::scheme("evhash-96")));
@@ -450,14 +449,16 @@ int test() {
     qkd::crypto::crypto_context cEvHash96_A = qkd::crypto::engine::create(cScheme);
     qkd::crypto::crypto_context cEvHash96_B = qkd::crypto::engine::create(cScheme);
     qkd::crypto::crypto_context cEvHash96_C = qkd::crypto::engine::create(cScheme);
-   
+
+qkd::utility::debug::enabled() = true;   
+
     // ideal tag
     cEvHash96_A << cText[0];
     cEvHash96_A << cText[1];
     cEvHash96_A << cText[2];
+    cEvHash96_A->finalize(cFinalKey);
     cEvHash96_A << cText[3];
     cEvHash96_A << cText[4];
-
     qkd::utility::memory cTagA = cEvHash96_A->finalize(cFinalKey);
 std::cout << cTagA.as_hex() << std::endl;    
 

@@ -125,12 +125,6 @@ public:
 
 
     /**
-     * exception type thrown if already finalized
-     */
-    struct context_final : virtual std::exception, virtual boost::exception { };
-    
-
-    /**
      * exception type thrown when something unexpected happened during init
      */
     struct context_init : virtual std::exception, virtual boost::exception { };
@@ -186,10 +180,8 @@ public:
      * add another crypto context
      *
      * @param   cContext        the crypto context to add
-     * @throws  context_final
      */
     inline void add(qkd::crypto::crypto_context const & cContext) { 
-        if (is_finalized()) throw context_final(); 
         add_internal(cContext); 
     };
 
@@ -198,10 +190,8 @@ public:
      * add a memory BLOB to the algorithm
      *
      * @param   cMemory         memory block to be added
-     * @throws  context_final
      */
     inline void add(qkd::utility::memory const & cMemory) { 
-        if (is_finalized()) throw context_final(); 
         add_internal(cMemory); 
     };
     
@@ -239,11 +229,8 @@ public:
      * @param   cKey        the key used to finalize the algorithm
      * @return  a memory BLOB representing the tag
      * @throws  context_wrong_key
-     * @throws  context_final
      */
     inline qkd::utility::memory finalize(qkd::key::key const & cKey = qkd::key::key::null()) { 
-        if (is_finalized()) throw context_final(); 
-        m_bFinalized = true; 
         return finalize_internal(cKey); 
     };
     
@@ -278,14 +265,6 @@ public:
      * @return  true, if we can make a clone of a concrete instance
      */
     inline bool is_cloneable() const { return is_cloneable_internal(); };
-    
-    
-    /**
-     * check if this context has been already finalized
-     * 
-     * @return  true, if the finalize method has been called at least once
-     */
-    inline bool is_finalized() const { return m_bFinalized; };
     
     
     /**
@@ -374,11 +353,9 @@ protected:
      * ctor
      * 
      * @param   cKey        the initial key
-     * @param   nBlocks     the blocks done with this algorithm
      * @throws  context_wrong_key
      */
-    explicit context(qkd::key::key const & cKey = qkd::key::key::null(), uint64_t nBlocks = 0) 
-            : m_nBlocks(nBlocks), m_bFinalized(false), m_cKey(cKey) {};
+    explicit context(qkd::key::key const & cKey = qkd::key::key::null()) : m_cKey(cKey) {};
 
     
 private:
@@ -528,18 +505,6 @@ private:
     virtual qkd::utility::memory state_internal() const = 0;
     
     
-    /**
-     * the blocks calculated so far
-     */
-    uint64_t m_nBlocks;
-
-
-    /**
-     * finalized flag
-     */
-    bool m_bFinalized;
-    
-
     /**
      * the initial key
      */

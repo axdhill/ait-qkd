@@ -90,14 +90,6 @@ public:
     
     
     /**
-     * returns the blocks done so far
-     * 
-     * @return  the blocks calculated so far
-     */
-    inline uint64_t blocks() const { return m_nBlocks; };
-
-
-    /**
      * return the algorithm name
      * 
      * @return  the name of the algorithm
@@ -132,12 +124,6 @@ public:
 private:    
     
    
-    /**
-     * the number of blocks done
-     */
-    uint64_t m_nBlocks;
-
-
     /**
      * the init key stored
      */
