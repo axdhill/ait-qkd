@@ -28,8 +28,8 @@
  */
 
  
-#ifndef __QKD_CRYPTO_EVHASH_H_
-#define __QKD_CRYPTO_EVHASH_H_
+#ifndef __QKD_CRYPTO_CRYPTO_EVHASH_H_
+#define __QKD_CRYPTO_CRYPTO_EVHASH_H_
 
 
 // ------------------------------------------------------------
@@ -72,14 +72,6 @@ public:
 
 
     /**
-     * number of blocks done so far
-     *
-     * @return  number of encoded blocks with this algorithms
-     */
-    virtual uint64_t blocks() const; 
-
-
-    /**
      * check if the given key is suitable as final key
      * 
      * @param   cKey        the key candidate
@@ -112,14 +104,6 @@ public:
     bool null() const { return false; };
 
     
-    /**
-     * set the number of blocks calculated
-     *
-     * @param   nBlocks         the new number of blocks done
-     */
-    virtual void set_blocks(uint64_t nBlocks);
-
-
 private:
     
 

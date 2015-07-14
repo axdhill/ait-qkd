@@ -463,6 +463,17 @@ public:
     
     
     /**
+     * check if this key is *deeply* (on byte basis) to another
+     * 
+     * @param   rhs         right hand side
+     * @return  true if this key is equal to rhs on deep byte basis
+     */
+    inline bool is_equal(qkd::key::key const & rhs) const { 
+        return ((size() == rhs.size()) && (memcmp(data().get(), rhs.data().get(), size()) == 0));
+    }
+    
+    
+    /**
      * check if this key is null
      * 
      * @return  true if this key is empty

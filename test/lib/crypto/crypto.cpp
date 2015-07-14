@@ -450,31 +450,37 @@ int test() {
     qkd::crypto::crypto_context cEvHash96_B = qkd::crypto::engine::create(cScheme);
     qkd::crypto::crypto_context cEvHash96_C = qkd::crypto::engine::create(cScheme);
 
-qkd::utility::debug::enabled() = true;   
-
     // ideal tag
     cEvHash96_A << cText[0];
     cEvHash96_A << cText[1];
     cEvHash96_A << cText[2];
-    cEvHash96_A->finalize(cFinalKey);
+
+    cEvHash96_A->finalize(cFinalKey);   // <--- cut: add remainding message bytes to tag now
+                                        //      the final key does not modify the internal
+                                        //      state of the ev-hash
     cEvHash96_A << cText[3];
     cEvHash96_A << cText[4];
     qkd::utility::memory cTagA = cEvHash96_A->finalize(cFinalKey);
-std::cout << cTagA.as_hex() << std::endl;    
+    assert(cTagA.as_hex() == "372f13623300c2d8f758bb78");
 
     // combine 2 tags
     cEvHash96_B << cText[0];
     cEvHash96_B << cText[1];
     cEvHash96_B << cText[2];
-
+    
+    // instead of cutting the existing context B, we create a new one C
+    // and start inserting messages into the latter, then we concatenate
+    // B << C. This must yield the very same result
     cEvHash96_C << cText[3];
     cEvHash96_C << cText[4];
 
     // add C to B
     cEvHash96_B << cEvHash96_C;
-    qkd::utility::memory cTagB = cEvHash96_A->finalize(cFinalKey);
-std::cout << cTagB.as_hex() << std::endl;    
-
+    qkd::utility::memory cTagB = cEvHash96_B->finalize(cFinalKey);
+    
+    // a series of A (with finalize() at the proper cut) *must*
+    // yield the same result as B << C
+    assert(cTagB.as_hex() == "372f13623300c2d8f758bb78");
 
     return 0;
 }
