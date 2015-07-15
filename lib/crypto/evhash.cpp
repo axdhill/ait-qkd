@@ -513,16 +513,27 @@ public:
 
     /**
      * ctor
+     * 
+     * we precalculate k^n with n=2^x with x=1..20
      *
      * @param   nModules                    signature of the irreducible polynom
      * @param   bTwoStepPrecalculation      do a single or double precalculation table
      * @param   cKey                        the value for which fast multiplication is achieved
      */
     explicit gf2_fast_alpha(unsigned int nModulus, bool bTwoStepPrecalculation, qkd::utility::memory const & cKey) 
-            : gf2<GF_BITS>(nModulus), bTwoStepPrecalculation(bTwoStepPrecalculation) {
+            : gf2<GF_BITS>(nModulus), MAX_POW(20), bTwoStepPrecalculation(bTwoStepPrecalculation), m_cAlphaPow(nullptr) {
 
         this->blob_from_memory(alpha, cKey);
         this->precalc_blob_multiplication();
+        this->precalc_alpha_pow();
+    }
+    
+    
+    /**
+     * dtor
+     */
+    ~gf2_fast_alpha() {
+        if (m_cAlphaPow) delete [] m_cAlphaPow;
     }
 
 
@@ -570,6 +581,30 @@ public:
     }
 
 
+    /** 
+     * Fast multiplication of a blob with alpha^n.
+     *
+     * @param   res         blob * alpha^n in this GF2
+     * @param   blob        the blob to multiply
+     * @param   n           exponent of alpha
+     */
+    void times_alpha_pow(blob_t & res, blob_t const & blob, uint64_t n) const {
+        
+        unsigned int nPowIndex = 0;
+        blob_set(res, blob);
+        while (n > 0) {
+            
+            if (n >= m_cAlphaPow[nPowIndex].nPow) {
+                this->mul(res, res, m_cAlphaPow[nPowIndex].nValue);
+                n -= m_cAlphaPow[nPowIndex].nPow;
+            }
+            else {
+                nPowIndex++;
+            }
+        }
+    }
+    
+    
 protected:
 
 
@@ -623,10 +658,12 @@ private:
 
     std::size_t HORNER_BITS;
     std::size_t HORNER_SIZE;
+    std::size_t MAX_POW;
+    
 
     bool bTwoStepPrecalculation;        /**< perform single or double pre calculation */
-
-
+    
+    
     /**
      *  multiplication table of alpha 
      */
@@ -654,10 +691,25 @@ private:
 
 
     /**
-     * the value for which we do fast multiply
+     * the value for which we do fast multiply (==> key k!)
      */
     blob_t alpha;
 
+
+    /**
+     * this holds a k^2^pow value (k == alpha)
+     */
+    typedef struct {
+        uint64_t nPow;
+        blob_t nValue;
+    } alpha_pow;
+    
+    
+    /**
+     * table of k^2^n in reverse order: alpha^2^MAX_POW is at index 0
+     */
+    alpha_pow * m_cAlphaPow;
+    
 
     /**
      * setup the precalulation tables
@@ -684,6 +736,32 @@ private:
                 this->blob_set_value(v, i << PRECALC_BITS);
                 this->mul(multiplication_table_2[i], alpha, v);
             }
+        }
+    }
+
+
+    /**
+     * setup the precalulated pow tables
+     * 
+     * This generates a series of k^n with n = 1...2^MAX_POW
+     */
+    void precalc_alpha_pow() {
+        
+        m_cAlphaPow = new alpha_pow[MAX_POW];
+        
+        blob_t value;
+        blob_set(value, alpha);
+        
+        // init k^1
+        m_cAlphaPow[MAX_POW - 1].nPow = 1;
+        blob_set(m_cAlphaPow[MAX_POW - 1].nValue, value);
+        
+        // create k^2, k^4, k^8, ...
+        for (int64_t i = MAX_POW - 2, j = 1; i >= 0; --i, ++j) {
+            
+            this->mul(value, value, value);
+            m_cAlphaPow[i].nPow = (1 << j);
+            blob_set(m_cAlphaPow[i].nValue, value);            
         }
     }
 
@@ -901,10 +979,8 @@ public:
      * @param   nRounds     number of rounds to mulitiply 
      */
     void times(uint64_t nRounds) {
-        for (uint64_t i = 0; i < nRounds; ++i) {
-            m_cGF2->times_alpha(m_cTag, m_cTag);
-            m_nBlocks++;
-        }
+        m_cGF2->times_alpha_pow(m_cTag, m_cTag, nRounds);        
+        m_nBlocks += nRounds;
     }
     
     
