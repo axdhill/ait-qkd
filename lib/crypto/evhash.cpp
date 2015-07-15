@@ -547,7 +547,7 @@ public:
         blob_t cProduct;
         this->blob_set_value(cProduct, 0);
 
-        word_t b[GF_BITS / PRECALC_BITS]; 
+        word_t b[GF_BITS / PRECALC_BITS * 2]; 
         unsigned int k;
 
         k = 0;
@@ -558,7 +558,7 @@ public:
             // Split word into the correct number 
             // of PRECALC_BITS sized chunks 
             for (int j = WORD_BITS / HORNER_BITS - 1; j >= 0; --j) {
-                b[k++] = (word >> (HORNER_BITS * j)) & (HORNER_SIZE - 1);  
+                b[k++] = (word >> (HORNER_BITS * j)) & (HORNER_SIZE - 1);
             }
         }
 
@@ -696,11 +696,11 @@ private:
 
 
     /**
-     * this holds a k^2^pow value (k == alpha)
+     * this holds a k^2^n value (k == alpha)
      */
     typedef struct {
-        uint64_t nPow;
-        blob_t nValue;
+        uint64_t nPow;          /**< this is 2^n --> 2, 4, 8, 16, ... */
+        blob_t nValue;          /**< this is alpha^2^n */
     } alpha_pow;
     
     
