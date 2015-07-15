@@ -53,9 +53,11 @@
  * 
  *      -name-                  -read/write-    -description-
  * 
- *      cur_key_size                 R          current key size (in bytes) for forward
+ *      current_key_size             R          current key size (in bytes) for forward
  * 
- *      min_key_size                R/W         minimum key size (in bytes) for forward
+ *      exact_key_size              R/W         exact key size (in bytes) for forward
+ * 
+ *      minimum_key_size            R/W         minimum key size (in bytes) for forward
  * 
  */
 class qkd_resize : public qkd::module::module {
@@ -64,8 +66,9 @@ class qkd_resize : public qkd::module::module {
     Q_OBJECT
     Q_CLASSINFO("D-Bus Interface", "at.ac.ait.qkd.resize")
 
-    Q_PROPERTY(qulonglong cur_key_size READ cur_key_size)                                   /**< get current key size (in bytes) for forwarding */
-    Q_PROPERTY(qulonglong min_key_size READ min_key_size WRITE set_min_key_size)            /**< get/set minimum key size (in bytes) for forwarding */
+    Q_PROPERTY(qulonglong current_key_size READ current_key_size)                                   /**< get current key size (in bytes) for forwarding */
+    Q_PROPERTY(qulonglong exact_key_size READ exact_key_size WRITE set_exact_key_size)              /**< get/set exact key size (in bytes) for forwarding */
+    Q_PROPERTY(qulonglong minimum_key_size READ minimum_key_size WRITE set_minimum_key_size)        /**< get/set minimum key size (in bytes) for forwarding */
 
 
 public:
@@ -82,7 +85,15 @@ public:
      * 
      * @return  the current key size (in bytes) for forwarding
      */
-    qulonglong cur_key_size() const;
+    qulonglong current_key_size() const;
+    
+    
+    /**
+     * get the exact key size (in bytes) for forwarding
+     * 
+     * @return  the exact key size (in bytes) for forwarding
+     */
+    qulonglong exact_key_size() const;
     
     
     /**
@@ -90,7 +101,15 @@ public:
      * 
      * @return  the minimum key size (in bytes) for forwarding
      */
-    qulonglong min_key_size() const;
+    qulonglong minimum_key_size() const;
+    
+    
+    /**
+     * set the new exact key size (in bytes) for forwarding
+     * 
+     * @param   nSize       the new exact key size (in bytes) for forwarding
+     */
+    void set_exact_key_size(qulonglong nSize);
     
     
     /**
@@ -98,7 +117,7 @@ public:
      * 
      * @param   nSize       the new minimum key size (in bytes) for forwarding
      */
-    void set_min_key_size(qulonglong nSize);
+    void set_minimum_key_size(qulonglong nSize);
     
     
 protected:

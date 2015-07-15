@@ -69,6 +69,7 @@ public:
     
     std::recursive_mutex cPropertyMutex;            /**< property mutex */
     
+    uint64_t nExactKeySize;                         /**< exact key size */
     uint64_t nMinimumKeySize;                       /**< minimum key size (in bytes) for forwarding */
     
     uint64_t nErrorBits;                            /**< all the error bits so far for the current key */
@@ -95,7 +96,8 @@ qkd_resize::qkd_resize() : qkd::module::module("resize", qkd::module::module_typ
     d = boost::shared_ptr<qkd_resize::qkd_resize_data>(new qkd_resize::qkd_resize_data());
     
     // apply default values
-    set_min_key_size(2048);
+    set_exact_key_size(0);
+    set_minimum_key_size(0);
 
     // enforce DBus registration
     new ResizeAdaptor(this);
@@ -122,8 +124,12 @@ void qkd_resize::apply_config(UNUSED std::string const & sURL, qkd::utility::pro
         std::string sKey = cEntry.first.substr(config_prefix().size());
 
         // module specific config here
-        if (sKey == "min_key_size") {
-            set_min_key_size(atoll(cEntry.second.c_str()));
+        if (sKey == "exact_key_size") {
+            set_exact_key_size(atoll(cEntry.second.c_str()));
+        }
+        else
+        if (sKey == "minimum_key_size") {
+            set_minimum_key_size(atoll(cEntry.second.c_str()));
         }
         else {
             qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "found unknown key: \"" << cEntry.first << "\" - don't know how to handle this.";
@@ -137,11 +143,20 @@ void qkd_resize::apply_config(UNUSED std::string const & sURL, qkd::utility::pro
  * 
  * @return  the current key size (in bytes) for forwarding
  */
-qulonglong qkd_resize::cur_key_size() const {
-    
-    // get exclusive access to properties
+qulonglong qkd_resize::current_key_size() const {
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     return d->cKey.data().size();
+}
+
+
+/**
+ * get the exact key size for forwarding
+ * 
+ * @return  the exact key size for forwarding
+ */
+qulonglong qkd_resize::exact_key_size() const {
+    std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
+    return d->nExactKeySize;
 }
 
 
@@ -150,9 +165,7 @@ qulonglong qkd_resize::cur_key_size() const {
  * 
  * @return  the minimum key size for forwarding
  */
-qulonglong qkd_resize::min_key_size() const {
-    
-    // get exclusive access to properties
+qulonglong qkd_resize::minimum_key_size() const {
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     return d->nMinimumKeySize;
 }
@@ -174,10 +187,13 @@ bool qkd_resize::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cIn
         return false;
     }
 
-    // get exclusive access to properties
-    std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
+    UNUSED uint64_t nExactKeySize = 0;
+    uint64_t nMinimumKeySize = 0;
+    {
+        nExactKeySize = exact_key_size();
+        nMinimumKeySize = minimum_key_size();
+    }
     
-    // is this the first key we collect?
     if (d->cKey == qkd::key::key::null()) {
         
         // "consume" key if it has not been disclosed
@@ -206,14 +222,13 @@ bool qkd_resize::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cIn
         d->nKeyBits += cKey.data().size() * 8;
         
         // add the crypto contexts as well
-        // TODO: what if the algorithm/initkey has switched in the mean time?
-        d->cIncomingContext << cIncomingContext->state();
-        d->cOutgoingContext << cOutgoingContext->state();
+        d->cIncomingContext << cIncomingContext;
+        d->cOutgoingContext << cOutgoingContext;
     }
     
     // forward?
-    if (d->cKey.data().size() < d->nMinimumKeySize) {
-        qkd::utility::debug() << "resizeed key " << cKey.id() << " resizeed bytes: " << d->cKey.data().size() << "/" << d->nMinimumKeySize;
+    if (d->cKey.data().size() < nMinimumKeySize) {
+        qkd::utility::debug() << "resized key " << cKey.id() << " resizeed bytes: " << d->cKey.data().size() << "/" << nMinimumKeySize;
         return false;
     }
 
@@ -238,13 +253,22 @@ bool qkd_resize::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cIn
 
 
 /**
+ * set the new exact key size for forwarding
+ * 
+ * @param   nSize       the new exact key size for forwarding
+ */
+void qkd_resize::set_exact_key_size(qulonglong nSize) {
+    std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
+    d->nExactKeySize = nSize;
+}
+
+
+/**
  * set the new minimum key size for forwarding
  * 
  * @param   nSize       the new minimum key size for forwarding
  */
-void qkd_resize::set_min_key_size(qulonglong nSize) {
-    
-    // get exclusive access to properties
+void qkd_resize::set_minimum_key_size(qulonglong nSize) {
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     d->nMinimumKeySize = nSize;
 }
