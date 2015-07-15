@@ -7,7 +7,7 @@
  * stdout and quits. This is totally nonsense but gives a hint
  * to very, very low requirments in building a module.
  * 
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2013-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH

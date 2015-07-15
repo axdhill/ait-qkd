@@ -3,8 +3,8 @@
 # 
 # make: qkd/bin/tools/qkd-simulate/doc
 #
-# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
-# Autor: Philipp Grabenweger
+# Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#         Philipp Grabenweger
 #
 # Copyright (C) 2012-2015 AIT Austrian Institute of Technology
 # AIT Austrian Institute of Technology GmbH

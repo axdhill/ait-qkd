@@ -3,8 +3,8 @@
  * 
  * Declaration of a sync pulse receiver to be used inside detector at Bob side
  *
- * Autor: Philipp Grabenweger
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Philipp Grabenweger
+ *         Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2013-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH

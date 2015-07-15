@@ -3,7 +3,7 @@
 # 
 # make: qkd/bin/tools/q3p-inject
 #
-# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+# Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
 # Copyright (C) 2013-2015 AIT Austrian Institute of Technology
 # AIT Austrian Institute of Technology GmbH
