@@ -1,7 +1,7 @@
 # ------------------------------------------------------------
 # CMakeLists.txt 
 # 
-# make: qkd/bin/modules/qkd-buffer
+# make: qkd/bin/modules/qkd-resize
 #
 # Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
@@ -29,37 +29,37 @@
 
 
 # ------------------------------------------------------------
-# qkd-buffer
+# qkd-resize
 
 # additional includes
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 # sources
-set(QKD_BUFFER_SRC
+set(QKD_RESIZE_SRC
     main.cpp
-    qkd-buffer.cpp
+    qkd-resize.cpp
 )
 
 # Qt MOC
-QT4_GENERATE_MOC(qkd-buffer.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-buffer.moc.cpp) 
-set(QKD_BUFFER_MOC
-    qkd-buffer.moc.cpp
+QT4_GENERATE_MOC(qkd-resize.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-resize.moc.cpp) 
+set(QKD_RESIZE_MOC
+    qkd-resize.moc.cpp
 )
 
 # DBus Integration
-QT4_GENERATE_DBUS_INTERFACE(qkd-buffer.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-buffer.xml)
-QT4_ADD_DBUS_ADAPTOR(QKD_BUFFER_DBUS_SRC
-    ${CMAKE_CURRENT_BINARY_DIR}/qkd-buffer.xml 
-    ${CMAKE_CURRENT_SOURCE_DIR}/qkd-buffer.h 
-    qkd_buffer
-    qkd_buffer_dbus)
+QT4_GENERATE_DBUS_INTERFACE(qkd-resize.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-resize.xml)
+QT4_ADD_DBUS_ADAPTOR(QKD_RESIZE_DBUS_SRC
+    ${CMAKE_CURRENT_BINARY_DIR}/qkd-resize.xml 
+    ${CMAKE_CURRENT_SOURCE_DIR}/qkd-resize.h 
+    qkd_resize
+    qkd_resize_dbus)
 
 # bin definition
-add_executable(qkd-buffer ${QKD_BUFFER_SRC} ${QKD_BUFFER_MOC} ${QKD_BUFFER_DBUS_SRC})
+add_executable(qkd-resize ${QKD_RESIZE_SRC} ${QKD_RESIZE_MOC} ${QKD_RESIZE_DBUS_SRC})
 
 # linkage
-target_link_libraries(qkd-buffer ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(qkd-resize ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
-install(TARGETS qkd-buffer RUNTIME DESTINATION bin COMPONENT modules)
+install(TARGETS qkd-resize RUNTIME DESTINATION bin COMPONENT modules)
 

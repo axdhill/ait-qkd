@@ -100,7 +100,7 @@ function test_init() {
     
         ln -f -s modules/qkd-auth/qkd-auth;
         ln -f -s modules/qkd-sifting-bb84/qkd-sifting-bb84;
-        ln -f -s modules/qkd-buffer/qkd-buffer;
+        ln -f -s modules/qkd-resize/qkd-resize;
         ln -f -s modules/qkd-cascade/qkd-cascade;
         ln -f -s modules/qkd-cat/qkd-cat;
         ln -f -s modules/qkd-confirmation/qkd-confirmation;

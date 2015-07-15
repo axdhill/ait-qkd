@@ -6,7 +6,7 @@
 # This is a test file.
 #
 # TEST: launch a sifting pipeline for alice and bob
-#       consisting on bb84, confirmation, buffer and
+#       consisting on bb84, confirmation, resize and
 #       privacy amplification on both sides
 #
 # Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>

@@ -1,7 +1,7 @@
 /*
- * qkd-buffer.h
+ * qkd-resize.h
  * 
- * This is the QKD BUFFER module definition
+ * This is the QKD RESIZE module definition
  * 
  * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
@@ -28,8 +28,8 @@
  */
 
 
-#ifndef __QKD_MODULE_QKD_BUFFER_H_
-#define __QKD_MODULE_QKD_BUFFER_H_
+#ifndef __QKD_MODULE_QKD_RESIZE_H_
+#define __QKD_MODULE_QKD_RESIZE_H_
 
 
 // ------------------------------------------------------------
@@ -44,12 +44,12 @@
 
 
 /**
- * The qkd-buffer module buffers up incoming keys until a minimum
+ * The qkd-resize module resizes up incoming keys until a minimum
  * key size is reached.
  * 
- * The qkd-buffer QKD module supports the "at.ac.ait.qkd.buffer" Interface.
+ * The qkd-resize QKD module supports the "at.ac.ait.qkd.resize" Interface.
  * 
- * Properties of at.ac.ait.qkd.buffer
+ * Properties of at.ac.ait.qkd.resize
  * 
  *      -name-                  -read/write-    -description-
  * 
@@ -58,11 +58,11 @@
  *      min_key_size                R/W         minimum key size (in bytes) for forward
  * 
  */
-class qkd_buffer : public qkd::module::module {
+class qkd_resize : public qkd::module::module {
     
     
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "at.ac.ait.qkd.buffer")
+    Q_CLASSINFO("D-Bus Interface", "at.ac.ait.qkd.resize")
 
     Q_PROPERTY(qulonglong cur_key_size READ cur_key_size)                                   /**< get current key size (in bytes) for forwarding */
     Q_PROPERTY(qulonglong min_key_size READ min_key_size WRITE set_min_key_size)            /**< get/set minimum key size (in bytes) for forwarding */
@@ -74,7 +74,7 @@ public:
     /**
      * ctor
      */
-    qkd_buffer();
+    qkd_resize();
     
     
     /**
@@ -108,6 +108,8 @@ protected:
      * accept a key for processing
      * 
      * we accept all keys (also the disclosed ones)
+     *
+     * However, disclosed keys are not forwarded.
      * 
      * @param   cKey            the key to check
      * @return  true, if the key should be processed by this module
@@ -130,7 +132,7 @@ private:
     /**
      * module work
      * 
-     * @param   cKey                    the key to buffer
+     * @param   cKey                    the key to resize
      * @param   cIncomingContext        incoming crypto context
      * @param   cOutgoingContext        outgoing crypto context
      * @return  always true
@@ -139,8 +141,8 @@ private:
 
     
     // pimpl
-    class qkd_buffer_data;
-    boost::shared_ptr<qkd_buffer_data> d;
+    class qkd_resize_data;
+    boost::shared_ptr<qkd_resize_data> d;
     
 };
 

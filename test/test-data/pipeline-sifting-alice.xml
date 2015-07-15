@@ -81,10 +81,10 @@
         <log path="qkd-confirmation.alice.log" />
     </module>
 
-    <module path="bin/modules/qkd-buffer/qkd-buffer" start="yes">
+    <module path="bin/modules/qkd-resize/qkd-resize" start="yes">
         <config path="test/test-data/sifting-pipeline.conf" />
         <role value="alice" />
-        <log path="qkd-buffer.alice.log" />
+        <log path="qkd-resize.alice.log" />
     </module>
 
     <module path="bin/modules/qkd-privacy-amplification/qkd-privacy-amplification" start="yes">

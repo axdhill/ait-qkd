@@ -55,8 +55,8 @@ echo -n > cascade_debug.alice
 echo -n > cascade_debug.bob
 echo -n > confirmation_debug.alice
 echo -n > confirmation_debug.bob
-echo -n > buffer_debug.alice
-echo -n > buffer_debug.bob
+echo -n > resize_debug.alice
+echo -n > resize_debug.bob
 echo -n > privacy_amplification_debug.alice
 echo -n > privacy_amplification_debug.bob
 echo -n > auth_post_debug.alice
@@ -89,8 +89,8 @@ PIPELINE_POST_CONFIG="auth_post.config"
 ( ${TEST_BASE}/bin/qkd-cascade --debug --bob --run --config ${PIPELINE_PRE_CONFIG} 2>> cascade_debug.bob ) &
 ( ${TEST_BASE}/bin/qkd-confirmation --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> confirmation_debug.alice ) &
 ( ${TEST_BASE}/bin/qkd-confirmation --debug --bob --run --config ${PIPELINE_PRE_CONFIG} 2>> confirmation_debug.bob ) &
-( ${TEST_BASE}/bin/qkd-buffer --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> buffer_debug.alice ) &
-( ${TEST_BASE}/bin/qkd-buffer --debug --bob --run --config ${PIPELINE_PRE_CONFIG} 2>> buffer_debug.bob ) &
+( ${TEST_BASE}/bin/qkd-resize --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> resize_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-resize --debug --bob --run --config ${PIPELINE_PRE_CONFIG} 2>> resize_debug.bob ) &
 ( ${TEST_BASE}/bin/qkd-privacy-amplification --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> privacy_amplification_debug.alice ) &
 ( ${TEST_BASE}/bin/qkd-privacy-amplification --debug --bob --run --config ${PIPELINE_PRE_CONFIG} 2>> privacy_amplification_debug.bob ) &
 ( ${TEST_BASE}/bin/qkd-auth --debug --run --config ${PIPELINE_POST_CONFIG} 1> auth_keys.alice 2>> auth_post_debug.alice ) &
@@ -104,7 +104,7 @@ done
 
 # wait until the pipeline has been through
 sleep 1
-wait_stalled cat bb84 cascade confirmation buffer privacy-amplification auth
+wait_stalled cat bb84 cascade confirmation resize privacy-amplification auth
 
 # final authentication keys may not differ
 if [ ! -s auth_keys.alice ]; then

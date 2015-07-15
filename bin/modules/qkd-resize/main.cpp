@@ -1,7 +1,7 @@
 /*
  * main.cpp
  * 
- * This is the BUFFER QKD Module.
+ * This is the RESIZE QKD Module.
  * 
  * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
@@ -36,7 +36,7 @@
 #include <boost/program_options.hpp>
 
 // ait
-#include "qkd-buffer.h"
+#include "qkd-resize.h"
 
 
 // ------------------------------------------------------------
@@ -54,8 +54,8 @@ int main(int argc, char ** argv) {
     
     QCoreApplication cApp(argc, argv);
     
-    std::string sApplication = std::string("qkd-buffer - AIT QKD Module 'buffer' V") + VERSION;
-    std::string sDescription = std::string("\nThis is an AIT QKD module.\n\nThis module runs the buffer phase after error correction.\n\nCopyright 2012-2015 AIT Austrian Institute of Technology GmbH");
+    std::string sApplication = std::string("qkd-resize - AIT QKD Module 'resize' V") + VERSION;
+    std::string sDescription = std::string("\nThis is an AIT QKD module.\n\nThis module runs the resize the keys in the bypassing keystream.\n\nCopyright 2012-2015 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS]";
     
     boost::program_options::options_description cOptions(sApplication + "\n" + sDescription + "\n\n\t" + sSynopsis + "\n\nAllowed Options");
@@ -94,7 +94,7 @@ int main(int argc, char ** argv) {
     
     if (cVariableMap.count("debug")) qkd::utility::debug::enabled() = true;
     
-    qkd_buffer cQKDBuffer;
+    qkd_resize cQKDBuffer;
     cQKDBuffer.set_debug_message_flow(cVariableMap.count("debug-message-flow") > 0);
     if (cVariableMap.count("bob")) {
         cQKDBuffer.set_role((unsigned long)qkd::module::module_role::ROLE_BOB);

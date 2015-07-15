@@ -1,8 +1,8 @@
 /*
- * qkd-buffer.cpp
+ * qkd-resize.cpp
  * 
  * This is the implementation of the QKD postprocessing
- * buffer facilities
+ * resize facilities
  * 
  * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
@@ -35,14 +35,14 @@
 // ait
 #include <qkd/utility/syslog.h>
 
-#include "qkd-buffer.h"
-#include "qkd_buffer_dbus.h"
+#include "qkd-resize.h"
+#include "qkd_resize_dbus.h"
 
 
 // ------------------------------------------------------------
 // defs
 
-#define MODULE_DESCRIPTION      "This is the qkd-buffer QKD Module."
+#define MODULE_DESCRIPTION      "This is the qkd-resize QKD Module."
 #define MODULE_ORGANISATION     "(C)opyright 2012-2015 AIT Austrian Institute of Technology, http://www.ait.ac.at"
 
 
@@ -51,9 +51,9 @@
 
 
 /**
- * the qkd-buffer pimpl
+ * the qkd-resize pimpl
  */
-class qkd_buffer::qkd_buffer_data {
+class qkd_resize::qkd_resize_data {
     
 public:
 
@@ -61,7 +61,7 @@ public:
     /**
      * ctor
      */
-    qkd_buffer_data() : 
+    qkd_resize_data() : 
         nMinimumKeySize(10000),
         nErrorBits(0),
         nDisclosedBits(0),
@@ -90,15 +90,15 @@ public:
 /**
  * ctor
  */
-qkd_buffer::qkd_buffer() : qkd::module::module("buffer", qkd::module::module_type::TYPE_OTHER, MODULE_DESCRIPTION, MODULE_ORGANISATION) {
+qkd_resize::qkd_resize() : qkd::module::module("resize", qkd::module::module_type::TYPE_OTHER, MODULE_DESCRIPTION, MODULE_ORGANISATION) {
 
-    d = boost::shared_ptr<qkd_buffer::qkd_buffer_data>(new qkd_buffer::qkd_buffer_data());
+    d = boost::shared_ptr<qkd_resize::qkd_resize_data>(new qkd_resize::qkd_resize_data());
     
     // apply default values
     set_min_key_size(2048);
 
     // enforce DBus registration
-    new BufferAdaptor(this);
+    new ResizeAdaptor(this);
 }
 
 
@@ -108,7 +108,7 @@ qkd_buffer::qkd_buffer() : qkd::module::module("buffer", qkd::module::module_typ
  * @param   sURL            URL of config file loaded
  * @param   cConfig         map of key --> value
  */
-void qkd_buffer::apply_config(UNUSED std::string const & sURL, qkd::utility::properties const & cConfig) {
+void qkd_resize::apply_config(UNUSED std::string const & sURL, qkd::utility::properties const & cConfig) {
     
     // delve into the given config
     for (auto const & cEntry : cConfig) {
@@ -137,7 +137,7 @@ void qkd_buffer::apply_config(UNUSED std::string const & sURL, qkd::utility::pro
  * 
  * @return  the current key size (in bytes) for forwarding
  */
-qulonglong qkd_buffer::cur_key_size() const {
+qulonglong qkd_resize::cur_key_size() const {
     
     // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
@@ -150,7 +150,7 @@ qulonglong qkd_buffer::cur_key_size() const {
  * 
  * @return  the minimum key size for forwarding
  */
-qulonglong qkd_buffer::min_key_size() const {
+qulonglong qkd_resize::min_key_size() const {
     
     // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
@@ -161,16 +161,16 @@ qulonglong qkd_buffer::min_key_size() const {
 /**
  * module work
  * 
- * @param   cKey                    the key to buffer
+ * @param   cKey                    the key to resize
  * @param   cIncomingContext        incoming crypto context
  * @param   cOutgoingContext        outgoing crypto context
  * @return  always true
  */
-bool qkd_buffer::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext) {
+bool qkd_resize::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext) {
     
     // ensure we are talking about the same stuff with the peer
     if (!is_synchronizing()) {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "you deliberately turned off key synchonrizing in buffering - but this is essential fot this module: dropping key";
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "you deliberately turned off key synchonrizing in resizeing - but this is essential fot this module: dropping key";
         return false;
     }
 
@@ -213,7 +213,7 @@ bool qkd_buffer::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cIn
     
     // forward?
     if (d->cKey.data().size() < d->nMinimumKeySize) {
-        qkd::utility::debug() << "buffered key " << cKey.id() << " buffered bytes: " << d->cKey.data().size() << "/" << d->nMinimumKeySize;
+        qkd::utility::debug() << "resizeed key " << cKey.id() << " resizeed bytes: " << d->cKey.data().size() << "/" << d->nMinimumKeySize;
         return false;
     }
 
@@ -242,7 +242,7 @@ bool qkd_buffer::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cIn
  * 
  * @param   nSize       the new minimum key size for forwarding
  */
-void qkd_buffer::set_min_key_size(qulonglong nSize) {
+void qkd_resize::set_min_key_size(qulonglong nSize) {
     
     // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);

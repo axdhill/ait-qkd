@@ -82,10 +82,10 @@
         <log path="qkd-confirmation.bob.log" />
     </module>
 
-    <module path="bin/modules/qkd-buffer/qkd-buffer" start="yes">
+    <module path="bin/modules/qkd-resize/qkd-resize" start="yes">
         <config path="test/test-data/sifting-pipeline.conf" />
         <role value="bob" />
-        <log path="qkd-buffer.bob.log" />
+        <log path="qkd-resize.bob.log" />
     </module>
 
     <module path="bin/modules/qkd-privacy-amplification/qkd-privacy-amplification" start="yes">

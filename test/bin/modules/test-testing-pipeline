@@ -60,7 +60,7 @@ PIPELINE_CONFIG="file://${TEST_BASE}/testing.config"
         ${TEST_BASE}/bin/qkd-cat ${PIPELINE_CONFIG} \
         ${TEST_BASE}/bin/qkd-throttle ${PIPELINE_CONFIG} \
         ${TEST_BASE}/bin/qkd-tee ${PIPELINE_CONFIG} \
-        ${TEST_BASE}/bin/qkd-buffer ${PIPELINE_CONFIG} 
+        ${TEST_BASE}/bin/qkd-resize ${PIPELINE_CONFIG} 
 ) &
 
 # state that test ok
