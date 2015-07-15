@@ -39,6 +39,7 @@ configure_file(test-throttle                    ${CMAKE_CURRENT_BINARY_DIR}/test
 configure_file(test-killer                      ${CMAKE_CURRENT_BINARY_DIR}/test-killer                     @ONLY)
 configure_file(test-ping                        ${CMAKE_CURRENT_BINARY_DIR}/test-ping                       @ONLY)
 configure_file(test-interrupt                   ${CMAKE_CURRENT_BINARY_DIR}/test-interrupt                  @ONLY)
+configure_file(test-sudden-death                ${CMAKE_CURRENT_BINARY_DIR}/test-sudden-death               @ONLY)
 
 # module pipeline test
 configure_file(test-mod-bb84                    ${CMAKE_CURRENT_BINARY_DIR}/test-mod-bb84                   @ONLY)
@@ -73,6 +74,7 @@ add_test(throttle                               ${CMAKE_CURRENT_BINARY_DIR}/test
 add_test(killer                                 ${CMAKE_CURRENT_BINARY_DIR}/test-killer)
 add_test(ping                                   ${CMAKE_CURRENT_BINARY_DIR}/test-ping)
 add_test(interrupt                              ${CMAKE_CURRENT_BINARY_DIR}/test-interrupt)
+add_test(sudden-death                           ${CMAKE_CURRENT_BINARY_DIR}/test-sudden-death)
 
 # module pipeline test
 add_test(mod-bb84                               ${CMAKE_CURRENT_BINARY_DIR}/test-mod-bb84)

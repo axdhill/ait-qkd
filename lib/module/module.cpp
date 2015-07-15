@@ -833,7 +833,7 @@ bool module::recv(qkd::module::message & cMessage,
  * 
  * @param   cMessage            this will receive the message
  * @param   nTimeOut            timeout in ms
- * @return  true, if we have receuived a message
+ * @return  true, if we have received a message
  */
 bool module::recv_internal(qkd::module::message & cMessage, int nTimeOut) throw (std::runtime_error) {
     

@@ -1,15 +1,15 @@
 #!/bin/bash
 
 # ------------------------------------------------------------
-# test-interrupt
+# test-sudden-death
 # 
 # This is a test file.
 #
-# TEST: test the interrupt capability of a QKD module worker thread
+# TEST: test what happens when a peer module dies
 #
 # Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
-# Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+# Copyright (C) 2015 AIT Austrian Institute of Technology
 # AIT Austrian Institute of Technology GmbH
 # Donau-City-Strasse 1 | 1220 Vienna | Austria
 # http://www.ait.ac.at
@@ -39,29 +39,31 @@ source ${TEST_BASE}/test/bin/test-functions
 
 test_init
 
-rm -f interrupt.* &> /dev/null
+rm -f sudden_death.* &> /dev/null
 
-( ${TEST_BASE}/bin/qkd-ping --bob --run 1> interrupt.bob ) &
+# start bob ping in the background
+# this will immediately start a worker thread been blocked
+# on a recv
+( ${TEST_BASE}/bin/qkd-ping --debug --run 1> sudden_death.alice 2> sudden_death.debug.alice ) &
+( ${TEST_BASE}/bin/qkd-ping --bob --debug --run 1> sudden_death.bob 2> sudden_death.debug.bob ) &
 sleep 1
 
-# grab the module
-MODULE_PING=$(qkd_qdbus | grep at.ac.ait.qkd.module.ping)
-if [ "${MODULE_PING}" = "" ]; then
-    echo "failed to start QKD module: ping"
-    exit 1
-fi
-echo "startet qkd-ping module ..."
-
-qkd_qdbus ${MODULE_PING} /Module terminate
-sleep 1
-
-# check if the module is still up
-MODULE_PING=$(qkd_qdbus | grep at.ac.ait.qkd.module.ping)
-if [ "${MODULE_PING}" != "" ]; then
-    echo "failed to interrupt and stop the module"
+PID_BOB=$(${TEST_BASE}/bin/qkd-view -s | grep bob | awk '{ print $9; }')
+if [ -z "${PID_BOB}" ]; then
+    echo "failed to get PID of bob"
     exit 1
 fi
 
-echo "interrupt works."
+# kill bob and check how alice reacts to this
+kill ${PID_BOB}
+sleep 1
 
+# check if alice detected bob's missing
+FAILED_RECV=$(grep 'failed to read from bob...' sudden_death.debug.alice | wc -l)
+if [ -z "${FAILED_RECV}" ]; then
+    echo "alice did not notice bob's death, alice seems still locked"
+    exit 1
+fi
+
+# state that test ok
 echo "=== TEST SUCCESS ==="

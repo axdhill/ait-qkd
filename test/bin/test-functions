@@ -137,6 +137,7 @@ function test_init() {
     rm -f /tmp/qkd-test-dbus/qkd-dbus.pid &> /dev/null
     dbus-daemon --config-file ${TEST_BASE}/test/test-data/qkd-test-dbus.conf
     echo "query local temporary DBus with 'qdbus --address unix:path=/tmp/qkd-test-dbus/qkd_dbus_socket'"
+    echo "or use 'export DBUS_SESSION_BUS_ADDRESS=\"unix:path=/tmp/qkd-test-dbus/qkd_dbus_socket\"'"
     DBUS_ID=$(qkd_qdbus org.freedesktop.DBus / GetId)
     if [ -z ${DBUS_ID} ]; then
         echo 'Failed to launch local DBus for testing.'

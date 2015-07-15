@@ -1604,6 +1604,9 @@ protected:
      * 
      * This call waits explcitly for the next message been of type eType. If this
      * is NOT the case a exception is thrown.
+     * 
+     * WARNING: if -1 is used a timeout, then the module waits infinite when
+     *          the peer module ceased to exist!
      *
      * Internally the recv_internal method is called and the actual receive
      * is performed. 
@@ -1612,12 +1615,12 @@ protected:
      * @param   cAuthContext        the authentication context involved
      * @param   eType               message type to receive
      * @param   nTimeOut            timeout in ms
-     * @return  true, if we have receuived a message
+     * @return  true, if we have received a message, false else
      */
     virtual bool recv(qkd::module::message & cMessage, 
             qkd::crypto::crypto_context & cAuthContext, 
             qkd::module::message_type eType = qkd::module::message_type::MESSAGE_TYPE_DATA, 
-            int nTimeOut = -1) throw (std::runtime_error);
+            int nTimeOut = 1000) throw (std::runtime_error);
 
     
     /**

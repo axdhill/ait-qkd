@@ -244,14 +244,17 @@ public:
      * This call waits explcitly for the next message been of type eType. If this
      * is NOT the case a exception is thrown.
      * 
+     * WARNING: if -1 is used a timeout, then the module waits infinite when
+     *          the peer module ceased to exist!
+     *
      * @param   cMessage            this will receive the message
      * @param   eType               message type to receive
      * @param   nTimeOut            timeout in ms
-     * @return  true, if we have receuived a message
+     * @return  true, if we have receuived a message, false else
      */
     bool recv(qkd::module::message & cMessage, 
             qkd::module::message_type eType = qkd::module::message_type::MESSAGE_TYPE_DATA, 
-            int nTimeOut = -1) throw (std::runtime_error); 
+            int nTimeOut = 1000) throw (std::runtime_error); 
 
 
     /**
