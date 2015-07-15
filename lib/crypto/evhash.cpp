@@ -88,12 +88,11 @@ public:
      */
     typedef unsigned int word_t;
 
-    std::size_t const WORD_BYTES = sizeof(word_t);
-    std::size_t const WORD_BITS = sizeof(word_t) * 8;
-    std::size_t const BLOB_INTS = GF_BITS / WORD_BITS;
-
-    std::size_t BLOB_BYTES;
-    std::size_t BLOB_BITS;
+    static std::size_t const WORD_BYTES = sizeof(word_t);
+    static std::size_t const WORD_BITS = sizeof(word_t) * 8;
+    static std::size_t const BLOB_INTS = GF_BITS / WORD_BITS;
+    static std::size_t const BLOB_BYTES = (GF_BITS / 8);
+    static std::size_t const BLOB_BITS = GF_BITS;
 
 
     /**
@@ -108,7 +107,7 @@ public:
      *
      * @param   nModules                    signature of the irreducible polynom
      */
-    explicit gf2(unsigned int nModulus) : BLOB_BYTES(GF_BITS / 8), BLOB_BITS(GF_BITS) {
+    explicit gf2(unsigned int nModulus) {
         this->blob_set_value(modulus_equiv, nModulus);
         this->setup_gf2();
     }
