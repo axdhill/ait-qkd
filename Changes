@@ -5,6 +5,13 @@ This file holds the changes of the AIT QKD R10 throughout the versions
 Changes from 9.9999.4 to 9.9999.5
 ---------------------------------
 
+* default timeout on recv calls in modules is set to 1000 millisec
+
+    This changes behavior of modules, since modules without any
+    explicit timeout set might be caught in an endless loop
+    waiting for some material from its peer, when the latter
+    may not exist anymore.
+
 * Crypto Contexts are now concatenable!
 
     A crypto context, especially the evalution hash algorithm, can
