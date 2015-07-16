@@ -58,19 +58,20 @@ public:
     /**
      * ctor
      */
-    config() : nKeys(0), nId(0), nSize(0), nRate(0.0), bExact(false), bZero(false), bSetErrorBits(false), nDisclosedRate(0.0), bQuantumTables(false) {};
+    config() : nKeys(0), nId(0), nSize(0), bRandomizeSize(false), nStandardDeviation(0.0), nRate(0.0), bExact(false), bZero(false), bSetErrorBits(false), nDisclosedRate(0.0), bQuantumTables(false) {};
     
-    std::string sFile;      /**< file name */
-    uint64_t nKeys;         /**< number of keys to produce */
-    qkd::key::key_id nId;   /**< first key id */
-    uint64_t nSize;         /**< size of each key */
-    bool bRandomizeSize;    /**< randomize the size */
-    double nRate;           /**< error rate of each key */
-    bool bExact;            /**< error rate must match exactly */
-    bool bZero;             /**< start if zero key instead of random key */
-    bool bSetErrorBits;     /**< set error bits in the key */
-    double nDisclosedRate;  /**< set disclosed bits in the key */
-    bool bQuantumTables;    /**< create quantum tables instead of key material */
+    std::string sFile;              /**< file name */
+    uint64_t nKeys;                 /**< number of keys to produce */
+    qkd::key::key_id nId;           /**< first key id */
+    uint64_t nSize;                 /**< size of each key */
+    bool bRandomizeSize;            /**< randomize the size */
+    double nStandardDeviation;      /**< standard deviation when randomizing key size */
+    double nRate;                   /**< error rate of each key */
+    bool bExact;                    /**< error rate must match exactly */
+    bool bZero;                     /**< start if zero key instead of random key */
+    bool bSetErrorBits;             /**< set error bits in the key */
+    double nDisclosedRate;          /**< set disclosed bits in the key */
+    bool bQuantumTables;            /**< create quantum tables instead of key material */
 };
 
 
@@ -113,7 +114,7 @@ qkd::key::key create(qkd::key::key_id nKeyId, config const & cConfig) {
     // prepare key memory
     uint64_t nSize = cConfig.nSize;
     if (cConfig.bRandomizeSize) {
-        std::normal_distribution<double> cDistribution(cConfig.nSize, cConfig.nSize * 0.02);
+        std::normal_distribution<double> cDistribution(cConfig.nSize, cConfig.nStandardDeviation);
         nSize = cDistribution(cRandomNumberGenerator);
     }
     qkd::utility::memory cMemory(nSize);
@@ -584,6 +585,7 @@ int main(int argc, char ** argv) {
     cConfig.nKeys = cVariableMap["keys"].as<uint64_t>();
     cConfig.nSize = cVariableMap["size"].as<uint64_t>();
     cConfig.bRandomizeSize = (cVariableMap.count("randomize-size") > 0);
+    cConfig.nStandardDeviation = sqrt(cConfig.nSize);
     cConfig.nRate = cVariableMap["rate"].as<double>();
     cConfig.bExact = (cVariableMap.count("exact") > 0);
     cConfig.bZero = (cVariableMap.count("zero") > 0);
