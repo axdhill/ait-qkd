@@ -190,13 +190,31 @@ bool qkd_resize::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cIn
 
     stow_key(cKey, cIncomingContext, cOutgoingContext);
     
-    UNUSED uint64_t nExactKeySize = exact_key_size();
+    uint64_t nExactKeySize = exact_key_size();
     uint64_t nMinimumKeySize = minimum_key_size();
     
-    // forward?
-    if (d->cKey.data().size() < nMinimumKeySize) {
-        qkd::utility::debug() << "resized key " << cKey.id() << " resized bytes: " << d->cKey.data().size() << "/" << nMinimumKeySize;
-        return false;
+    if (nMinimumKeySize) {
+        
+        // exit here if minimum size is set and minimum barrier has not been reached
+        if (d->cKey.data().size() < nMinimumKeySize) {
+            qkd::utility::debug() << "resized key " << cKey.id() << " resized bytes: " << d->cKey.data().size() << "/" << nMinimumKeySize;
+            return false;
+        }
+    }
+    else 
+    if (nExactKeySize) {
+        
+        // exit here if exact size is set and barrier has not been reached        
+        if (d->cKey.data().size() < nExactKeySize) {
+            qkd::utility::debug() << "resized key " << cKey.id() << " resized bytes: " << d->cKey.data().size() << "/" << nExactKeySize;
+            return false;
+        }
+        
+        // TODO: work on exact here
+        
+    }
+    else {
+        throw std::logic_error("qkd-resize: neither minimum nor exact size set --> don't know what to, lost.");
     }
 
     // forward the new key
