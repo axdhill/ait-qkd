@@ -220,6 +220,10 @@ public:
 
     /**
      * multiply 
+     * 
+     * This is the normal slow version. An enhances multiplication
+     * with a constant value "alpha" (== key) is implemented in the
+     * derived template gf2_fast_alpha below.
      *
      * @param   res     result
      * @param   num1    first operand
@@ -254,7 +258,7 @@ public:
 
 
     /**
-     * Reduce a value that doesn't fit the field  over the modulus to an equivalent field element. 
+     * Reduce a value that doesn't fit the field over the modulus to an equivalent field element. 
      *
      * @param   res         num % modulus
      * @param   num         the value to reduce
@@ -302,7 +306,10 @@ protected:
     gf2(gf2 const & ) = delete;
 
 
-    blob_t modulus_equiv;                   /**< modulus as blob */
+    /**
+     * modulus as blob 
+     */
+    blob_t modulus_equiv;                   
 
 
     /**
@@ -487,7 +494,7 @@ private:
 
 
 /**
- * this class represents a Galois Field 2 with optimizations to multiply a key alpha fast
+ * this class represents a Galois Field 2 with optimizations to fast multiply a key alpha
  */
 template <unsigned int GF_BITS> class gf2_fast_alpha : public gf2<GF_BITS> {
 
@@ -582,6 +589,9 @@ public:
 
     /** 
      * Fast multiplication of a blob with alpha^n.
+     * 
+     * This uses the table of alpha^2^n stored in m_cAlphaPow.
+     * The table has decreasing values starting at alpha^2^MAX_POW.
      *
      * @param   res         blob * alpha^n in this GF2
      * @param   blob        the blob to multiply
@@ -793,7 +803,7 @@ private:
 /**
  * this class combines a modulus and a key with a certain GF2 plus interface methods to use it neatly
  */
-template <unsigned int GF_BITS> class evhash : public evhash_abstract {
+template <unsigned int GF_BITS> class evhash_impl : public evhash_abstract {
 
 
 public:
@@ -802,7 +812,7 @@ public:
     /**
      * ctor
      */
-    explicit evhash(qkd::key::key const & cKey) : m_nBlocks(0), m_cRemainder(nullptr), m_nRemainderBytes(0) {
+    explicit evhash_impl(qkd::key::key const & cKey) : m_nBlocks(0), m_cRemainder(nullptr), m_nRemainderBytes(0) {
        
         unsigned int nModulus = 0;
         bool bTwoStepPrecalculation = false;
@@ -867,7 +877,7 @@ public:
     /**
      * dtor
      */
-    virtual ~evhash() {
+    virtual ~evhash_impl() {
         delete m_cGF2;
         delete [] m_cRemainder;
     }
@@ -1034,7 +1044,7 @@ public:
         }
         
         if (nLeft < 0) {
-            throw std::logic_error("nLeft < 0");
+            throw std::logic_error("evaluation hash: consumed more bytes than available: nLeft < 0");
         }
 
         // remember the last block % block_size
@@ -1115,20 +1125,20 @@ private:
  * @param   cKey        init key to create the evhash with
  * @return  an evaluation hash instance
  */
-evhash_abstract * evhash_abstract::create(qkd::key::key const & cKey) {
+evhash evhash_abstract::create(qkd::key::key const & cKey) {
     
     switch (cKey.size() * 8) {
         
     case 32:
-        return new evhash<32>(cKey);
+        return evhash(new evhash_impl<32>(cKey));
     case 64:
-        return new evhash<64>(cKey);
+        return evhash(new evhash_impl<64>(cKey));
     case 96:
-        return new evhash<96>(cKey);
+        return evhash(new evhash_impl<96>(cKey));
     case 128:
-        return new evhash<128>(cKey);
+        return evhash(new evhash_impl<128>(cKey));
     case 256:
-        return new evhash<256>(cKey);
+        return evhash(new evhash_impl<256>(cKey));
     }
     
     throw std::invalid_argument("no evhash available for this key size");

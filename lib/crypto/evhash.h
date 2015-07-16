@@ -36,6 +36,8 @@
 // ------------------------------------------------------------
 // incs
 
+#include <boost/shared_ptr.hpp>
+
 #include <qkd/key/key.h>
 #include <qkd/utility/buffer.h>
 #include <qkd/utility/memory.h>
@@ -43,11 +45,15 @@
 // ------------------------------------------------------------
 // decl
 
+// fwd
+class evhash_abstract;
+typedef boost::shared_ptr<evhash_abstract> evhash;
+
 
 /**
  * interface to the GF2 instances with necessary 
  * crypto methods to talk to gf2 in a uniform way 
- * regardless of current GF_BITS size
+ * regardless of current size of the GF2
  */
 class evhash_abstract {
 
@@ -98,16 +104,13 @@ public:
     /**
      * fabric method
      * 
-     * The size of the init key also determines the size of the
-     * ev-hash
-     * 
-     * The object is instantiated with *new*, therefore
-     * it must be freed with delete later on.
+     * The size of the init key also determines the size 
+     * of the evhash variant
      * 
      * @param   cKey        init key to create the evhash with
      * @return  an evaluation hash instance
      */
-    static evhash_abstract * create(qkd::key::key const & cKey);
+    static evhash create(qkd::key::key const & cKey);
 
 
     /**
@@ -158,6 +161,9 @@ public:
      * add a memory BLOB to the algorithm
      *
      * This transforms the tag stored in this object
+     * 
+     * This is the working horse method of evalutaion hash.
+     * Here the actual tag is calculated.
      *
      * @param   cMemory         memory block to be added
      */

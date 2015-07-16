@@ -65,23 +65,15 @@ public:
      *
      * @param   cKey        key to work on (--> alpha)
      */
-    explicit evhash_data(qkd::key::key const & cKey) : m_cEvhash(nullptr), m_cKey(cKey) {
+    explicit evhash_data(qkd::key::key const & cKey) : m_cKey(cKey) {
         m_cEvhash = evhash_abstract::create(cKey);
     }
 
 
-    /**
-     * dtor
-     */
-    ~evhash_data() {
-        delete m_cEvhash;
-    }
-    
-
     /** 
      * the evhash instance
      */
-    evhash_abstract * m_cEvhash;
+    evhash m_cEvhash;
 
 
     /**
