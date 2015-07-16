@@ -52,6 +52,7 @@
 #include <qkd/key/key.h>
 #include <qkd/module/communicator.h>
 #include <qkd/module/message.h>
+#include <qkd/module/workload.h>
 #include <qkd/utility/average.h>
 #include <qkd/utility/debug.h>
 #include <qkd/utility/environment.h>
@@ -1759,9 +1760,9 @@ private:
     
     
     /**
-     * this is the real module's working method
+     * this is the real module's working method on a single key
      * 
-     * You have to overwrite this.
+     * You have to overwrite this to work on a single key.
      * 
      * This method is called by work() for a new key. If the input pipe
      * has been set to void ("") then the input key is always a NULL key
@@ -1781,7 +1782,25 @@ private:
      */
     virtual bool process(qkd::key::key & cKey, 
             qkd::crypto::crypto_context & cIncomingContext, 
-            qkd::crypto::crypto_context & cOutgoingContext) = 0;
+            qkd::crypto::crypto_context & cOutgoingContext);
+            
+            
+    /**
+     * this is the module's working method on a list of keys
+     * 
+     * Overwrite this if your work results in multiple keys.
+     * 
+     * This method is called by work() for a new key. If the input pipe
+     * has been set to void ("") then the input key is always a NULL key
+     * and the crypto contexts are "null".
+     * 
+     * @param   cWorkload               the work to be done
+     */
+    virtual void process(qkd::module::workload & cWorkload) {
+        for (auto & w : cWorkload) {
+            w.bForward = process(w.cKey, w.cIncomingContext, w.cOutgoingContext);
+        }
+    }
     
     
     /**

@@ -51,15 +51,6 @@ set(QKD_SRC
     crypto/evhash.cpp
     crypto/scheme.cpp
     
-#     # old and dirty crypto stuff
-#     crypto/old/evhash/evhash-32.cpp
-#     crypto/old/evhash/evhash-64.cpp
-#     crypto/old/evhash/evhash-96.cpp
-#     crypto/old/evhash/evhash-128.cpp
-#     crypto/old/evhash/evhash-256.cpp
-#     crypto/old/simple-state.cpp
-#     crypto/old/utility.cpp
-
     # atof - locale "C" version enforced
     utility/atof/atof.cpp
 
@@ -163,6 +154,7 @@ set(QKD_SRC
     module/message.cpp
     module/module.cpp
     module/module_internal.cpp
+    module/workload.cpp
     
     # widgets
     widget/lcd.cpp

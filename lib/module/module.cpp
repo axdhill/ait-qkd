@@ -628,6 +628,36 @@ QString module::pipeline() const {
 
 
 /**
+ * this is the real module's working method on a single key
+ * 
+ * You have to overwrite this to work on a single key.
+ * 
+ * This method is called by work() for a new key. If the input pipe
+ * has been set to void ("") then the input key is always a NULL key
+ * and the crypto contexts are "null".
+ * 
+ * This method is ought to process the new incoming key and to perform
+ * actions on this key. The given parameter "cKey" is passed by reference
+ * and should contain the modified key for the next module in the pipe.
+ * 
+ * If the modified key is to be forwarded to the next module, then this
+ * method has to return "true".
+ * 
+ * @param   cKey                    the key just read from the input pipe
+ * @param   cIncomingContext        incoming crypto context
+ * @param   cOutgoingContext        outgoing crypto context
+ * @return  true, if the key is to be pushed to the output pipe
+ */
+bool module::process(UNUSED qkd::key::key & cKey, 
+        UNUSED qkd::crypto::crypto_context & cIncomingContext, 
+        UNUSED qkd::crypto::crypto_context & cOutgoingContext) {
+    
+    qkd::utility::debug() << "implementation for process() missing - please check for module code.";
+    return false;
+}
+
+
+/**
  * check if the module is currently processing a key    
  * 
  * @return  true, if we currently processing a key
@@ -1890,7 +1920,8 @@ void module::work() {
         }
 
         d->bProcessing = true;
-        bool bForwardKey = process(cKey, cIncomingContext, cOutgoingContext);
+        workload cWorkload = { qkd::module::work{ cKey, cIncomingContext, cOutgoingContext, false } };
+        process(cWorkload);
         d->cLastProcessedKey = std::chrono::system_clock::now();
         d->bProcessing = false;
         
@@ -1898,28 +1929,31 @@ void module::work() {
         while (eState == qkd::module::module_state::STATE_READY) eState = wait_for_state_change(eState);
         if (eState != qkd::module::module_state::STATE_RUNNING) break;
         
-        if (bForwardKey) {
-            
-            cKey.meta().sCryptoSchemeIncoming = cIncomingContext->scheme().str();
-            cKey.meta().sCryptoSchemeOutgoing = cOutgoingContext->scheme().str();
-            if (cKey.meta().sCryptoSchemeIncoming == "null") cKey.meta().sCryptoSchemeIncoming = "";
-            if (cKey.meta().sCryptoSchemeOutgoing == "null") cKey.meta().sCryptoSchemeOutgoing = "";
+        // foward all keys processed
+        for (auto & w : cWorkload) {
+            if (w.bForward) {
+                
+                w.cKey.meta().sCryptoSchemeIncoming = w.cIncomingContext->scheme().str();
+                w.cKey.meta().sCryptoSchemeOutgoing = w.cOutgoingContext->scheme().str();
+                if (w.cKey.meta().sCryptoSchemeIncoming == "null") w.cKey.meta().sCryptoSchemeIncoming = "";
+                if (w.cKey.meta().sCryptoSchemeOutgoing == "null") w.cKey.meta().sCryptoSchemeOutgoing = "";
 
-            bool bWrittenToNextModule = false;
-            do {
+                bool bWrittenToNextModule = false;
+                do {
 
-                // the write might fail for EINTR or EAGAIN --> wait or break processing loop
-                // other errors are turned into severe exception
-                bWrittenToNextModule = write(cKey);
-                if (!bWrittenToNextModule ) {
-                    if (get_state() != qkd::module::module_state::STATE_RUNNING) break;
-                    qkd::utility::debug() << "failed to write key to next module in pipe.";
-                    std::this_thread::yield();
-                }
+                    // the write might fail for EINTR or EAGAIN --> wait or break processing loop
+                    // other errors are turned into severe exception
+                    bWrittenToNextModule = write(w.cKey);
+                    if (!bWrittenToNextModule ) {
+                        if (get_state() != qkd::module::module_state::STATE_RUNNING) break;
+                        qkd::utility::debug() << "failed to write key to next module in pipe.";
+                        std::this_thread::yield();
+                    }
 
-            } while (!bWrittenToNextModule);
+                } while (!bWrittenToNextModule);
 
-            if (get_state() != qkd::module::module_state::STATE_RUNNING) break;
+                if (get_state() != qkd::module::module_state::STATE_RUNNING) break;
+            }
         }
 
         if (d->nTerminateAfter != 0) {
