@@ -33,6 +33,7 @@
 // incs
 
 // ait
+#include <qkd/crypto/engine.h>
 #include <qkd/utility/syslog.h>
 
 #include "qkd-resize.h"
@@ -173,41 +174,58 @@ qulonglong qkd_resize::minimum_key_size() const {
 
 
 /**
- * module work
+ * work directly on the workload
  * 
- * @param   cKey                    the key to resize
- * @param   cIncomingContext        incoming crypto context
- * @param   cOutgoingContext        outgoing crypto context
- * @return  true, when the key should be forwarded
+ * as we are able to create more keys than on input we have to
+ * overwrite the workload entry point
+ * 
+ * @param   cWorkload               the work to be done
  */
-bool qkd_resize::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext) {
+void qkd_resize::process(qkd::module::workload & cWorkload) {
     
     // ensure we are talking about the same stuff with the peer
     if (!is_synchronizing()) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "you deliberately turned off key synchonrizing in resizing - but this is essential fot this module: dropping key";
-        return false;
+        return;
     }
-
-    stow_key(cKey, cIncomingContext, cOutgoingContext);
+    
+    // add incoming key to our workload
+    for (auto & w : cWorkload) {
+        stow_key(w.cKey, w.cIncomingContext, w.cOutgoingContext);
+    }
+    
+    // reset workload
+    cWorkload.clear();
     
     uint64_t nExactKeySize = exact_key_size();
     uint64_t nMinimumKeySize = minimum_key_size();
+    static qkd::crypto::crypto_context cNullContxt = qkd::crypto::engine::create("null");
     
     if (nMinimumKeySize) {
         
         // exit here if minimum size is set and minimum barrier has not been reached
         if (d->cKey.data().size() < nMinimumKeySize) {
-            qkd::utility::debug() << "resized key " << cKey.id() << " resized bytes: " << d->cKey.data().size() << "/" << nMinimumKeySize;
-            return false;
+            qkd::utility::debug() << "resized key " << d->cKey.id() << " resized bytes: " << d->cKey.data().size() << "/" << nMinimumKeySize;
+            cWorkload = { qkd::module::work{ qkd::key::key::null(), cNullContxt, cNullContxt, false } };
+            return;
         }
+        
+        // forward the new key
+        qkd::module::work w{ d->cKey, d->cIncomingContext, d->cOutgoingContext, true };
+        w.cKey.meta().nErrorRate = (double)d->nErrorBits / (double)d->nKeyBits;
+        w.cKey.meta().nDisclosedBits = d->nDisclosedBits;
+        cWorkload.push_back(w);
+        
+        qkd::utility::debug() << "forwarding key " << w.cKey.id() << " with size " << w.cKey.data().size();
     }
     else 
     if (nExactKeySize) {
         
         // exit here if exact size is set and barrier has not been reached        
         if (d->cKey.data().size() < nExactKeySize) {
-            qkd::utility::debug() << "resized key " << cKey.id() << " resized bytes: " << d->cKey.data().size() << "/" << nExactKeySize;
-            return false;
+            qkd::utility::debug() << "resized key " << d->cKey.id() << " resized bytes: " << d->cKey.data().size() << "/" << nExactKeySize;
+            cWorkload = { qkd::module::work{ qkd::key::key::null(), cNullContxt, cNullContxt, false } };
+            return;
         }
         
         // TODO: work on exact here
@@ -217,23 +235,11 @@ bool qkd_resize::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cIn
         throw std::logic_error("qkd-resize: neither minimum nor exact size set --> don't know what to, lost.");
     }
 
-    // forward the new key
-    cKey = d->cKey;
-    cKey.meta().nErrorRate = (double)d->nErrorBits / (double)d->nKeyBits;
-    cKey.meta().nDisclosedBits = d->nDisclosedBits;
-    
-    cIncomingContext = d->cIncomingContext;
-    cOutgoingContext = d->cOutgoingContext;
-    
     // reset key gathering data
     d->cKey = qkd::key::key::null();
     d->nErrorBits = 0;
     d->nDisclosedBits = 0;
     d->nKeyBits = 0;
-    
-    qkd::utility::debug() << "forwarding key " << cKey.id() << " with size " << cKey.data().size();
-    
-    return true;
 }
 
 

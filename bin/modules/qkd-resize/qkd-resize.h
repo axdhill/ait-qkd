@@ -149,14 +149,14 @@ private:
     
     
     /**
-     * module work
+     * work directly on the workload
      * 
-     * @param   cKey                    the key to resize
-     * @param   cIncomingContext        incoming crypto context
-     * @param   cOutgoingContext        outgoing crypto context
-     * @return  true, when the key should be forwarded
+     * as we are able to create more keys than on input we have to
+     * overwrite the workload entry point
+     * 
+     * @param   cWorkload               the work to be done
      */
-    virtual bool process(qkd::key::key & cKey, qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext);
+    virtual void process(qkd::module::workload & cWorkload);
     
     
     /**
