@@ -33,6 +33,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <random>
 
 #include <boost/program_options.hpp>
 
@@ -63,6 +64,7 @@ public:
     uint64_t nKeys;         /**< number of keys to produce */
     qkd::key::key_id nId;   /**< first key id */
     uint64_t nSize;         /**< size of each key */
+    bool bRandomizeSize;    /**< randomize the size */
     double nRate;           /**< error rate of each key */
     bool bExact;            /**< error rate must match exactly */
     bool bZero;             /**< start if zero key instead of random key */
@@ -105,8 +107,16 @@ static const unsigned char g_nQuantumDetectionBob[4] = { 0x2, 0x01, 0x08, 0x04 }
  */
 qkd::key::key create(qkd::key::key_id nKeyId, config const & cConfig) {
     
+    static std::random_device cRandomDevice;
+    static std::mt19937 cRandomNumberGenerator(cRandomDevice());
+
     // prepare key memory
-    qkd::utility::memory cMemory(cConfig.nSize);
+    uint64_t nSize = cConfig.nSize;
+    if (cConfig.bRandomizeSize) {
+        std::normal_distribution<double> cDistribution(cConfig.nSize, cConfig.nSize * 0.02);
+        nSize = cDistribution(cRandomNumberGenerator);
+    }
+    qkd::utility::memory cMemory(nSize);
     
     // normal key data
     if (!cConfig.bQuantumTables) {
@@ -516,6 +526,7 @@ int main(int argc, char ** argv) {
     cOptions.add_options()("id,i", boost::program_options::value<qkd::key::key_id>()->default_value(1), "first key id");
     cOptions.add_options()("keys,k", boost::program_options::value<uint64_t>()->default_value(10), "number of keys to produce");
     cOptions.add_options()("size,s", boost::program_options::value<uint64_t>()->default_value(1024), "number of bytes of each key to produce");
+    cOptions.add_options()("randomize-size", "randomize the key size within 2% standard deviation");
     cOptions.add_options()("rate,r", boost::program_options::value<double>()->default_value(0.05, "0.05"), "error rate in each key");
     cOptions.add_options()("quantum,q", "create quantum detector tables as key material (whereas 1 byte holds 2 events which are 2 key bits)");
     cOptions.add_options()("version,v", "print version string");
@@ -572,6 +583,7 @@ int main(int argc, char ** argv) {
     cConfig.nId = cVariableMap["id"].as<qkd::key::key_id>();
     cConfig.nKeys = cVariableMap["keys"].as<uint64_t>();
     cConfig.nSize = cVariableMap["size"].as<uint64_t>();
+    cConfig.bRandomizeSize = (cVariableMap.count("randomize-size") > 0);
     cConfig.nRate = cVariableMap["rate"].as<double>();
     cConfig.bExact = (cVariableMap.count("exact") > 0);
     cConfig.bZero = (cVariableMap.count("zero") > 0);
@@ -599,6 +611,7 @@ void show_config(config const & cConfig) {
     std::cout << "\tkeys:              " << cConfig.nKeys << "\n";
     std::cout << "\tfirst id:          " << cConfig.nId << "\n";
     std::cout << "\tsize:              " << cConfig.nSize << "\n";
+    std::cout << "\trandomize-size:    " << (cConfig.bRandomizeSize ? "yes" : "no") << "\n";
     std::cout << "\trate:              " << cConfig.nRate << "\n";
     std::cout << "\texact:             " << cConfig.bExact << "\n";
     std::cout << "\tzero:              " << cConfig.bZero << "\n";
