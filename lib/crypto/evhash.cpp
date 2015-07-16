@@ -496,7 +496,7 @@ private:
 /**
  * this class represents a Galois Field 2 with optimizations to fast multiply a key alpha
  */
-template <unsigned int GF_BITS> class gf2_fast_alpha : public gf2<GF_BITS> {
+template<unsigned int GF_BITS> class gf2_fast_alpha : public gf2<GF_BITS> {
 
 
 public:
