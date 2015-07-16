@@ -1,9 +1,11 @@
 #!/bin/bash
 
 # ------------------------------------------------------------
-# test-resize
+# test-resize-minimum
 # 
 # This is a test file.
+#
+# Test the minimum barrier of qkd-resize
 #
 # TEST: test the QKD resize module
 #
@@ -44,20 +46,14 @@ test_init
 rm -rf cat_keys.* &> /dev/null
 
 # create keys
-${TEST_BASE}/bin/qkd-key-gen --size 1000 --keys 1000 --rate 0.04 --errorbits cat_keys
+${TEST_BASE}/bin/qkd-key-gen --size 1000 --randomize-size --keys 10 --rate 0.04 --errorbits cat_keys
 
 # truncate previous debug out
 echo -n > resize_debug.alice
 echo -n > resize_debug.bob
 
-# fix pipeline config
-cat ${TEST_BASE}/test/test-data/pipeline.conf | grep -v "^cat.alice.url_pipe_out" | grep -v "^cat.bob.url_pipe_out" > resize.config
-
-echo "cat.alice.url_pipe_out = ipc:///tmp/qkd/resize.alice.in" >> resize.config
-echo "cat.bob.url_pipe_out = ipc:///tmp/qkd/resize.bob.in" >> resize.config
-
 # start two pipelines
-PIPELINE_CONFIG="resize.config"
+PIPELINE_CONFIG="file://${TEST_BASE}/test/test-data/resize-minimum.conf"
 
 # start the modules - for the resize we are using the same keys in the first round
 ( ${TEST_BASE}/bin/qkd-cat --run --config ${PIPELINE_CONFIG} --file "cat_keys.alice" ) &
@@ -83,20 +79,19 @@ if [ -z "${OUTPUT_VARIANTS}" ]; then
 fi
 
 # check if key is at minimum 2048 bytes
+GOOD="yes"
 grep ^key-PUSH resize_debug.alice | awk '{ print $6; }' | while read KEY_SIZE; do
-    if [ "${KEY_SIZE}" -le 16384 ]; then
-        echo "alice passed a key less then 2048 bytes"
+    if [ "${KEY_SIZE}" -lt 8000 ]; then
+        echo "alice passed a key less then 1000 bytes"
+        GOOD="no"
         exit 1
     fi
 done
-
+if [ "${GOOD}" != "yes" ]; then
+    exit 1
+fi
 echo "qkd-resize minimum key size works"
 
-
-# stop machines
 test_cleanup
 
-# state that test ok
 echo "=== TEST SUCCESS ==="
-
-exit 0

@@ -80,6 +80,7 @@ public:
     qkd::crypto::crypto_context cIncomingContext;   /**< current incoming crypto context */
     qkd::crypto::crypto_context cOutgoingContext;   /**< current outgoing crypto context */
 
+    qkd::key::key::key_id_counter cKeyIdCounter;    /**< new key id dispenser */
     
 };
 
@@ -177,58 +178,24 @@ qulonglong qkd_resize::minimum_key_size() const {
  * @param   cKey                    the key to resize
  * @param   cIncomingContext        incoming crypto context
  * @param   cOutgoingContext        outgoing crypto context
- * @return  always true
+ * @return  true, when the key should be forwarded
  */
 bool qkd_resize::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext) {
     
     // ensure we are talking about the same stuff with the peer
     if (!is_synchronizing()) {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "you deliberately turned off key synchonrizing in resizeing - but this is essential fot this module: dropping key";
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "you deliberately turned off key synchonrizing in resizing - but this is essential fot this module: dropping key";
         return false;
     }
 
-    UNUSED uint64_t nExactKeySize = 0;
-    uint64_t nMinimumKeySize = 0;
-    {
-        nExactKeySize = exact_key_size();
-        nMinimumKeySize = minimum_key_size();
-    }
+    stow_key(cKey, cIncomingContext, cOutgoingContext);
     
-    if (d->cKey == qkd::key::key::null()) {
-        
-        // "consume" key if it has not been disclosed
-        if (cKey.meta().eKeyState != qkd::key::key_state::KEY_STATE_DISCLOSED) {
-            d->cKey = cKey;
-            d->cIncomingContext = cIncomingContext;
-            d->cOutgoingContext = cOutgoingContext;
-        }
-        
-        // add meta values (even if disclosed)
-        d->nErrorBits = cKey.meta().nErrorRate * cKey.data().size() * 8;
-        d->nDisclosedBits = cKey.meta().nDisclosedBits;
-        d->nKeyBits = cKey.data().size() * 8;
-        
-    }
-    else {
-        
-        // extend our local greater key
-        if (cKey.meta().eKeyState != qkd::key::key_state::KEY_STATE_DISCLOSED) {
-            d->cKey.data().add(cKey.data());
-        }
-        
-        // always add meta key values
-        d->nErrorBits += cKey.meta().nErrorRate * cKey.data().size() * 8;
-        d->nDisclosedBits += cKey.meta().nDisclosedBits;
-        d->nKeyBits += cKey.data().size() * 8;
-        
-        // add the crypto contexts as well
-        d->cIncomingContext << cIncomingContext;
-        d->cOutgoingContext << cOutgoingContext;
-    }
+    UNUSED uint64_t nExactKeySize = exact_key_size();
+    uint64_t nMinimumKeySize = minimum_key_size();
     
     // forward?
     if (d->cKey.data().size() < nMinimumKeySize) {
-        qkd::utility::debug() << "resized key " << cKey.id() << " resizeed bytes: " << d->cKey.data().size() << "/" << nMinimumKeySize;
+        qkd::utility::debug() << "resized key " << cKey.id() << " resized bytes: " << d->cKey.data().size() << "/" << nMinimumKeySize;
         return false;
     }
 
@@ -260,6 +227,7 @@ bool qkd_resize::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cIn
 void qkd_resize::set_exact_key_size(qulonglong nSize) {
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     d->nExactKeySize = nSize;
+    d->nMinimumKeySize = 0;
 }
 
 
@@ -270,5 +238,50 @@ void qkd_resize::set_exact_key_size(qulonglong nSize) {
  */
 void qkd_resize::set_minimum_key_size(qulonglong nSize) {
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
+    d->nExactKeySize = 0;
     d->nMinimumKeySize = nSize;
 }
+
+
+/**
+ * stow a key into our buffers
+ * 
+ * @param   cKey        key to stow
+ * @param   cIncomingContext        incoming crypto context
+ * @param   cOutgoingContext        outgoing crypto context
+ */
+void qkd_resize::stow_key(qkd::key::key & cKey, qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext) {
+    
+    if (d->cKey == qkd::key::key::null()) {
+        
+        // "consume" key if it has not been disclosed
+        if (cKey.meta().eKeyState != qkd::key::key_state::KEY_STATE_DISCLOSED) {
+            d->cKey = cKey;
+            d->cIncomingContext = cIncomingContext;
+            d->cOutgoingContext = cOutgoingContext;
+        }
+        
+        // add meta values (even if disclosed)
+        d->nErrorBits = cKey.meta().nErrorRate * cKey.data().size() * 8;
+        d->nDisclosedBits = cKey.meta().nDisclosedBits;
+        d->nKeyBits = cKey.data().size() * 8;
+        
+        return;
+    }
+    
+    // extend our local greater key
+    if (cKey.meta().eKeyState != qkd::key::key_state::KEY_STATE_DISCLOSED) {
+        d->cKey.data().add(cKey.data());
+    }
+    
+    // always add meta key values
+    d->nErrorBits += cKey.meta().nErrorRate * cKey.data().size() * 8;
+    d->nDisclosedBits += cKey.meta().nDisclosedBits;
+    d->nKeyBits += cKey.data().size() * 8;
+    
+    // add the crypto contexts as well
+    d->cIncomingContext << cIncomingContext;
+    d->cOutgoingContext << cOutgoingContext;
+}
+
+

@@ -154,9 +154,19 @@ private:
      * @param   cKey                    the key to resize
      * @param   cIncomingContext        incoming crypto context
      * @param   cOutgoingContext        outgoing crypto context
-     * @return  always true
+     * @return  true, when the key should be forwarded
      */
     virtual bool process(qkd::key::key & cKey, qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext);
+    
+    
+    /**
+     * stow a key into our buffers
+     * 
+     * @param   cKey        key to stow
+     * @param   cIncomingContext        incoming crypto context
+     * @param   cOutgoingContext        outgoing crypto context
+     */
+    void stow_key(qkd::key::key & cKey, qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext);
 
     
     // pimpl
