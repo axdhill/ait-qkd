@@ -77,8 +77,8 @@ wait_stalled cat resize
 echo "got keys"
 
 # clean up the generated debug output
-grep "^forwarding" resize_debug.alice > resize_debug.alice.out
-grep "^forwarding" resize_debug.bob > resize_debug.bob.out
+grep "^key-PUSH" resize_debug.alice | awk '{ print $3 " " $4 " " $5 " " $6; }' > resize_debug.alice.out
+grep "^key-PUSH" resize_debug.bob  | awk '{ print $3 " " $4 " " $5 " " $6; }' > resize_debug.bob.out
 FILES_LINES=$(echo $(wc -l resize_debug.alice.out) $(wc -l resize_debug.bob.out))
 if [ "${FILES_LINES}" != "333 resize_debug.alice.out 333 resize_debug.bob.out" ]; then
     echo "resize failed"

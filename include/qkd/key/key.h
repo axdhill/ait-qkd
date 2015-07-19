@@ -540,6 +540,14 @@ public:
 
 
     /**
+     * set a new key id
+     * 
+     * @param   nId         the new key id
+     */
+    inline void set_id(key_id nId) { m_nId = nId; }
+
+
+    /**
      * size of key measured in bytes
      * 
      * @return  bytes of the key

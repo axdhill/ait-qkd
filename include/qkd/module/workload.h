@@ -55,10 +55,12 @@ namespace module {
  */
 typedef struct {
     
-    qkd::key::key cKey;                                 /**< the current key to process */
-    qkd::crypto::crypto_context cIncomingContext;       /**< authentication context for incoming messages */
-    qkd::crypto::crypto_context cOutgoingContext;       /**< authentication context for outgoing messages */
-    bool bForward;                                      /**< true, if work done and key shoudl be forwarded */
+    qkd::key::key cKey;                                         /**< the current key to process */
+    qkd::crypto::crypto_context cIncomingContext;               /**< authentication context for incoming messages */
+    qkd::crypto::crypto_context cOutgoingContext;               /**< authentication context for outgoing messages */
+    bool bForward;                                              /**< true, if work done and key shoudl be forwarded */
+    
+    inline bool is_null() const { return cKey.is_null(); }      /**< check if this is an empty workload */
     
 } work;
 

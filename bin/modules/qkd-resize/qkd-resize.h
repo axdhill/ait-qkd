@@ -149,6 +149,22 @@ private:
     
     
     /**
+     * picks of exact_key_size() keys from the internal buffer
+     * 
+     * @param   cWorkload               place where the keys are stuffed in
+     */
+    void pick_exact_keys(qkd::module::workload & cWorkload);
+    
+    
+    /**
+     * picks the key from the internal buffer if we have minimum size set
+     * 
+     * @param   cWorkload               place the key is stuffed in
+     */
+    void pick_minimum_key(qkd::module::workload & cWorkload);
+    
+    
+    /**
      * work directly on the workload
      * 
      * as we are able to create more keys than on input we have to
@@ -158,16 +174,6 @@ private:
      */
     virtual void process(qkd::module::workload & cWorkload);
     
-    
-    /**
-     * stow a key into our buffers
-     * 
-     * @param   cKey        key to stow
-     * @param   cIncomingContext        incoming crypto context
-     * @param   cOutgoingContext        outgoing crypto context
-     */
-    void stow_key(qkd::key::key & cKey, qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext);
-
     
     // pimpl
     class qkd_resize_data;
