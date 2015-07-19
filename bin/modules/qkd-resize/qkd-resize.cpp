@@ -199,6 +199,11 @@ void qkd_resize::pick_exact_keys(qkd::module::workload & cWorkload) {
             // equaly distributed in the key
             
             uint64_t nCut = nExactKeySize - nCurrentKeySize;
+            if (nCut >= (*it).cKey.data().size()) {
+                ++it;
+                continue;
+            }
+            
             double nPart = (double)nCut / (double)(*it).cKey.data().size();
 
             // first half
@@ -238,8 +243,8 @@ void qkd_resize::pick_exact_keys(qkd::module::workload & cWorkload) {
         
         (*it).bForward = false;
         nTotalBits += (*it).cKey.data().size() * 8;
-        nErrorBits += (*it).cKey.meta().nErrorRate * nTotalBits;
-        
+        nErrorBits += (*it).cKey.meta().nErrorRate * ((*it).cKey.data().size() * 8);
+
         if ((*it).cKey.meta().eKeyState != qkd::key::key_state::KEY_STATE_DISCLOSED) {            
             
             if (cForwardWork.is_null()) {
@@ -252,30 +257,30 @@ void qkd_resize::pick_exact_keys(qkd::module::workload & cWorkload) {
             }
             
             nDisclosedBits += (*it).cKey.meta().nDisclosedBits;
-        }
-        
-        // new key --> place into forward and prepare next
-        if (cForwardWork.cKey.data().size() == nExactKeySize) {
             
-            d->cKeyIdCounter.inc();
-            cForwardWork.cKey.set_id(d->cKeyIdCounter.count());
-            cForwardWork.cKey.meta().nErrorRate = nErrorBits / nTotalBits;
-            cForwardWork.cKey.meta().nDisclosedBits = nDisclosedBits;
-            cForwardWork.bForward = true;
-            cWorkload.push_back(cForwardWork);
-            
-            // mark all keys in between to be deleted
-            while (it_last != it) {
+            // new key --> place into forward and prepare next
+            if (cForwardWork.cKey.data().size() == nExactKeySize) {
+                
+                d->cKeyIdCounter.inc();
+                cForwardWork.cKey.set_id(d->cKeyIdCounter.count());
+                cForwardWork.cKey.meta().nErrorRate = nErrorBits / nTotalBits;
+                cForwardWork.cKey.meta().nDisclosedBits = nDisclosedBits;
+                cForwardWork.bForward = true;
+                cWorkload.push_back(cForwardWork);
+                
+                // mark all keys in between to be deleted
+                while (it_last != it) {
+                    (*it_last).bForward = true;
+                    ++it_last;
+                }
                 (*it_last).bForward = true;
-                ++it_last;
+                
+                nErrorBits = 0;
+                nTotalBits = 0;
+                nDisclosedBits = 0;
+                d->nCurrentSize -= nExactKeySize;
+                cForwardWork = qkd::module::work{ qkd::key::key(), cNullContext, cNullContext, false };
             }
-            (*it_last).bForward = true;
-            
-            nErrorBits = 0;
-            nTotalBits = 0;
-            nDisclosedBits = 0;
-            d->nCurrentSize -= nExactKeySize;
-            cForwardWork = qkd::module::work{ qkd::key::key(), cNullContext, cNullContext, false };
         }
     }
 
@@ -312,7 +317,7 @@ void qkd_resize::pick_minimum_key(qkd::module::workload & cWorkload) {
     for (auto & w : d->cWorkReceived) {
         
         nTotalBits += w.cKey.data().size() * 8;
-        nErrorBits += w.cKey.meta().nErrorRate * nTotalBits;
+        nErrorBits += w.cKey.meta().nErrorRate * (w.cKey.data().size() * 8);
         
         if (w.cKey.meta().eKeyState != qkd::key::key_state::KEY_STATE_DISCLOSED) {            
             
