@@ -78,7 +78,7 @@ if [ -z "${OUTPUT_VARIANTS}" ]; then
     exit 1
 fi
 
-# check if key is at minimum 2048 bytes
+# check if key is at minimum 1000 bytes
 GOOD="yes"
 grep ^key-PUSH resize_debug.alice | awk '{ print $6; }' | while read KEY_SIZE; do
     if [ "${KEY_SIZE}" -lt 8000 ]; then

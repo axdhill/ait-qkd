@@ -162,7 +162,132 @@ qulonglong qkd_resize::minimum_key_size() const {
  * 
  * @param   cWorkload               place where the keys are stuffed in
  */
-void qkd_resize::pick_exact_keys(UNUSED qkd::module::workload & cWorkload) {
+void qkd_resize::pick_exact_keys(qkd::module::workload & cWorkload) {
+    
+    static qkd::crypto::crypto_context cNullContext = qkd::crypto::engine::create("null");
+
+    uint64_t nExactKeySize = exact_key_size();
+    if (nExactKeySize == 0) return;
+    if (d->nCurrentSize < nExactKeySize) return;
+
+    // two runs:
+    // 1. run --> split keys in workload such that 
+    //    summing up will yield a single key of exact size
+    // 2. run --> collect all part keys and form new keys of 
+    //    exact size
+    
+    // first run: split keys into proper sizes
+    uint64_t nCurrentKeySize = 0;
+    for (auto it = d->cWorkReceived.begin(); it != d->cWorkReceived.end(); ) {
+        
+        // for splitting we ignore disclosed keys here
+        if ((*it).cKey.meta().eKeyState == qkd::key::key_state::KEY_STATE_DISCLOSED) {
+            ++it;
+            continue;
+        }
+        
+        if ((nCurrentKeySize + (*it).cKey.data().size()) < nExactKeySize) {
+            nCurrentKeySize += (*it).cKey.data().size();
+            ++it;
+            continue;
+        }
+        
+        // split the current key
+        while ((nCurrentKeySize + (*it).cKey.data().size()) >= nExactKeySize) {
+            
+            // we assume the disclosed bits and the error rate is
+            // equaly distributed in the key
+            
+            uint64_t nCut = nExactKeySize - nCurrentKeySize;
+            double nPart = (double)nCut / (double)(*it).cKey.data().size();
+
+            // first half
+            auto new_it = d->cWorkReceived.emplace(it);
+            (*new_it).cKey.data() = qkd::utility::memory(nCut);
+            memcpy((*new_it).cKey.data().get(), (*it).cKey.data().get(), nCut);
+            (*new_it).cKey.meta().nErrorRate = (*it).cKey.meta().nErrorRate;
+            (*new_it).cKey.meta().nDisclosedBits = (*it).cKey.meta().nDisclosedBits * nPart;
+            (*new_it).cIncomingContext = (*it).cIncomingContext;
+            (*new_it).cOutgoingContext = (*it).cOutgoingContext;
+
+            // second half (left in workload list)
+            new_it = d->cWorkReceived.emplace(it);
+            (*new_it).cKey.data() = qkd::utility::memory((*it).cKey.data().size() - nCut);
+            memcpy((*new_it).cKey.data().get(), (*it).cKey.data().get() + nCut, (*it).cKey.data().size() - nCut);
+            (*new_it).cKey.meta().nErrorRate = (*it).cKey.meta().nErrorRate;
+            (*new_it).cKey.meta().nDisclosedBits = (*it).cKey.meta().nDisclosedBits * (1.0 - nPart);
+            (*new_it).cIncomingContext = (*it).cIncomingContext;
+            (*new_it).cOutgoingContext = (*it).cOutgoingContext;
+            
+            // kick the old key
+            d->cWorkReceived.erase(it);
+            it = new_it;
+            nCurrentKeySize = 0;
+        }
+        
+        ++it;
+    }
+
+    // second run: concatenate keys into exact size
+    double nErrorBits = 0;
+    double nTotalBits = 0;
+    uint64_t nDisclosedBits = 0;
+    qkd::module::work cForwardWork;
+    auto it_last = d->cWorkReceived.begin();
+    for (auto it = d->cWorkReceived.begin(); it != d->cWorkReceived.end(); ++it) {
+        
+        (*it).bForward = false;
+        nTotalBits += (*it).cKey.data().size() * 8;
+        nErrorBits += (*it).cKey.meta().nErrorRate * nTotalBits;
+        
+        if ((*it).cKey.meta().eKeyState != qkd::key::key_state::KEY_STATE_DISCLOSED) {            
+            
+            if (cForwardWork.is_null()) {
+                cForwardWork = (*it);
+            }
+            else {
+                cForwardWork.cKey.data().add((*it).cKey.data());
+                cForwardWork.cIncomingContext << (*it).cIncomingContext;
+                cForwardWork.cOutgoingContext << (*it).cOutgoingContext;
+            }
+            
+            nDisclosedBits += (*it).cKey.meta().nDisclosedBits;
+        }
+        
+        // new key --> place into forward and prepare next
+        if (cForwardWork.cKey.data().size() == nExactKeySize) {
+            
+            d->cKeyIdCounter.inc();
+            cForwardWork.cKey.set_id(d->cKeyIdCounter.count());
+            cForwardWork.cKey.meta().nErrorRate = nErrorBits / nTotalBits;
+            cForwardWork.cKey.meta().nDisclosedBits = nDisclosedBits;
+            cForwardWork.bForward = true;
+            cWorkload.push_back(cForwardWork);
+            
+            // mark all keys in between to be deleted
+            while (it_last != it) {
+                (*it_last).bForward = true;
+                ++it_last;
+            }
+            (*it_last).bForward = true;
+            
+            nErrorBits = 0;
+            nTotalBits = 0;
+            nDisclosedBits = 0;
+            d->nCurrentSize -= nExactKeySize;
+            cForwardWork = qkd::module::work{ qkd::key::key(), cNullContext, cNullContext, false };
+        }
+    }
+
+    d->cWorkReceived.remove_if([](qkd::module::work & w) -> bool { return w.bForward; });
+    
+    // sanity: as we had nCurrentSize >= nExactKeySize before, we *must* have one key (at least)
+    if (cWorkload.empty()) {
+        throw std::logic_error("exact key resize: no keys extracted though current size is bigger or equal to exact size");
+    }
+    if (d->nCurrentSize >= nExactKeySize) {
+        throw std::logic_error("exact key resize: still key bytes left to forward");
+    }
 }
 
 
@@ -200,7 +325,7 @@ void qkd_resize::pick_minimum_key(qkd::module::workload & cWorkload) {
                 cForwardWork.cOutgoingContext << w.cOutgoingContext;
             }
             
-            nDisclosedBits = w.cKey.meta().nDisclosedBits;
+            nDisclosedBits += w.cKey.meta().nDisclosedBits;
             d->nCurrentSize -= w.cKey.data().size();
         }
         
@@ -209,7 +334,7 @@ void qkd_resize::pick_minimum_key(qkd::module::workload & cWorkload) {
     
     d->cWorkReceived.remove_if([](qkd::module::work & w) -> bool { return w.bForward; });
     
-    // sanity: as we had nCurrentSize > 0 before, we *must* have one key
+    // sanity: as we had nCurrentSize >= nMinimumKeySize before, we *must* have one key
     // and d->nCurrentSize *must* be 0 now
     // and for minimum we consume all keys
     if (cForwardWork.is_null()) {

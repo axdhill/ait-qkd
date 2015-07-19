@@ -49,7 +49,7 @@ test_init
 rm -rf cat_keys.* &> /dev/null
 
 # create keys
-${TEST_BASE}/bin/qkd-key-gen --size 1000 --randomize-size --keys 10 --rate 0.04 --errorbits cat_keys
+${TEST_BASE}/bin/qkd-key-gen --size 1000 --randomize-size --keys 1000 --rate 0.04 --errorbits cat_keys
 
 # truncate previous debug out
 echo -n > resize_debug.alice
@@ -81,11 +81,11 @@ if [ -z "${OUTPUT_VARIANTS}" ]; then
     exit 1
 fi
 
-# check if key is at minimum 2048 bytes
+# check if key is exactly 1000 bytes
 GOOD="yes"
 grep ^key-PUSH resize_debug.alice | awk '{ print $6; }' | while read KEY_SIZE; do
-    if [ "${KEY_SIZE}" -lt 8000 ]; then
-        echo "alice passed a key less then 1000 bytes"
+    if [ "${KEY_SIZE}" -ne 8000 ]; then
+        echo "alice passed a key other then 1000 bytes"
         GOOD="no"
         exit 1
     fi
@@ -93,7 +93,7 @@ done
 if [ "${GOOD}" != "yes" ]; then
     exit 1
 fi
-echo "qkd-resize minimum key size works"
+echo "qkd-resize exact key size works"
 
 test_cleanup
 
