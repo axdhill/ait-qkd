@@ -210,7 +210,7 @@ void qkd_resize::pick_exact_keys(qkd::module::workload & cWorkload) {
             (*new_it).cIncomingContext = (*it).cIncomingContext;
             (*new_it).cOutgoingContext = (*it).cOutgoingContext;
 
-            // second half (left in workload list)
+            // second half (right in workload list)
             new_it = d->cWorkReceived.emplace(it);
             (*new_it).cKey.data() = qkd::utility::memory((*it).cKey.data().size() - nCut);
             memcpy((*new_it).cKey.data().get(), (*it).cKey.data().get() + nCut, (*it).cKey.data().size() - nCut);

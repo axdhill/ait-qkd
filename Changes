@@ -5,6 +5,29 @@ This file holds the changes of the AIT QKD R10 throughout the versions
 Changes from 9.9999.4 to 9.9999.5
 ---------------------------------
 
+* qkd-buffer has been renamed to qkd-resize
+
+    ATTENTION: qkd-buffer is now qkd-resize. This renames also 
+    the configuration variables in the config files from 
+    "buffer.*" to "resize.*".
+    
+    qkd-resize buffers incoming keys up to some limit. The old
+    limit of "minimum-size" is still an option: buffer all keys
+    and when the total amount of key size is greater or equal to
+    the number set push a new merged single output key of minimum
+    size.
+    
+    New to qkd-resize is now "exact-size". This works similar
+    put pushes keys of exact size. These has some consequences:
+    a) if the input key is way larger then the limit, multiple 
+       output keys may be generated at once and
+    b) there may be some remainder left by splitting up keys
+       to achieve keys of exact size. This remainder is prepended
+       to the next key.
+       
+    In any case, qkd-resize enforces a renumbering of keys and
+    thus sets the key-id anew.
+
 * qkd-key-gen can now randomize the size of the keys generated
 
 * default timeout on recv calls in modules is set to 1000 millisec
