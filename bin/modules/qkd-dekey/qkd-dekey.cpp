@@ -84,10 +84,7 @@ public:
  * ctor
  */
 qkd_dekey::qkd_dekey() : qkd::module::module("dekey", qkd::module::module_type::TYPE_OTHER, MODULE_DESCRIPTION, MODULE_ORGANISATION) {
-
     d = boost::shared_ptr<qkd_dekey::qkd_dekey_data>(new qkd_dekey::qkd_dekey_data());
-    
-    // enforce DBus registration
     new DekeyAdaptor(this);
 }
 
@@ -100,18 +97,12 @@ qkd_dekey::qkd_dekey() : qkd::module::module("dekey", qkd::module::module_type::
  */
 void qkd_dekey::apply_config(UNUSED std::string const & sURL, qkd::utility::properties const & cConfig) {
     
-    // delve into the given config
     for (auto const & cEntry : cConfig) {
         
-        // grab any key which is intended for us
         if (!is_config_key(cEntry.first)) continue;
-        
-        // ignore standard config keys: they should have been applied already
         if (is_standard_config_key(cEntry.first)) continue;
         
         std::string sKey = cEntry.first.substr(config_prefix().size());
-        
-        // module specific config here
         if (sKey == "alice.file_url") {
             if (is_alice()) set_file_url(QString::fromStdString(cEntry.second));
         }
@@ -132,8 +123,6 @@ void qkd_dekey::apply_config(UNUSED std::string const & sURL, qkd::utility::prop
  * @return  the file URL to read from
  */
 QString qkd_dekey::file_url() const {
-    
-    // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     return QString::fromStdString(d->sFileURL);
 }
@@ -149,22 +138,15 @@ QString qkd_dekey::file_url() const {
  */
 bool qkd_dekey::process(qkd::key::key & cKey, UNUSED qkd::crypto::crypto_context & cIncomingContext, UNUSED qkd::crypto::crypto_context & cOutgoingContext) {
     
-    // do not work on empty keys
     if (!cKey.size()) return false;
 
-    // check if our input stream is open
     if (!d->cKeyFile.is_open() && d->bTryToOpen) {
         
-        // do not try again
         d->bTryToOpen = false;
-        
-        // only proceed if we DO have a file to write to
         if (!d->sFileURL.empty()) {
         
-            // get exclusive access to properties
             std::unique_lock<std::recursive_mutex> cLock(d->cPropertyMutex);
             
-            // check URL
             QUrl cURL(QString::fromStdString(d->sFileURL));
             if (!cURL.isLocalFile()) {
                 qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "'" << d->sFileURL << "' seems not to point to a local file - wont proceed";
@@ -180,10 +162,7 @@ bool qkd_dekey::process(qkd::key::key & cKey, UNUSED qkd::crypto::crypto_context
         }
     }
 
-    // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
-    
-    // write block of raw key data
     d->cKeyFile.write((const char *)cKey.data().get(), cKey.data().size());
     
     return true;
@@ -197,7 +176,6 @@ bool qkd_dekey::process(qkd::key::key & cKey, UNUSED qkd::crypto::crypto_context
  */
 void qkd_dekey::set_file_url(QString sFileURL) {
     
-    // get exclusive access to properties
     std::unique_lock<std::recursive_mutex> cLock(d->cPropertyMutex);
     
     // close already opened file
@@ -206,4 +184,3 @@ void qkd_dekey::set_file_url(QString sFileURL) {
     d->sFileURL = sFileURL.toStdString();
     d->bTryToOpen = true;
 }
-
