@@ -88,7 +88,7 @@ public:
     /**
      * dtor
      */
-    virtual ~plot() {};
+    virtual ~plot() {}
     
 
     /**

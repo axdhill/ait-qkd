@@ -61,7 +61,7 @@ public:
     /**
      * dtor
      */
-    virtual ~queue() {};
+    virtual ~queue() {}
 
 
     /**
@@ -69,7 +69,7 @@ public:
      * 
      * @return  true, if there is nothing in it
      */
-    bool empty() const { std::lock_guard<std::recursive_mutex> cLock(m_cMTX); return std::queue<T>::empty(); };
+    bool empty() const { std::lock_guard<std::recursive_mutex> cLock(m_cMTX); return std::queue<T>::empty(); }
     
     
     /**
@@ -77,7 +77,7 @@ public:
      * 
      * @return  the mutex for synchronized access
      */
-    std::recursive_mutex & mutex() const { return m_cMTX; };
+    std::recursive_mutex & mutex() const { return m_cMTX; }
     
 
     /**
@@ -85,7 +85,12 @@ public:
      * 
      * @return  item removed from the queue
      */
-    T pop() { std::lock_guard<std::recursive_mutex> cLock(m_cMTX); T x = std::queue<T>::front(); std::queue<T>::pop(); return x; };
+    T pop() { 
+        std::lock_guard<std::recursive_mutex> cLock(m_cMTX); 
+        T x = std::queue<T>::front(); 
+        std::queue<T>::pop(); 
+        return x; 
+    }
     
     
     /**
@@ -93,7 +98,10 @@ public:
      * 
      * @param   x       item to enqueue
      */
-    void push(T const & x) { std::lock_guard<std::recursive_mutex> cLock(m_cMTX); std::queue<T>::push(x); };
+    void push(T const & x) { 
+        std::lock_guard<std::recursive_mutex> cLock(m_cMTX); 
+        std::queue<T>::push(x); 
+    }
     
     
     /**
@@ -101,7 +109,10 @@ public:
      * 
      * @return  number of elements
      */
-    uint64_t size() const { std::lock_guard<std::recursive_mutex> cLock(m_cMTX); return std::queue<T>::size(); };
+    uint64_t size() const { 
+        std::lock_guard<std::recursive_mutex> cLock(m_cMTX); 
+        return std::queue<T>::size(); 
+    }
     
     
 private:

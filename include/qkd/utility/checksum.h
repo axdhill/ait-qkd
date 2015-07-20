@@ -105,7 +105,7 @@ public:
     /**
      * dtor
      */
-    virtual ~checksum_algorithm() {};
+    virtual ~checksum_algorithm() {}
 
 
     /**
@@ -114,7 +114,10 @@ public:
      * @param   cMemory         memory block to stream into algorithm
      * @return  algorithm
      */
-    inline checksum_algorithm & operator<<(memory const & cMemory) { add(cMemory); return *this; }
+    inline checksum_algorithm & operator<<(memory const & cMemory) { 
+        add(cMemory); 
+        return *this; 
+    }
 
 
     /**
@@ -123,7 +126,10 @@ public:
      * @param   cMemory         memory block to stream out from the algorithm
      * @return  algorithm
      */
-    inline checksum_algorithm & operator>>(memory & cMemory) { cMemory = finalize(); return *this; }
+    inline checksum_algorithm & operator>>(memory & cMemory) { 
+        cMemory = finalize(); 
+        return *this; 
+    }
 
 
     /**
@@ -167,7 +173,7 @@ protected:
     /**
      * ctor
      */
-    checksum_algorithm() {};
+    checksum_algorithm() {}
 
 };
 
@@ -181,7 +187,10 @@ protected:
  * @param   rhs     the memory to add
  * @return  the checksum object
  */
-inline checksum & operator<<(checksum & lhs, memory const & rhs) { (*lhs) << rhs; return lhs; }
+inline checksum & operator<<(checksum & lhs, memory const & rhs) { 
+    (*lhs) << rhs; 
+    return lhs; 
+}
 
 
 /**
@@ -193,7 +202,10 @@ inline checksum & operator<<(checksum & lhs, memory const & rhs) { (*lhs) << rhs
  * @param   rhs     the memory holding the checksum value
  * @return  the checksum object
  */
-inline checksum & operator>>(checksum & lhs, memory & rhs) { (*lhs) >> rhs; return lhs; }
+inline checksum & operator>>(checksum & lhs, memory & rhs) { 
+    (*lhs) >> rhs; 
+    return lhs; 
+}
 
 
 }

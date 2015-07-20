@@ -139,7 +139,7 @@ public:
      * 
      * @return  the Q3P engine associated
      */
-    inline qkd::q3p::engine_instance * engine() { return m_cEngine; };
+    inline qkd::q3p::engine_instance * engine() { return m_cEngine; }
     
     
     /**
@@ -147,7 +147,7 @@ public:
      * 
      * @return  the Q3P engine associated
      */
-    inline qkd::q3p::engine_instance const * engine() const { return m_cEngine; };
+    inline qkd::q3p::engine_instance const * engine() const { return m_cEngine; }
     
     
     /**
@@ -155,7 +155,7 @@ public:
      * 
      * @return  the name of the message queue
      */
-    inline QString name() const { return QString::fromStdString(m_sName); };
+    inline QString name() const { return QString::fromStdString(m_sName); }
 
     
     /**
@@ -163,7 +163,7 @@ public:
      * 
      * @return  true, if paused
      */
-    inline bool paused() const { return m_bPaused; };
+    inline bool paused() const { return m_bPaused; }
 
 
 signals:

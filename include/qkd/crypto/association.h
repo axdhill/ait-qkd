@@ -117,7 +117,7 @@ public:
     /**
      * ctor
      */
-    association() { };
+    association() {}
     
     
     /**
@@ -137,7 +137,7 @@ public:
      * 
      * @param   rhs     right hand side
      */
-    association(association const & rhs) : m_cAuthentication(rhs.m_cAuthentication), m_cEncryption(rhs.m_cEncryption) {};
+    association(association const & rhs) : m_cAuthentication(rhs.m_cAuthentication), m_cEncryption(rhs.m_cEncryption) {}
     
     
     /**
@@ -145,7 +145,7 @@ public:
      * 
      * @return  the authentication pair
      */
-    inline association_io & authentication() { return m_cAuthentication; };
+    inline association_io & authentication() { return m_cAuthentication; }
     
     
     /**
@@ -153,7 +153,7 @@ public:
      * 
      * @return  the authentication pair
      */
-    inline association_io const & authentication() const { return m_cAuthentication; };
+    inline association_io const & authentication() const { return m_cAuthentication; }
     
     
     /**
@@ -161,7 +161,7 @@ public:
      * 
      * @return  the encryption pair
      */
-    inline association_io & encryption() { return m_cEncryption; };
+    inline association_io & encryption() { return m_cEncryption; }
     
     
     /**
@@ -169,7 +169,7 @@ public:
      * 
      * @return  the encryption pair
      */
-    inline association_io const & encryption() const { return m_cEncryption; };
+    inline association_io const & encryption() const { return m_cEncryption; }
     
     
     /**

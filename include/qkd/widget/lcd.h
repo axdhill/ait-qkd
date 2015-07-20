@@ -65,7 +65,7 @@ public:
      * 
      * @param   cParent     parent object
      */
-    lcd(QWidget * cParent = nullptr) : lcd("", cParent) {};
+    lcd(QWidget * cParent = nullptr) : lcd("", cParent) {}
     
     
     /**
@@ -80,7 +80,7 @@ public:
     /**
      * dtor
      */
-    virtual ~lcd() {};
+    virtual ~lcd() {}
     
     
 protected:

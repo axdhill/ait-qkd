@@ -95,7 +95,7 @@ public:
     /**
      * ctor
      */
-    memory() : m_bShallow(true) , m_cMemory(static_cast<value_t*>(nullptr)), m_nSize(0), m_nInitialSize(0) {};
+    memory() : m_bShallow(true) , m_cMemory(static_cast<value_t*>(nullptr)), m_nSize(0), m_nInitialSize(0) {}
 
 
     /**
@@ -107,7 +107,7 @@ public:
      */
     explicit memory(uint64_t nSize) : m_bShallow(true), m_nSize(nSize), m_nInitialSize(nSize) { 
         m_cMemory = boost::shared_array<value_t>(new value_t[nSize]); 
-    };
+    }
 
 
     /**
@@ -120,13 +120,13 @@ public:
      * @param   nSize       size of memory controlled
      */
     explicit memory(value_t * cMemory, uint64_t nSize) 
-            : m_bShallow(true), m_cMemory(cMemory), m_nSize(nSize) , m_nInitialSize(nSize) {};
+            : m_bShallow(true), m_cMemory(cMemory), m_nSize(nSize) , m_nInitialSize(nSize) {}
 
 
     /**
      * dtor
      */
-    virtual ~memory() {};
+    virtual ~memory() {}
     
     
     /**
@@ -139,7 +139,7 @@ public:
     inline value_t const & operator[](uint64_t i) const { 
         if (i > size()) throw memory_out_of_range(); 
         return m_cMemory[i]; 
-    };
+    }
 
 
     /**
@@ -153,7 +153,7 @@ public:
         if (i > size()) throw memory_out_of_range(); 
         if (!is_shallow()) detach(); 
         return m_cMemory[i]; 
-    };
+    }
 
 
     /**
@@ -162,7 +162,7 @@ public:
      * @param   rhs     right hand side
      * @return  true, if both objects are identical
      */
-    inline bool operator==(qkd::utility::memory const & rhs) const { return m_cMemory == rhs.m_cMemory; };
+    inline bool operator==(qkd::utility::memory const & rhs) const { return m_cMemory == rhs.m_cMemory; }
 
 
     /**
@@ -171,7 +171,7 @@ public:
      * @param   rhs     right hand side
      * @return  true, if both objects are different
      */
-    inline bool operator!=(qkd::utility::memory const & rhs) const { return !(*this == rhs); };
+    inline bool operator!=(qkd::utility::memory const & rhs) const { return !(*this == rhs); }
     
     
     /**
@@ -186,7 +186,7 @@ public:
         uint64_t nOldSize = size(); 
         resize(nOldSize + cData.size()); 
         memcpy(get() + nOldSize, cData.get(), cData.size()); 
-    };
+    }
     
     
     /**
@@ -241,7 +241,7 @@ public:
      * 
      * @return  the crc32 checksum as string value
      */
-    inline std::string crc32() const { return checksum("crc32").as_hex(); };
+    inline std::string crc32() const { return checksum("crc32").as_hex(); }
 
 
     /**
@@ -288,7 +288,7 @@ public:
      *
      * @return  the address of the memory block
      */
-    inline value_t const * get() const { return m_cMemory.get(); };
+    inline value_t const * get() const { return m_cMemory.get(); }
 
 
     /**
@@ -299,7 +299,7 @@ public:
     inline value_t * get() { 
         if (!is_shallow()) detach(); 
         return m_cMemory.get(); 
-    };
+    }
     
     
     /**
@@ -307,7 +307,7 @@ public:
      * 
      * @return  true if this object refers to a NULL object
      */
-    inline bool is_null() const { return m_cMemory.get() == nullptr; };
+    inline bool is_null() const { return m_cMemory.get() == nullptr; }
     
     
     /**
@@ -318,7 +318,7 @@ public:
      * 
      * @return  shallow copy behavior
      */
-    inline bool is_shallow() const { return m_bShallow; };
+    inline bool is_shallow() const { return m_bShallow; }
     
     
     /**
@@ -344,7 +344,7 @@ public:
      *
      * @return  the size of the memory reserved
      */
-    inline uint64_t reserved() const { return m_nInitialSize; };
+    inline uint64_t reserved() const { return m_nInitialSize; }
 
 
     /**
@@ -363,7 +363,7 @@ public:
             return; 
         } 
         enlarge(nSize); 
-    };
+    }
 
 
     /**
@@ -374,7 +374,7 @@ public:
      * 
      * @param   bShallow        new shallow copy behavior
      */
-    inline void set_shallow(bool bShallow) { m_bShallow = bShallow; };
+    inline void set_shallow(bool bShallow) { m_bShallow = bShallow; }
 
 
     /**
@@ -382,7 +382,7 @@ public:
      *
      * @return  the size of the memory managed
      */
-    inline uint64_t size() const { return m_nSize; };
+    inline uint64_t size() const { return m_nSize; }
 
 
     /**
@@ -390,7 +390,7 @@ public:
      *
      * @return  true if there is just one reference to this
      */
-    inline bool unique() const { return m_cMemory.unique(); };
+    inline bool unique() const { return m_cMemory.unique(); }
     
     
     /**
@@ -431,7 +431,7 @@ private:
         std::memcpy(cMem, m_cMemory.get(), size()); 
         m_cMemory = boost::shared_array<value_t>(cMem);
         m_nInitialSize = size();
-    };
+    }
     
     
     /**
@@ -487,7 +487,8 @@ private:
  * @return  lhs
  */
 inline qkd::utility::memory & operator<<(qkd::utility::memory & lhs, qkd::utility::memory const & rhs) { 
-    lhs.add(rhs); return lhs; 
+    lhs.add(rhs); 
+    return lhs; 
 }
 
 
@@ -501,7 +502,8 @@ inline qkd::utility::memory & operator<<(qkd::utility::memory & lhs, qkd::utilit
  * @return  the stream
  */
 inline std::ostream & operator<<(std::ostream & lhs, qkd::utility::memory const & rhs) { 
-    rhs.write(lhs); return lhs; 
+    rhs.write(lhs); 
+    return lhs; 
 }
 
 
@@ -515,7 +517,8 @@ inline std::ostream & operator<<(std::ostream & lhs, qkd::utility::memory const 
  * @return  the stream
  */
 inline std::istream & operator>>(std::istream & lhs, qkd::utility::memory & rhs) { 
-    rhs.read(lhs); return lhs; 
+    rhs.read(lhs); 
+    return lhs; 
 }
 
 

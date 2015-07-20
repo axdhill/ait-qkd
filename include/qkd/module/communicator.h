@@ -137,7 +137,7 @@ public:
             return true; 
         } 
         return false; 
-    };
+    }
 
 
     /**
@@ -155,7 +155,7 @@ public:
             return true; 
         } 
         return false; 
-    };
+    }
 
 
     /**
@@ -168,7 +168,7 @@ public:
      */
     inline bool operator>>(qkd::module::message & cMessage) throw (std::runtime_error) {  
         return recv(cMessage); 
-    };
+    }
 
 
     /**
@@ -183,7 +183,7 @@ public:
         qkd::module::message cMessage; 
         cMessage.data() << cBuffer; 
         send(cMessage); 
-    };
+    }
 
 
     /**
@@ -198,7 +198,7 @@ public:
         qkd::module::message cMessage; 
         cMessage.data() << cMemory; 
         send(cMessage); 
-    };
+    }
 
 
     /**
@@ -211,7 +211,7 @@ public:
      */
     inline void operator<<(qkd::module::message & cMessage) throw (std::runtime_error) { 
         send(cMessage); 
-    };
+    }
 
 
     /**
@@ -219,7 +219,7 @@ public:
      *
      * @return  the module used for sending/receiving
      */
-    module * mod() { return m_cModule; };
+    module * mod() { return m_cModule; }
 
 
     /**

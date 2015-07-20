@@ -95,7 +95,7 @@ public:
      * 
      * @return  the syslog instance for critical messages
      */
-    static syslog crit() { init(); return syslog(LOG_CRIT); };
+    static syslog crit() { init(); return syslog(LOG_CRIT); }
 
     
     /**
@@ -109,7 +109,7 @@ public:
      * 
      * @return  the syslog instance for info messages
      */
-    static syslog info() { init(); return syslog(LOG_INFO); };
+    static syslog info() { init(); return syslog(LOG_INFO); }
     
 
     /**
@@ -117,7 +117,7 @@ public:
      * 
      * @return  the syslog instance for warning messages
      */
-    static syslog warning() { init(); return syslog(LOG_WARNING); };
+    static syslog warning() { init(); return syslog(LOG_WARNING); }
     
 
 private:

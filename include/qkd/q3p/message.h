@@ -145,7 +145,9 @@ public:
      * 
      * @return  the age of the message
      */
-    inline std::chrono::high_resolution_clock::duration age() const { return std::chrono::high_resolution_clock::now() - m_cTimeStamp; };
+    inline std::chrono::high_resolution_clock::duration age() const { 
+        return std::chrono::high_resolution_clock::now() - m_cTimeStamp; 
+    }
 
 
     /**
@@ -153,7 +155,10 @@ public:
      * 
      * @return  the authentic flag
      */
-    inline bool authentic() const { if (size() < header_size()) return false; return ((header().nFlagsAndVersion & 0x02) != 0); };
+    inline bool authentic() const { 
+        if (size() < header_size()) return false; 
+        return ((header().nFlagsAndVersion & 0x02) != 0); 
+    }
     
     
     /**
@@ -165,7 +170,10 @@ public:
      * 
      * @return  the authentication key id
      */
-    inline qkd::key::key_id authentication_key() const { if (size() < header_size()) return 0; return be32toh(header().nAuthenticationKeyId); };
+    inline qkd::key::key_id authentication_key() const { 
+        if (size() < header_size()) return 0; 
+        return be32toh(header().nAuthenticationKeyId); 
+    }
     
     
     /**
@@ -177,7 +185,10 @@ public:
      * 
      * @return  the channel id
      */
-    inline uint16_t channel_id() const { if (size() < header_size()) return 0; return be16toh(header().nChannel); };
+    inline uint16_t channel_id() const { 
+        if (size() < header_size()) return 0; 
+        return be16toh(header().nChannel); 
+    }
     
     
     /**
@@ -185,7 +196,10 @@ public:
      * 
      * @return  the encrypted flag
      */
-    inline bool encrypted() const { if (size() < header_size()) return false; return ((header().nFlagsAndVersion & 0x01) != 0); };
+    inline bool encrypted() const { 
+        if (size() < header_size()) return false; 
+        return ((header().nFlagsAndVersion & 0x01) != 0); 
+    }
     
     
     /**
@@ -197,7 +211,10 @@ public:
      * 
      * @return  the encryption key id
      */
-    inline qkd::key::key_id encryption_key() const { if (size() < header_size()) return 0; return be32toh(header().nEncryptionKeyId); };
+    inline qkd::key::key_id encryption_key() const { 
+        if (size() < header_size()) return 0; 
+        return be32toh(header().nEncryptionKeyId); 
+    }
     
     
     /**
@@ -205,7 +222,9 @@ public:
      * 
      * @return  the header data
      */
-    inline header_t & header() { return *(qkd::q3p::message::header_t *)get(); };
+    inline header_t & header() { 
+        return *(qkd::q3p::message::header_t *)get(); 
+    }
     
     
     /**
@@ -213,7 +232,9 @@ public:
      * 
      * @return  the header data
      */
-    inline header_t const & header() const { return *(qkd::q3p::message::header_t const *)get(); };
+    inline header_t const & header() const { 
+        return *(qkd::q3p::message::header_t const *)get(); 
+    }
     
     
     /**
@@ -221,7 +242,7 @@ public:
      * 
      * @return  the size of Q3P header
      */
-    static uint64_t header_size() { return sizeof(header_t); };
+    static uint64_t header_size() { return sizeof(header_t); }
         
 
     /**
@@ -229,7 +250,10 @@ public:
      * 
      * @return  the message id
      */
-    inline uint32_t id() const { if (size() < header_size()) return 0; return be32toh(header().nMessageId); };
+    inline uint32_t id() const { 
+        if (size() < header_size()) return 0; 
+        return be32toh(header().nMessageId); 
+    }
     
     
     /**
@@ -237,7 +261,10 @@ public:
      * 
      * @return  the message length in the header
      */
-    inline uint32_t length() const { if (size() < header_size()) return 0; return be32toh(header().nLength); };
+    inline uint32_t length() const { 
+        if (size() < header_size()) return 0; 
+        return be32toh(header().nLength); 
+    }
     
     
     /**
@@ -253,19 +280,25 @@ public:
      * 
      * @return  the protocol id
      */
-    inline unsigned char protocol_id() const { if (size() < header_size()) return 0; return header().nCommand; };
+    inline unsigned char protocol_id() const { 
+        if (size() < header_size()) return 0; 
+        return header().nCommand; 
+    }
     
     
     /**
      * record the current time
      */
-    inline void record_timestamp() { m_cTimeStamp = std::chrono::high_resolution_clock::now(); };
+    inline void record_timestamp() { m_cTimeStamp = std::chrono::high_resolution_clock::now(); }
     
     
     /**
      * set read/write buffer pointer to start of payload
      */
-    inline void seek_payload() { ensure_header(); set_position(header_size()); };
+    inline void seek_payload() { 
+        ensure_header(); 
+        set_position(header_size()); 
+    }
     
     
     /**
@@ -281,7 +314,10 @@ public:
      * 
      * @param   nKeyId          the new authentication key id
      */
-    inline void set_authentication_key(qkd::key::key_id const & nKeyId) { ensure_header(); header().nAuthenticationKeyId = htobe32(nKeyId); };
+    inline void set_authentication_key(qkd::key::key_id const & nKeyId) { 
+        ensure_header(); 
+        header().nAuthenticationKeyId = htobe32(nKeyId); 
+    }
     
     
     /**
@@ -289,7 +325,10 @@ public:
      * 
      * @param   nChannelId      the new channel id
      */
-    inline void set_channel_id(uint16_t nChannelId) { ensure_header(); header().nChannel = htobe16(nChannelId); };
+    inline void set_channel_id(uint16_t nChannelId) { 
+        ensure_header(); 
+        header().nChannel = htobe16(nChannelId); 
+    }
     
     
     /**
@@ -305,7 +344,10 @@ public:
      * 
      * @param   nKeyId          the new encryption key id
      */
-    inline void set_encryption_key(qkd::key::key_id const & nKeyId) { ensure_header(); header().nEncryptionKeyId = htobe32(nKeyId); };
+    inline void set_encryption_key(qkd::key::key_id const & nKeyId) { 
+        ensure_header(); 
+        header().nEncryptionKeyId = htobe32(nKeyId); 
+    }
     
     
     /**
@@ -313,7 +355,10 @@ public:
      * 
      * @param   nId             the new message id
      */
-    inline void set_id(uint32_t nId) { ensure_header(); header().nMessageId = htobe32(nId); };
+    inline void set_id(uint32_t nId) { 
+        ensure_header(); 
+        header().nMessageId = htobe32(nId); 
+    }
     
     
     /**
@@ -321,7 +366,10 @@ public:
      * 
      * @param   nLength         the message length in the header
      */
-    inline void set_length(uint32_t nLength) { ensure_header(); header().nLength = htobe32(nLength); };
+    inline void set_length(uint32_t nLength) { 
+        ensure_header(); 
+        header().nLength = htobe32(nLength); 
+    }
     
     
     /**
@@ -329,7 +377,10 @@ public:
      * 
      * @param   nProtocolId     the new protocol id
      */
-    inline void set_protocol_id(unsigned char nProtocolId) { ensure_header(); header().nCommand = nProtocolId; };
+    inline void set_protocol_id(unsigned char nProtocolId) { 
+        ensure_header(); 
+        header().nCommand = nProtocolId; 
+    }
     
     
     /**
@@ -337,7 +388,7 @@ public:
      * 
      * @param   cTag            the authentication tag of the message
      */
-    inline void set_tag(qkd::utility::memory const & cTag) { m_cTag = cTag; };
+    inline void set_tag(qkd::utility::memory const & cTag) { m_cTag = cTag; }
     
     
     /**
@@ -363,7 +414,7 @@ public:
      * 
      * @return  the authentication tag of the message
      */
-    inline qkd::utility::memory const & tag() const { return m_cTag; };
+    inline qkd::utility::memory const & tag() const { return m_cTag; }
     
     
     /**
@@ -371,7 +422,7 @@ public:
      * 
      * @return  timestamp of last action of message
      */
-    inline std::chrono::high_resolution_clock::time_point const & timestamp() const { return m_cTimeStamp; };
+    inline std::chrono::high_resolution_clock::time_point const & timestamp() const { return m_cTimeStamp; }
     
     
     /**
@@ -379,7 +430,10 @@ public:
      * 
      * @return  the Q3P version of this message
      */
-    inline uint8_t version() const { if (size() < header_size()) return 0; return ((header().nFlagsAndVersion & 0xe0) >> 5); };
+    inline uint8_t version() const { 
+        if (size() < header_size()) return 0; 
+        return ((header().nFlagsAndVersion & 0xe0) >> 5); 
+    }
     
 
     /**
@@ -387,7 +441,10 @@ public:
      * 
      * @return  if the message has been sent (or received) compressed
      */
-    inline bool zipped() const { if (size() < header_size()) return false; return ((header().nFlagsAndVersion & 0x04) != 0); };
+    inline bool zipped() const { 
+        if (size() < header_size()) return false; 
+        return ((header().nFlagsAndVersion & 0x04) != 0); 
+    }
     
     
 private:
@@ -396,7 +453,9 @@ private:
     /**
      * ensure we have at least header size space available
      */
-    inline void ensure_header() { if (size() < header_size()) resize(header_size()); };
+    inline void ensure_header() { 
+        if (size() < header_size()) resize(header_size()); 
+    }
     
     
     /**
@@ -426,4 +485,3 @@ private:
 
 
 #endif
-

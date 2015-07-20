@@ -52,7 +52,7 @@ protected:
     /**
      * ctor
      */
-    backtrace() {};
+    backtrace() {}
 
 };
 

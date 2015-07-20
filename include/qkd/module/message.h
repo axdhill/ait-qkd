@@ -98,7 +98,9 @@ public:
      * 
      * @return  the age of the message
      */
-    inline std::chrono::high_resolution_clock::duration age() const { return std::chrono::high_resolution_clock::now() - m_cTimeStamp; };
+    inline std::chrono::high_resolution_clock::duration age() const { 
+        return std::chrono::high_resolution_clock::now() - m_cTimeStamp; 
+    }
 
 
     /**
@@ -106,7 +108,7 @@ public:
      * 
      * @return  memory block of the message
      */
-    inline qkd::utility::buffer & data() { return m_cData; };
+    inline qkd::utility::buffer & data() { return m_cData; }
     
     
     /**
@@ -114,7 +116,7 @@ public:
      * 
      * @return  memory block of the message
      */
-    inline qkd::utility::buffer const & data() const { return m_cData; };
+    inline qkd::utility::buffer const & data() const { return m_cData; }
     
     
     /**
@@ -122,7 +124,7 @@ public:
      * 
      * @return  the message id
      */
-    inline uint64_t id() const { return be32toh(m_cHeader.nId); };
+    inline uint64_t id() const { return be32toh(m_cHeader.nId); }
     
     
     /**
@@ -139,7 +141,7 @@ public:
      * 
      * @return  timestamp of last action of message
      */
-    inline std::chrono::high_resolution_clock::time_point const & timestamp() const { return m_cTimeStamp; };
+    inline std::chrono::high_resolution_clock::time_point const & timestamp() const { return m_cTimeStamp; }
     
     
     /**
@@ -147,7 +149,7 @@ public:
      * 
      * @return  type of the message
      */
-    inline qkd::module::message_type type() const { return m_cHeader.eType; };
+    inline qkd::module::message_type type() const { return m_cHeader.eType; }
     
 
 private:

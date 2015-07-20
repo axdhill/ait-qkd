@@ -626,7 +626,7 @@ public:
      */
     inline std::chrono::high_resolution_clock::duration age() const { 
         return (std::chrono::high_resolution_clock::now() - birth()); 
-    };    
+    }  
     
     
     /**
@@ -649,7 +649,7 @@ public:
      */
     communicator comm(qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext) { 
         return communicator(this, cIncomingContext, cOutgoingContext); 
-    };
+    }
 
     
     /**
@@ -670,7 +670,7 @@ public:
      */
     inline std::string config_prefix() const { 
         return std::string("module." + id().toStdString() + "."); 
-    };
+    }
      
     
     /**
@@ -699,7 +699,7 @@ public:
      * 
      * @return  true, if debug messages ought to go to stderr
      */
-    inline bool debug() const { return qkd::utility::debug::enabled(); };
+    inline bool debug() const { return qkd::utility::debug::enabled(); }
     
     
     /**
@@ -726,7 +726,7 @@ public:
     inline qulonglong disclosed_bits_incoming() const { 
         std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
         return statistics().nDisclosedBitsIncoming; 
-    };
+    }
     
     
     /**
@@ -737,7 +737,7 @@ public:
     inline qulonglong disclosed_bits_incoming_rate() const { 
         std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
         return statistics().cDisclosedBitsIncomingRate->slope(); 
-    };
+    }
 
     
     /**
@@ -748,7 +748,7 @@ public:
     inline qulonglong disclosed_bits_outgoing() const { 
         std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
         return statistics().nDisclosedBitsOutgoing; 
-    };
+    }
     
     
     /**
@@ -759,7 +759,7 @@ public:
     inline qulonglong disclosed_bits_outgoing_rate() const { 
         std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
         return statistics().cDisclosedBitsOutgoingRate->slope(); 
-    };
+    }
     
   
     /**
@@ -812,7 +812,7 @@ public:
      */
     inline bool is_alice() const { 
         return (role() == (unsigned long)qkd::module::module_role::ROLE_ALICE); 
-    };
+    }
     
     
     /**
@@ -822,7 +822,7 @@ public:
      */
     inline bool is_bob() const { 
         return (role() == (unsigned long)qkd::module::module_role::ROLE_BOB); 
-    };
+    }
     
     
     /**
@@ -833,7 +833,7 @@ public:
      */
     inline bool is_config_key(std::string const & sKey) const { 
         return (sKey.substr(0, config_prefix().size()) == config_prefix()); 
-    };
+    }
     
     
     /**
@@ -843,7 +843,7 @@ public:
      */
     inline bool is_dying_state() const { 
         return is_dying_state(get_state()); 
-    };
+    }
     
     
     /**
@@ -854,7 +854,7 @@ public:
      */
     static bool is_dying_state(module_state eState) { 
         return ((eState == module_state::STATE_TERMINATED) || (eState == module_state::STATE_TERMINATING)); 
-    };
+    }
     
     
     /**
@@ -864,7 +864,7 @@ public:
      */
     inline bool is_running() const { 
         return (get_state() == module_state::STATE_RUNNING); 
-    };
+    }
     
     
     /**
@@ -883,7 +883,7 @@ public:
      */
     inline bool is_synchronizing() const { 
         return (paired() && synchronize_keys() && !url_pipe_in().isEmpty()); 
-    };
+    }
     
     
     /**
@@ -893,7 +893,7 @@ public:
      */
     inline bool is_working_state() const { 
         return is_working_state(get_state()); 
-    };
+    }
     
     
     /**
@@ -904,8 +904,8 @@ public:
      */
     static bool is_working_state(module_state eState) { 
         return ((eState == module_state::STATE_READY) || (eState == module_state::STATE_RUNNING)); 
-    };
-    
+    }
+
     
     /**
      * waits until the module's worker thread finished
@@ -930,7 +930,7 @@ public:
     inline qulonglong key_bits_incoming() const { 
         std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
         return statistics().nKeyBitsIncoming; 
-    };
+    }
     
     
     /**
@@ -941,7 +941,7 @@ public:
     inline qulonglong key_bits_incoming_rate() const { 
         std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
         return statistics().cKeyBitsIncomingRate->slope(); 
-    };
+    }
 
     
     /**
@@ -952,7 +952,7 @@ public:
     inline qulonglong key_bits_outgoing() const { 
         std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
         return statistics().nKeyBitsOutgoing; 
-    };
+    }
     
     
     /**
@@ -963,7 +963,7 @@ public:
     inline qulonglong key_bits_outgoing_rate() const { 
         std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
         return statistics().cKeyBitsOutgoingRate->slope(); 
-    };
+    }
 
     
     /**
@@ -974,7 +974,7 @@ public:
     inline qulonglong keys_incoming() const { 
         std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
         return statistics().nKeysIncoming; 
-    };
+    }
     
     
     /**
@@ -985,7 +985,7 @@ public:
     inline qulonglong keys_incoming_rate() const { 
         std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
         return statistics().cKeysIncomingRate->slope(); 
-    };
+    }
 
     
     /**
@@ -996,7 +996,7 @@ public:
     inline qulonglong keys_outgoing() const { 
         std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
         return statistics().nKeysOutgoing; 
-    };
+    }
     
     
     /**
@@ -1007,7 +1007,7 @@ public:
     inline qulonglong keys_outgoing_rate() const { 
         std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
         return statistics().cKeysOutgoingRate->slope(); 
-    };
+    }
 
     
     /**
@@ -1028,7 +1028,7 @@ public:
      */
     inline bool paired() const { 
         return (!url_listen().isEmpty() || !url_peer().isEmpty()); 
-    };
+    }
     
 
     /**
@@ -1046,7 +1046,7 @@ public:
      */
     inline unsigned int process_id() const { 
         return qkd::utility::environment::process_id(); 
-    };
+    }
     
     
     /**
@@ -1056,7 +1056,7 @@ public:
      */
     inline QString process_image() const { 
         return QString::fromStdString(qkd::utility::environment::process_image_path().string()); 
-    };
+    }
     
     
     /**
@@ -1104,7 +1104,7 @@ public:
      */
     inline QString role_name() const { 
         return role_name((module_role)role()); 
-    };
+    }
     
     
     /**
@@ -1135,7 +1135,7 @@ public:
      */
     inline void set_debug(bool bDebug) { 
         qkd::utility::debug::enabled() = bDebug; 
-    };
+    }
     
     
     /**
@@ -1305,7 +1305,7 @@ public:
      */
     inline QString state_name() const { 
         return state_name((module_state)state()); 
-    };
+    }
     
     
     /**
@@ -1396,7 +1396,7 @@ public:
      */
     inline QString type_name() const { 
         return type_name((module_type)type()); 
-    };
+    }
     
     
     /**

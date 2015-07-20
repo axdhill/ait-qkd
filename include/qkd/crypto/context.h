@@ -159,7 +159,7 @@ public:
     inline context & operator<<(qkd::crypto::crypto_context const & cContext) { 
         add(cContext); 
         return *this; 
-    };
+    }
 
 
     /**
@@ -173,7 +173,7 @@ public:
     inline context & operator<<(qkd::utility::memory const & cMemory) { 
         add(cMemory); 
         return *this; 
-    };
+    }
 
 
     /**
@@ -183,7 +183,7 @@ public:
      */
     inline void add(qkd::crypto::crypto_context const & cContext) { 
         add_internal(cContext); 
-    };
+    }
 
     
     /**
@@ -193,7 +193,7 @@ public:
      */
     inline void add(qkd::utility::memory const & cMemory) { 
         add_internal(cMemory); 
-    };
+    }
     
     
     /**
@@ -204,7 +204,7 @@ public:
     crypto_context clone() const { 
         if (!is_cloneable()) throw context_not_clonable(); 
         return clone_internal(); 
-    };
+    }
 
 
     /**
@@ -212,7 +212,7 @@ public:
      * 
      * @return  true, if the final key can be reused
      */
-    inline bool final_key_reusable() const { return final_key_reusable_internal(); };
+    inline bool final_key_reusable() const { return final_key_reusable_internal(); }
     
     
     /**
@@ -220,7 +220,7 @@ public:
      * 
      * @return  the size of the final key or 0 if inappropriate
      */
-    inline uint64_t final_key_size() const { return final_key_size_internal(); };
+    inline uint64_t final_key_size() const { return final_key_size_internal(); }
     
 
     /**
@@ -232,7 +232,7 @@ public:
      */
     inline qkd::utility::memory finalize(qkd::key::key const & cKey = qkd::key::key::null()) { 
         return finalize_internal(cKey); 
-    };
+    }
     
     
     /**
@@ -240,7 +240,7 @@ public:
      * 
      * @return  the key used to create the context
      */
-    inline qkd::key::key const & init_key() const { return m_cKey; };
+    inline qkd::key::key const & init_key() const { return m_cKey; }
     
     
     /**
@@ -248,7 +248,7 @@ public:
      * 
      * @return  true, if the init key can be reused
      */
-    inline bool init_key_reusable() const { return init_key_reusable_internal(); };
+    inline bool init_key_reusable() const { return init_key_reusable_internal(); }
     
 
     /**
@@ -256,7 +256,7 @@ public:
      * 
      * @return  the size of the init key or 0 if inappropriate
      */
-    inline uint64_t init_key_size() const { return init_key_size_internal(); };
+    inline uint64_t init_key_size() const { return init_key_size_internal(); }
     
 
     /**
@@ -264,7 +264,7 @@ public:
      * 
      * @return  true, if we can make a clone of a concrete instance
      */
-    inline bool is_cloneable() const { return is_cloneable_internal(); };
+    inline bool is_cloneable() const { return is_cloneable_internal(); }
     
     
     /**
@@ -289,7 +289,7 @@ public:
      * 
      * @return  true, if a final key is needed
      */
-    inline bool needs_final_key() const { return needs_final_key_internal(); };
+    inline bool needs_final_key() const { return needs_final_key_internal(); }
     
 
     /**
@@ -297,7 +297,7 @@ public:
      * 
      * @return  true, if an init key is needed
      */
-    inline bool needs_init_key() const { return needs_init_key_internal(); };
+    inline bool needs_init_key() const { return needs_init_key_internal(); }
     
 
     /**
@@ -318,7 +318,7 @@ public:
      * 
      * @return  expected size of the computation result (or 0 for any size)
      */
-    inline uint64_t result_size() const { return result_size_internal(); };
+    inline uint64_t result_size() const { return result_size_internal(); }
     
     
     /**
@@ -326,7 +326,7 @@ public:
      * 
      * @return  the scheme identifiying this context
      */
-    inline qkd::crypto::scheme scheme() const { return scheme_internal(); };
+    inline qkd::crypto::scheme scheme() const { return scheme_internal(); }
     
 
     /**
@@ -335,7 +335,7 @@ public:
      * @param   cMemory         the BLOB holding the state data
      * @throws  context_init
      */
-    inline void set_state(qkd::utility::memory const & cMemory) { return set_state_internal(cMemory); };
+    inline void set_state(qkd::utility::memory const & cMemory) { return set_state_internal(cMemory); }
     
     
     /**
@@ -343,7 +343,7 @@ public:
      * 
      * @return  a memory BLOB defining the current state
      */
-    inline qkd::utility::memory state() const { return state_internal(); };
+    inline qkd::utility::memory state() const { return state_internal(); }
     
     
 protected:

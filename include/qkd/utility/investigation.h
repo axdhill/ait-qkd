@@ -102,7 +102,10 @@ public:
      * 
      * @param   rhs     right hand side
      */
-    investigation(investigation const & rhs) : m_cResult(rhs.m_cResult), m_cTimestampEnd(rhs.m_cTimestampEnd), m_cTimestampStart(rhs.m_cTimestampStart) {};
+    investigation(investigation const & rhs) : 
+            m_cResult(rhs.m_cResult), 
+            m_cTimestampEnd(rhs.m_cTimestampEnd), 
+            m_cTimestampStart(rhs.m_cTimestampStart) {}
     
     
     /**
@@ -126,7 +129,7 @@ public:
      * 
      * @return  the found links
      */
-    inline std::map<std::string, qkd::utility::properties> const & links() const { return m_cResult.cLinks; };
+    inline std::map<std::string, qkd::utility::properties> const & links() const { return m_cResult.cLinks; }
     
     
     /**
@@ -134,7 +137,7 @@ public:
      * 
      * @return  the found modules
      */
-    inline std::map<std::string, qkd::utility::properties> const & modules() const { return m_cResult.cModules; };
+    inline std::map<std::string, qkd::utility::properties> const & modules() const { return m_cResult.cModules; }
     
     
     /**
@@ -142,7 +145,7 @@ public:
      * 
      * @return  the found nodes
      */
-    inline std::map<std::string, qkd::utility::properties> const & nodes() const { return m_cResult.cNodes; };
+    inline std::map<std::string, qkd::utility::properties> const & nodes() const { return m_cResult.cNodes; }
     
     
     /**
@@ -150,7 +153,7 @@ public:
      * 
      * @return  the found pipelines
      */
-    inline std::map<std::string, qkd::utility::properties> const & pipelines() const { return m_cResult.cPipelines; };
+    inline std::map<std::string, qkd::utility::properties> const & pipelines() const { return m_cResult.cPipelines; }
     
     
     /**
@@ -158,7 +161,7 @@ public:
      * 
      * @return  time of system snapshot
      */
-    inline std::chrono::system_clock::time_point const & timestamp() const { return m_cTimestampEnd; };
+    inline std::chrono::system_clock::time_point const & timestamp() const { return m_cTimestampEnd; }
 
 
     /**
@@ -166,7 +169,7 @@ public:
      * 
      * @return  time of system snapshot
      */
-    inline std::chrono::system_clock::duration duration() const { return (m_cTimestampEnd - m_cTimestampStart); };
+    inline std::chrono::system_clock::duration duration() const { return (m_cTimestampEnd - m_cTimestampStart); }
 
 
 private:
@@ -175,7 +178,7 @@ private:
     /**
      * ctor
      */
-    investigation() : m_cTimestampStart(std::chrono::system_clock::now()) {};
+    investigation() : m_cTimestampStart(std::chrono::system_clock::now()) {}
     
     
     // ------------------------------------------------------------

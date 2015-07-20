@@ -71,7 +71,7 @@ struct nic {
      * 
      * @return  true, if this represents a valid interface
      */
-    inline bool valid() const { return !sName.empty(); };
+    inline bool valid() const { return !sName.empty(); }
 };    
     
 
@@ -157,7 +157,12 @@ public:
      * @param   bAll                try to find all occurences, or exit at the first (if set to false)
      * @return  paths found (or empty of not found)
      */
-    static std::list<boost::filesystem::path> find_files(std::string const & sFile, std::list<boost::filesystem::path> const & cPaths, bool bDeep, bool bUsePATH, bool bExecutable, bool bAll);
+    static std::list<boost::filesystem::path> find_files(std::string const & sFile, 
+            std::list<boost::filesystem::path> const & cPaths, 
+            bool bDeep, 
+            bool bUsePATH, 
+            bool bExecutable, 
+            bool bAll);
 
     
     /**

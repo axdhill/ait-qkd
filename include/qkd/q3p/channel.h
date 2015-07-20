@@ -90,7 +90,13 @@ public:
      * @param   cEngine         the parent engine
      * @param   cAssociation    crypto association
      */
-    channel(uint16_t nId = 0, qkd::q3p::engine_instance * cEngine = nullptr, qkd::crypto::association cAssociation = qkd::crypto::association()) : m_cAssociation(cAssociation), m_cEngine(cEngine), m_nId(nId), m_nMessageId(1) {};
+    channel(uint16_t nId = 0, 
+            qkd::q3p::engine_instance * cEngine = nullptr, 
+            qkd::crypto::association cAssociation = qkd::crypto::association()) : 
+                    m_cAssociation(cAssociation), 
+                    m_cEngine(cEngine), 
+                    m_nId(nId), 
+                    m_nMessageId(1) {}
     
     
     /**
@@ -98,7 +104,7 @@ public:
      * 
      * @return  the crypto association for this channel
      */
-    inline qkd::crypto::association & association() { return m_cAssociation; };
+    inline qkd::crypto::association & association() { return m_cAssociation; }
     
 
     /**
@@ -106,7 +112,7 @@ public:
      * 
      * @return  the crypto association for this channel
      */
-    inline qkd::crypto::association const & association() const { return m_cAssociation; };
+    inline qkd::crypto::association const & association() const { return m_cAssociation; }
     
 
     /**
@@ -145,7 +151,7 @@ public:
      * 
      * @return  the Q3P engine associated
      */
-    inline qkd::q3p::engine_instance * engine() { return m_cEngine; };
+    inline qkd::q3p::engine_instance * engine() { return m_cEngine; }
     
     
     /**
@@ -153,7 +159,7 @@ public:
      * 
      * @return  the Q3P engine associated
      */
-    inline qkd::q3p::engine_instance const * engine() const { return m_cEngine; };
+    inline qkd::q3p::engine_instance const * engine() const { return m_cEngine; }
     
     
     /**
@@ -161,7 +167,7 @@ public:
      * 
      * @return  the channel id
      */
-    inline uint16_t id() const { return m_nId; };
+    inline uint16_t id() const { return m_nId; }
     
 
     /**
@@ -174,7 +180,7 @@ public:
      * 
      * @return  the upper bound for uncompressed payload
      */
-    static uint64_t max_uncompressed_payload() { return 1 << 15; };
+    static uint64_t max_uncompressed_payload() { return 1 << 15; }
     
     
     /**
@@ -182,7 +188,7 @@ public:
      * 
      * @return  the next message id for sending on this channel
      */
-    inline uint32_t message_id() const { return m_nMessageId; };
+    inline uint32_t message_id() const { return m_nMessageId; }
     
     
 private:

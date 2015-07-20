@@ -263,7 +263,10 @@ public:
      * @return  the bit
      * @throws  bigint_bit_out_of_range
      */
-    inline bool get(uint64_t nPosition) const { if (!is_within_range(nPosition)) throw bigint_bit_out_of_range(); return get_bit(nPosition); };
+    inline bool get(uint64_t nPosition) const { 
+        if (!is_within_range(nPosition)) throw bigint_bit_out_of_range(); 
+        return get_bit(nPosition); 
+    }
 
     
     /**
@@ -272,7 +275,7 @@ public:
      * @param   nPosition       a bit position
      * @return  true, of this position points to a valid bit of this bigint
      */
-    inline bool is_within_range(uint64_t nPosition) const { return (nPosition < bits()); };
+    inline bool is_within_range(uint64_t nPosition) const { return (nPosition < bits()); }
     
     
     /**
@@ -361,7 +364,7 @@ public:
      * 
      * @return  true, if the parity is odd
      */
-    inline bool parity() const { return ((bits_set() & 0x01) != 0); };
+    inline bool parity() const { return ((bits_set() & 0x01) != 0); }
 
 
     /**
@@ -381,7 +384,10 @@ public:
      * @param   bValue      bit value
      * @throws  bigint_bit_out_of_range
      */
-    inline void set(uint64_t nPosition, bool bValue) { if (!is_within_range(nPosition)) throw bigint_bit_out_of_range(); set_bit(nPosition, bValue); };
+    inline void set(uint64_t nPosition, bool bValue) { 
+        if (!is_within_range(nPosition)) throw bigint_bit_out_of_range(); 
+        set_bit(nPosition, bValue); 
+    }
     
     
     /**

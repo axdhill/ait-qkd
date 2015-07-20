@@ -225,7 +225,7 @@ public:
      * @param   nKeySize        maximum capacity of each key in the ring
      * @param   nId             id of the next key
      */
-    explicit key_ring(uint64_t nKeySize = 0, key_id nId = 0) : m_nId(nId), m_nKeySize(nKeySize) { };
+    explicit key_ring(uint64_t nKeySize = 0, key_id nId = 0) : m_nId(nId), m_nKeySize(nKeySize) { }
     
     
     /**
@@ -233,7 +233,7 @@ public:
      * 
      * @return  the id of the next key (which is going to be added)
      */
-    inline key_id id() const { return m_nId; };
+    inline key_id id() const { return m_nId; }
     
     
     /**
@@ -241,7 +241,7 @@ public:
      * 
      * @return  the maximum size of a single key in the ring
      */
-    inline uint64_t key_size() const { return m_nKeySize; };
+    inline uint64_t key_size() const { return m_nKeySize; }
     
     
     /**
@@ -290,7 +290,10 @@ private:
  * @param   rhs     the right hand side
  * @return  lhs
  */
-inline qkd::key::key_ring & operator<<(qkd::key::key_ring & lhs, qkd::key::key const & rhs) { lhs.push_back(rhs); return lhs; }
+inline qkd::key::key_ring & operator<<(qkd::key::key_ring & lhs, qkd::key::key const & rhs) { 
+    lhs.push_back(rhs); 
+    return lhs; 
+}
 
 
 #endif
