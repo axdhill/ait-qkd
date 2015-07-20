@@ -79,7 +79,7 @@ typedef std::vector<key_id> key_vector;
  */
 enum class key_state : uint8_t {
     
-    KEY_STATE_OTHER = 0,            /**< key data are not key bits. they have to be treated in context of the previous module */
+    KEY_STATE_OTHER = 0,            /**< key data are not key bits: they have to be treated in context of the previous module */
     
     KEY_STATE_RAW,                  /**< this is raw key data */
     KEY_STATE_SIFTED,               /**< this is a sifted key */
@@ -90,7 +90,7 @@ enum class key_state : uint8_t {
     KEY_STATE_AMPLIFIED,            /**< this is a privacy amplified key */
     KEY_STATE_AUTHENTICATED,        /**< this is an authenticated key */
 
-    KEY_STATE_DISCLOSED             /**< this key has been disclosed (and is neither unconfirmed nor uncorrected) */
+    KEY_STATE_DISCLOSED             /**< this key has been disclosed */
 };
 
 
