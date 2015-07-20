@@ -1,0 +1,117 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-resize-exact-simple
+# 
+# This is a test file.
+#
+# Test the exact barrier of qkd-resize
+#
+# This is the simple version if the keys are mostly the same
+# size as exact.
+#
+# TEST: test the QKD resize module
+#
+# Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+
+# ------------------------------------------------------------
+
+# init test environment
+test_init
+
+# zap previous keys
+rm -rf cat_keys.* &> /dev/null
+
+# create keys
+${TEST_BASE}/bin/qkd-key-gen --size 10000 --randomize-size --keys 1000 --rate 0.04 --errorbits cat_keys
+
+# truncate previous debug out
+echo -n > resize_debug.alice
+echo -n > resize_debug.bob
+
+# start two pipelines
+PIPELINE_CONFIG="file://${TEST_BASE}/test/test-data/resize-exact.conf"
+
+# start the modules - for the resize we are using the same keys in the first round
+( ${TEST_BASE}/bin/qkd-cat --run --config ${PIPELINE_CONFIG} --file "cat_keys.alice" ) &
+( ${TEST_BASE}/bin/qkd-cat --bob --run --config ${PIPELINE_CONFIG} --file "cat_keys.bob" ) &
+( ${TEST_BASE}/bin/qkd-resize --debug --run --config ${PIPELINE_CONFIG} 1> resize_keys.alice 2>> resize_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-resize --debug --bob --run --config ${PIPELINE_CONFIG} 1> resize_keys.bob 2>> resize_debug.bob ) &
+
+# wait until the modules are up
+while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module.resize | wc -l)" = "0" ]; do
+    echo "waiting for the pipeline to ignite ..."
+    sleep 1
+done
+
+# wait until all keys have been processed
+sleep 1
+wait_stalled cat resize
+echo "got keys"
+
+OUTPUT_VARIANTS=$(grep ^key-PUSH resize_debug.alice | awk '{ print $6; }' | uniq | wc -l)
+if [ -z "${OUTPUT_VARIANTS}" ]; then
+    echo "alice has not pushed keys"
+    exit 1
+fi
+
+# check if key is exactly 1000 bytes
+GOOD="yes"
+grep ^key-PUSH resize_debug.alice | awk '{ print $6; }' | while read KEY_SIZE; do
+    if [ "${KEY_SIZE}" -ne 8000 ]; then
+        echo "alice passed a key other then 1000 bytes"
+        GOOD="no"
+        exit 1
+    fi
+done
+if [ "${GOOD}" != "yes" ]; then
+    exit 1
+fi
+echo "all keys of alice are exactly 1000 bytes"
+
+# output raw must be input raw
+rm -f cat_keys.alice.raw cat_keys.alice.resized.raw resize_keys.alice.raw &> /dev/null
+( cat cat_keys.alice | ${TEST_BASE}/bin/qkd-dekey --file cat_keys.alice.raw --run --debug 1> /dev/null 2> dekey_debug.cat ) &
+wait_stalled dekey
+rm -f resize_keys.alice.raw &> /dev/null
+( cat resize_keys.alice | ${TEST_BASE}/bin/qkd-dekey --file resize_keys.alice.raw --run --debug 1> /dev/null 2> dekey_debug.resize ) &
+wait_stalled dekey
+RESIZE_OUTPUT_SIZE=$(ls -l resize_keys.alice.raw | awk '{ print $5; }')
+dd if=cat_keys.alice.raw of=cat_keys.alice.resized.raw bs=1 count=${RESIZE_OUTPUT_SIZE}
+diff -q cat_keys.alice.resized.raw resize_keys.alice.raw &> /dev/null
+if [ "$?" != "0" ]; then
+    echo "alice output differs from input"
+    exit 1
+fi
+
+echo "qkd-resize exact key size works"
+
+test_cleanup
+
+echo "=== TEST SUCCESS ==="
