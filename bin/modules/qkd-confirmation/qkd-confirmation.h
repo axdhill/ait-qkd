@@ -122,6 +122,19 @@ protected:
     
     
     /**
+     * accept a key for processing
+     * 
+     * we accept all keys (also the disclosed ones)
+     *
+     * However, disclosed keys are not confirmed.
+     * 
+     * @param   cKey            the key to check
+     * @return  true, if the key should be processed by this module
+     */
+    bool accept(UNUSED qkd::key::key const & cKey) const { return true; };
+    
+    
+    /**
      * apply the loaded key value map to the module
      * 
      * @param   sURL            URL of config file loaded

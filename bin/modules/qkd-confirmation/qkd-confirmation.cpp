@@ -83,13 +83,8 @@ public:
  * ctor
  */
 qkd_confirmation::qkd_confirmation() : qkd::module::module("confirmation", qkd::module::module_type::TYPE_CONFIRMATION, MODULE_DESCRIPTION, MODULE_ORGANISATION) {
-
     d = boost::shared_ptr<qkd_confirmation::qkd_confirmation_data>(new qkd_confirmation::qkd_confirmation_data());
-    
-    // apply default values
     set_rounds(10);
-    
-    // enforce DBus registration
     new ConfirmationAdaptor(this);
 }
 
@@ -102,18 +97,12 @@ qkd_confirmation::qkd_confirmation() : qkd::module::module("confirmation", qkd::
  */
 void qkd_confirmation::apply_config(UNUSED std::string const & sURL, qkd::utility::properties const & cConfig) {
     
-    // delve into the given config
     for (auto const & cEntry : cConfig) {
         
-        // grab any key which is intended for us
         if (!is_config_key(cEntry.first)) continue;
-        
-        // ignore standard config keys: they should have been applied already
         if (is_standard_config_key(cEntry.first)) continue;
         
         std::string sKey = cEntry.first.substr(config_prefix().size());
-
-        // module specific config here
         if (sKey == "rounds") {
             set_rounds(atoll(cEntry.second.c_str()));
         }
@@ -132,6 +121,7 @@ void qkd_confirmation::apply_config(UNUSED std::string const & sURL, qkd::utilit
  * @return  the number of bad keys
  */
 qulonglong qkd_confirmation::bad_keys() const {
+    std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     return d->nBadKeys;
 }
 
@@ -142,6 +132,7 @@ qulonglong qkd_confirmation::bad_keys() const {
  * @return  the number of confirmation keys done
  */
 qulonglong qkd_confirmation::confirmed_keys() const {
+    std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     return d->nConfirmedKeys;
 }
 
@@ -155,12 +146,14 @@ qulonglong qkd_confirmation::confirmed_keys() const {
  * @return  always true
  */
 bool qkd_confirmation::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext) {
+    
+    // we pass on disclosed keys as-is
+    if (cKey.meta().eKeyState == qkd::key::key_state::KEY_STATE_DISCLOSED) return true;
 
     if (is_alice()) return process_alice(cKey, cIncomingContext, cOutgoingContext);
     if (is_bob()) return process_bob(cKey, cIncomingContext, cOutgoingContext);
     
-    // should not happen to reach this line, but 
-    // we return true: pass on the key to the next module
+    throw std::logic_error("module acts neither as alice nor as bob");
     return true;
 }
 
@@ -180,12 +173,10 @@ bool qkd_confirmation::process_alice(qkd::key::key & cKey, qkd::crypto::crypto_c
     
     qkd::utility::bigint cKeyBI = qkd::utility::bigint(cKey.data());
 
-    // first some header to ensure we are talking about the same key and setting
     cMessage.data() << cKey.id();
     cMessage.data() << cKey.size();
     cMessage.data() << nRounds;
 
-    // create the masks
     std::list<bool> cParities;
     for (uint64_t i = 0; i < nRounds; i++) {
         
@@ -204,18 +195,18 @@ bool qkd_confirmation::process_alice(qkd::key::key & cKey, qkd::crypto::crypto_c
     // finalize parities in message to send
     for (auto bParity : cParities) cMessage.data() << bParity;
     
-    // send to bob: no timeout
+    // send to bob
     try {
-        send(cMessage, cOutgoingContext, -1);
+        send(cMessage, cOutgoingContext);
     }
     catch (std::runtime_error const & cRuntimeError) {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to send message: " << cRuntimeError.what();
         return false;
     }
     
-    // recv from bob's parities: no timeout
+    // recv from bob's parities
     try {
-        if (!recv(cMessage, cIncomingContext, qkd::module::message_type::MESSAGE_TYPE_DATA, -1)) return false;
+        if (!recv(cMessage, cIncomingContext, qkd::module::message_type::MESSAGE_TYPE_DATA)) return false;
     }
     catch (std::runtime_error const & cRuntimeError) {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to receive message: " << cRuntimeError.what();
@@ -264,9 +255,9 @@ bool qkd_confirmation::process_bob(qkd::key::key & cKey, qkd::crypto::crypto_con
     uint64_t nPeerKeySize = 0;
     uint64_t nRounds = 0;
     
-    // recv data from alice: no timeout
+    // recv data from alice
     try {
-        if (!recv(cMessage, cIncomingContext, qkd::module::message_type::MESSAGE_TYPE_DATA, -1)) return false;
+        if (!recv(cMessage, cIncomingContext, qkd::module::message_type::MESSAGE_TYPE_DATA)) return false;
     }
     catch (std::runtime_error const & cRuntimeError) {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to receive message: " << cRuntimeError.what();
@@ -308,12 +299,12 @@ bool qkd_confirmation::process_bob(qkd::key::key & cKey, qkd::crypto::crypto_con
         ++iter;
     }
     
-    // send our parities back to alice: no timeout
+    // send our parities back to alice
     cMessage = qkd::module::message();
     for (auto bParity : cParities) cMessage.data() << bParity;
     
     try {
-        send(cMessage, cOutgoingContext, -1);
+        send(cMessage, cOutgoingContext);
     }
     catch (std::runtime_error const & cRuntimeError) {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to send message: " << cRuntimeError.what();
@@ -341,8 +332,6 @@ bool qkd_confirmation::process_bob(qkd::key::key & cKey, qkd::crypto::crypto_con
  * @return  the number of confirmation rounds done
  */
 qulonglong qkd_confirmation::rounds() const {
-    
-    // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     return d->nRounds;
 }
@@ -354,8 +343,6 @@ qulonglong qkd_confirmation::rounds() const {
  * @param   nRounds     the new number of confirmation rounds
  */
 void qkd_confirmation::set_rounds(qulonglong nRounds) {
-    
-    // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     d->nRounds = nRounds;
 }

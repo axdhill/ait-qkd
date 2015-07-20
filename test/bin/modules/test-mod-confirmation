@@ -44,7 +44,7 @@ test_init
 #rm -rf cat_keys.* &> /dev/null
 
 # create keys
-KEYS_TO_PROCESS="10"                
+KEYS_TO_PROCESS="100"                
 ${TEST_BASE}/bin/qkd-key-gen --size 4096 --keys ${KEYS_TO_PROCESS} cat_keys
 
 # truncate previous debug out
