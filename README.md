@@ -33,8 +33,6 @@ The whole project compiles in one single step, meaning no subprojects. This resu
     +-- bin                                             all executable programs
     |   +-- modules                                         all QKD post processing modules
     |   |   +-- qkd-auth                                        authentication module
-    |   |   +-- qkd-bb84                                        BB84 module
-    |   |   +-- qkd-buffer                                      bufferinge module, keypool
     |   |   +-- qkd-cascade                                     cascade error correction
     |   |   +-- qkd-cat                                         load a keystream from a file and feed the pipeline
     |   |   +-- qkd-confirmation                                confirmation module
@@ -46,6 +44,8 @@ The whole project compiles in one single step, meaning no subprojects. This resu
     |   |   +-- qkd-ping                                        touch remote peer module (administration module)
     |   |   +-- qkd-privacy-amplification                       privacy amplification module
     |   |   +-- qkd-reorder                                     randomly reorder keys in a keystream (development module)
+    |   |   +-- qkd-resize                                      resize incoming keys to a minimum or to an exact key size
+    |   |   +-- qkd-sifting-bb84                                BB84 module
     |   |   +-- qkd-statistics                                  writes statistic data of bypassing keystream to a file
     |   |   +-- qkd-tee                                         fork keystream to stderr and the next module
     |   |   +-- qkd-throttle                                    throttle key stream on bits or keys per second (development module)
@@ -134,7 +134,7 @@ Once you've run successful the "make" command you are enabled to run tests at yo
     $ make test
 
 This will run a series of tests to check the sanity of the qkd system built. If one or more test failed then this is a good indicator that something has gone awry. Please consult the AIT with the output of the command for support.
-   
+
 
 3.4 Packaging
 -------------
@@ -146,7 +146,7 @@ After a successful build, you might as well create DEB packages for install on v
 
 This will create a package `qkd_9.9999.5_amd64.deb` (or with the current version number embedded) in the current build folder.
 
-   
+
 4. Package install
 ------------------
 
