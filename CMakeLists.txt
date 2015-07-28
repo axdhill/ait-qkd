@@ -113,10 +113,9 @@ if (CMAKE_COMPILER_IS_GNUCC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -Wall -Wextra -pedantic -g -ggdb3 -rdynamic")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x -Wall -Wextra -pedantic -g -ggdb3 -rdynamic")
     
-    # TODO: make speed tests with -fno-builtin especially to
-    #       get a better memcpy performance
-    #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-builtin")
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-builtin")
+    # performance
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-builtin")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-builtin")
     
 endif (CMAKE_COMPILER_IS_GNUCC)
 
