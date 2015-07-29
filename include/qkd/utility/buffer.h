@@ -78,6 +78,9 @@ class buffer : public qkd::utility::memory {
     
 public:
 
+    
+    using qkd::utility::memory::add;
+    
 
     /**
      * exception type thrown when reading beyond space

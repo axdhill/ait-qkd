@@ -85,12 +85,10 @@ IPAddress::IPAddress(std::string IP,int prefix):IPAddress(IP){
 	if((IPfamily==AF_INET)  && (prefix > 32))  throw IPAddressException("IPv4 prefix can't be greater than 32");
 	if((IPfamily==AF_INET6) && (prefix > 128)) throw IPAddressException("IPv6 prefix can't be greater than 128");
 	IPprefix=(uint8_t)prefix;
-	IPfamily=IPfamily;//only to suppress annoying Eclipse warnings
 }
 
 IPAddress::IPAddress():IPAddress("0.0.0.0"){
 	IPfamily=AF_INET; //only to suppress annoying Eclipse warnings
-	IPprefix=IPprefix; //only to suppress annoying Eclipse warnings
 }
 
 uint16_t IPAddress::getFamily(){

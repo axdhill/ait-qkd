@@ -87,15 +87,6 @@ void show_config(config const & cConfig);
 
 
 // ------------------------------------------------------------
-// vars
-
-
-// g_nQuantumDetectionAlice[i] <==> g_nQuantumDetectionBob[i]
-static const unsigned char g_nQuantumDetectionAlice[4] = { 0x1, 0x02, 0x04, 0x08 };
-static const unsigned char g_nQuantumDetectionBob[4] = { 0x2, 0x01, 0x08, 0x04 };
-
-
-// ------------------------------------------------------------
 // code
 
 
@@ -107,6 +98,8 @@ static const unsigned char g_nQuantumDetectionBob[4] = { 0x2, 0x01, 0x08, 0x04 }
  * @return  a key as specified by config
  */
 qkd::key::key create(qkd::key::key_id nKeyId, config const & cConfig) {
+    
+    static const unsigned char g_nQuantum[4] = { 0x1, 0x02, 0x04, 0x08 };
     
     static std::random_device cRandomDevice;
     static std::mt19937 cRandomNumberGenerator(cRandomDevice());
@@ -136,7 +129,7 @@ qkd::key::key create(qkd::key::key_id nKeyId, config const & cConfig) {
             nRandom1 %= 4;
             nRandom2 %= 4;
 
-            cMemory.get()[i] = (g_nQuantumDetectionAlice[nRandom1] << 4) | g_nQuantumDetectionAlice[nRandom2];
+            cMemory.get()[i] = (g_nQuantum[nRandom1] << 4) | g_nQuantum[nRandom2];
         }
     }
     

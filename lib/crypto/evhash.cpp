@@ -465,7 +465,7 @@ protected:
             // recursion is possible, but only necesary for
             // bits that are > twice the field size, which we
             // never encounter in multiplication 
-            assert(NULL) ;
+            throw std::length_error("bit number in bit reduction exceeds allowed size.");
         }
     }
 
@@ -918,7 +918,7 @@ public:
      *
      * @return  size of a single block in bytes
      */
-    constexpr unsigned int block_size() { return GF_BITS / 8; }
+    unsigned int block_size() const { return GF_BITS / 8; }
 
 
     /**

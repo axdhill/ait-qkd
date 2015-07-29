@@ -36,13 +36,19 @@
 
 #include <chrono>
 
+#if defined(__GNUC__) and not defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-pedantic"
+#endif
+
 #include <qwt_plot_curve.h>
 #include <qwt_plot_grid.h>
 #include <qwt_scale_engine.h>
 #include <qwt_scale_widget.h>
+
+#if defined(__GNUC__) and not defined(__clang__)
 #pragma GCC diagnostic pop
+#endif
 
 // ait
 #include <qkd/module/module.h>
