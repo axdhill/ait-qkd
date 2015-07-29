@@ -46,16 +46,7 @@ ENABLE_TESTING()
 set(VERSION "9.9999.5")
 add_definitions(-DVERSION=\"${VERSION}\")
 
-# we relay on a GNU/BSD SOURCE
 add_definitions(-D_GNU_SOURCE)
-
-# glibc 2.20 and above use "_DEFAULT_SOURCE" 
-# instead of "_BSD_SOURCE"
-#
-# TODO: check glibc version and set definition
-#       properly.
-#
-#add_definitions(-D_BSD_SOURCE)
 add_definitions(-D_DEFAULT_SOURCE)
 
 # define __FILENAME__ as macro like __FILE__ but relativ to CMAKE_SOURCE_DIR

@@ -37,7 +37,6 @@
 
 #include <exception>
 #include <string>
-#include <boost/exception/all.hpp>
 
 // Qt
 #include <QtCore/QFile>

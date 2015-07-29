@@ -38,7 +38,6 @@
 #include <exception>
 #include <fstream>
 #include <string>
-#include <boost/exception/all.hpp>
 
 #include <openssl/x509.h>
 
