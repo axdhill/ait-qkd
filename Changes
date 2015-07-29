@@ -5,6 +5,20 @@ This file holds the changes of the AIT QKD R10 throughout the versions
 Changes from 9.9999.4 to 9.9999.5
 ---------------------------------
 
+* clang-3.6 support
+
+    If you want to compile with clang (clang.llvm.org) than we do now
+    support this compiler suite. After install 
+    (e.g. $ sudo apt-get install clang) you may switch freely between
+    gcc and clang.
+    
+    To enable clang you can set
+    
+         $ export CC=/usr/bin/clang
+         $ export CXX=/usr/bin/clang++
+         
+    prior before running "cmake .." in the build folder.
+
 * qkd-confirmation passes now disclosed keys as-is
 
     qkd-confirmation may occur right after error correction.
@@ -62,7 +76,7 @@ Changes from 9.9999.4 to 9.9999.5
     Hopefully there's a volunteer to step forward to enhance performance
     on this new implementation.
 
-* dopped UMAC authentication support, fixes #987
+* dropped UMAC authentication support, fixes #987
 
 * the number of keys "in transit" between two modules is now a maximimum of 10
 
