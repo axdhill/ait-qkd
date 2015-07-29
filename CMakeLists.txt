@@ -100,8 +100,8 @@ if (CMAKE_COMPILER_IS_GNUCC)
 
     endif (${CMAKE_C_COMPILER_VERSION} LESS 4.8)
     
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -Wall -Wextra -Werror -pedantic -g -ggdb3 -rdynamic")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x -Wall -Wextra -Werror -pedantic -g -ggdb3 -rdynamic")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -Wall -Wextra -pedantic -g -ggdb3 -rdynamic")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x -Wall -Wextra -pedantic -g -ggdb3 -rdynamic")
     
     # performance
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-builtin")
@@ -111,8 +111,8 @@ endif (CMAKE_COMPILER_IS_GNUCC)
 
 # set compile flags: clang
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -Wall -Wextra -Werror -g -ggdb3 ")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x -Wall -Wextra -Werror -g -ggdb3")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -Wall -Wextra -g -ggdb3 ")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x -Wall -Wextra -g -ggdb3")
 endif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
 
 # additional debug and profiling options
