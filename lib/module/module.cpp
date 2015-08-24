@@ -1847,6 +1847,7 @@ void module::work() {
 
     qkd::utility::debug() << "working on incoming keys started";
     
+    // main worker loop: get key, create context, process, forward, and check for termination
     do {
         
         d->bProcessing = false;
@@ -1855,6 +1856,7 @@ void module::work() {
         while (eState == qkd::module::module_state::STATE_READY) eState = wait_for_state_change(eState);
         if (eState != qkd::module::module_state::STATE_RUNNING) break;
         
+        // get a key
         qkd::key::key cKey;
         if (d->cStash.cInSync.size() > 0) {
             
@@ -1896,6 +1898,7 @@ void module::work() {
             }
         }
         
+        // create crypto context for retieved key
         qkd::crypto::crypto_context cIncomingContext = qkd::crypto::engine::create("null");
         qkd::crypto::crypto_context cOutgoingContext = qkd::crypto::engine::create("null");
         try {
@@ -1919,6 +1922,7 @@ void module::work() {
                     << ": failed to create outgoing crypto context for key";
         }
 
+        // call the module working method
         d->bProcessing = true;
         workload cWorkload = { qkd::module::work{ cKey, cIncomingContext, cOutgoingContext, false } };
         process(cWorkload);
@@ -1956,6 +1960,7 @@ void module::work() {
             }
         }
 
+        // check for exit
         if (d->nTerminateAfter != 0) {
 
             d->nTerminateAfter--;
