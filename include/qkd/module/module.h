@@ -1621,7 +1621,7 @@ protected:
     virtual bool recv(qkd::module::message & cMessage, 
             qkd::crypto::crypto_context & cAuthContext, 
             qkd::module::message_type eType = qkd::module::message_type::MESSAGE_TYPE_DATA, 
-            int nTimeOut = 1000) throw (std::runtime_error);
+            int nTimeOut = 1000);
 
     
     /**
@@ -1661,7 +1661,7 @@ protected:
      */
     virtual bool send(qkd::module::message & cMessage, 
             qkd::crypto::crypto_context & cAuthContext, 
-            int nTimeOut = -1) throw (std::runtime_error);
+            int nTimeOut = -1);
 
     
     /**
@@ -1827,7 +1827,7 @@ private:
      * @param   nTimeOut            timeout in ms
      * @return  true, if we have receuived a message
      */
-    bool recv_internal(qkd::module::message & cMessage, int nTimeOut = -1) throw (std::runtime_error);
+    bool recv_internal(qkd::module::message & cMessage, int nTimeOut = -1);
 
 
     /**
@@ -1835,7 +1835,7 @@ private:
      * 
      * @param   cMessage            the message received
      */
-    void recv_synchronize(qkd::module::message & cMessage) throw (std::runtime_error);
+    void recv_synchronize(qkd::module::message & cMessage);
     
     
     /**

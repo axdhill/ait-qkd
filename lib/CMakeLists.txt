@@ -150,6 +150,7 @@ set(QKD_SRC
     q3p/engine/ipsec/Utils.cpp
     
     # QKD module
+    module/connection.cpp
     module/communicator.cpp
     module/message.cpp
     module/module.cpp

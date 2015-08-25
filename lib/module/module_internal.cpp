@@ -43,99 +43,59 @@ using namespace qkd::module;
 
 
 // ------------------------------------------------------------
-// decl
-
-
-/**
- * module lib initilizer
- */
-class module_init {
-    
-    
-public:
-    
-    
-    /**
-     * ctor
-     */
-    module_init();
-    
-    
-    /**
-     * copy ctor
-     */
-    module_init(module_init const & rhs) = delete;
-    
-    
-    /**
-     * dtor
-     */
-    ~module_init();
-    
-    
-    /**
-     * the single ZeroMQ context used
-     * 
-     * @return  the 0MQ context
-     */
-    inline void * zmq_ctx() { return m_cZMQContext; };
-    
-
-private:
-    
-    
-    /**
-     * our single ZMQ context used
-     */
-    void * m_cZMQContext;
-    
-};
-
-
-// fwd
-bool is_ambiguous(QUrl const & cURL);
-
-
-// ------------------------------------------------------------
-// vars
-
-
-/**
- * create a static instance of the initilizer
- */
-static module_init g_cInit;
-
-
-// ------------------------------------------------------------
 // code
 
 
 /**
  * ctor
+ * 
+ * @param   cParentModule       the parent module of this inner module
+ * @param   sId                 module id
  */
-module_init::module_init() : m_cZMQContext(nullptr) {
+module::module_internal::module_internal(module * cParentModule, std::string sId) : cModule(cParentModule), sId(sId), nStartTimeStamp(0) { 
     
-    // this is the place to run module framework 
-    // init code.
-    //
-    // this is a singelton and won't run twice
+    // default values
     
-    m_cZMQContext = zmq_ctx_new();
-    assert(m_cZMQContext != nullptr);
+    eRole = module_role::ROLE_ALICE;
+    nTimeoutNetwork = 2500;
+    nTimeoutPipe = 2500;
+    eType = module_type::TYPE_OTHER;
+    
+    cRandom = qkd::utility::random_source::source();
+    
+    bSynchronizeKeys = true;
+    nSynchronizeTTL = 10;
+    
+    cLastProcessedKey = std::chrono::system_clock::now() - std::chrono::hours(1);
+    cModuleBirth = std::chrono::high_resolution_clock::now();
+    bProcessing = false;
+    bDebugMessageFlow = false;
+
+    cStash.nLastInSyncKeyPicked = 0;
+    nTerminateAfter = 0;
+    
+    cConListen = new connection(connection_type::LISTEN);
+    cConPeer = new connection(connection_type::PEER);
+    cConPipeIn = new connection(connection_type::PIPE_IN);
+    cConPipeOut = new connection(connection_type::PIPE_OUT);
+
+    cConPipeIn->setup("stdin://");
+    cConPipeOut->setup("stdout://");
 }
 
 
 /**
  * dtor
  */
-module_init::~module_init() {
-    
-    // this is run, when the process exits once.
-    // include here correct and graceful framwork
-    // and resource rundown.
-   
-    zmq_ctx_term(m_cZMQContext);
-    m_cZMQContext = nullptr;
+module::module_internal::~module_internal() {
+    if (cConPipeOut != nullptr) delete cConPipeOut;
+    cConPipeOut = nullptr;
+    if (cConPipeIn != nullptr) delete cConPipeIn;
+    cConPipeIn = nullptr;
+    if (cConPeer != nullptr) delete cConPeer;
+    cConPeer = nullptr;
+    if (cConListen != nullptr) delete cConListen;
+    cConListen = nullptr;
 }
 
 
@@ -181,60 +141,7 @@ void module::module_internal::add_stats_outgoing(qkd::key::key const & cKey) {
  * @param   sPeerURL        the remote instance URL
  */
 void module::module_internal::connect(std::string sPeerURL) {
-    this->sURLPeer = sPeerURL;
-}
-
-
-/**
- * create an IPC incoming path
- */
-boost::filesystem::path module::module_internal::create_ipc_in() const {
-    
-    // create some /tmp/qkd/id-pid.in file
-    // TODO: this should reside soemwhere in the /run folder: FHS!
-    boost::filesystem::path cIPCPath = boost::filesystem::temp_directory_path() / "qkd";
-    if (!boost::filesystem::exists(cIPCPath)) {
-        if (!boost::filesystem::create_directory(cIPCPath)) {
-            
-            // fail
-            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ 
-                    << ": failed to create folder " << cIPCPath.string();
-
-            return boost::filesystem::path();
-        }
-    }
-    
-    std::stringstream ss;
-    ss << sId << "-" << qkd::utility::environment::process_id() << ".in";
-    cIPCPath /= ss.str();
-    
-    return cIPCPath;
-}
-
-
-/**
- * create an IPC outgoing path
- */
-boost::filesystem::path module::module_internal::create_ipc_out() const {
-    
-    // create some /tmp/qkd/id-pid.out file
-    // TODO: this should reside soemwhere in the /run folder: FHS!
-    boost::filesystem::path cIPCPath = boost::filesystem::temp_directory_path() / "qkd";
-    if (!boost::filesystem::exists(cIPCPath)) {
-        if (!boost::filesystem::create_directory(cIPCPath)) {
-            
-            // fail
-            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ 
-                << ": failed to create folder " << cIPCPath.string();
-            return boost::filesystem::path();
-        }
-    }
-    
-    std::stringstream ss;
-    ss << sId << "-" << qkd::utility::environment::process_id() << ".out";
-    cIPCPath /= ss.str();
-    
-    return cIPCPath;
+    cConPeer->setup(sPeerURL);
 }
 
 
@@ -328,104 +235,6 @@ void module::module_internal::debug_key_push(qkd::key::key const & cKey) {
 
 
 /**
- * deduce a correct, proper URL from a would-be URL
- * 
- * @param   sURL        an url
- * @return  a good, real, usable url (or empty() in case of failure)
- */
-std::string module::module_internal::fix_url(std::string const & sURL) {
-
-    if (sURL == "stdin://") return sURL;
-    if (sURL == "stdout://") return sURL;
-
-    QUrl cURL(QString::fromStdString(sURL));
-    if (cURL.scheme() == "ipc") {
-        return fix_url_ipc(sURL);
-    }
-    if (cURL.scheme() == "tcp") {
-        return fix_url_tcp(sURL);
-    }
-        
-    qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "unknown URL scheme: " << sURL;
-    return std::string();
-}
-
-    
-/**
- * deduce a correct, proper IPC-URL from a would-be IPC-URL
- * 
- * @param   sURL        an url
- * @return  a good, real, usable url (or empty() in case of failure)
- */
-std::string module::module_internal::fix_url_ipc(std::string const & sURL) {
-
-    static const std::string::size_type nSchemeHeader = std::string("ipc://").size();
-    std::string sAddress = sURL.substr(nSchemeHeader);
-    if (sAddress.empty() || sAddress == "*") {
-        
-        // we got an unspecified socket file to bind
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
-                << ": failed to setup url: this is a unspecified IPC url: " << sURL;
-        return std::string();
-    }
-    
-    // check that the parent folder exists
-    boost::filesystem::path cPath(sAddress);
-    cPath = cPath.parent_path();
-    if (!boost::filesystem::exists(cPath)) {
-        if (!create_directory(cPath)) {
-            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
-                    << ": failed to setup url: can't access ipc location: " << sURL;
-            return std::string();
-        }
-    }
-    
-    return sURL;
-}
-
-
-/**
- * deduce a correct, proper TCP-URL from a would-be TCP-URL
- * 
- * @param   sURL        an url
- * @return  a good, real, usable url (or empty() in case of failure)
- */
-std::string module::module_internal::fix_url_tcp(std::string const & sURL) {
-
-    // decuce proper IP of host
-    QUrl cURL(QString::fromStdString(sURL));
-    QString sAddress = cURL.host();
-    if (sAddress.isEmpty() || sAddress == "*") {
-        
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
-                << ": provided '*' as host to listen on";
-        sAddress = QString::fromStdString("0.0.0.0");
-    }
-    
-    // turn any (possible) hostname into an IP address
-    std::set<std::string> cAddressesForHost = qkd::utility::environment::host_lookup(sAddress.toStdString());
-    if (cAddressesForHost.empty()) {
-        qkd::utility::syslog::warning() << "failed to listen: unable to get IP address for hostname: " 
-                << sAddress.toStdString();
-        return std::string();
-    }
-    
-    // pick the first
-    sAddress = QString::fromStdString(*cAddressesForHost.begin());
-    
-    std::stringstream ss;
-    ss << "tcp://";
-    ss << sAddress.toStdString();
-    if (cURL.port() != -1) {
-        ss << ":";
-        ss << cURL.port();
-    }
-    
-    return ss.str();
-}
-
-
-/**
  * get the current module state
  * 
  * @return  the current module state
@@ -443,42 +252,15 @@ void module::module_internal::release() {
     
     set_state(module_state::STATE_TERMINATING);
     
-    // free ZMQ stuff (if any)
-    
-    release_socket(cSocketListener);
-    release_socket(cSocketPeer);
-    release_socket(cSocketPipeIn);
-    release_socket(cSocketPipeOut);
-    
-    // reset connection settings to initial
-    bPipeInStdin = false;
-    bPipeInVoid = true;
-    bPipeOutStdout = false;
-    bPipeOutVoid = true;
-    
-    // if restarted we have to indicate to start connections anew
-    bSetupListen = true;
-    bSetupPeer = true;
-    bSetupPipeIn = true;
-    bSetupPipeOut = true;
+    cConListen->reset();
+    cConPeer->reset();
+    cConPipeIn->reset();
+    cConPipeOut->reset();
     
     set_state(module_state::STATE_TERMINATED);
 }
 
 
-/**
- * clean resources on a socket
- *
- * @param   cSocket     the socket to release
- */
-void module::module_internal::release_socket(void * & cSocket) {
-    if (cSocket != nullptr) {
-        zmq_close(cSocket);
-    }
-    cSocket = nullptr;
-}
-
- 
 /**
  * set a new module state
  * 
@@ -513,29 +295,19 @@ bool module::module_internal::setup() {
  * @return  true, for success
  */
 bool module::module_internal::setup_listen() {
-
+    
     std::lock_guard<std::mutex> cLock(cURLMutex);
     
-    bSetupListen = false;
-    if (cSocketListener) zmq_close(cSocketListener);
-    cSocketListener = nullptr;
-    
-    if (!sURLListen.empty()) sURLListen = fix_url(sURLListen);
-    if (sURLListen.empty()) return true;
-    
-    cSocketListener = zmq_socket(g_cInit.zmq_ctx(), ZMQ_DEALER);
-    setup_socket(cSocketListener, 1000, nTimeoutNetwork);
-    
-    qkd::utility::syslog::info() << "binding module listen on " << sURLListen;
-    if (zmq_bind(cSocketListener, sURLListen.c_str()) == -1) {
-        std::stringstream ss;
-        ss << "failed to bind socket: " << strerror(zmq_errno());
-        throw std::runtime_error(ss.str());
+    try {
+        cConListen->setup(1000, nTimeoutNetwork);
+        qkd::utility::debug() << "listen set to '" << cConListen->url() << "'";
+        return true;
+    }
+    catch (std::exception & e) {
+        qkd::utility::syslog::warning() << "failed to set listen set to '" << cConListen->url() << "': " << e.what();
     }
     
-    qkd::utility::debug() << "listen set to '" << sURLListen << "'";
-        
-    return true;
+    return false;
 }
 
 
@@ -545,24 +317,19 @@ bool module::module_internal::setup_listen() {
  * @return  true, for success
  */
 bool module::module_internal::setup_peer() {
-
+    
     std::lock_guard<std::mutex> cLock(cURLMutex);
     
-    bSetupPeer = false;
-    if (cSocketPeer) zmq_close(cSocketPeer);
-    cSocketPeer = nullptr;
+    try {
+        cConPeer->setup(1000, nTimeoutNetwork);
+        qkd::utility::debug() << "connected to '" << cConPeer->url() << "'";
+        return true;
+    }
+    catch (std::exception & e) {
+        qkd::utility::syslog::warning() << "failed to connect to '" << cConPeer->url() << "': " << e.what();
+    }
     
-    if (!sURLPeer.empty()) sURLPeer = fix_url(sURLPeer);
-    if (sURLPeer.empty()) return true;
-
-    cSocketPeer = zmq_socket(g_cInit.zmq_ctx(), ZMQ_DEALER);
-    setup_socket(cSocketPeer, 1000, nTimeoutNetwork);
-
-    zmq_connect(cSocketPeer, sURLPeer.c_str());
-    
-    qkd::utility::debug() << "connected to '" << sURLPeer << "'";
-
-    return true;
+    return false;
 }
 
 
@@ -575,61 +342,14 @@ bool module::module_internal::setup_pipe_in() {
     
     std::lock_guard<std::mutex> cLock(cURLMutex);
     
-    bSetupPipeIn = false;
-    if (cSocketPipeIn) zmq_close(cSocketPipeIn);
-    cSocketPipeIn = nullptr;
-    bPipeInStdin = false;
-    bPipeInVoid = true;
-
-    if (sURLPipeIn.empty()) return true;
-    
-    QUrl cURLPipeIn(QString::fromStdString(sURLPipeIn));
-    if (cURLPipeIn.scheme() == "stdout") {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
-                << ": input pipe stream can't be 'stdout'";
-        return false;
-    }
-    
-    if (cURLPipeIn.scheme() == "stdin") {
-        if (qkd::utility::debug::enabled()) qkd::utility::debug() << "input pipe stream set to 'stdin://'";
-        bPipeInStdin = true;
-        bPipeInVoid = false;
+    try {
+        cConPipeIn->setup(10, nTimeoutPipe, sId, "in");
+        qkd::utility::debug() << "input pipe stream set to '" << cConPipeIn->url() << "'";
         return true;
     }
-    
-    if (cURLPipeIn.scheme() == "ipc") {
-        
-        // pick the correct IPC path
-        boost::filesystem::path cIPC(cURLPipeIn.path().toStdString());
-        if (cIPC.empty()) cIPC = create_ipc_in();
-        if (cIPC.empty()) {
-            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ 
-                    << ": failed to create input IPC for '" << sURLPipeIn << "'";
-            return false;
-        }
-        
-        sURLPipeIn = fix_url_ipc("ipc://" + cIPC.string());
-        cURLPipeIn = QUrl(QString::fromStdString(sURLPipeIn));
+    catch (std::exception & e) {
+        qkd::utility::syslog::warning() << "failed to set pipe in to '" << cConPipeIn->url() << "': " << e.what();
     }
-        
-    if ((cURLPipeIn.scheme() == "ipc") || (cURLPipeIn.scheme() == "tcp")) {
-        
-        bPipeInStdin = false;
-        bPipeInVoid = false;
-        
-        cSocketPipeIn = zmq_socket(g_cInit.zmq_ctx(), ZMQ_PULL);
-        setup_socket(cSocketPipeIn, 10, nTimeoutPipe); 
-        
-        zmq_bind(cSocketPipeIn, sURLPipeIn.c_str());
-        
-        qkd::utility::debug() << "input pipe stream set to '" << sURLPipeIn << "'";
-            
-        return true;
-    }
-    
-    // at this line: we do not know how to handle this type of URL
-    qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
-            << ": input pipe url scheme not recognized: " << cURLPipeIn.scheme().toStdString();
     
     return false;
 }
@@ -644,120 +364,16 @@ bool module::module_internal::setup_pipe_out() {
 
     std::lock_guard<std::mutex> cLock(cURLMutex);
     
-    bSetupPipeOut = false;
-    if (cSocketPipeOut) zmq_close(cSocketPipeOut);
-    cSocketPipeOut = nullptr;
-    bPipeOutStdout = false;
-    bPipeOutVoid = true;
-    
-    if (sURLPipeOut.empty()) return true;
-    
-    QUrl cURLPipeOut(QString::fromStdString(sURLPipeOut));
-    if (cURLPipeOut.scheme() == "stdin") {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
-                << ": output pipe stream can't be 'stdin'";
-        return false;
-    }
-    
-    if (cURLPipeOut.scheme() == "stdout") {
-        qkd::utility::debug() << "output pipe stream set to 'stdout://'";
-        bPipeOutStdout = true;
-        bPipeOutVoid = false;
+    try {
+        cConPipeOut->setup(10, nTimeoutPipe);
+        qkd::utility::debug() << "output pipe stream set to '" << cConPipeOut->url() << "'";
         return true;
     }
-    
-    if (cURLPipeOut.scheme() == "ipc") {
-        
-        // pick the correct IPC path
-        boost::filesystem::path cIPC(cURLPipeOut.path().toStdString());
-        if (cIPC.empty()) cIPC = create_ipc_out();
-        if (cIPC.empty()) {
-            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ 
-                    << ": failed to create output IPC for '" << sURLPipeOut  << "'";
-            return false;
-        }
-        
-        sURLPipeOut = fix_url_ipc("ipc://" + cIPC.string());
-        cURLPipeOut = QUrl(QString::fromStdString(sURLPipeOut));
+    catch (std::exception & e) {
+        qkd::utility::syslog::warning() << "failed to set pipe out to '" << cConPipeOut->url() << "': " << e.what();
     }
-        
-    if ((cURLPipeOut.scheme() == "ipc") || (cURLPipeOut.scheme() == "tcp")) {
-        
-        bPipeOutStdout = false;
-        bPipeOutVoid = false;
-        
-        cSocketPipeOut = zmq_socket(g_cInit.zmq_ctx(), ZMQ_PUSH);
-        setup_socket(cSocketPipeOut, 10, nTimeoutPipe);
-        
-        // warn if we use a "*" or empty host here
-        if (is_ambiguous(cURLPipeOut)) {
-            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
-                << ": warning: pipe-out URL '" << sURLPipeOut << "' "
-                << "contains ambiguous host address - this may fail!";
-        }
-        
-        zmq_connect(cSocketPipeOut, sURLPipeOut.c_str());
-        
-        qkd::utility::debug() << "output pipe stream set to '" << sURLPipeOut << "'";
-        
-        return true;
-    }
-    
-    // at this line: we do not know how to handle this type of URL
-    qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
-            << ": output pipe url scheme not recognized: " << cURLPipeOut.scheme().toStdString();
     
     return false;
-}
-
-
-/**
- * setup socket with high water mark and timeout
- *
- * also linger will be set to 0
- *
- * @param   cSocket             socket to modify
- * @param   nHighWaterMark      high water mark
- * @param   nTimeout            timeout on socket
- */
-void module::module_internal::setup_socket(void * & cSocket, int nHighWaterMark, int nTimeout) {
-
-    if (zmq_setsockopt(cSocket, ZMQ_RCVHWM, &nHighWaterMark, sizeof(nHighWaterMark)) == -1) {
-        std::stringstream ss;
-        ss << "failed to set high water mark on socket: " << strerror(zmq_errno());
-        zmq_close(cSocket);
-        cSocket = nullptr;
-        throw std::runtime_error(ss.str());
-    }
-    if (zmq_setsockopt(cSocket, ZMQ_SNDHWM, &nHighWaterMark, sizeof(nHighWaterMark)) == -1) {
-        std::stringstream ss;
-        ss << "failed to set high water mark on socket: " << strerror(zmq_errno());
-        zmq_close(cSocket);
-        cSocket = nullptr;
-        throw std::runtime_error(ss.str());
-    }
-    if (zmq_setsockopt(cSocket, ZMQ_RCVTIMEO, &nTimeout, sizeof(nTimeout)) == -1) {
-        std::stringstream ss;
-        ss << "failed to set receive timeout on socket: " << strerror(zmq_errno());
-        zmq_close(cSocket);
-        cSocket = nullptr;
-        throw std::runtime_error(ss.str());
-    }
-    if (zmq_setsockopt(cSocket, ZMQ_SNDTIMEO, &nTimeout, sizeof(nTimeout)) == -1) {
-        std::stringstream ss;
-        ss << "failed to set send timeout on socket: " << strerror(zmq_errno());
-        zmq_close(cSocket);
-        cSocket = nullptr;
-        throw std::runtime_error(ss.str());
-    }
-
-    int nLinger = 0;
-    if (zmq_setsockopt(cSocket, ZMQ_LINGER, &nLinger, sizeof(nLinger)) == -1) {
-        std::stringstream ss;
-        ss << "failed to set linger on socket: " << strerror(zmq_errno());
-        throw std::runtime_error(ss.str());
-    }
-
 }
 
     
@@ -777,26 +393,3 @@ module_state module::module_internal::wait_for_state_change(module_state eWorkin
     while (eWorkingState == eState) cStateCondition.wait(cLock);
     return eState;
 }
-
-
-/**
- * check if the given URL holds an ambiguous address
- *
- * This is only valid for tcp schemes. So this returns true
- * on 
- *          tcp:// *:PORT/...
- *
- * @param   cURL        an url to check
- * @return  true, if the URL contains an ambiguous host
- */
-bool is_ambiguous(QUrl const & cURL) {
-
-    if (cURL.scheme() != "tcp") return false;
-
-    if (cURL.host().isEmpty()) return true;
-    if (cURL.host() == "*") return true;
-    if (cURL.host() == "0.0.0.0") return true;
-
-    return false;
-}
-
