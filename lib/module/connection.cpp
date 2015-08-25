@@ -406,6 +406,96 @@ bool connection::read_key(qkd::key::key & cKey) {
 
 
 /**
+ * read a message
+ *
+ * this call is blocking (with respect to timeout)
+ * 
+ * The nTimeOut value is interpreted in these ways:
+ * 
+ *      n ...   wait n milliseconds for an reception of a message
+ *      0 ...   do not wait: get the next message and return
+ *     -1 ...   wait infinite (must be interrupted: see interrupt_worker())
+ *     
+ * The given message object will be deleted with delet before assigning new values.
+ * Therefore if message receive has been successful the message is not NULL
+ * 
+ * This call waits explcitly for the next message been of type eType. If this
+ * is NOT the case a exception is thrown.
+ * 
+ * @param   cMessage            this will receive the message
+ * @param   nTimeOut            timeout in ms
+ * @return  true, if we have received a message
+ */
+bool connection::recv_message(qkd::module::message & cMessage, int nTimeOut) {
+
+    if (m_cSocket == nullptr) throw std::runtime_error("tried to receive a message on a NULL socket");
+    
+    if (zmq_setsockopt(m_cSocket, ZMQ_RCVTIMEO, &nTimeOut, sizeof(nTimeOut)) == -1) {
+        std::stringstream ss;
+        ss << "failed to set timeout on socket: " << strerror(zmq_errno());
+        throw std::runtime_error(ss.str());
+    }
+    
+    zmq_msg_t cZMQHeader;
+    if (zmq_msg_init(&cZMQHeader) != 0) {
+        std::stringstream ss;
+        ss << "failed to init message header: " << strerror(zmq_errno());
+        throw std::runtime_error(ss.str());
+    }
+    
+    int nReadHeader = zmq_msg_recv(&cZMQHeader, m_cSocket, 0);
+    if (nReadHeader == -1) {
+
+        // EAGAIN and EINTR are not critical
+        if ((zmq_errno() == EAGAIN) || (zmq_errno() == EINTR)) {
+            zmq_msg_close(&cZMQHeader);
+            return false;
+        }
+
+        std::stringstream ss;
+        ss << "failed reading message header from peer: " << strerror(zmq_errno());
+        zmq_msg_close(&cZMQHeader);
+        throw std::runtime_error(ss.str());
+    }
+    if (!zmq_msg_more(&cZMQHeader) || (zmq_msg_size(&cZMQHeader) != sizeof(cMessage.m_cHeader))) {
+        throw std::runtime_error("received invalid message header");
+    }
+
+    memcpy(&(cMessage.m_cHeader), (unsigned char *)zmq_msg_data(&cZMQHeader), sizeof(cMessage.m_cHeader));
+    zmq_msg_close(&cZMQHeader);
+
+    zmq_msg_t cZMQData;
+    if (zmq_msg_init(&cZMQData) != 0) {
+        std::stringstream ss;
+        ss << "failed to init message: " << strerror(zmq_errno());
+        throw std::runtime_error(ss.str());
+    }
+    
+    int nReadData = zmq_msg_recv(&cZMQData, m_cSocket, 0);
+    if (nReadData == -1) {
+
+        // EAGAIN and EINTR are not critical
+        if ((zmq_errno() == EAGAIN) || (zmq_errno() == EINTR)) {
+            zmq_close(&cZMQData);
+            return false;
+        }
+
+        std::stringstream ss;
+        ss << "failed reading message data from peer: " << strerror(zmq_errno());
+        zmq_msg_close(&cZMQData);
+        throw std::runtime_error(ss.str());
+    }
+
+    cMessage.data().resize(zmq_msg_size(&cZMQData));
+    memcpy(cMessage.data().get(), zmq_msg_data(&cZMQData), zmq_msg_size(&cZMQData));
+    cMessage.data().set_position(0);
+    zmq_msg_close(&cZMQData);
+    
+    return true;
+}    
+    
+    
+/**
  * resets the connection to an empty void state
  */
 void connection::reset() {
@@ -415,6 +505,68 @@ void connection::reset() {
     m_bStdOut = false;
     m_bVoid = true;
     m_bSetup = true;
+}
+
+
+/**
+ * send a message to the peer
+ * 
+ * this call is blocking (with respect to timout)
+ * 
+ * The nTimeOut value is interpreted in these ways:
+ * 
+ *      n ...   wait n milliseconds
+ *      0 ...   do not wait
+ *     -1 ...   wait infinite (must be interrupted: see interrupt_worker())
+ *     
+ * Note: this function takes ownership of the message's data sent! 
+ * Afterwards the message's data will be void
+ * 
+ * Sending might fail on interrupt.
+ *
+ * @param   cMessage            the message to send
+ * @param   nTimeOut            timeout in ms
+ * @returns true, if successfully sent
+ */
+bool connection::send_message(qkd::module::message & cMessage, int nTimeOut) {
+    
+    if (m_cSocket == nullptr) throw std::runtime_error("tried to send a message on a NULL socket");
+    
+    if (zmq_setsockopt(m_cSocket, ZMQ_SNDTIMEO, &nTimeOut, sizeof(nTimeOut)) == -1) {
+        std::stringstream ss;
+        ss << "failed to set timeout on socket: " << strerror(zmq_errno());
+        throw std::runtime_error(ss.str());
+    }
+
+    cMessage.m_cHeader.nId = htobe32(++qkd::module::message::m_nLastId);
+    cMessage.m_cTimeStamp = std::chrono::high_resolution_clock::now();
+
+    int nSentHeader = zmq_send(m_cSocket, &(cMessage.m_cHeader), sizeof(cMessage.m_cHeader), ZMQ_SNDMORE);
+    if (nSentHeader == -1) {
+
+        // EINTR is not critical
+        if (zmq_errno() == EINTR) {
+            return false;
+        }
+
+        std::stringstream ss;
+        ss << "failed sending message header to peer: " << strerror(zmq_errno());
+        throw std::runtime_error(ss.str());
+    }
+
+    int nSentData = zmq_send(m_cSocket, cMessage.data().get(), cMessage.data().size(), 0);
+    if (nSentData == -1) {
+
+        // EINTR is not critical
+        if (zmq_errno() == EINTR) {
+            return false;
+        }
+        std::stringstream ss;
+        ss << "failed sending message data to peer: " << strerror(zmq_errno());
+        throw std::runtime_error(ss.str());
+    }
+
+    return true;
 }
 
 

@@ -44,6 +44,7 @@
 #include <QtCore/QUrl>
 
 #include <qkd/key/key.h>
+#include <qkd/module/message.h>
 
 
 // ------------------------------------------------------------
@@ -184,6 +185,30 @@ public:
     
     
     /**
+     * read a message
+     *
+     * this call is blocking (with respect to timeout)
+     * 
+     * The nTimeOut value is interpreted in these ways:
+     * 
+     *      n ...   wait n milliseconds for an reception of a message
+     *      0 ...   do not wait: get the next message and return
+     *     -1 ...   wait infinite (must be interrupted: see interrupt_worker())
+     *     
+     * The given message object will be deleted with delet before assigning new values.
+     * Therefore if message receive has been successful the message is not NULL
+     * 
+     * This call waits explcitly for the next message been of type eType. If this
+     * is NOT the case a exception is thrown.
+     * 
+     * @param   cMessage            this will receive the message
+     * @param   nTimeOut            timeout in ms
+     * @return  true, if we have received a message
+     */
+    bool recv_message(qkd::module::message & cMessage, int nTimeOut);
+    
+    
+    /**
      * resets the connection to an empty void state
      * 
      * This closes all sockets.
@@ -207,6 +232,29 @@ public:
     void set_url(std::string sURL);
     
 
+    /**
+     * send a message to the peer
+     * 
+     * this call is blocking (with respect to timout)
+     * 
+     * The nTimeOut value is interpreted in these ways:
+     * 
+     *      n ...   wait n milliseconds
+     *      0 ...   do not wait
+     *     -1 ...   wait infinite (must be interrupted: see interrupt_worker())
+     *     
+     * Note: this function takes ownership of the message's data sent! 
+     * Afterwards the message's data will be void
+     * 
+     * Sending might fail on interrupt.
+     *
+     * @param   cMessage            the message to send
+     * @param   nTimeOut            timeout in ms
+     * @returns true, if successfully sent
+     */
+    bool send_message(qkd::module::message & cMessage, int nTimeOut);
+        
+        
     /**
      * setup the connection with the given url
      * 

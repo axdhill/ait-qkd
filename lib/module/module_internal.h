@@ -37,9 +37,6 @@
 
 #include "config.h"
 
-// 0MQ
-#include <zmq.h>
-
 #include <atomic>
 #include <condition_variable>
 #include <map>

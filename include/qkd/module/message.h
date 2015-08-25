@@ -79,8 +79,8 @@ enum class message_type : uint32_t {
 class message {
     
     
+    friend class connection;
     friend class module;
-    
     
 public:
     

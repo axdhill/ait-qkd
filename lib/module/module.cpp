@@ -848,71 +848,10 @@ bool module::recv_internal(qkd::module::message & cMessage, int nTimeOut) {
         throw std::runtime_error("failed to decide which channel to use for recv");
     }
     
-    if (zmq_setsockopt(cCon->socket(), ZMQ_RCVTIMEO, &nTimeOut, sizeof(nTimeOut)) == -1) {
-        std::stringstream ss;
-        ss << "failed to set timeout on socket: " << strerror(zmq_errno());
-        throw std::runtime_error(ss.str());
-    }
-    
-    zmq_msg_t cZMQHeader;
-    if (zmq_msg_init(&cZMQHeader) != 0) {
-        std::stringstream ss;
-        ss << "failed to init message header: " << strerror(zmq_errno());
-        throw std::runtime_error(ss.str());
-    }
-    
-    int nReadHeader = zmq_msg_recv(&cZMQHeader, cCon->socket(), 0);
-    if (nReadHeader == -1) {
-
-        // EAGAIN and EINTR are not critical
-        if ((zmq_errno() == EAGAIN) || (zmq_errno() == EINTR)) {
-            zmq_msg_close(&cZMQHeader);
-            return false;
-        }
-
-        std::stringstream ss;
-        ss << "failed reading message header from peer: " << strerror(zmq_errno());
-        zmq_msg_close(&cZMQHeader);
-        throw std::runtime_error(ss.str());
-    }
-    if (!zmq_msg_more(&cZMQHeader) || (zmq_msg_size(&cZMQHeader) != sizeof(cMessage.m_cHeader))) {
-            throw std::runtime_error("received invalid message header");
-    }
-
-    memcpy(&(cMessage.m_cHeader), (unsigned char *)zmq_msg_data(&cZMQHeader), sizeof(cMessage.m_cHeader));
-    zmq_msg_close(&cZMQHeader);
-
-    zmq_msg_t cZMQData;
-    if (zmq_msg_init(&cZMQData) != 0) {
-        std::stringstream ss;
-        ss << "failed to init message: " << strerror(zmq_errno());
-        throw std::runtime_error(ss.str());
-    }
-    
-    int nReadData = zmq_msg_recv(&cZMQData, cCon->socket(), 0);
-    if (nReadData == -1) {
-
-        // EAGAIN and EINTR are not critical
-        if ((zmq_errno() == EAGAIN) || (zmq_errno() == EINTR)) {
-            zmq_close(&cZMQData);
-            return false;
-        }
-
-        std::stringstream ss;
-        ss << "failed reading message data from peer: " << strerror(zmq_errno());
-        zmq_msg_close(&cZMQData);
-        throw std::runtime_error(ss.str());
-    }
-
-    cMessage.data().resize(zmq_msg_size(&cZMQData));
-    memcpy(cMessage.data().get(), zmq_msg_data(&cZMQData), zmq_msg_size(&cZMQData));
-    cMessage.data().set_position(0);
-    zmq_msg_close(&cZMQData);
-
+    if (!cCon->recv_message(cMessage, nTimeOut)) return false;
     if (is_dying_state()) return false;
 
     cMessage.m_cTimeStamp = std::chrono::high_resolution_clock::now();
-    
     d->debug_message(false, cMessage);
   
     return true;
@@ -1141,41 +1080,9 @@ bool module::send(qkd::module::message & cMessage, qkd::crypto::crypto_context &
         throw std::runtime_error("failed to decide which channel to use for send");
     }
     
-    if (zmq_setsockopt(cCon->socket(), ZMQ_SNDTIMEO, &nTimeOut, sizeof(nTimeOut)) == -1) {
-        std::stringstream ss;
-        ss << "failed to set timeout on socket: " << strerror(zmq_errno());
-        throw std::runtime_error(ss.str());
-    }
-
-    cMessage.m_cHeader.nId = htobe32(++qkd::module::message::m_nLastId);
-    cMessage.m_cTimeStamp = std::chrono::high_resolution_clock::now();
+    if (!cCon->send_message(cMessage, nTimeOut)) return false;
     d->debug_message(true, cMessage);
-
-    int nSentHeader = zmq_send(cCon->socket(), &(cMessage.m_cHeader), sizeof(cMessage.m_cHeader), ZMQ_SNDMORE);
-    if (nSentHeader == -1) {
-
-        // EINTR is not critical
-        if (zmq_errno() == EINTR) {
-            return false;
-        }
-
-        std::stringstream ss;
-        ss << "failed sending message header to peer: " << strerror(zmq_errno());
-        throw std::runtime_error(ss.str());
-    }
-
-    int nSentData = zmq_send(cCon->socket(), cMessage.data().get(), cMessage.data().size(), 0);
-    if (nSentData == -1) {
-
-        // EINTR is not critical
-        if (zmq_errno() == EINTR) {
-            return false;
-        }
-        std::stringstream ss;
-        ss << "failed sending message data to peer: " << strerror(zmq_errno());
-        throw std::runtime_error(ss.str());
-    }
-
+    
     cAuthContext << cMessage.data();
     cMessage = qkd::module::message();    
 
