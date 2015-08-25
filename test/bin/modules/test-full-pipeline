@@ -63,7 +63,7 @@ echo -n > auth_post_debug.alice
 echo -n > auth_post_debug.bob
 
 # create keys
-KEYS_TO_PROCESS="10000"
+KEYS_TO_PROCESS="1000"
 ${TEST_BASE}/bin/qkd-key-gen --size 2048 --keys ${KEYS_TO_PROCESS} --quantum --rate 0.03 cat_keys
 
 # prepare the config files
