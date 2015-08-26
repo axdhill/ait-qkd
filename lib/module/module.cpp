@@ -69,16 +69,15 @@
 
 #include "module_internal.h"
 
-
 using namespace qkd::module;
 
 
-// ------------------------------------------------------------
-// fwd.
-
-void memory_delete(void * cData, void * cHint);
-
-
+// // ------------------------------------------------------------
+// // fwd.
+// 
+// void memory_delete(void * cData, void * cHint);
+// 
+// 
 // ------------------------------------------------------------
 // code
 
@@ -1832,19 +1831,19 @@ bool module::write(qkd::key::key const & cKey) {
 }
 
 
-/**
- * delete a buffer function
- * needed for ZMQ delayed deletion of queued messges
- * 
- * This function assumes that the object referenced
- * by cHint is a qkd::utility::buffer instance
- * created with "new".
- * 
- * @param   cData           the data sent
- * @param   cHint           the buffer object itself
- */
-void memory_delete(UNUSED void * cData, void * cHint) {
-    qkd::utility::memory * cMemory = static_cast<qkd::utility::memory *>(cHint);
-    if (cMemory != nullptr) delete cMemory;
-}
+// /**
+//  * delete a buffer function
+//  * needed for ZMQ delayed deletion of queued messges
+//  * 
+//  * This function assumes that the object referenced
+//  * by cHint is a qkd::utility::buffer instance
+//  * created with "new".
+//  * 
+//  * @param   cData           the data sent
+//  * @param   cHint           the buffer object itself
+//  */
+// void memory_delete(UNUSED void * cData, void * cHint) {
+//     qkd::utility::memory * cMemory = static_cast<qkd::utility::memory *>(cHint);
+//     if (cMemory != nullptr) delete cMemory;
+// }
 
