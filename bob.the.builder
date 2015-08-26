@@ -94,8 +94,8 @@ mkdir build &> /dev/null
     cmake ..
     echo 'make...'
     make || exit 1
-    echo 'make test...'
-    make test || exit 1
+    echo 'ctest -V...'
+    ctest -V || exit 1
     echo 'make package...'
     make package || exit 1
 )

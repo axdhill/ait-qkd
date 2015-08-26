@@ -274,6 +274,7 @@ function wait_stalled() {
         echo "waiting for module(s) '${MODULE}' to be stalled ..."
         ${TEST_BASE}/bin/qkd-view --short | grep "module: *${MODULE}.*true *$" | while read LINE; do
             qkd_qdbus $(echo ${LINE} | awk '{ print $3; }') /Module terminate > /dev/null
+            echo "sent terminate signal to module" $(echo ${LINE} | awk '{ print $3; }')
         done
         
         NOT_STALLED=$(${TEST_BASE}/bin/qkd-view --short | grep "module: *${MODULE}.*false *$" | wc -l)
