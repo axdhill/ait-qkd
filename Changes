@@ -5,6 +5,31 @@ This file holds the changes of the AIT QKD R10 throughout the versions
 Changes from 9.9999.4 to 9.9999.5
 ---------------------------------
 
+* module connections I/O overhaul
+
+    The module's connection pipe_in, pipe_out, peer (alice) and 
+    listen (bob) have been undergone a major overhaul. Now the module
+    has four connections objects each with a number of "paths" to 
+    remotes. 
+    
+    In theory the number of paths for each connection is unlimited.
+    Though this has to be more investigated.
+    
+    To add more than one path to a connection seperate each url
+    to the connection with ";".
+    
+    E.g. set pipe_out to multiple remotes:
+        url_pipe_out = "ipc://run/qkd/next_module.1;ipc://run/qkd/next_module.2"
+        
+        would pass the processed keys to 
+        - ipc://run/qkd/next_module.1
+        and
+        - ipc://run/qkd/next_module.2
+        
+        However, currently we support only ROUND_ROBIN. Meaning
+        a key goes to ipc://run/qkd/next_module.1 and the next
+        to ipc://run/qkd/next_module.2.
+
 * clang-3.6 support
 
     If you want to compile with clang (clang.llvm.org) than we do now
