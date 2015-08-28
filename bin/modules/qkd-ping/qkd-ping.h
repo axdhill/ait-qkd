@@ -122,7 +122,6 @@ public:
 
     /**
      * set a new number of milliseconds to wait between a roundtrip
-     * this number must be a multple of timeout()
      * 
      * @param   nSleepTime      the new number of milliseconds to sleep
      */    

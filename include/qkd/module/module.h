@@ -340,28 +340,6 @@ enum class module_type : uint8_t {
  * This hint maybe usefull if you start a series of the very same module participating
  * on the very samy pipeline.
  * 
- * 
- * Note on timeouts:
- * 
- * A module supports two different timeout values:
- * 
- *      timeout_network:    This is the timeout value for send/recv operations
- *                          to/from the peer module when paired. 
- *
- *      timeout_pipe:       This is the timeout value for send/recv operations
- *                          to/from the peer module when paired. The value has
- *                          these interpretations:
- * 
- *      The value has these interpretations:
- * 
- *      n ......... any value >0 is treated as maximum wait time in milliseconds
- * 
- *      0 ......... do not wait at all. For recv this means pick the next message
- *                  if there is one. If there doesn't then return immediately
- * 
- *      -1 ........ wait infinite.                                  
- * 
- * 
  * To check all present modules on the current system use a investigation object.
  * 
  * 
@@ -1510,8 +1488,6 @@ protected:
      *      module.ID.random_url
      *      module.ID.synchronize_keys
      *      module.ID.synchronize_ttl
-     *      module.ID.timeout_network
-     *      module.ID.timeout_pipe
      * 
      * where ID is the module id as been resulted by the id() call.
      * 

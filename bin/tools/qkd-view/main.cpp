@@ -222,7 +222,7 @@ void dump_modules(std::map<std::string, qkd::utility::properties> const & cModul
         set_column_width(g_cColumnWidth.cModule, cModule.second);
     }
     
-    // construct the format string: "module:" id - dbus - pipeline - process_id - type - type_name - start_time - state - state_name - role - role_name - url_pipe_in - url_pipe_out - url_listen - url_peer - timeout - random_url - keys_incoming - keys_outgoing - key_bits_incoming - key_bits_outgoing - keys_per_second_in - keys_per_second_out - bits_per_second_in - bits_per_second_out - error_bits_incoming - error_bits_outgoing - disclosed_bits_incoming - disclosed_bits_outgoing - debug - description - organisation - process_image
+    // construct the format string: "module:" id - dbus - pipeline - process_id - type - type_name - start_time - state - state_name - role - role_name - url_pipe_in - url_pipe_out - url_listen - url_peer - random_url - keys_incoming - keys_outgoing - key_bits_incoming - key_bits_outgoing - keys_per_second_in - keys_per_second_out - bits_per_second_in - bits_per_second_out - error_bits_incoming - error_bits_outgoing - disclosed_bits_incoming - disclosed_bits_outgoing - debug - description - organisation - process_image
     std::stringstream ss;
     
     if (g_bPrintShort) {
@@ -275,8 +275,6 @@ void dump_modules(std::map<std::string, qkd::utility::properties> const & cModul
             << "%-" << g_cColumnWidth.cModule["url_listen"] << "s    "
             << "%-" << g_cColumnWidth.cModule["url_peer"] << "s    "
             << "%-" << g_cColumnWidth.cModule["stalled"] << "s    "
-            << "%-" << g_cColumnWidth.cModule["timeout_network"] << "s    "
-            << "%-" << g_cColumnWidth.cModule["timeout_pipe"] << "s    "
             << "%-" << g_cColumnWidth.cModule["random_url"] << "s    "
             << "%-" << g_cColumnWidth.cModule["keys_incoming"] << "s    "
             << "%-" << g_cColumnWidth.cModule["keys_outgoing"] << "s    "
@@ -351,8 +349,6 @@ void dump_modules(std::map<std::string, qkd::utility::properties> const & cModul
                 % "url_listen" 
                 % "url_peer" 
                 % "stalled"
-                % "timeout_network" 
-                % "timeout_pipe" 
                 % "random_url" 
                 % "keys_incoming" 
                 % "keys_outgoing" 
@@ -424,8 +420,6 @@ void dump_modules(std::map<std::string, qkd::utility::properties> const & cModul
             cModuleFormat % cModule.second.at("url_listen");
             cModuleFormat % cModule.second.at("url_peer");
             cModuleFormat % cModule.second.at("stalled");
-            cModuleFormat % cModule.second.at("timeout_network");
-            cModuleFormat % cModule.second.at("timeout_pipe");
             cModuleFormat % cModule.second.at("random_url");
             cModuleFormat % cModule.second.at("keys_incoming");
             cModuleFormat % cModule.second.at("keys_outgoing");

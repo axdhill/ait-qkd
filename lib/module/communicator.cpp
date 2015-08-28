@@ -79,7 +79,6 @@ bool communicator::recv(qkd::module::message & cMessage, qkd::module::message_ty
  * Sending might fail on interrupt.
  *
  * @param   cMessage            the message to send
- * @param   nTimeOut            timeout in ms
  * @returns true, if the message has been sent
  */
 bool communicator::send(qkd::module::message & cMessage) { 

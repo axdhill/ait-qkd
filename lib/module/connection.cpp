@@ -327,20 +327,21 @@ bool connection::recv_message(qkd::module::path & cPath, qkd::module::message & 
 
     // --> get the message header    
     zmq_msg cMsgHeader;
-    int nReadHeader = cPath.recv(cMsgHeader, ZMQ_RCVMORE);
-std::cout << __DEBUG_LOCATION__ << std::endl;            
-    if (nReadHeader == -1) {
+    int nReadHeader = 0;
+    do {
+        nReadHeader = cPath.recv(cMsgHeader, ZMQ_RCVMORE);
+        if (nReadHeader == -1) {
 
-std::cout << __DEBUG_LOCATION__ << " zmq_errno()=" << zmq_errno() << std::endl;            
+            // EAGAIN and EINTR are not critical
+            if (zmq_errno() == EAGAIN) continue;
+            if (zmq_errno() == EINTR) return false;
 
-        // EAGAIN and EINTR are not critical
-        if ((zmq_errno() == EAGAIN) || (zmq_errno() == EINTR)) return false;
-
-        std::stringstream ss;
-        ss << "failed reading message header from peer: " << strerror(zmq_errno());
-        throw std::runtime_error(ss.str());
-    }
-std::cout << __DEBUG_LOCATION__ << std::endl;            
+            std::stringstream ss;
+            ss << "failed reading message header from peer: " << strerror(zmq_errno());
+            throw std::runtime_error(ss.str());
+        }
+        
+    } while (nReadHeader <= 0);
     if (!cMsgHeader.more() || (cMsgHeader.size() != sizeof(cMessage.m_cHeader))) {
         throw std::runtime_error("received invalid message header");
     }
@@ -348,24 +349,25 @@ std::cout << __DEBUG_LOCATION__ << std::endl;
 
     // --> get the message data
     zmq_msg cMsgData;
-    int nReadData = cPath.recv(cMsgData);
-std::cout << __DEBUG_LOCATION__ << std::endl;            
-    if (nReadData == -1) {
+    int nReadData = 0;
+    do {
+        nReadData = cPath.recv(cMsgData);
+        if (nReadData == -1) {
 
-        // EAGAIN and EINTR are not critical
-        if ((zmq_errno() == EAGAIN) || (zmq_errno() == EINTR)) return false;
+            // EAGAIN and EINTR are not critical
+            if (zmq_errno() == EAGAIN) continue;
+            if (zmq_errno() == EINTR) return false;
 
-        std::stringstream ss;
-        ss << "failed reading message data from peer: " << strerror(zmq_errno());
-        throw std::runtime_error(ss.str());
-    }
-std::cout << __DEBUG_LOCATION__ << std::endl;            
+            std::stringstream ss;
+            ss << "failed reading message data from peer: " << strerror(zmq_errno());
+            throw std::runtime_error(ss.str());
+        }
+        
+    } while (nReadData <= 0);
     cMessage.data().resize(cMsgData.size());
     memcpy(cMessage.data().get(), cMsgData.data(), cMsgData.size());
     cMessage.data().set_position(0);
     
-std::cout << __DEBUG_LOCATION__ << std::endl;            
-
     return true;
 }
     
@@ -554,23 +556,26 @@ bool connection::write_key(qkd::module::path & cPath, qkd::key::key const & cKey
     qkd::utility::buffer cBuffer;
     cBuffer << cKey;
 
-    int nWritten = cPath.send(cBuffer.get(), cBuffer.size());
-    if (nWritten == -1) {
+    int nWritten = 0;
+    do {
+        
+        nWritten = cPath.send(cBuffer.get(), cBuffer.size());
+        if (nWritten == -1) {
 
-        // EINTR is not critical
-        if (zmq_errno() == EINTR) {
-            return false;
+            // EAGAIN: currently we are not able to send: try again
+            if (zmq_errno() == EAGAIN) continue;
+
+            // EINTR is not critical
+            if (zmq_errno() == EINTR) {
+                return false;
+            }
+
+            std::stringstream ss;
+            ss << "failed writing key to next module: " << strerror(zmq_errno());
+            throw std::runtime_error(ss.str());
         }
-
-        // EAGAIN: currently we are not able to send
-        if (zmq_errno() == EAGAIN) {
-            return false;
-        }
-
-        std::stringstream ss;
-        ss << "failed writing key to next module: " << strerror(zmq_errno());
-        throw std::runtime_error(ss.str());
-    }
+        
+    } while (nWritten <= 0);
     
     return true;
 }

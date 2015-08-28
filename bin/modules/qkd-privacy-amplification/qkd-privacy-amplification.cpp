@@ -180,7 +180,6 @@ bool qkd_privacy_amplification::process(qkd::key::key & cKey, UNUSED qkd::crypto
     // alice generates random values and sends them to bob
     if (is_alice()) {
 
-        // send seed and shift key data to bob: no timeout
         random() >> cSeed;
         random() >> cShift;
         qkd::module::message cMessage;
@@ -197,7 +196,6 @@ bool qkd_privacy_amplification::process(qkd::key::key & cKey, UNUSED qkd::crypto
     }
     else {
         
-        // receive from alice: no timeout
         qkd::module::message cMessage;
         try {
             if (!recv(cMessage, cIncomingContext, qkd::module::message_type::MESSAGE_TYPE_DATA)) return false;

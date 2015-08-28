@@ -453,7 +453,7 @@ void path::set_url(std::string sURL, bool bServer, int nSocketType, int nTimeout
     }
     
     // now that URL is clarified, run the setup
-    setup(bServer, nSocketType, nHighWaterMark, nTimeout);
+    setup(bServer, nSocketType, nTimeout, nHighWaterMark);
 }
 
 
