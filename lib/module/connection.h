@@ -37,14 +37,14 @@
 
 #include "config.h"
 
-#include <atomic>
+#include <algorithm>
+#include <deque>
 #include <string>
-
-// Qt
-#include <QtCore/QUrl>
 
 #include <qkd/key/key.h>
 #include <qkd/module/message.h>
+
+#include "path.h"
 
 
 // ------------------------------------------------------------
@@ -68,7 +68,28 @@ enum class connection_type : uint8_t {
     
     
 /**
+ * different ways to touch the sockets we manage
+ */
+enum class socket_access : uint8_t {
+    
+    // TODO: BEST_EFFORT,        /**< pick the next send/recv which is available */ does not work currently (zmq_poll broken?)
+    ROUND_ROBIN,        /**< send/recv messages on a single socket, but use round robin */
+    ALL                 /**< use all available sockets to send/recv the same message */
+};
+    
+    
+/**
  * the internal used connection object
+ * 
+ * a connection maintains at least one single path. 
+ * a path is used for sending and/or receiving.
+ * if there are more than one path available, a ROUND_ROBIN scheduling is used for send/recv.
+ * 
+ * a connection is typed as being one of
+ * - pipe input
+ * - pipe output
+ * - bob listener
+ * - alice peer
  */
 class connection {
     
@@ -98,83 +119,34 @@ public:
     
     
     /**
-     * deduce a correct, proper URL from a would-be URL
+     * add a path for the connection with the given url
      * 
-     * this returns "stdin://" and "stdout://" for these schemes.
+     * @param   sURL                the URLs of the connection
+     * @param   nHighWaterMark      high water mark value
+     * @param   sIPCPrefix          ipc socket file prefix (if ipc:// * is used)
+     * @param   sIPCSuffix          ipc socket file suffix (if ipc:// * is used)
      * 
-     * on "ipc:// it checks for ambiguity and for the existance and 
-     * access to the ipc socket file.
-     * 
-     * on "tcp://" it also checks for ambiguity and tries to deduce
-     * the IP adress for a given hostname.
-     * 
-     * @param   sURL        an url
-     * @return  a good, real, usable url (or empty() in case of failure)
+     * @return  true, for success
      */
-    static std::string fix_url(std::string const & sURL);
+    bool add(std::string sURL, int nHighWaterMark = 1000, std::string sIPCPrefix = std::string(), std::string sIPCSuffix = std::string());
     
     
     /**
-     * check if the given URL holds an ambiguous address
-     *
-     * This is only valid for tcp schemes. So this returns true
-     * on 
-     *          tcp:// *:PORT/...
-     *
-     * @param   cURL        an url to check
-     * @return  true, if the URL contains an ambiguous host
+     * clears all paths
+     * 
+     * This closes all sockets and drops them.
      */
-    static bool is_ambiguous(QUrl const & cURL);
+    void clear();
     
     
     /**
-     * checks if we can read from this connection
+     * check if this connection is void (for all paths)
      * 
-     * @return  true, if we can read or receive
+     * @return  true, if we ain't got a single valid path not void
      */
-    bool is_incoming() const { return m_eType != connection_type::PIPE_OUT; }
+    bool is_void() const { return std::all_of(m_cPaths.cbegin(), m_cPaths.cend(), [](path_ptr const & p) { return p->is_void(); }); }
     
-    
-    /**
-     * checks if we can send to this connection
-     * 
-     * @return  true, if we can send of write
-     */
-    bool is_outgoing() const { return m_eType != connection_type::PIPE_IN; }
-    
-    
-    /**
-     * checks if this is our standard input
-     * 
-     * @return  true, if this connection can read from stdin
-     */
-    bool is_stdin() const { return m_bStdIn; }
-    
-    
-    /**
-     * checks if this is stdout
-     * 
-     * @return  true, if this connection pushes to stdout
-     */
-    bool is_stdout() const { return m_bStdOut; }
-    
-    
-    /**
-     * checks if this connection is void
-     * 
-     * @return  true, if there is nothing to send or receive from
-     */
-    bool is_void() const { return m_bVoid; }
-    
-    
-    /**
-     * checks if this connection needs to be setup (again)
-     * 
-     * @return  true, if we should run setup() again
-     */
-    bool needs_setup() const { return m_bSetup; }
-    
-    
+
     /**
      * get a next key from PIPE_IN
      * 
@@ -189,7 +161,7 @@ public:
      *
      * this call is blocking (with respect to timeout)
      * 
-     * The nTimeOut value is interpreted in these ways:
+     * The nTimeout value is interpreted in these ways:
      * 
      *      n ...   wait n milliseconds for an reception of a message
      *      0 ...   do not wait: get the next message and return
@@ -202,10 +174,10 @@ public:
      * is NOT the case a exception is thrown.
      * 
      * @param   cMessage            this will receive the message
-     * @param   nTimeOut            timeout in ms
+     * @param   nTimeout            timeout in ms
      * @return  true, if we have received a message
      */
-    bool recv_message(qkd::module::message & cMessage, int nTimeOut);
+    bool recv_message(qkd::module::message & cMessage, int nTimeout);
     
     
     /**
@@ -219,25 +191,19 @@ public:
     /**
      * set the number of milliseconds for network send/recv timeout
      * 
+     * ... or -1 for infinite wait
+     * 
      * @param   nTimeout        the new number of milliseconds for network send/recv timeout
      */
     void set_timeout(qlonglong nTimeout);
     
     
     /**
-     * sets the stored url
-     * 
-     * @param   sURL        the new URL
-     */
-    void set_url(std::string sURL);
-    
-
-    /**
-     * send a message to the peer
+     * send a message
      * 
      * this call is blocking (with respect to timout)
      * 
-     * The nTimeOut value is interpreted in these ways:
+     * The nTimeout value is interpreted in these ways:
      * 
      *      n ...   wait n milliseconds
      *      0 ...   do not wait
@@ -249,86 +215,42 @@ public:
      * Sending might fail on interrupt.
      *
      * @param   cMessage            the message to send
-     * @param   nTimeOut            timeout in ms
+     * @param   nTimeout            timeout in ms
      * @returns true, if successfully sent
      */
-    bool send_message(qkd::module::message & cMessage, int nTimeOut);
+    bool send_message(qkd::module::message & cMessage, int nTimeout);
         
         
     /**
-     * setup the connection with the given url
+     * splt a list of urls sperarated by semicolon into a list
+     * of url string
      * 
-     * @param   sURL                a string holding the URL of the connection
-     * @param   nHighWaterMark      high water mark value
-     * @param   nTimeout            initial timeout in millisec on this connection
-     * @param   sIPCPrefix          ipc socket file prefix (if ipc:// * is used)
-     * @param   sIPCSuffix          ipc socket file suffix (if ipc:// * is used)
-     * 
-     * @return  true, for success
+     * @param   sURLs       a string holding many URLs, spearated by ';'
+     * @return  the URLs as given in the sURLs
      */
-    bool setup(std::string sURL, 
-            int nHighWaterMark = 1000, 
-            int nTimeout = 1000, 
-            std::string sIPCPrefix = std::string(), 
-            std::string sIPCSuffix = std::string());
+    static std::list<std::string> split_urls(std::string sURLs);
+
+    
+    /**
+     * return the urls inside this connection as a string
+     * 
+     * @return  the URLs used for this connection as a string
+     */
+    std::string urls_string() const;
     
     
     /**
-     * setup the connection with the stored url
+     * return the urls inside this connection
      * 
-     * @param   nHighWaterMark      high water mark value
-     * @param   nTimeout            initial timeout in millisec on this connection
-     * @param   sIPCPrefix          ipc socket file prefix (if ipc:// * is used)
-     * @param   sIPCSuffix          ipc socket file suffix (if ipc:// * is used)
-     * 
-     * @return  true, for success
+     * @return  the URLs used for this connection
      */
-    bool setup(int nHighWaterMark, 
-            int nTimeout, 
-            std::string sIPCPrefix = std::string(), 
-            std::string sIPCSuffix = std::string()) { 
-        return setup(url(), nHighWaterMark, nTimeout, sIPCPrefix, sIPCSuffix); 
-    }
+    std::list<std::string> urls() const;
     
     
     /**
-     * setup the connection with the stored url
+     * write a key
      * 
-     * @return  true, for success
-     */
-    bool setup() { 
-        return setup(url(), m_nHighWaterMark, m_nTimeout); 
-    }
-    
-    
-    /**
-     * returns the 0MQ socket
-     * 
-     * @return  the 0MQ socket
-     */
-    void * socket() { return m_cSocket; }
-    
-    
-    /**
-     * get the connection type
-     * 
-     * @return  the connection type
-     */
-    connection_type type() const { return m_eType; }
-    
-    
-    /**
-     * return the url
-     * 
-     * @return  the URL used for this connection
-     */
-    std::string url() const { return m_sURL; }
-    
-    
-    /**
-     * write a key to the next module
-     * 
-     * @param   cKey        key to pass to the next module
+     * @param   cKey        key to pass
      * @return  true, if writing was successful
      */
     bool write_key(qkd::key::key const & cKey);
@@ -338,52 +260,63 @@ private:
     
     
     /**
-     * create an IPC socket file
+     * get the next paths to work on
      * 
-     * The file will be created within a fixed folder (/tmp/qkd or /run/qkd).
-     * The filename will have [prefix.]PID[.suffix]
-     * 
-     * @param   sPrefix         prefix name of socket
-     * @param   sSuffix         suffix name of socket
+     * @return  a list of current paths to work on
      */
-    static boost::filesystem::path create_ipc_socket(std::string sPrefix, std::string sSuffix);
+    std::list<path_ptr> get_next_paths();
     
     
     /**
-     * create an IPC outgoing path
-     */
-    boost::filesystem::path create_ipc_out() const;
-    
-    
-    /**
-     * deduce a correct, proper IPC-URL from a would-be IPC-URL
+     * get a next key from a path
      * 
-     * @param   sURL        an url
-     * @return  a good, real, usable url (or empty() in case of failure)
+     * @param   cPath       the path to read
+     * @param   cKey        the key to read
+     * @param   nTimeout    timeout value
+     * @return  true, if we read a key
      */
-    static std::string fix_url_ipc(std::string const & sURL);
+    bool read_key(qkd::module::path & cPath, qkd::key::key & cKey, int nTimeout);
     
     
     /**
-     * deduce a correct, proper TCP-URL from a would-be TCP-URL
-     * 
-     * @param   sURL        an url
-     * @return  a good, real, usable url (or empty() in case of failure)
-     */
-    static std::string fix_url_tcp(std::string const & sURL);
-    
-    
-    /**
-     * setup socket with high water mark and timeout
+     * read a message from a path
      *
-     * also linger will be set to 0
-     *
-     * @param   cSocket             socket to modify
-     * @param   nHighWaterMark      high water mark
-     * @param   nTimeout            timeout on socket
+     * @param   cPath       the path to read
+     * @param   cMessage    the message to be received
+     * @param   nTimeout    timeout value
+     * @return  true, if cMessage is received
      */
-    void prepare_socket(void * & cSocket, int nHighWaterMark, int nTimeout);
+    bool recv_message(qkd::module::path & cPath, qkd::module::message & cMessage, int nTimeout);
+    
         
+    /**
+     * send a message on a path
+     * 
+     * @param   cPath               the path to send the message on
+     * @param   cMessage            the message to send
+     * @param   nTimeout            timeout for sending
+     * @returns true, if successfully sent
+     */
+    bool send_message(qkd::module::path & cPath, qkd::module::message & cMessage, int nTimeout);
+    
+        
+    /**
+     * write a key
+     * 
+     * @param   cKey        key to pass
+     * @param   cPath       the path to write key on
+     * @return  true, if writing was successful
+     */
+    bool write_key(qkd::module::path & cPath, qkd::key::key const & cKey, int nTimeout);
+
+    
+    /**
+     * return true if we should act as server
+     * 
+     * @return  true, if we should bind as listener
+     */
+    bool zmq_socket_server() const;
+    
     
     /**
      * return the proper 0MQ socket type for this connection
@@ -393,21 +326,17 @@ private:
     int zmq_socket_type() const;
     
     
-    std::string m_sURL;                 /**< the URL to connect */
-    std::atomic<bool> m_bSetup;         /**< if the connection needs to be setup */
+    connection_type m_eType;                                    /**< connection type */
+    enum socket_access m_eSocketAccess;                         /**< outgoing mode */
     
-    connection_type m_eType;            /**< connection type */
+    int m_nTimeout;                                             /**< for socket send/recv actions */
     
-    bool m_bStdIn;                      /**< true, if this connection is stdin */
-    bool m_bStdOut;                     /**< true, if this connection is stdout */
-    bool m_bVoid;                       /**< true, if this connection is void */
+    std::vector<path_ptr> m_cPaths;                             /**< the paths we use */
+    unsigned int m_nCurrentPathIndex;                           /**< current path index */
     
-    int m_nHighWaterMark;               /**< last HighWaterMark stored for re-setup */
-    int m_nTimeout;                     /**< last Timeout stored for re-setup */
-    
-    void * m_cSocket;                   /**< 0MQ socket */
-    
-    
+    std::deque<qkd::key::key> m_cKeysInStock;                   /**< read keys not yet delivered */
+    std::deque<qkd::module::message> m_cMessagesInStock;        /**< read messages not yet delivered */
+        
 };
 
 

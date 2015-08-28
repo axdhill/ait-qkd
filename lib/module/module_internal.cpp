@@ -79,8 +79,8 @@ module::module_internal::module_internal(module * cParentModule, std::string sId
     cConPipeIn = new connection(connection_type::PIPE_IN);
     cConPipeOut = new connection(connection_type::PIPE_OUT);
 
-    cConPipeIn->setup("stdin://");
-    cConPipeOut->setup("stdout://");
+    cConPipeIn->add("stdin://");
+    cConPipeOut->add("stdout://");
 }
 
 
@@ -141,7 +141,8 @@ void module::module_internal::add_stats_outgoing(qkd::key::key const & cKey) {
  * @param   sPeerURL        the remote instance URL
  */
 void module::module_internal::connect(std::string sPeerURL) {
-    cConPeer->setup(sPeerURL);
+    cConPeer->clear();
+    cConPeer->add(sPeerURL, 1000, cModule->id().toStdString(), "listen");
 }
 
 
@@ -275,106 +276,106 @@ void module::module_internal::set_state(module_state eNewState) {
 }
 
 
-/**
- * runs all the setup code for the module worker thread
- * 
- * @return  true, if all is laid out properly
- */
-bool module::module_internal::setup() {
-    bool bRes = true;
-    bRes = bRes && setup_pipe_in();
-    bRes = bRes && setup_pipe_out();
-    bRes = bRes && setup_listen();
-    return bRes;
-}
-
-
-/**
- * setup listen
- * 
- * @return  true, for success
- */
-bool module::module_internal::setup_listen() {
-    
-    std::lock_guard<std::mutex> cLock(cURLMutex);
-    
-    try {
-        cConListen->setup(1000, nTimeoutNetwork);
-        qkd::utility::debug() << "listen set to '" << cConListen->url() << "'";
-        return true;
-    }
-    catch (std::exception & e) {
-        qkd::utility::syslog::warning() << "failed to set listen set to '" << cConListen->url() << "': " << e.what();
-    }
-    
-    return false;
-}
-
-
-/**
- * setup peer
- * 
- * @return  true, for success
- */
-bool module::module_internal::setup_peer() {
-    
-    std::lock_guard<std::mutex> cLock(cURLMutex);
-    
-    try {
-        cConPeer->setup(1000, nTimeoutNetwork);
-        qkd::utility::debug() << "connected to '" << cConPeer->url() << "'";
-        return true;
-    }
-    catch (std::exception & e) {
-        qkd::utility::syslog::warning() << "failed to connect to '" << cConPeer->url() << "': " << e.what();
-    }
-    
-    return false;
-}
-
-
-/**
- * setup pipe IN
- * 
- * @return  true, for success
- */
-bool module::module_internal::setup_pipe_in() {
-    
-    std::lock_guard<std::mutex> cLock(cURLMutex);
-    
-    try {
-        cConPipeIn->setup(10, nTimeoutPipe, sId, "in");
-        qkd::utility::debug() << "input pipe stream set to '" << cConPipeIn->url() << "'";
-        return true;
-    }
-    catch (std::exception & e) {
-        qkd::utility::syslog::warning() << "failed to set pipe in to '" << cConPipeIn->url() << "': " << e.what();
-    }
-    
-    return false;
-}
-
-
-/**
- * setup pipe OUT
- * 
- * @return  true, for success
- */
-bool module::module_internal::setup_pipe_out() {
-
-    std::lock_guard<std::mutex> cLock(cURLMutex);
-    
-    try {
-        cConPipeOut->setup(10, nTimeoutPipe);
-        qkd::utility::debug() << "output pipe stream set to '" << cConPipeOut->url() << "'";
-        return true;
-    }
-    catch (std::exception & e) {
-        qkd::utility::syslog::warning() << "failed to set pipe out to '" << cConPipeOut->url() << "': " << e.what();
-    }
-    
-    return false;
-}
+// /**
+//  * runs all the setup code for the module worker thread
+//  * 
+//  * @return  true, if all is laid out properly
+//  */
+// bool module::module_internal::setup() {
+//     bool bRes = true;
+//     bRes = bRes && setup_pipe_in();
+//     bRes = bRes && setup_pipe_out();
+//     bRes = bRes && setup_listen();
+//     return bRes;
+// }
+// 
+// 
+// /**
+//  * setup listen
+//  * 
+//  * @return  true, for success
+//  */
+// bool module::module_internal::setup_listen() {
+//     
+//     std::lock_guard<std::mutex> cLock(cURLMutex);
+//     
+//     try {
+//         cConListen->setup(1000, nTimeoutNetwork);
+//         qkd::utility::debug() << "listen set to '" << cConListen->url() << "'";
+//         return true;
+//     }
+//     catch (std::exception & e) {
+//         qkd::utility::syslog::warning() << "failed to set listen set to '" << cConListen->url() << "': " << e.what();
+//     }
+//     
+//     return false;
+// }
+// 
+// 
+// /**
+//  * setup peer
+//  * 
+//  * @return  true, for success
+//  */
+// bool module::module_internal::setup_peer() {
+//     
+//     std::lock_guard<std::mutex> cLock(cURLMutex);
+//     
+//     try {
+//         cConPeer->setup(1000, nTimeoutNetwork);
+//         qkd::utility::debug() << "connected to '" << cConPeer->url() << "'";
+//         return true;
+//     }
+//     catch (std::exception & e) {
+//         qkd::utility::syslog::warning() << "failed to connect to '" << cConPeer->url() << "': " << e.what();
+//     }
+//     
+//     return false;
+// }
+// 
+// 
+// /**
+//  * setup pipe IN
+//  * 
+//  * @return  true, for success
+//  */
+// bool module::module_internal::setup_pipe_in() {
+//     
+//     std::lock_guard<std::mutex> cLock(cURLMutex);
+//     
+//     try {
+//         cConPipeIn->setup(10, nTimeoutPipe, sId, "in");
+//         qkd::utility::debug() << "input pipe stream set to '" << cConPipeIn->url() << "'";
+//         return true;
+//     }
+//     catch (std::exception & e) {
+//         qkd::utility::syslog::warning() << "failed to set pipe in to '" << cConPipeIn->url() << "': " << e.what();
+//     }
+//     
+//     return false;
+// }
+// 
+// 
+// /**
+//  * setup pipe OUT
+//  * 
+//  * @return  true, for success
+//  */
+// bool module::module_internal::setup_pipe_out() {
+// 
+//     std::lock_guard<std::mutex> cLock(cURLMutex);
+//     
+//     try {
+//         cConPipeOut->setup(10, nTimeoutPipe);
+//         qkd::utility::debug() << "output pipe stream set to '" << cConPipeOut->url() << "'";
+//         return true;
+//     }
+//     catch (std::exception & e) {
+//         qkd::utility::syslog::warning() << "failed to set pipe out to '" << cConPipeOut->url() << "': " << e.what();
+//     }
+//     
+//     return false;
+// }
 
     
 /**

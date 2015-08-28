@@ -701,13 +701,13 @@ QString module::random_url() const {
 bool module::read(qkd::key::key & cKey) {
     
     cKey = qkd::key::key::null();
-    if (d->cConPipeIn->is_void()) return true;
-    
-    d->cConPipeIn->read_key(cKey);
-    if (cKey == qkd::key::key::null()) {
+    if (!d->cConPipeIn->read_key(cKey)) {
         rest();
         return false;
     }
+    
+    // do not add stat if we received on a void connection
+    if (d->cConPipeIn->is_void()) return true;
     
     d->add_stats_incoming(cKey);
     cKey.meta().cTimestampRead = std::chrono::high_resolution_clock::now();
@@ -840,12 +840,6 @@ bool module::recv_internal(qkd::module::message & cMessage, int nTimeOut) {
     qkd::module::connection * cCon = nullptr;
     if (is_alice()) cCon = d->cConPeer;
     if (is_bob()) cCon = d->cConListen;
-    if (cCon->needs_setup()) cCon->setup();
-    if (cCon->socket() == nullptr) {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
-                << ": failed to decide which channel to use for receive";
-        throw std::runtime_error("failed to decide which channel to use for recv");
-    }
     
     if (!cCon->recv_message(cMessage, nTimeOut)) return false;
     if (is_dying_state()) return false;
@@ -1037,10 +1031,10 @@ void module::run() {
     d->set_state(module_state::STATE_NEW);
     
     qkd::utility::debug() << "run module: " << 
-            "in='" << d->cConPipeIn->url() << "' " <<
-            "out='" << d->cConPipeOut->url() << "' " << 
-            "listen='" << d->cConListen->url() << "' " << 
-            "peer='" << d->cConPeer->url() << "'";
+            "in='" << d->cConPipeIn->urls_string() << "' " <<
+            "out='" << d->cConPipeOut->urls_string() << "' " << 
+            "listen='" << d->cConListen->urls_string() << "' " << 
+            "peer='" << d->cConPeer->urls_string() << "'";
     
     d->cModuleThread = std::thread([this]{ thread(); });
 }
@@ -1072,12 +1066,6 @@ bool module::send(qkd::module::message & cMessage, qkd::crypto::crypto_context &
     qkd::module::connection * cCon = nullptr;
     if (is_alice()) cCon = d->cConPeer;
     if (is_bob()) cCon = d->cConListen;
-    if (cCon->needs_setup()) cCon->setup();
-    if (cCon->socket() == nullptr) {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
-                << ": failed to decide which channel to use for send";
-        throw std::runtime_error("failed to decide which channel to use for send");
-    }
     
     if (!cCon->send_message(cMessage, nTimeOut)) return false;
     d->debug_message(true, cMessage);
@@ -1284,7 +1272,14 @@ void module::set_urls(QString sURLPipeIn, QString sURLPipeOut, QString sURLListe
  */
 void module::set_url_listen(QString sURL) {
     std::lock_guard<std::mutex> cLock(d->cURLMutex);
-    d->cConListen->set_url(sURL.toStdString());
+    d->cConListen->clear();
+    std::string s = sURL.toStdString();
+    if (!s.empty()) {
+        for (auto & u : connection::split_urls(s)) {
+            d->cConListen->add(u, 1000, id().toStdString(), "listen");
+        }
+    }
+    else d->cConListen->add("");
 }
 
 
@@ -1295,7 +1290,14 @@ void module::set_url_listen(QString sURL) {
  */
 void module::set_url_peer(QString sURL) {
     std::lock_guard<std::mutex> cLock(d->cURLMutex);
-    d->cConPeer->set_url(sURL.toStdString());
+    d->cConPeer->clear();
+    std::string s = sURL.toStdString();
+    if (!s.empty()) {
+        for (auto & u : connection::split_urls(s)) {
+            d->cConPeer->add(u, 1000, id().toStdString(), "listen");
+        }
+    }
+    else d->cConPeer->add("");
 }
 
 
@@ -1306,7 +1308,14 @@ void module::set_url_peer(QString sURL) {
  */
 void module::set_url_pipe_in(QString sURL) {
     std::lock_guard<std::mutex> cLock(d->cURLMutex);
-    d->cConPipeIn->set_url(sURL.toStdString());
+    d->cConPipeIn->clear();
+    std::string s = sURL.toStdString();
+    if (!s.empty()) {
+        for (auto & u : connection::split_urls(s)) {
+            d->cConPipeIn->add(u, 10, id().toStdString(), "in");
+        }
+    }
+    else d->cConPipeIn->add("");
 }
 
 
@@ -1317,7 +1326,14 @@ void module::set_url_pipe_in(QString sURL) {
  */
 void module::set_url_pipe_out(QString sURL) {
     std::lock_guard<std::mutex> cLock(d->cURLMutex);
-    d->cConPipeOut->set_url(sURL.toStdString());
+    d->cConPipeOut->clear();
+    std::string s = sURL.toStdString();
+    if (!s.empty()) {
+        for (auto & u : connection::split_urls(s)) {
+            d->cConPipeOut->add(u, 10, id().toStdString(), "in");
+        }
+    }
+    else d->cConPipeOut->add("");
 }
 
 
@@ -1498,20 +1514,12 @@ void module::terminate() {
  */
 void module::thread() {
 
-    if (!d->setup()) {
-        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ 
-                << ": unable to setup module thread: terminating";
-        d->release();
-        emit terminated();
-        return;
-    }
-    
-    qkd::utility::debug() << "module setup done - entering ready state";
+    qkd::utility::debug() << "entering ready state";
     d->debug_config();
     d->set_state(module_state::STATE_READY);
     emit ready();
     work();
-    qkd::utility::debug() << "module work done - winding down module";
+    qkd::utility::debug() << "winding down module";
     
     d->release();
     emit terminated();
@@ -1599,7 +1607,7 @@ QString module::type_name(module_type eType) {
  * @return  the URL for peer (serving endpoint)
  */
 QString module::url_listen() const {
-    return QString::fromStdString(d->cConListen->url());
+    return QString::fromStdString(d->cConListen->urls_string());
 }
 
 
@@ -1609,7 +1617,7 @@ QString module::url_listen() const {
  * @return  the URL of the peer connection (where this module connected to)
  */
 QString module::url_peer() const {
-    return QString::fromStdString(d->cConPeer->url());
+    return QString::fromStdString(d->cConPeer->urls_string());
 }
 
 
@@ -1619,7 +1627,7 @@ QString module::url_peer() const {
  * @return  the URL of incoming Pipe (serving endpoint)
  */
 QString module::url_pipe_in() const {
-    return QString::fromStdString(d->cConPipeIn->url());
+    return QString::fromStdString(d->cConPipeIn->urls_string());
 }
 
 
@@ -1629,7 +1637,7 @@ QString module::url_pipe_in() const {
  * @return  the URL of outgoing Pipe
  */
 QString module::url_pipe_out() const {
-    return QString::fromStdString(d->cConPipeOut->url());
+    return QString::fromStdString(d->cConPipeOut->urls_string());
 }
 
 
@@ -1823,27 +1831,13 @@ bool module::write(qkd::key::key const & cKey) {
                 << ": failed to send key to next module - key-id: " << cKey.id();
         return false;
     }
+    
+    // do not add stat if we sent on a void connection
+    if (d->cConPipeOut->is_void()) return true;
 
     d->add_stats_outgoing(cKey);
     if (qkd::utility::debug::enabled()) d->debug_key_push(cKey);
     
     return true;
 }
-
-
-// /**
-//  * delete a buffer function
-//  * needed for ZMQ delayed deletion of queued messges
-//  * 
-//  * This function assumes that the object referenced
-//  * by cHint is a qkd::utility::buffer instance
-//  * created with "new".
-//  * 
-//  * @param   cData           the data sent
-//  * @param   cHint           the buffer object itself
-//  */
-// void memory_delete(UNUSED void * cData, void * cHint) {
-//     qkd::utility::memory * cMemory = static_cast<qkd::utility::memory *>(cHint);
-//     if (cMemory != nullptr) delete cMemory;
-// }
 

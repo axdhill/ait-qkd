@@ -31,81 +31,23 @@
 // ------------------------------------------------------------
 // incs
 
+#include <algorithm>
+
 // boost
-#include <boost/filesystem.hpp>
+#include <boost/tokenizer.hpp>
 
 // Qt
 #include <QtCore/QString>
-
-// 0MQ
-#include <zmq.h>
+#include <QtCore/QUrl>
 
 #include <qkd/utility/buffer.h>
+#include <qkd/utility/debug.h>
 #include <qkd/utility/environment.h>
 #include <qkd/utility/syslog.h>
 
 #include "connection.h"
 
 using namespace qkd::module;
-
-
-// ------------------------------------------------------------
-// decl
-
-
-/**
- * 0MQ initializer (singelton)
- */
-class zmq_init {
-    
-    
-public:
-    
-    
-    /**
-     * the single ZeroMQ context used
-     * 
-     * @return  the 0MQ context
-     */
-    static void * ctx() { 
-        static zmq_init z;
-        return z.m_cZMQContext; 
-    }
-    
-
-private:
-    
-    
-    /**
-     * ctor
-     */
-    zmq_init() {
-        m_cZMQContext = zmq_ctx_new();
-        if (m_cZMQContext == nullptr) throw std::runtime_error("unable to create 0MQ context");
-    }
-    
-    
-    /**
-     * copy ctor
-     */
-    zmq_init(zmq_init const & rhs) = delete;
-    
-    
-    /**
-     * dtor
-     */
-    ~zmq_init() {
-        zmq_ctx_term(m_cZMQContext);
-        m_cZMQContext = nullptr;
-    }
-    
-    
-    /**
-     * our single ZMQ context used
-     */
-    void * m_cZMQContext;
-    
-};
 
 
 // ------------------------------------------------------------
@@ -117,15 +59,7 @@ private:
  * 
  * @param   eType           type of the connection
  */
-connection::connection(connection_type eType) : 
-        m_bSetup(true), 
-        m_eType(eType), 
-        m_bStdIn(false), 
-        m_bStdOut(false), 
-        m_bVoid(true), 
-        m_nHighWaterMark(1000),
-        m_nTimeout(1000),
-        m_cSocket(nullptr) {
+connection::connection(connection_type eType) : m_eType(eType), m_eSocketAccess(socket_access::ROUND_ROBIN), m_nTimeout(1000), m_nCurrentPathIndex(0) {
 }
 
 
@@ -139,217 +73,104 @@ connection::~connection() {
 
 
 /**
- * create an IPC socket file
+ * add a path for the connection with the given url
  * 
- * The file will be created within a fixed folder (/tmp/qkd or /run/qkd).
- * The filename will have [prefix.]PID[.suffix]
+ * @param   sURL                the URLs of the connection
+ * @param   nHighWaterMark      high water mark value
+ * @param   nTimeout            initial timeout in millisec on this connection
+ * @param   sIPCPrefix          ipc socket file prefix (if ipc:// * is used)
+ * @param   sIPCSuffix          ipc socket file suffix (if ipc:// * is used)
  * 
- * @param   sPrefix         prefix name of socket
- * @param   sSuffix         suffix name of socket
+ * @return  true, for success
  */
-boost::filesystem::path connection::create_ipc_socket(std::string sPrefix, std::string sSuffix) {
+bool connection::add(std::string sURL, int nHighWaterMark, std::string sIPCPrefix, std::string sIPCSuffix) {
     
-    // create some /tmp/qkd/id-pid.in file
-    // TODO: this should reside soemwhere in the /run folder: FHS!
-    boost::filesystem::path cIPCPath = boost::filesystem::temp_directory_path() / "qkd";
-    if (!boost::filesystem::exists(cIPCPath)) {
-        if (!boost::filesystem::create_directory(cIPCPath)) {
-            
-            // fail
-            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ 
-                    << ": failed to create folder " << cIPCPath.string();
-                    
-            std::stringstream ss;
-            ss << "unable to create IPC socket file folder '" << cIPCPath.string() << "'";
-            throw std::runtime_error(ss.str());
-        }
+    // try to work on an allready added instance
+    path_ptr cPath;
+    auto cFound = std::find_if(m_cPaths.begin(), m_cPaths.end(), [&](path_ptr & p) { return (p->url() == sURL); });
+    if (cFound != m_cPaths.end()) {
+        cPath = *cFound;
     }
-    
-    std::stringstream ss;
-    if (!sPrefix.empty()) ss << sPrefix << ".";
-    ss << qkd::utility::environment::process_id();
-    if (!sSuffix.empty()) ss << "." << sSuffix;
-    cIPCPath /= ss.str();
-    
-    return cIPCPath;
-}
-
-
-/**
- * deduce a correct, proper URL from a would-be URL
- * 
- * this returns "stdin://" and "stdout://" for these schemes.
- * 
- * on "ipc:// it checks for ambiguity and for the existance and 
- * access to the ipc socket file.
- * 
- * on "tcp://" it also checks for ambiguity and tries to deduce
- * the IP adress for a given hostname.
- * 
- * @param   sURL        an url
- * @return  a good, real, usable url (or empty() in case of failure)
- */
-std::string connection::fix_url(std::string const & sURL) {
-
-    if (sURL == "stdin://") return sURL;
-    if (sURL == "stdout://") return sURL;
-
-    QUrl cURL(QString::fromStdString(sURL));
-    if (cURL.scheme() == "ipc") {
-        return fix_url_ipc(sURL);
+    else {
+        cPath = path_ptr(new path());
     }
-    if (cURL.scheme() == "tcp") {
-        return fix_url_tcp(sURL);
+
+    // new URL somehow valid?    
+    cPath->reset();
+    try {
+        std::stringstream ss;
+        if (!sIPCPrefix.empty()) ss << sIPCPrefix << ".";
+        ss << qkd::utility::environment::process_id();
+        if (!sIPCSuffix.empty()) ss << "." << sIPCSuffix;
+        cPath->set_url(sURL, zmq_socket_server(), zmq_socket_type(), nHighWaterMark, m_nTimeout, ss.str());
     }
-        
-    qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "unknown URL scheme: " << sURL;
-    return std::string();
-}
-
-    
-/**
- * deduce a correct, proper IPC-URL from a would-be IPC-URL
- * 
- * @param   sURL        an url
- * @return  a good, real, usable url (or empty() in case of failure)
- */
-std::string connection::fix_url_ipc(std::string const & sURL) {
-
-    static const std::string::size_type nSchemeHeader = std::string("ipc://").size();
-    std::string sAddress = sURL.substr(nSchemeHeader);
-    if (sAddress.empty() || sAddress == "*") {
-        
-        // we got an unspecified socket file to bind
+    catch (std::exception & e) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
-                << ": failed to setup url: this is a unspecified IPC url: " << sURL;
-        return std::string();
+                << ": unable to set url - " << e.what();
+        return false;
     }
-    
-    // check that the parent folder exists
-    boost::filesystem::path cPath(sAddress);
-    cPath = cPath.parent_path();
-    if (!boost::filesystem::exists(cPath)) {
-        if (!create_directory(cPath)) {
+
+    // stdin:// on pipe out is not allowed
+    if (cPath->is_stdin()) {    
+        if (m_eType == connection_type::PIPE_OUT) {
             qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
-                    << ": failed to setup url: can't access ipc location: " << sURL;
-            return std::string();
+                    << ": url can't be 'stdin' for this connection";
+            return false;
         }
     }
     
-    return sURL;
+    // stdout:// on pipe in is not allowed
+    if (cPath->is_stdout()) {
+        if (m_eType == connection_type::PIPE_IN) {
+            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                    << ": url can't be 'stdout' for this connection";
+            return false;
+        }
+    }
+    
+    if (cFound == m_cPaths.end()) m_cPaths.push_back(cPath);
+    
+    return true;
 }
 
 
 /**
- * deduce a correct, proper TCP-URL from a would-be TCP-URL
+ * clears all paths
  * 
- * @param   sURL        an url
- * @return  a good, real, usable url (or empty() in case of failure)
+ * This closes all sockets and drops them.
  */
-std::string connection::fix_url_tcp(std::string const & sURL) {
+void connection::clear() {
+    reset();
+    m_cPaths.clear();
+    m_nCurrentPathIndex = 0;
+}
 
-    // decuce proper IP of host
-    QUrl cURL(QString::fromStdString(sURL));
-    QString sAddress = cURL.host();
-    if (sAddress.isEmpty() || sAddress == "*") {
+
+/**
+ * get the next paths to work on
+ * 
+ * @return  a list of current paths to work on
+ */
+std::list<path_ptr> connection::get_next_paths() {
+    
+    std::list<path_ptr> res;
+    switch (m_eSocketAccess) {
         
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
-                << ": provided '*' as host to listen on";
-        sAddress = QString::fromStdString("0.0.0.0");
+    case socket_access::ROUND_ROBIN:
+        res.push_back(m_cPaths[m_nCurrentPathIndex % m_cPaths.size()]);
+        m_nCurrentPathIndex++;
+        break;
+        
+    // TODO: case socket_access::BEST_EFFORT:
+    case socket_access::ALL:
+        for (auto p : m_cPaths) res.push_back(p);
+        break;
+    
+    default:
+        throw std::runtime_error("cannot deduce paths for next action on current connection");
     }
     
-    // turn any (possible) hostname into an IP address
-    std::set<std::string> cAddressesForHost = qkd::utility::environment::host_lookup(sAddress.toStdString());
-    if (cAddressesForHost.empty()) {
-        qkd::utility::syslog::warning() << "failed to listen: unable to get IP address for hostname: " 
-                << sAddress.toStdString();
-        return std::string();
-    }
-    
-    // pick the first
-    sAddress = QString::fromStdString(*cAddressesForHost.begin());
-    
-    std::stringstream ss;
-    ss << "tcp://";
-    ss << sAddress.toStdString();
-    if (cURL.port() != -1) {
-        ss << ":";
-        ss << cURL.port();
-    }
-    
-    return ss.str();
-}
-
-
-/**
- * check if the given URL holds an ambiguous address
- *
- * This is only valid for tcp schemes. So this returns true
- * on 
- *          tcp:// *:PORT/...
- *
- * @param   cURL        an url to check
- * @return  true, if the URL contains an ambiguous host
- */
-bool connection::is_ambiguous(QUrl const & cURL) {
-
-    if (cURL.scheme() != "tcp") return false;
-
-    if (cURL.host().isEmpty()) return true;
-    if (cURL.host() == "*") return true;
-    if (cURL.host() == "0.0.0.0") return true;
-
-    return false;
-}
-
-
-/**
- * setup socket with high water mark and timeout
- *
- * also linger will be set to 0
- *
- * @param   cSocket             socket to modify
- * @param   nHighWaterMark      high water mark
- * @param   nTimeout            timeout on socket
- */
-void connection::prepare_socket(void * & cSocket, int nHighWaterMark, int nTimeout) {
-
-    if (zmq_setsockopt(cSocket, ZMQ_RCVHWM, &nHighWaterMark, sizeof(nHighWaterMark)) == -1) {
-        std::stringstream ss;
-        ss << "failed to set high water mark on socket: " << strerror(zmq_errno());
-        zmq_close(cSocket);
-        cSocket = nullptr;
-        throw std::runtime_error(ss.str());
-    }
-    if (zmq_setsockopt(cSocket, ZMQ_SNDHWM, &nHighWaterMark, sizeof(nHighWaterMark)) == -1) {
-        std::stringstream ss;
-        ss << "failed to set high water mark on socket: " << strerror(zmq_errno());
-        zmq_close(cSocket);
-        cSocket = nullptr;
-        throw std::runtime_error(ss.str());
-    }
-    if (zmq_setsockopt(cSocket, ZMQ_RCVTIMEO, &nTimeout, sizeof(nTimeout)) == -1) {
-        std::stringstream ss;
-        ss << "failed to set receive timeout on socket: " << strerror(zmq_errno());
-        zmq_close(cSocket);
-        cSocket = nullptr;
-        throw std::runtime_error(ss.str());
-    }
-    if (zmq_setsockopt(cSocket, ZMQ_SNDTIMEO, &nTimeout, sizeof(nTimeout)) == -1) {
-        std::stringstream ss;
-        ss << "failed to set send timeout on socket: " << strerror(zmq_errno());
-        zmq_close(cSocket);
-        cSocket = nullptr;
-        throw std::runtime_error(ss.str());
-    }
-
-    int nLinger = 0;
-    if (zmq_setsockopt(cSocket, ZMQ_LINGER, &nLinger, sizeof(nLinger)) == -1) {
-        std::stringstream ss;
-        ss << "failed to set linger on socket: " << strerror(zmq_errno());
-        throw std::runtime_error(ss.str());
-    }
-
+    return res;
 }
 
 
@@ -360,48 +181,79 @@ void connection::prepare_socket(void * & cSocket, int nHighWaterMark, int nTimeo
  * @return  true, if reading was successful
  */
 bool connection::read_key(qkd::key::key & cKey) {
-    
-    if (type() != connection_type::PIPE_IN) {
+
+    if (m_eType != connection_type::PIPE_IN) {
         throw std::runtime_error("tried to read key on a non-pipe-in connection");
     }
     
-    if (needs_setup()) setup();
-    if (is_void()) return true;
-    if (is_stdin()) {
+    // empty in/out key
+    cKey = qkd::key::key();
+    
+    // hand out keys we already have read
+    if (m_cKeysInStock.size() > 0) {
+        cKey = m_cKeysInStock.front();
+        m_cKeysInStock.pop_front();
+        return true;
+    }
+    
+    std::list<path_ptr> cPaths = get_next_paths();
+    if (cPaths.size() == 0) return true;
+    
+    // all void paths ---> no key (but it's okay...)
+    if (std::all_of(cPaths.begin(), cPaths.end(), [](path_ptr & p) { return p->is_void(); })) return true;
+    
+    // iterate over all sockets
+    // NOTE: this should be zmq_poll, however this does not properly work
+    //       if we have several different polls and send/recv sockets 
+    //       in the process
+    for (auto & p : cPaths) {
+        
+        qkd::key::key cReadKey;
+        if (read_key(*p.get(), cReadKey, m_nTimeout)) {
+            if (cKey.is_null()) cKey = cReadKey;
+            else m_cKeysInStock.push_back(cReadKey);
+        }
+    }
+    
+    return (!cKey.is_null());
+}
+
+
+/**
+ * get a next key from a path
+ * 
+ * @param   cPath       the path to read
+ * @param   cKey        the key to read
+ * @param   nTimeout    timeout value
+ * @return  true, if we read a key
+ */
+bool connection::read_key(qkd::module::path & cPath, qkd::key::key & cKey, int nTimeout) {
+    
+    if (cPath.is_void()) return false;
+    if (cPath.is_stdin()) {
         std::cin >> cKey;
         return true;
     }
     
-    if (m_cSocket) {
-        
-        zmq_msg_t cZMQMessage;
-        assert(zmq_msg_init(&cZMQMessage) == 0);
-        int nRead = zmq_msg_recv(&cZMQMessage, m_cSocket, 0);
-        if (nRead == -1) {
+    zmq_msg m;
+    cPath.set_timeout_incoming(nTimeout);
+    int nRead = cPath.recv(m);
+    if (nRead == -1) {
 
-            // EAGAIN and EINTR are not critical
-            if ((zmq_errno() == EAGAIN) || (zmq_errno() == EINTR)) {
-                return false;
-            }
-
-            std::stringstream ss;
-            ss << "failed reading key: " << strerror(zmq_errno());
-            zmq_msg_close(&cZMQMessage);
-            throw std::runtime_error(ss.str());
+        // EAGAIN and EINTR are not critical
+        if ((zmq_errno() == EAGAIN) || (zmq_errno() == EINTR)) {
+            return false;
         }
 
-        qkd::utility::buffer cData = qkd::utility::buffer(
-                qkd::utility::memory::wrap((unsigned char *)zmq_msg_data(&cZMQMessage), zmq_msg_size(&cZMQMessage)));
-        cData >> cKey;
-
-        zmq_msg_close(&cZMQMessage);
-        
-        return true;
+        std::stringstream ss;
+        ss << "failed reading key: " << strerror(zmq_errno());
+        throw std::runtime_error(ss.str());
     }
-    
-    // when we wind up here, there has been a bad config of this connection
-    throw std::runtime_error("pipe-in connection lacks ability to read key");
-    return false;
+
+    qkd::utility::buffer cData = qkd::utility::buffer(qkd::utility::memory::wrap((unsigned char *)m.data(), m.size()));
+    cData >> cKey;
+
+    return true;
 }
 
 
@@ -410,7 +262,7 @@ bool connection::read_key(qkd::key::key & cKey) {
  *
  * this call is blocking (with respect to timeout)
  * 
- * The nTimeOut value is interpreted in these ways:
+ * The nTimeout value is interpreted in these ways:
  * 
  *      n ...   wait n milliseconds for an reception of a message
  *      0 ...   do not wait: get the next message and return
@@ -423,97 +275,114 @@ bool connection::read_key(qkd::key::key & cKey) {
  * is NOT the case a exception is thrown.
  * 
  * @param   cMessage            this will receive the message
- * @param   nTimeOut            timeout in ms
+ * @param   nTimeout            timeout in ms
  * @return  true, if we have received a message
  */
-bool connection::recv_message(qkd::module::message & cMessage, int nTimeOut) {
+bool connection::recv_message(qkd::module::message & cMessage, int nTimeout) {
+    
+    // empty in/out key
+    cMessage = qkd::module::message();
+    
+    // hand out keys we already have read
+    if (m_cMessagesInStock.size() > 0) {
+        cMessage = m_cMessagesInStock.front();
+        m_cMessagesInStock.pop_front();
+        return true;
+    }
+    
+    std::list<path_ptr> cPaths = get_next_paths();
+    if (cPaths.size() == 0) return false;
+    if (std::all_of(cPaths.begin(), cPaths.end(), [](path_ptr & p) { return p->is_void(); })) return false;
+    
+    // iterate over all sockets
+    // NOTE: this should be zmq_poll, however this does not properly work
+    //       if we have several different polls and send/recv sockets 
+    //       in the process
+    bool bMessageSet = false;
+    for (auto & p : cPaths) {
+        
+        qkd::module::message cReadMessage;
+        if (recv_message(*p.get(), cReadMessage, nTimeout)) {
+            if (!bMessageSet) {
+                cMessage = cReadMessage;
+                bMessageSet = true;
+            }
+            else m_cMessagesInStock.push_back(cReadMessage);
+        }
+    }
+    
+    return bMessageSet;
+}    
+    
 
-    if (m_cSocket == nullptr) throw std::runtime_error("tried to receive a message on a NULL socket");
+/**
+ * read a message from a path
+ *
+ * @param   cPath       the path to read
+ * @param   cMessage    the message to be received
+ * @param   nTimeout    timeout value
+ * @return  true, if cMessage is received
+ */
+bool connection::recv_message(qkd::module::path & cPath, qkd::module::message & cMessage, int nTimeout) {
     
-    if (zmq_setsockopt(m_cSocket, ZMQ_RCVTIMEO, &nTimeOut, sizeof(nTimeOut)) == -1) {
-        std::stringstream ss;
-        ss << "failed to set timeout on socket: " << strerror(zmq_errno());
-        throw std::runtime_error(ss.str());
+    if (cPath.is_void()) return false;
+    if (cPath.is_stdin()) {
+        throw std::runtime_error("don't know how to read a message from stdin");
     }
+
+    cPath.set_timeout_incoming(nTimeout);
     
-    zmq_msg_t cZMQHeader;
-    if (zmq_msg_init(&cZMQHeader) != 0) {
-        std::stringstream ss;
-        ss << "failed to init message header: " << strerror(zmq_errno());
-        throw std::runtime_error(ss.str());
-    }
-    
-    int nReadHeader = zmq_msg_recv(&cZMQHeader, m_cSocket, 0);
+    // --> get the message header    
+    zmq_msg cMsgHeader;
+    int nReadHeader = cPath.recv(cMsgHeader, ZMQ_RCVMORE);
     if (nReadHeader == -1) {
 
         // EAGAIN and EINTR are not critical
-        if ((zmq_errno() == EAGAIN) || (zmq_errno() == EINTR)) {
-            zmq_msg_close(&cZMQHeader);
-            return false;
-        }
+        if ((zmq_errno() == EAGAIN) || (zmq_errno() == EINTR)) return false;
 
         std::stringstream ss;
         ss << "failed reading message header from peer: " << strerror(zmq_errno());
-        zmq_msg_close(&cZMQHeader);
         throw std::runtime_error(ss.str());
     }
-    if (!zmq_msg_more(&cZMQHeader) || (zmq_msg_size(&cZMQHeader) != sizeof(cMessage.m_cHeader))) {
+    if (!cMsgHeader.more() || (cMsgHeader.size() != sizeof(cMessage.m_cHeader))) {
         throw std::runtime_error("received invalid message header");
     }
+    memcpy(&(cMessage.m_cHeader), (unsigned char *)cMsgHeader.data(), sizeof(cMessage.m_cHeader));
 
-    memcpy(&(cMessage.m_cHeader), (unsigned char *)zmq_msg_data(&cZMQHeader), sizeof(cMessage.m_cHeader));
-    zmq_msg_close(&cZMQHeader);
-
-    zmq_msg_t cZMQData;
-    if (zmq_msg_init(&cZMQData) != 0) {
-        std::stringstream ss;
-        ss << "failed to init message: " << strerror(zmq_errno());
-        throw std::runtime_error(ss.str());
-    }
-    
-    int nReadData = zmq_msg_recv(&cZMQData, m_cSocket, 0);
+    // --> get the message data
+    zmq_msg cMsgData;
+    int nReadData = cPath.recv(cMsgData);
     if (nReadData == -1) {
 
         // EAGAIN and EINTR are not critical
-        if ((zmq_errno() == EAGAIN) || (zmq_errno() == EINTR)) {
-            zmq_close(&cZMQData);
-            return false;
-        }
+        if ((zmq_errno() == EAGAIN) || (zmq_errno() == EINTR)) return false;
 
         std::stringstream ss;
         ss << "failed reading message data from peer: " << strerror(zmq_errno());
-        zmq_msg_close(&cZMQData);
         throw std::runtime_error(ss.str());
     }
-
-    cMessage.data().resize(zmq_msg_size(&cZMQData));
-    memcpy(cMessage.data().get(), zmq_msg_data(&cZMQData), zmq_msg_size(&cZMQData));
+    cMessage.data().resize(cMsgData.size());
+    memcpy(cMessage.data().get(), cMsgData.data(), cMsgData.size());
     cMessage.data().set_position(0);
-    zmq_msg_close(&cZMQData);
     
     return true;
-}    
+}
     
-    
+        
 /**
  * resets the connection to an empty void state
  */
 void connection::reset() {
-    if (m_cSocket) zmq_close(m_cSocket);
-    m_cSocket = nullptr;
-    m_bStdIn = false;
-    m_bStdOut = false;
-    m_bVoid = true;
-    m_bSetup = true;
+    for (auto & cPath: m_cPaths) cPath->reset();
 }
 
 
 /**
- * send a message to the peer
+ * send a message
  * 
  * this call is blocking (with respect to timout)
  * 
- * The nTimeOut value is interpreted in these ways:
+ * The nTimeout value is interpreted in these ways:
  * 
  *      n ...   wait n milliseconds
  *      0 ...   do not wait
@@ -525,23 +394,51 @@ void connection::reset() {
  * Sending might fail on interrupt.
  *
  * @param   cMessage            the message to send
- * @param   nTimeOut            timeout in ms
+ * @param   nTimeout            timeout in ms
  * @returns true, if successfully sent
  */
-bool connection::send_message(qkd::module::message & cMessage, int nTimeOut) {
+bool connection::send_message(qkd::module::message & cMessage, int nTimeout) {
     
-    if (m_cSocket == nullptr) throw std::runtime_error("tried to send a message on a NULL socket");
+    std::list<path_ptr> cPaths = get_next_paths();
+    if (cPaths.size() == 0) return false;
+    if (std::all_of(cPaths.begin(), cPaths.end(), [](path_ptr & p) { return p->is_void(); })) return false;
     
-    if (zmq_setsockopt(m_cSocket, ZMQ_SNDTIMEO, &nTimeOut, sizeof(nTimeOut)) == -1) {
-        std::stringstream ss;
-        ss << "failed to set timeout on socket: " << strerror(zmq_errno());
-        throw std::runtime_error(ss.str());
+    // iterate over all sockets
+    // NOTE: this should be zmq_poll, however this does not properly work
+    //       if we have several different polls and send/recv sockets 
+    //       in the process
+    bool bMessageSent = false;
+    for (auto & p : cPaths) {
+        if (send_message(*p.get(), cMessage, nTimeout)) {
+            bMessageSent |= true;
+        }
     }
-
+    
+    return bMessageSent;
+}
+    
+        
+/**
+ * send a message on a path
+ * 
+ * @param   cPath               the path to send the message on
+ * @param   cMessage            the message to send
+ * @param   nTimeout            timeout for sending
+ * @returns true, if successfully sent
+ */
+bool connection::send_message(qkd::module::path & cPath, qkd::module::message & cMessage, int nTimeout) {
+    
+    if (cPath.is_void()) return false;
+    if (cPath.is_stdout()) {
+        throw std::runtime_error("don't know how to send a message on stdout");
+    }
+    
+    cPath.set_timeout_outgoing(nTimeout);
+    
     cMessage.m_cHeader.nId = htobe32(++qkd::module::message::m_nLastId);
     cMessage.m_cTimeStamp = std::chrono::high_resolution_clock::now();
 
-    int nSentHeader = zmq_send(m_cSocket, &(cMessage.m_cHeader), sizeof(cMessage.m_cHeader), ZMQ_SNDMORE);
+    int nSentHeader = cPath.send(&(cMessage.m_cHeader), sizeof(cMessage.m_cHeader), ZMQ_SNDMORE);
     if (nSentHeader == -1) {
 
         // EINTR is not critical
@@ -554,7 +451,7 @@ bool connection::send_message(qkd::module::message & cMessage, int nTimeOut) {
         throw std::runtime_error(ss.str());
     }
 
-    int nSentData = zmq_send(m_cSocket, cMessage.data().get(), cMessage.data().size(), 0);
+    int nSentData = cPath.send(cMessage.data().get(), cMessage.data().size());
     if (nSentData == -1) {
 
         // EINTR is not critical
@@ -579,199 +476,160 @@ void connection::set_timeout(qlonglong nTimeout) {
     
     m_nTimeout = nTimeout;
     
-    if (m_cSocket) {
-        if (zmq_setsockopt(m_cSocket, ZMQ_RCVTIMEO, &m_nTimeout, sizeof(m_nTimeout)) == -1) {
-            std::stringstream ss;
-            ss << "failed to set timeout on socket: " << strerror(zmq_errno());
-            throw std::runtime_error(ss.str());
-        }
-        if (zmq_setsockopt(m_cSocket, ZMQ_SNDTIMEO, &m_nTimeout, sizeof(m_nTimeout)) == -1) {
-            std::stringstream ss;
-            ss << "failed to set timeout on socket: " << strerror(zmq_errno());
-            throw std::runtime_error(ss.str());
-        }
+    for (auto & cPath : m_cPaths) {
+        cPath->set_timeout_incoming(nTimeout);
+        cPath->set_timeout_outgoing(nTimeout);
     }
 }
 
 
 /**
- * sets the stored url
+ * splt a list of urls sperarated by semicolon into a list
+ * of url string
  * 
- * @param   sURL        the new URL
+ * @param   sURLs       a string holding many URLs, spearated by ';'
+ * @return  the URLs as given in the sURLs
  */
-void connection::set_url(std::string sURL) {
-    if (m_sURL == sURL) return;
-    m_sURL = sURL;
-    m_bSetup = true;
+std::list<std::string> connection::split_urls(std::string sURLs) {
+    std::list<std::string> res;
+    boost::char_separator<char> cSeparator(";");
+    boost::tokenizer<boost::char_separator<char>> cTokens(sURLs, cSeparator);
+    for (auto & u : cTokens) res.push_back(u);
+    return res;
 }
 
 
 /**
- * setup the connection with the given url
+ * return the urls inside this connection
  * 
- * @param   sURL                a string holding the URL of the connection
- * @param   nHighWaterMark      high water mark value
- * @param   nTimeout            initial timeout in millisec on this connection
- * @param   sIPCPrefix          ipc socket file prefix
- * @param   sIPCSuffix          ipc socket file suffix
+ * @return  the URLs used for this connection
  */
-bool connection::setup(std::string sURL, 
-        int nHighWaterMark, 
-        int nTimeout, 
-        std::string sIPCPrefix, 
-        std::string sIPCSuffix) {
-    
-    reset();
-    
-    m_sURL = sURL;
-    m_bSetup = false;
-    
-    m_nHighWaterMark = nHighWaterMark;
-    m_nTimeout = nTimeout;
-
-    // void connection
-    if (sURL.empty()) return true;
-    
-    QUrl cURL(QString::fromStdString(sURL));
-    
-    // stdin://
-    if (cURL.scheme() == "stdin") {
-        if (!is_incoming()) {
-            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
-                    << ": url can't be 'stdin' for this connection";
-            return false;
-        }
-        
-        m_bStdIn = true;
-        m_bVoid = false;
-        return true;
-    }
-    
-    // stdout://
-    if (cURL.scheme() == "stdout") {
-        if (!is_outgoing()) {
-            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
-                    << ": url can't be 'stdout' for this connection";
-            return false;
-        }
-        
-        m_bStdOut = true;
-        m_bVoid = false;
-        return true;
-    }
-    
-    // ipc:// ... fix filesystem access
-    if (cURL.scheme() == "ipc") {
-        
-        // pick the correct IPC path
-        boost::filesystem::path cIPC(cURL.path().toStdString());
-        if (cIPC.empty()) cIPC = create_ipc_socket(sIPCPrefix, sIPCSuffix);
-        if (cIPC.empty()) {
-            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ 
-                    << ": failed to create input IPC for '" << sURL << "'";
-            return false;
-        }
-        
-        sURL = fix_url_ipc("ipc://" + cIPC.string());
-        cURL = QUrl(QString::fromStdString(sURL));
-    }
-        
-    // ipc:// or tcp://
-    if ((cURL.scheme() == "ipc") || (cURL.scheme() == "tcp")) {
-        
-        m_bStdIn = false;
-        m_bStdOut = false;
-        m_bVoid = false;
-        
-        m_cSocket = zmq_socket(zmq_init::ctx(), zmq_socket_type());
-        prepare_socket(m_cSocket, nHighWaterMark, nTimeout); 
-        
-        switch (type()) {
-            
-        case connection_type::PIPE_IN:
-        case connection_type::LISTEN:
-            
-            // warn if we use a "*" or empty host here
-            if (is_ambiguous(cURL)) {
-                qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
-                    << ": warning: URL '" << sURL << "' contains ambiguous address - this may fail!";
-            }
-            
-            if (zmq_bind(m_cSocket, sURL.c_str()) == -1) {
-                std::stringstream ss;
-                ss << "url: '" << m_sURL << "' - failed to bind socket: " << strerror(zmq_errno());
-                throw std::runtime_error(ss.str());
-            }
-            return true;
-            
-        case connection_type::PIPE_OUT:
-        case connection_type::PEER:
-            zmq_connect(m_cSocket, sURL.c_str());
-            return true;
-            
-        default:
-            throw std::logic_error("implementation ipc:// or tcp:// for current connection type is missing");
-            
-        }
-    }
-    
-    // at this line: we do not know how to handle this type of URL
-    qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
-            << ": url scheme not recognized: " << cURL.scheme().toStdString();
-    
-    return false;
-    
+std::list<std::string> connection::urls() const {
+    std::list<std::string> res;
+    for (auto & cPath : m_cPaths) { res.push_back(cPath->url()); };
+    return res;
 }
 
 
 /**
- * write a key to the next module
+ * return the urls inside this connection as a string
  * 
- * @param   cKey        key to pass to the next module
+ * @return  the URLs used for this connection as a string
+ */
+std::string connection::urls_string() const {
+    
+    std::stringstream ss;
+    bool bURLWritten = false;
+    
+    for (auto sURL : urls()) {
+        if (bURLWritten) ss << ";";
+        ss << sURL;
+    }
+
+    return ss.str();    
+}
+
+
+/**
+ * write a key
+ * 
+ * @param   cKey        key to pass
  * @return  true, if writing was successful
  */
 bool connection::write_key(qkd::key::key const & cKey) {
     
-    if (type() != connection_type::PIPE_OUT) {
-        throw std::runtime_error("tried to write key on a non-pipe-out connection");
+    if (m_eType != connection_type::PIPE_OUT) {
+        throw std::runtime_error("tried to write key to a non-pipe-out connection");
     }
     
-    if (needs_setup()) setup();
-    if (is_void()) return true;
-    if (is_stdout()) {
+    std::list<path_ptr> cPaths = get_next_paths();
+    if (cPaths.size() == 0) return true;
+    if (std::all_of(cPaths.begin(), cPaths.end(), [](path_ptr & p) { return p->is_void(); })) return true;
+    
+    // iterate over all sockets
+    // NOTE: this should be zmq_poll, however this does not properly work
+    //       if we have several different polls and send/recv sockets 
+    //       in the process
+    bool bKeyWritten = false;
+    for (auto & cPath : cPaths) {
+        if (write_key(*cPath.get(), cKey, m_nTimeout)) {
+            bKeyWritten |= true;
+        }
+    }
+
+    return bKeyWritten;
+}
+
+
+/**
+ * write a key
+ * 
+ * @param   cPath       the path to write key on
+ * @param   cKey        key to pass
+ * @param   nTimeout    timeout for send
+ * @return  true, if writing was successful
+ */
+bool connection::write_key(qkd::module::path & cPath, qkd::key::key const & cKey, int nTimeout) {
+    
+    if (cPath.is_void()) return false;
+    if (cPath.is_stdout()) {
         std::cout << cKey;
         return true;
     }
     
-    if (m_cSocket) {
-        
-        qkd::utility::buffer cBuffer;
-        cBuffer << cKey;
+    qkd::utility::buffer cBuffer;
+    cBuffer << cKey;
 
-        int nWritten = zmq_send(m_cSocket, cBuffer.get(), cBuffer.size(), 0);
-        if (nWritten == -1) {
+    cPath.set_timeout_outgoing(nTimeout);
+    int nWritten = cPath.send(cBuffer.get(), cBuffer.size());
+    if (nWritten == -1) {
 
-            // EINTR is not critical
-            if (zmq_errno() == EINTR) {
-                return false;
-            }
-
-            // EAGAIN: currently the next peer is not able to send
-            if (zmq_errno() == EAGAIN) {
-                return false;
-            }
-
-            std::stringstream ss;
-            ss << "failed writing key to next module: " << strerror(zmq_errno());
-            throw std::runtime_error(ss.str());
+        // EINTR is not critical
+        if (zmq_errno() == EINTR) {
+            return false;
         }
-        
-        return true;
+
+        // EAGAIN: currently we are not able to send
+        if (zmq_errno() == EAGAIN) {
+            return false;
+        }
+
+        std::stringstream ss;
+        ss << "failed writing key to next module: " << strerror(zmq_errno());
+        throw std::runtime_error(ss.str());
     }
     
-    // when we wind up here, there has been a bad config of this connection
-    throw std::runtime_error("pipe-out connection lacks ability to write key");
-    return false;
+    return true;
+}
+
+
+/**
+ * return true if we should act as server
+ * 
+ * @return  true, if we should bind as listener
+ */
+bool connection::zmq_socket_server() const {
+    
+    bool res = false;
+    
+    switch (m_eType) {
+        
+    case connection_type::LISTEN:
+    case connection_type::PIPE_IN:
+        res = true;
+        break;
+    
+    case connection_type::PEER:
+    case connection_type::PIPE_OUT:
+        res =  false;
+        break;
+        
+    default:
+        throw std::logic_error("cannot deduce 0MQ socket server mode from connection type");
+            
+    }
+    
+    return res;
 }
 
 
@@ -782,7 +640,7 @@ bool connection::write_key(qkd::key::key const & cKey) {
  */
 int connection::zmq_socket_type() const {
     
-    switch (type()) {
+    switch (m_eType) {
         
     case connection_type::LISTEN:
         return ZMQ_DEALER;
@@ -804,4 +662,3 @@ int connection::zmq_socket_type() const {
     return -1;
 }
 
-    
