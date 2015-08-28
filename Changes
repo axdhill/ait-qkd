@@ -49,8 +49,10 @@ Changes from 9.9999.4 to 9.9999.5
     qkd-confirmation may occur right after error correction.
     As error correction may totally disclose keys it must pass on
     disclosed keys as-is to next module, which should be qkd-resize.
-    qkd-resize in turn merges all keys - also disclosed ones - into
-    new keys ready for privacy amplification.
+    qkd-resize in turn merges all keys into new keys ready 
+    for privacy amplification. However, the disclosed keys are
+    not added to new keys but the number of disclosed bits are
+    added which has an impact on privacy amplification.
 
 * qkd-buffer has been renamed to qkd-resize
 
