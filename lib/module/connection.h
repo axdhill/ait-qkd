@@ -159,14 +159,8 @@ public:
     /**
      * read a message
      *
-     * this call is blocking (with respect to timeout)
+     * this call is blocking
      * 
-     * The nTimeout value is interpreted in these ways:
-     * 
-     *      n ...   wait n milliseconds for an reception of a message
-     *      0 ...   do not wait: get the next message and return
-     *     -1 ...   wait infinite (must be interrupted: see interrupt_worker())
-     *     
      * The given message object will be deleted with delet before assigning new values.
      * Therefore if message receive has been successful the message is not NULL
      * 
@@ -174,10 +168,9 @@ public:
      * is NOT the case a exception is thrown.
      * 
      * @param   cMessage            this will receive the message
-     * @param   nTimeout            timeout in ms
      * @return  true, if we have received a message
      */
-    bool recv_message(qkd::module::message & cMessage, int nTimeout);
+    bool recv_message(qkd::module::message & cMessage);
     
     
     /**
@@ -189,36 +182,19 @@ public:
     
     
     /**
-     * set the number of milliseconds for network send/recv timeout
-     * 
-     * ... or -1 for infinite wait
-     * 
-     * @param   nTimeout        the new number of milliseconds for network send/recv timeout
-     */
-    void set_timeout(qlonglong nTimeout);
-    
-    
-    /**
      * send a message
      * 
      * this call is blocking (with respect to timout)
      * 
-     * The nTimeout value is interpreted in these ways:
-     * 
-     *      n ...   wait n milliseconds
-     *      0 ...   do not wait
-     *     -1 ...   wait infinite (must be interrupted: see interrupt_worker())
-     *     
      * Note: this function takes ownership of the message's data sent! 
      * Afterwards the message's data will be void
      * 
      * Sending might fail on interrupt.
      *
      * @param   cMessage            the message to send
-     * @param   nTimeout            timeout in ms
      * @returns true, if successfully sent
      */
-    bool send_message(qkd::module::message & cMessage, int nTimeout);
+    bool send_message(qkd::module::message & cMessage);
         
         
     /**
@@ -272,10 +248,9 @@ private:
      * 
      * @param   cPath       the path to read
      * @param   cKey        the key to read
-     * @param   nTimeout    timeout value
      * @return  true, if we read a key
      */
-    bool read_key(qkd::module::path & cPath, qkd::key::key & cKey, int nTimeout);
+    bool read_key(qkd::module::path & cPath, qkd::key::key & cKey);
     
     
     /**
@@ -283,10 +258,9 @@ private:
      *
      * @param   cPath       the path to read
      * @param   cMessage    the message to be received
-     * @param   nTimeout    timeout value
      * @return  true, if cMessage is received
      */
-    bool recv_message(qkd::module::path & cPath, qkd::module::message & cMessage, int nTimeout);
+    bool recv_message(qkd::module::path & cPath, qkd::module::message & cMessage);
     
         
     /**
@@ -294,10 +268,9 @@ private:
      * 
      * @param   cPath               the path to send the message on
      * @param   cMessage            the message to send
-     * @param   nTimeout            timeout for sending
      * @returns true, if successfully sent
      */
-    bool send_message(qkd::module::path & cPath, qkd::module::message & cMessage, int nTimeout);
+    bool send_message(qkd::module::path & cPath, qkd::module::message & cMessage);
     
         
     /**
@@ -307,7 +280,7 @@ private:
      * @param   cPath       the path to write key on
      * @return  true, if writing was successful
      */
-    bool write_key(qkd::module::path & cPath, qkd::key::key const & cKey, int nTimeout);
+    bool write_key(qkd::module::path & cPath, qkd::key::key const & cKey);
 
     
     /**
@@ -328,8 +301,6 @@ private:
     
     connection_type m_eType;                                    /**< connection type */
     enum socket_access m_eSocketAccess;                         /**< outgoing mode */
-    
-    int m_nTimeout;                                             /**< for socket send/recv actions */
     
     std::vector<path_ptr> m_cPaths;                             /**< the paths we use */
     unsigned int m_nCurrentPathIndex;                           /**< current path index */

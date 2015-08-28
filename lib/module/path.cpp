@@ -386,11 +386,11 @@ bool path::set_timeout_outgoing(int nTimeout) {
  * @param   sURL                the new URL of the path
  * @param   bServer             do a "bind()" (instead of a "connect()")
  * @param   nSocketType         the ZMQ socket type
- * @param   nHighWaterMark      the number of messages in transit for this path
  * @param   nTimeout            the timeout in milliseconds for actions on this path
+ * @param   nHighWaterMark      the number of messages in transit for this path
  * @param   sIPCHint            proper file name to use for IPC paths (if ipc:// is ambiguous)
  */
-void path::set_url(std::string sURL, bool bServer, int nSocketType, int nHighWaterMark, int nTimeout,  std::string sIPCHint) {
+void path::set_url(std::string sURL, bool bServer, int nSocketType, int nTimeout, int nHighWaterMark,  std::string sIPCHint) {
     
     if (sURL.find(';') != std::string::npos) {
         throw std::invalid_argument("given URL '" + sURL + "' contains illegal char ';'");
@@ -462,10 +462,10 @@ void path::set_url(std::string sURL, bool bServer, int nSocketType, int nHighWat
  * 
  * @param   bServer         rather use "bind()" for socket and not "connect()"
  * @param   nSocketType     the ZMQ socket type
- * @param   nHighWaterMark      the number of messages in transit for this path
  * @param   nTimeout            the timeout in milliseconds for actions on this path
+ * @param   nHighWaterMark      the number of messages in transit for this path
  */
-void path::setup(bool bServer, int nSocketType, int nHighWaterMark, int nTimeout) {
+void path::setup(bool bServer, int nSocketType, int nTimeout, int nHighWaterMark) {
     
     m_bSetup = false;
     if (is_void()) return;

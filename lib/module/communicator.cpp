@@ -51,15 +51,6 @@ using namespace qkd::module;
  * 
  * this call is blocking (with respect to timout)
  * 
- * The nTimeOut value is interpreted in these ways:
- * 
- *      n ...   wait n milliseconds for an reception of a message
- *      0 ...   do not wait: get the next message and return
- *     -1 ...   wait infinite (must be interrupted: see interrupt_worker())
- *     
- *      the value of std::numeric_limits< int >::min() means: no change to the
- *      current timeout setting
- * 
  * The given message object will be deleted with delet before assigning new values.
  * Therefore if message receive has been successful the message is not NULL
  * 
@@ -68,11 +59,10 @@ using namespace qkd::module;
  * 
  * @param   cMessage            this will receive the message
  * @param   eType               message type to receive
- * @param   nTimeOut            timeout in ms
  * @return  true, if we have receuived a message
  */
-bool communicator::recv(qkd::module::message & cMessage, qkd::module::message_type eType, int nTimeOut) throw (std::runtime_error) { 
-    return m_cModule->recv(cMessage, m_cIncomingContext, eType, nTimeOut);
+bool communicator::recv(qkd::module::message & cMessage, qkd::module::message_type eType) { 
+    return m_cModule->recv(cMessage, m_cIncomingContext, eType);
 }
 
 
@@ -80,17 +70,6 @@ bool communicator::recv(qkd::module::message & cMessage, qkd::module::message_ty
  * send a message to the peer module
  * 
  * this is a facade wrap to module's send method
- * 
- * this call is blocking (with respect to timout)
- * 
- * The nTimeOut value is interpreted in these ways:
- * 
- *      n ...   wait n milliseconds
- *      0 ...   do not wait
- *     -1 ...   wait infinite (must be interrupted: see interrupt_worker())
- *     
- *      the value of std::numeric_limits< int >::min() means: no change to the
- *      current timeout setting
  * 
  * this call is blocking
  * 
@@ -103,8 +82,8 @@ bool communicator::recv(qkd::module::message & cMessage, qkd::module::message_ty
  * @param   nTimeOut            timeout in ms
  * @returns true, if the message has been sent
  */
-bool communicator::send(qkd::module::message & cMessage, int nTimeOut) throw (std::runtime_error) { 
-    return m_cModule->send(cMessage, m_cOutgoingContext, nTimeOut); 
+bool communicator::send(qkd::module::message & cMessage) { 
+    return m_cModule->send(cMessage, m_cOutgoingContext); 
 }       
 
 

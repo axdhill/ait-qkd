@@ -81,8 +81,6 @@ public:
     std::string sRandomUrl;                     /**< random number source URL */
     module_role eRole;                          /**< role of the module */
     unsigned long nStartTimeStamp;              /**< init UNIX epoch: time of birth */
-    int nTimeoutNetwork;                        /**< timeout in milliseconds for network send/recv timeout */
-    int nTimeoutPipe;                           /**< timeout in milliseconds to wait after a failed read */
     module_type eType;                          /**< the type of the module */
 
     std::atomic<uint64_t> nTerminateAfter;      /**< termination counter */

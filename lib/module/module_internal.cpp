@@ -57,8 +57,6 @@ module::module_internal::module_internal(module * cParentModule, std::string sId
     // default values
     
     eRole = module_role::ROLE_ALICE;
-    nTimeoutNetwork = 2500;
-    nTimeoutPipe = 2500;
     eType = module_type::TYPE_OTHER;
     
     cRandom = qkd::utility::random_source::source();
@@ -163,8 +161,6 @@ void module::module_internal::debug_config() {
     qkd::utility::debug() << "  synchronize_keys: " << (cModule->synchronize_keys() ? "true" : "false");
     qkd::utility::debug() << "   synchronize_ttl: " << cModule->synchronize_ttl();
     qkd::utility::debug() << "   terminate_after: " << cModule->terminate_after();
-    qkd::utility::debug() << "   timeout_network: " << cModule->timeout_network();
-    qkd::utility::debug() << "      timeout_pipe: " << cModule->timeout_pipe();
 }
 
 

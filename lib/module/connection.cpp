@@ -59,7 +59,7 @@ using namespace qkd::module;
  * 
  * @param   eType           type of the connection
  */
-connection::connection(connection_type eType) : m_eType(eType), m_eSocketAccess(socket_access::ROUND_ROBIN), m_nTimeout(1000), m_nCurrentPathIndex(0) {
+connection::connection(connection_type eType) : m_eType(eType), m_eSocketAccess(socket_access::ROUND_ROBIN), m_nCurrentPathIndex(0) {
 }
 
 
@@ -77,7 +77,6 @@ connection::~connection() {
  * 
  * @param   sURL                the URLs of the connection
  * @param   nHighWaterMark      high water mark value
- * @param   nTimeout            initial timeout in millisec on this connection
  * @param   sIPCPrefix          ipc socket file prefix (if ipc:// * is used)
  * @param   sIPCSuffix          ipc socket file suffix (if ipc:// * is used)
  * 
@@ -98,11 +97,17 @@ bool connection::add(std::string sURL, int nHighWaterMark, std::string sIPCPrefi
     // new URL somehow valid?    
     cPath->reset();
     try {
+        
         std::stringstream ss;
         if (!sIPCPrefix.empty()) ss << sIPCPrefix << ".";
         ss << qkd::utility::environment::process_id();
         if (!sIPCSuffix.empty()) ss << "." << sIPCSuffix;
-        cPath->set_url(sURL, zmq_socket_server(), zmq_socket_type(), nHighWaterMark, m_nTimeout, ss.str());
+        
+        int nTimeout = -1;
+        if ((m_eType == connection_type::PIPE_IN) || (m_eType == connection_type::PIPE_OUT)) nTimeout = 1000;
+        
+        // this creates the real socket/path/connection underneath
+        cPath->set_url(sURL, zmq_socket_server(), zmq_socket_type(), nTimeout, nHighWaterMark, ss.str());
     }
     catch (std::exception & e) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
@@ -209,7 +214,7 @@ bool connection::read_key(qkd::key::key & cKey) {
     for (auto & p : cPaths) {
         
         qkd::key::key cReadKey;
-        if (read_key(*p.get(), cReadKey, m_nTimeout)) {
+        if (read_key(*p.get(), cReadKey)) {
             if (cKey.is_null()) cKey = cReadKey;
             else m_cKeysInStock.push_back(cReadKey);
         }
@@ -224,10 +229,9 @@ bool connection::read_key(qkd::key::key & cKey) {
  * 
  * @param   cPath       the path to read
  * @param   cKey        the key to read
- * @param   nTimeout    timeout value
  * @return  true, if we read a key
  */
-bool connection::read_key(qkd::module::path & cPath, qkd::key::key & cKey, int nTimeout) {
+bool connection::read_key(qkd::module::path & cPath, qkd::key::key & cKey) {
     
     if (cPath.is_void()) return false;
     if (cPath.is_stdin()) {
@@ -236,7 +240,6 @@ bool connection::read_key(qkd::module::path & cPath, qkd::key::key & cKey, int n
     }
     
     zmq_msg m;
-    cPath.set_timeout_incoming(nTimeout);
     int nRead = cPath.recv(m);
     if (nRead == -1) {
 
@@ -260,14 +263,8 @@ bool connection::read_key(qkd::module::path & cPath, qkd::key::key & cKey, int n
 /**
  * read a message
  *
- * this call is blocking (with respect to timeout)
+ * this call is blocking
  * 
- * The nTimeout value is interpreted in these ways:
- * 
- *      n ...   wait n milliseconds for an reception of a message
- *      0 ...   do not wait: get the next message and return
- *     -1 ...   wait infinite (must be interrupted: see interrupt_worker())
- *     
  * The given message object will be deleted with delet before assigning new values.
  * Therefore if message receive has been successful the message is not NULL
  * 
@@ -275,11 +272,10 @@ bool connection::read_key(qkd::module::path & cPath, qkd::key::key & cKey, int n
  * is NOT the case a exception is thrown.
  * 
  * @param   cMessage            this will receive the message
- * @param   nTimeout            timeout in ms
  * @return  true, if we have received a message
  */
-bool connection::recv_message(qkd::module::message & cMessage, int nTimeout) {
-    
+bool connection::recv_message(qkd::module::message & cMessage) {
+
     // empty in/out key
     cMessage = qkd::module::message();
     
@@ -302,7 +298,7 @@ bool connection::recv_message(qkd::module::message & cMessage, int nTimeout) {
     for (auto & p : cPaths) {
         
         qkd::module::message cReadMessage;
-        if (recv_message(*p.get(), cReadMessage, nTimeout)) {
+        if (recv_message(*p.get(), cReadMessage)) {
             if (!bMessageSet) {
                 cMessage = cReadMessage;
                 bMessageSet = true;
@@ -320,22 +316,22 @@ bool connection::recv_message(qkd::module::message & cMessage, int nTimeout) {
  *
  * @param   cPath       the path to read
  * @param   cMessage    the message to be received
- * @param   nTimeout    timeout value
  * @return  true, if cMessage is received
  */
-bool connection::recv_message(qkd::module::path & cPath, qkd::module::message & cMessage, int nTimeout) {
+bool connection::recv_message(qkd::module::path & cPath, qkd::module::message & cMessage) {
     
     if (cPath.is_void()) return false;
     if (cPath.is_stdin()) {
         throw std::runtime_error("don't know how to read a message from stdin");
     }
 
-    cPath.set_timeout_incoming(nTimeout);
-    
     // --> get the message header    
     zmq_msg cMsgHeader;
     int nReadHeader = cPath.recv(cMsgHeader, ZMQ_RCVMORE);
+std::cout << __DEBUG_LOCATION__ << std::endl;            
     if (nReadHeader == -1) {
+
+std::cout << __DEBUG_LOCATION__ << " zmq_errno()=" << zmq_errno() << std::endl;            
 
         // EAGAIN and EINTR are not critical
         if ((zmq_errno() == EAGAIN) || (zmq_errno() == EINTR)) return false;
@@ -344,6 +340,7 @@ bool connection::recv_message(qkd::module::path & cPath, qkd::module::message & 
         ss << "failed reading message header from peer: " << strerror(zmq_errno());
         throw std::runtime_error(ss.str());
     }
+std::cout << __DEBUG_LOCATION__ << std::endl;            
     if (!cMsgHeader.more() || (cMsgHeader.size() != sizeof(cMessage.m_cHeader))) {
         throw std::runtime_error("received invalid message header");
     }
@@ -352,6 +349,7 @@ bool connection::recv_message(qkd::module::path & cPath, qkd::module::message & 
     // --> get the message data
     zmq_msg cMsgData;
     int nReadData = cPath.recv(cMsgData);
+std::cout << __DEBUG_LOCATION__ << std::endl;            
     if (nReadData == -1) {
 
         // EAGAIN and EINTR are not critical
@@ -361,10 +359,13 @@ bool connection::recv_message(qkd::module::path & cPath, qkd::module::message & 
         ss << "failed reading message data from peer: " << strerror(zmq_errno());
         throw std::runtime_error(ss.str());
     }
+std::cout << __DEBUG_LOCATION__ << std::endl;            
     cMessage.data().resize(cMsgData.size());
     memcpy(cMessage.data().get(), cMsgData.data(), cMsgData.size());
     cMessage.data().set_position(0);
     
+std::cout << __DEBUG_LOCATION__ << std::endl;            
+
     return true;
 }
     
@@ -380,24 +381,17 @@ void connection::reset() {
 /**
  * send a message
  * 
- * this call is blocking (with respect to timout)
+ * this call is blocking
  * 
- * The nTimeout value is interpreted in these ways:
- * 
- *      n ...   wait n milliseconds
- *      0 ...   do not wait
- *     -1 ...   wait infinite (must be interrupted: see interrupt_worker())
- *     
  * Note: this function takes ownership of the message's data sent! 
  * Afterwards the message's data will be void
  * 
  * Sending might fail on interrupt.
  *
  * @param   cMessage            the message to send
- * @param   nTimeout            timeout in ms
  * @returns true, if successfully sent
  */
-bool connection::send_message(qkd::module::message & cMessage, int nTimeout) {
+bool connection::send_message(qkd::module::message & cMessage) {
     
     std::list<path_ptr> cPaths = get_next_paths();
     if (cPaths.size() == 0) return false;
@@ -409,7 +403,7 @@ bool connection::send_message(qkd::module::message & cMessage, int nTimeout) {
     //       in the process
     bool bMessageSent = false;
     for (auto & p : cPaths) {
-        if (send_message(*p.get(), cMessage, nTimeout)) {
+        if (send_message(*p.get(), cMessage)) {
             bMessageSent |= true;
         }
     }
@@ -423,17 +417,14 @@ bool connection::send_message(qkd::module::message & cMessage, int nTimeout) {
  * 
  * @param   cPath               the path to send the message on
  * @param   cMessage            the message to send
- * @param   nTimeout            timeout for sending
  * @returns true, if successfully sent
  */
-bool connection::send_message(qkd::module::path & cPath, qkd::module::message & cMessage, int nTimeout) {
+bool connection::send_message(qkd::module::path & cPath, qkd::module::message & cMessage) {
     
     if (cPath.is_void()) return false;
     if (cPath.is_stdout()) {
         throw std::runtime_error("don't know how to send a message on stdout");
     }
-    
-    cPath.set_timeout_outgoing(nTimeout);
     
     cMessage.m_cHeader.nId = htobe32(++qkd::module::message::m_nLastId);
     cMessage.m_cTimeStamp = std::chrono::high_resolution_clock::now();
@@ -464,22 +455,6 @@ bool connection::send_message(qkd::module::path & cPath, qkd::module::message & 
     }
 
     return true;
-}
-
-
-/**
- * set the number of milliseconds for network send/recv timeout
- * 
- * @param   nTimeout        the new number of milliseconds for network send/recv timeout
- */
-void connection::set_timeout(qlonglong nTimeout) {
-    
-    m_nTimeout = nTimeout;
-    
-    for (auto & cPath : m_cPaths) {
-        cPath->set_timeout_incoming(nTimeout);
-        cPath->set_timeout_outgoing(nTimeout);
-    }
 }
 
 
@@ -552,7 +527,7 @@ bool connection::write_key(qkd::key::key const & cKey) {
     //       in the process
     bool bKeyWritten = false;
     for (auto & cPath : cPaths) {
-        if (write_key(*cPath.get(), cKey, m_nTimeout)) {
+        if (write_key(*cPath.get(), cKey)) {
             bKeyWritten |= true;
         }
     }
@@ -566,10 +541,9 @@ bool connection::write_key(qkd::key::key const & cKey) {
  * 
  * @param   cPath       the path to write key on
  * @param   cKey        key to pass
- * @param   nTimeout    timeout for send
  * @return  true, if writing was successful
  */
-bool connection::write_key(qkd::module::path & cPath, qkd::key::key const & cKey, int nTimeout) {
+bool connection::write_key(qkd::module::path & cPath, qkd::key::key const & cKey) {
     
     if (cPath.is_void()) return false;
     if (cPath.is_stdout()) {
@@ -580,7 +554,6 @@ bool connection::write_key(qkd::module::path & cPath, qkd::key::key const & cKey
     qkd::utility::buffer cBuffer;
     cBuffer << cKey;
 
-    cPath.set_timeout_outgoing(nTimeout);
     int nWritten = cPath.send(cBuffer.get(), cBuffer.size());
     if (nWritten == -1) {
 

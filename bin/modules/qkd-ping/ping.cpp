@@ -93,6 +93,7 @@ bool ping_alice(qkd::module::communicator & cModuleComm, uint64_t nPackageSize) 
         cPayload.resize(0);
         if (!(cModuleComm >> cPayload)) {
             qkd::utility::debug() << "failed to read from bob...";
+            std::cout << "failed to read from bob..." << std::endl;
             cModuleComm.mod()->rest();
             return false;
         }
@@ -133,6 +134,7 @@ bool ping_bob(qkd::module::communicator & cModuleComm, uint64_t nPackageSize) {
     try {
         if (!(cModuleComm >> cPayload)) {
             qkd::utility::debug() << "failed to read from alice...";
+            std::cout << "failed to read from alice..." << std::endl;
             cModuleComm.mod()->rest();
             return false;
         }

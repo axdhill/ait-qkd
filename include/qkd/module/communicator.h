@@ -130,7 +130,7 @@ public:
      * @param   cBuffer         blob to receive
      * @return  true for success
      */
-    inline bool operator>>(qkd::utility::buffer & cBuffer) throw (std::runtime_error) { 
+    inline bool operator>>(qkd::utility::buffer & cBuffer) { 
         qkd::module::message cMessage; 
         if (recv(cMessage)) { 
             cMessage.data() >> cBuffer; 
@@ -148,7 +148,7 @@ public:
      * @param   cMemory         blob to receive
      * @return  true for success
      */
-    inline bool operator>>(qkd::utility::memory & cMemory) throw (std::runtime_error) { 
+    inline bool operator>>(qkd::utility::memory & cMemory) { 
         qkd::module::message cMessage; 
         if (recv(cMessage)) { 
             cMessage.data() >> cMemory; 
@@ -166,9 +166,7 @@ public:
      * @param   cMessage        message to receive
      * @return  true for success
      */
-    inline bool operator>>(qkd::module::message & cMessage) throw (std::runtime_error) {  
-        return recv(cMessage); 
-    }
+    inline bool operator>>(qkd::module::message & cMessage) {  return recv(cMessage); }
 
 
     /**
@@ -179,7 +177,7 @@ public:
      * @param   cBuffer         blob to send
      * @return  true for success
      */
-    inline void operator<<(qkd::utility::buffer const & cBuffer) throw (std::runtime_error) { 
+    inline void operator<<(qkd::utility::buffer const & cBuffer) { 
         qkd::module::message cMessage; 
         cMessage.data() << cBuffer; 
         send(cMessage); 
@@ -194,7 +192,7 @@ public:
      * @param   cMemory         blob to send
      * @return  true for success
      */
-    inline void operator<<(qkd::utility::memory const & cMemory) throw (std::runtime_error) { 
+    inline void operator<<(qkd::utility::memory const & cMemory) { 
         qkd::module::message cMessage; 
         cMessage.data() << cMemory; 
         send(cMessage); 
@@ -209,9 +207,7 @@ public:
      * @param   cMessage        message to send
      * @return  true for success
      */
-    inline void operator<<(qkd::module::message & cMessage) throw (std::runtime_error) { 
-        send(cMessage); 
-    }
+    inline void operator<<(qkd::module::message & cMessage) { send(cMessage); }
 
 
     /**
@@ -227,16 +223,7 @@ public:
      *
      * this is a facade wrap to module's recv method
      * 
-     * this call is blocking (with respect to timout)
-     * 
-     * The nTimeOut value is interpreted in these ways:
-     * 
-     *      n ...   wait n milliseconds for an reception of a message
-     *      0 ...   do not wait: get the next message and return
-     *     -1 ...   wait infinite (must be interrupted: see interrupt_worker())
-     *     
-     *      the value of std::numeric_limits< int >::min() means: no change to the
-     *      current timeout setting
+     * this call is blocking
      * 
      * The given message object will be deleted with delet before assigning new values.
      * Therefore if message receive has been successful the message is not NULL
@@ -244,34 +231,17 @@ public:
      * This call waits explcitly for the next message been of type eType. If this
      * is NOT the case a exception is thrown.
      * 
-     * WARNING: if -1 is used a timeout, then the module waits infinite when
-     *          the peer module ceased to exist!
-     *
      * @param   cMessage            this will receive the message
      * @param   eType               message type to receive
-     * @param   nTimeOut            timeout in ms
      * @return  true, if we have receuived a message, false else
      */
-    bool recv(qkd::module::message & cMessage, 
-            qkd::module::message_type eType = qkd::module::message_type::MESSAGE_TYPE_DATA, 
-            int nTimeOut = 1000) throw (std::runtime_error); 
+    bool recv(qkd::module::message & cMessage, qkd::module::message_type eType = qkd::module::message_type::MESSAGE_TYPE_DATA);
 
 
     /**
      * send a message to the peer module
      * 
      * this is a facade wrap to module's send method
-     * 
-     * this call is blocking (with respect to timout)
-     * 
-     * The nTimeOut value is interpreted in these ways:
-     * 
-     *      n ...   wait n milliseconds
-     *      0 ...   do not wait
-     *     -1 ...   wait infinite (must be interrupted: see interrupt_worker())
-     *     
-     *      the value of std::numeric_limits< int >::min() means: no change to the
-     *      current timeout setting
      * 
      * this call is blocking
      * 
@@ -281,10 +251,9 @@ public:
      * Sending might fail on interrupt.
      *
      * @param   cMessage            the message to send
-     * @param   nTimeOut            timeout in ms
      * @returns true, if the message has been sent
      */
-    bool send(qkd::module::message & cMessage, int nTimeOut = -1) throw (std::runtime_error);
+    bool send(qkd::module::message & cMessage);
 
 
 private:

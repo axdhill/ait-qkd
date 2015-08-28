@@ -72,12 +72,6 @@
 using namespace qkd::module;
 
 
-// // ------------------------------------------------------------
-// // fwd.
-// 
-// void memory_delete(void * cData, void * cHint);
-// 
-// 
 // ------------------------------------------------------------
 // code
 
@@ -175,8 +169,6 @@ void module::apply_config(UNUSED std::string const & sURL, UNUSED qkd::utility::
  *      module.ID.random_url
  *      module.ID.synchronize_keys
  *      module.ID.synchronize_ttl
- *      module.ID.timeout_network
- *      module.ID.timeout_pipe
  * 
  * where ID is the module id as been resulted by the id() call.
  * 
@@ -265,16 +257,6 @@ bool module::apply_standard_config(std::string const & sKey, std::string const &
     else
     if (sSubKey == "terminate_after") {
         set_terminate_after(std::stoll(sValue));
-        return true;
-    }
-    else
-    if (sSubKey == "timeout_network") {
-        set_timeout_network(std::stoll(sValue));
-        return true;
-    }
-    else
-    if (sSubKey == "timeout_pipe") {
-        set_timeout_pipe(std::stoll(sValue));
         return true;
     }
     
@@ -561,8 +543,6 @@ bool module::is_standard_config_key(std::string const & sKey) const {
     if (sSubKey == "synchronize_keys") return true;
     if (sSubKey == "synchronize_ttl") return true;
     if (sSubKey == "terminate_after") return true;
-    if (sSubKey == "timeout_network") return true;
-    if (sSubKey == "timeout_pipe") return true;
     
     return false;
 }
@@ -720,14 +700,8 @@ bool module::read(qkd::key::key & cKey) {
 /**
  * read a message from the peer module
  * 
- * this call is blocking (with respect to timeout)
+ * this call is blocking
  * 
- * The nTimeOut value is interpreted in these ways:
- * 
- *      n ...   wait n milliseconds for an reception of a message
- *      0 ...   do not wait: get the next message and return
- *     -1 ...   wait infinite (must be interrupted: see interrupt_worker())
- *     
  * The given message object will be deleted with delet before assigning new values.
  * Therefore if message receive has been successful the message is not NULL
  * 
@@ -740,16 +714,13 @@ bool module::read(qkd::key::key & cKey) {
  * @param   cMessage            this will receive the message
  * @param   cAuthContext        the authentication context involved
  * @param   eType               message type to receive
- * @param   nTimeOut            timeout in ms
  * @return  true, if we have receuived a message
  */
 bool module::recv(qkd::module::message & cMessage, 
         qkd::crypto::crypto_context & cAuthContext, 
-        qkd::module::message_type eType, 
-        int nTimeOut) {
+        qkd::module::message_type eType) {
 
     bool bReceived = false;
-    auto cStartOfRecv = std::chrono::high_resolution_clock::now();
 
     // ensure there is at least an empty message queue for this message type
     if (d->cMessageQueues.find(eType) == d->cMessageQueues.end()) {
@@ -765,12 +736,11 @@ bool module::recv(qkd::module::message & cMessage,
     }
     else {
 
-        // receive message and push them into queue
-        // until a) correct type received or b) timeout
+        // receive message and push them into queue until correct type received
 
         do {
 
-            bReceived = recv_internal(cMessage, nTimeOut);
+            bReceived = recv_internal(cMessage);
             if (!bReceived) return false;
 
             if (cMessage.type() != eType) {
@@ -785,20 +755,6 @@ bool module::recv(qkd::module::message & cMessage,
                         << static_cast<uint32_t>(eType) 
                         << " - pushed into queue for later dispatch.";
                 bReceived = false;
-
-                if (nTimeOut >= 0) {
-
-                    auto cNow = std::chrono::high_resolution_clock::now();
-                    auto nPassed = std::chrono::duration_cast<std::chrono::milliseconds>(cNow - cStartOfRecv).count();
-                    if (nPassed > nTimeOut) {
-
-                        // timeout over: failed to get proper message from peer! =(
-                        // clear message (remove memory artifacts) and exit
-                        memset(&(cMessage.m_cHeader), 0, sizeof(cMessage.m_cHeader));
-                        cMessage.data() = qkd::utility::memory(0);
-                        return false;
-                    }
-                }
             }
 
         } while (!bReceived); 
@@ -817,14 +773,8 @@ bool module::recv(qkd::module::message & cMessage,
  * this is called by the protected recv method and stuffs the received
  * messages into queues depending on their message type.
  * 
- * this call is blocking (with respect to timeout)
+ * this call is blocking
  * 
- * The nTimeOut value is interpreted in these ways:
- * 
- *      n ...   wait n milliseconds for an reception of a message
- *      0 ...   do not wait: get the next message and return
- *     -1 ...   wait infinite (must be interrupted: see interrupt_worker())
- *     
  * The given message object will be deleted with delet before assigning new values.
  * Therefore if message receive has been successful the message is not NULL
  * 
@@ -832,16 +782,15 @@ bool module::recv(qkd::module::message & cMessage,
  * is NOT the case a exception is thrown.
  * 
  * @param   cMessage            this will receive the message
- * @param   nTimeOut            timeout in ms
  * @return  true, if we have received a message
  */
-bool module::recv_internal(qkd::module::message & cMessage, int nTimeOut) {
+bool module::recv_internal(qkd::module::message & cMessage) {
 
     qkd::module::connection * cCon = nullptr;
     if (is_alice()) cCon = d->cConPeer;
     if (is_bob()) cCon = d->cConListen;
     
-    if (!cCon->recv_message(cMessage, nTimeOut)) return false;
+    if (!cCon->recv_message(cMessage)) return false;
     if (is_dying_state()) return false;
 
     cMessage.m_cTimeStamp = std::chrono::high_resolution_clock::now();
@@ -1043,14 +992,8 @@ void module::run() {
 /**
  * send a message to the peer module
  * 
- * this call is blocking (with respect to timout)
+ * this call is blocking
  * 
- * The nTimeOut value is interpreted in these ways:
- * 
- *      n ...   wait n milliseconds
- *      0 ...   do not wait
- *     -1 ...   wait infinite (must be interrupted: see interrupt_worker())
- *     
  * Note: this function takes ownership of the message's data sent! 
  * Afterwards the message's data will be void
  * 
@@ -1058,16 +1001,15 @@ void module::run() {
  *
  * @param   cMessage            the message to send
  * @param   cAuthContext        the authentication context involved
- * @param   nTimeOut            timeout in ms
  * @returns true, if successfully sent
  */
-bool module::send(qkd::module::message & cMessage, qkd::crypto::crypto_context & cAuthContext, int nTimeOut) {
+bool module::send(qkd::module::message & cMessage, qkd::crypto::crypto_context & cAuthContext) {
     
     qkd::module::connection * cCon = nullptr;
     if (is_alice()) cCon = d->cConPeer;
     if (is_bob()) cCon = d->cConListen;
     
-    if (!cCon->send_message(cMessage, nTimeOut)) return false;
+    if (!cCon->send_message(cMessage)) return false;
     d->debug_message(true, cMessage);
     
     cAuthContext << cMessage.data();
@@ -1222,30 +1164,6 @@ void module::set_synchronize_ttl(qulonglong nTTL) {
  */    
 void module::set_terminate_after(qulonglong nTerminateAfter) {
     d->nTerminateAfter = nTerminateAfter;
-}
-
-
-/**
- * set the number of milliseconds for network send/recv timeout
- * 
- * @param   nTimeout        the new number of milliseconds for network send/recv timeout
- */
-void module::set_timeout_network(qlonglong nTimeout) {
-    std::lock_guard<std::mutex> cLock(d->cURLMutex);
-    d->cConPeer->set_timeout(nTimeout);
-    d->cConListen->set_timeout(nTimeout);
-}
-
-
-/**
- * set the number of milliseconds after a failed read
- * 
- * @param   nTimeout        the new number of milliseconds to wait after a failed read
- */
-void module::set_timeout_pipe(qlonglong nTimeout) {
-    std::lock_guard<std::mutex> cLock(d->cURLMutex);
-    d->cConPipeIn->set_timeout(nTimeout);
-    d->cConPipeOut->set_timeout(nTimeout);
 }
 
 
@@ -1450,7 +1368,7 @@ void module::synchronize() {
     for (auto const & cStashedKey : d->cStash.cOutOfSync) cMessage.data() << cStashedKey.first;
     
     try {
-        send(cMessage, cNullContxt, timeout_network());
+        send(cMessage, cNullContxt);
     }
     catch (std::runtime_error & cException) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
@@ -1459,7 +1377,7 @@ void module::synchronize() {
     }
     
     try {
-        recv(cMessage, cNullContxt, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC, timeout_network());
+        recv(cMessage, cNullContxt, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
         recv_synchronize(cMessage);
     }
     catch (std::runtime_error & cException) {}
@@ -1541,28 +1459,6 @@ void module::thread() {
  */    
 qulonglong module::terminate_after() const {
     return d->nTerminateAfter;
-}
-
-
-/**
- * return the number of milliseconds for network send/recv timeout
- * 
- * @return  the number of milliseconds for network send/recv timeout
- */
-qlonglong module::timeout_network() const {
-    std::lock_guard<std::mutex> cLock(d->cURLMutex);
-    return d->nTimeoutNetwork;
-}
-
-
-/**
- * return the number of milliseconds after a failed read
- * 
- * @return  the number of milliseconds to wait after a failed read
- */
-qlonglong module::timeout_pipe() const {
-    std::lock_guard<std::mutex> cLock(d->cURLMutex);
-    return d->nTimeoutPipe;
 }
 
 

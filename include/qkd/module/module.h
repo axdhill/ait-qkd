@@ -411,10 +411,6 @@ enum class module_type : uint8_t {
  * 
  *      terminate_after                 R/W             number of keys left before terminating (0 --> do not terminate) [this is for testing and defines when to stop]
  *
- *      timeout_network                 R/W             number of milliseconds for network send/recv timeout
- * 
- *      timeout_pipe                    R/W             number of milliseconds to wait after a failed read (from pipein)
- * 
  *      type                             R              Type of the module (Sifting, Error Correction, etc ...)
  * 
  *      type_name                        R              Human readable type description of the module
@@ -507,8 +503,6 @@ class module : public QObject {
     Q_PROPERTY(bool synchronize_keys READ synchronize_keys WRITE set_synchronize_keys)          /**< get/set synchronize key ids flag */
     Q_PROPERTY(qulonglong synchronize_ttl READ synchronize_ttl WRITE set_synchronize_ttl)       /**< get/set synchronize TTL in seconds for not in-sync keys */
     Q_PROPERTY(qulonglong terminate_after READ terminate_after WRITE set_terminate_after)       /**< number of keys left before terminating (0 --> do not terminate) */    
-    Q_PROPERTY(qlonglong timeout_network READ timeout_network WRITE set_timeout_network)        /**< number of milliseconds for network send/recv timeout */    
-    Q_PROPERTY(qlonglong timeout_pipe READ timeout_pipe WRITE set_timeout_pipe)                 /**< number of milliseconds to wait after a failed read */    
     Q_PROPERTY(qulonglong type READ type)                                                       /**< the type of the module */    
     Q_PROPERTY(QString type_name READ type_name)                                                /**< the type name description of the module */
 
@@ -1195,22 +1189,6 @@ public:
 
 
     /**
-     * set the number for network send/recv
-     * 
-     * @param   nTimeout        the new number of milliseconds for network send/recv
-     */
-    void set_timeout_network(qlonglong nTimeout);
-    
-    
-    /**
-     * set the number of milliseconds after a failed read
-     * 
-     * @param   nTimeout        the new number of milliseconds to wait after a failed read
-     */
-    void set_timeout_pipe(qlonglong nTimeout);
-    
-    
-    /**
      * set the synchronize key ids flag
      * 
      * @param   bSynchronize    the new synchronize key id flag
@@ -1365,22 +1343,6 @@ public:
     qulonglong terminate_after() const;
 
 
-    /**
-     * return the number for network send/recv timeout
-     * 
-     * @return  the number of milliseconds for network send/recv timeout
-     */
-    qlonglong timeout_network() const;
-    
-    
-    /**
-     * return the number of milliseconds after a failed read
-     * 
-     * @return  the number of milliseconds to wait after a failed read
-     */
-    qlonglong timeout_pipe() const;
-    
-    
     /**
      * return the type of the module
      * 
@@ -1589,16 +1551,7 @@ protected:
     /**
      * read a message from the peer module
      * 
-     * this call is blocking (with respect to timeout)
-     * 
-     * The nTimeOut value is interpreted in these ways:
-     * 
-     *      n ...   wait n milliseconds for an reception of a message
-     *      0 ...   do not wait: get the next message and return
-     *     -1 ...   wait infinite (must be interrupted: see interrupt_worker())
-     *     
-     *      the value of std::numeric_limits< int >::min() means: no change to the
-     *      current timeout setting
+     * this call is blocking
      * 
      * The given message object will be deleted with delet before assigning new values.
      * Therefore if message receive has been successful the message is not NULL
@@ -1606,22 +1559,17 @@ protected:
      * This call waits explcitly for the next message been of type eType. If this
      * is NOT the case a exception is thrown.
      * 
-     * WARNING: if -1 is used a timeout, then the module waits infinite when
-     *          the peer module ceased to exist!
-     *
      * Internally the recv_internal method is called and the actual receive
      * is performed. 
      * 
      * @param   cMessage            this will receive the message
      * @param   cAuthContext        the authentication context involved
      * @param   eType               message type to receive
-     * @param   nTimeOut            timeout in ms
      * @return  true, if we have received a message, false else
      */
     virtual bool recv(qkd::module::message & cMessage, 
             qkd::crypto::crypto_context & cAuthContext, 
-            qkd::module::message_type eType = qkd::module::message_type::MESSAGE_TYPE_DATA, 
-            int nTimeOut = 1000);
+            qkd::module::message_type eType = qkd::module::message_type::MESSAGE_TYPE_DATA);
 
     
     /**
@@ -1639,14 +1587,6 @@ protected:
     /**
      * send a message to the peer module
      * 
-     * this call is blocking (with respect to timout)
-     * 
-     * The nTimeOut value is interpreted in these ways:
-     * 
-     *      n ...   wait n milliseconds
-     *      0 ...   do not wait
-     *     -1 ...   wait infinite (must be interrupted: see interrupt_worker())
-     *     
      * this call is blocking
      * 
      * Note: this function takes ownership of the message's data sent! 
@@ -1656,12 +1596,9 @@ protected:
      *
      * @param   cMessage            the message to send
      * @param   cAuthContext        the authentication context involved
-     * @param   nTimeOut            timeout in ms
      * @returns true, if successfully sent
      */
-    virtual bool send(qkd::module::message & cMessage, 
-            qkd::crypto::crypto_context & cAuthContext, 
-            int nTimeOut = -1);
+    virtual bool send(qkd::module::message & cMessage, qkd::crypto::crypto_context & cAuthContext);
 
     
     /**
@@ -1809,14 +1746,8 @@ private:
      * this is called by the protected recv method and stuffs the received
      * messages into queues depending on their message type.
      * 
-     * this call is blocking (with respect to timeout)
+     * this call is blocking
      * 
-     * The nTimeOut value is interpreted in these ways:
-     * 
-     *      n ...   wait n milliseconds for an reception of a message
-     *      0 ...   do not wait: get the next message and return
-     *     -1 ...   wait infinite (must be interrupted: see interrupt_worker())
-     *     
      * The given message object will be deleted with delet before assigning new values.
      * Therefore if message receive has been successful the message is not NULL
      * 
@@ -1824,10 +1755,9 @@ private:
      * is NOT the case a exception is thrown.
      * 
      * @param   cMessage            this will receive the message
-     * @param   nTimeOut            timeout in ms
      * @return  true, if we have receuived a message
      */
-    bool recv_internal(qkd::module::message & cMessage, int nTimeOut = -1);
+    bool recv_internal(qkd::module::message & cMessage);
 
 
     /**

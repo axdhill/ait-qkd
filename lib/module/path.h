@@ -274,24 +274,6 @@ public:
     
     
     /**
-     * set incoming (recv) timeout
-     * 
-     * @param   nTimeout    in millisec, -1 for infinite
-     * @return  true, if set, false for error
-     */
-    bool set_timeout_incoming(int nTimeout);
-    
-    
-    /**
-     * set incoming (recv) timeout
-     * 
-     * @param   nTimeout    in millisec, -1 for infinite
-     * @return  true, if set, false for error
-     */
-    bool set_timeout_outgoing(int nTimeout);
-    
-
-    /**
      * sets the path's URL
      * 
      * Valid URLs are:
@@ -312,11 +294,11 @@ public:
      * @param   sURL                the new URL of the path
      * @param   bServer             do a "bind()" (instead of a "connect()")
      * @param   nSocketType         the ZMQ socket type
-     * @param   nHighWaterMark      the number of messages in transit for this path
      * @param   nTimeout            the timeout in milliseconds for actions on this path
+     * @param   nHighWaterMark      the number of messages in transit for this path
      * @param   sIPCHint            proper file name to use for IPC paths (if ipc:// is ambiguous)
      */
-    void set_url(std::string sURL, bool bServer, int nSocketType, int nHighWaterMark = 1000, int nTimeout = 1000,  std::string sIPCHint = "");
+    void set_url(std::string sURL, bool bServer, int nSocketType, int nTimeout, int nHighWaterMark = 1000, std::string sIPCHint = "");
     
     
     /**
@@ -376,14 +358,32 @@ private:
     
     
     /**
+     * set incoming (recv) timeout
+     * 
+     * @param   nTimeout    in millisec, -1 for infinite
+     * @return  true, if set, false for error
+     */
+    bool set_timeout_incoming(int nTimeout);
+    
+    
+    /**
+     * set incoming (recv) timeout
+     * 
+     * @param   nTimeout    in millisec, -1 for infinite
+     * @return  true, if set, false for error
+     */
+    bool set_timeout_outgoing(int nTimeout);
+    
+
+    /**
      * setup the path
      * 
      * @param   bServer         rather use "bind()" for socket and not "connect()"
      * @param   nSocketType     the ZMQ socket type
-     * @param   nHighWaterMark      the number of messages in transit for this path
      * @param   nTimeout            the timeout in milliseconds for actions on this path
+     * @param   nHighWaterMark      the number of messages in transit for this path
      */
-    void setup(bool bServer, int nSocketType, int nHighWaterMark, int nTimeout);
+    void setup(bool bServer, int nSocketType, int nTimeout, int nHighWaterMark);
     
     
     std::string m_sURL;                 /**< the URL to connect */
