@@ -228,20 +228,14 @@ bool qkd_cat::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cIncom
     if (d->cKeyFile.eof()) {
         
         std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
-        if (qkd::utility::debug::enabled()) {
-            qkd::utility::debug() << "reached end-of-file";
-        }
+        qkd::utility::debug() << "reached end-of-file";
         
+        d->cKeyFile.close();
         if (!d->bLoop) {
             pause();
             return false;
-        }
         
-        if (qkd::utility::debug::enabled()) {
-            qkd::utility::debug() << "rewind read position";
         }
-        d->cKeyFile.clear();
-        d->cKeyFile.seekg(0);
         
         return process(cKey, cIncomingContext, cOutgoingContext);
     }

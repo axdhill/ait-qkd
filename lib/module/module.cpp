@@ -1261,9 +1261,10 @@ void module::set_url_pipe_out(QString sURL) {
  * @return  stalled flag
  */
 bool module::stalled() const {
-    if (processing()) return false;
+    if (processing() && (get_state() == qkd::module::module_state::STATE_RUNNING)) return false;
     std::chrono::system_clock::time_point cNow = std::chrono::system_clock::now();
-    return (std::chrono::duration_cast<std::chrono::milliseconds>(cNow - d->cLastProcessedKey)).count() > 1000;
+    bool bStalled = (std::chrono::duration_cast<std::chrono::milliseconds>(cNow - d->cLastProcessedKey)).count() > 1000;
+    return bStalled;
     
 }
 
@@ -1584,7 +1585,7 @@ void module::work() {
         eState = get_state();
         while (eState == qkd::module::module_state::STATE_READY) eState = wait_for_state_change(eState);
         if (eState != qkd::module::module_state::STATE_RUNNING) break;
-        
+
         // get a key
         qkd::key::key cKey;
         if (d->cStash.cInSync.size() > 0) {
@@ -1627,6 +1628,8 @@ void module::work() {
             }
         }
         
+        d->bProcessing = true;
+        
         // create crypto context for retieved key
         qkd::crypto::crypto_context cIncomingContext = qkd::crypto::engine::create("null");
         qkd::crypto::crypto_context cOutgoingContext = qkd::crypto::engine::create("null");
@@ -1652,11 +1655,9 @@ void module::work() {
         }
 
         // call the module working method
-        d->bProcessing = true;
         workload cWorkload = { qkd::module::work{ cKey, cIncomingContext, cOutgoingContext, false } };
         process(cWorkload);
         d->cLastProcessedKey = std::chrono::system_clock::now();
-        d->bProcessing = false;
         
         eState = get_state();
         while (eState == qkd::module::module_state::STATE_READY) eState = wait_for_state_change(eState);
@@ -1689,6 +1690,8 @@ void module::work() {
             }
         }
 
+        d->bProcessing = false;
+        
         // check for exit
         if (d->nTerminateAfter != 0) {
 

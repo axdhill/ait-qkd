@@ -258,46 +258,6 @@ public:
     void set_state(module_state eNewState);
     
     
-//     /**
-//      * runs all the setup code for the module worker thread
-//      * 
-//      * @return  true, if all is laid out properly
-//      */
-//     bool setup();
-// 
-//     
-//     /**
-//      * setup listen
-//      * 
-//      * @return  true, for success
-//      */
-//     bool setup_listen();
-//     
-// 
-//     /**
-//      * setup peer connection
-//      * 
-//      * @return  true, for success
-//      */
-//     bool setup_peer();
-//     
-// 
-//     /**
-//      * setup pipe IN
-//      * 
-//      * @return  true, for success
-//      */
-//     bool setup_pipe_in();
-//     
-// 
-//     /**
-//      * setup pipe OUT
-//      * 
-//      * @return  true, for success
-//      */
-//     bool setup_pipe_out();
-
-
     /**
      * wait for state change
      * 

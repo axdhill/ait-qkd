@@ -106,7 +106,7 @@ ps -ef | grep qkd-tee | awk '{ print $2; }' | xargs kill
 
 # let some time pass
 echo "wait some time ..."
-sleep 2
+sleep 1
 
 # relaunch the module and reconnect
 echo "relaunching TEE module ..."
@@ -129,6 +129,11 @@ wait_stalled tee throttle cat
 
 # add the output from the 1st TEE to the 2nd TEE and check
 cat killer-keys.1.tee killer-keys.2.tee > killer-keys.total.tee
+
+${TEST_BASE}/bin/qkd-key-dump -s killer-keys.alice > killer-keys.alice.in
+${TEST_BASE}/bin/qkd-key-dump -s killer-keys.1.tee > killer-keys.1.out
+${TEST_BASE}/bin/qkd-key-dump -s killer-keys.2.tee > killer-keys.2.out
+${TEST_BASE}/bin/qkd-key-dump -s killer-keys.total.tee > killer-keys.total.out
 
 # make the final check: the input MUST be the output
 diff -q killer-keys.alice killer-keys.total.tee
