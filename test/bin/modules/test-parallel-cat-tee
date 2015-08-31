@@ -78,14 +78,14 @@ done
 echo "modules created"
 
 # start tee module full fucntional
-MODULE_TEE=$(bin/qkd-view | grep tee | awk '{ print $3; }')
+MODULE_TEE=$(${TEST_BASE}/bin/qkd-view | grep tee | awk '{ print $3; }')
 qkd_qdbus ${MODULE_TEE} /Module set_urls "ipc:///tmp/qkd/tee.in" "stdout://" "" ""
 qkd_qdbus ${MODULE_TEE} /Module run 
 qkd_qdbus ${MODULE_TEE} /Module resume
 echo "tee started ..."
 
 # launch cat modules
-bin/qkd-view | grep cat | awk '{ print $3; }' | while read MODULE_CAT; do
+${TEST_BASE}/bin/qkd-view | grep cat | awk '{ print $3; }' | while read MODULE_CAT; do
     qkd_qdbus ${MODULE_CAT} /Module set_urls "" "ipc:///tmp/qkd/tee.in" "" ""
     qkd_qdbus ${MODULE_CAT} /Module run 
     qkd_qdbus ${MODULE_CAT} /Module resume
@@ -94,14 +94,15 @@ done
 # wait until done
 sleep 1
 wait_stalled cat tee
+echo "module work done"
 
 # check results
 rm cat_total_keys
 for i in $(seq 1 ${NUMBER_CAT}); do
     cat cat-keys-${i}.alice >> cat_total_keys
 done
-bin/qkd-key-dump cat_total_keys | grep "^key #" > cat_ids
-bin/qkd-key-dump tee_keys.alice | grep "^key #" > tee_ids
+${TEST_BASE}/bin/qkd-key-dump cat_total_keys | grep "^key #" > cat_ids
+${TEST_BASE}/bin/qkd-key-dump tee_keys.alice | grep "^key #" > tee_ids
 
 # we have a +1 if the tee_id *does* actually differ!
 # this means: this was real parallellization with keys out-of-order!! yeah!
