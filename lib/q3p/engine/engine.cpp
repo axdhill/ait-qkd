@@ -32,7 +32,7 @@
 // incs
 
 #include <iostream>
-
+#include <thread>
 
 // Qt
 #include <QtCore/QTimer>
@@ -470,6 +470,8 @@ std::string engine_instance::charge_string() const {
 void engine_instance::close() {
     
     // wind down module thread
+    interrupt_worker();
+    std::this_thread::yield();
     terminate();
     join();
     

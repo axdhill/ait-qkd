@@ -134,12 +134,10 @@ fi
 
 echo "alice and bob disconnected"
 
-# let alice connect
-echo "reconnect alice connect"
 qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob connect "tcp://127.0.0.1:10021" "${SHARED_SECRET}" &> /dev/null
-echo "reconnect alice connected"
+sleep 1
 
-# check if we have a connection
+echo "reconnect..."
 CONNECTED_ALICE=$(qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob connected)
 CONNECTED_BOB=$(qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice connected)
 if [ "${CONNECTED_ALICE}" != "true" ]; then
