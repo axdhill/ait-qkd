@@ -104,18 +104,13 @@ qkd_throttle::qkd_throttle() : qkd::module::module("throttle", qkd::module::modu
  */
 void qkd_throttle::apply_config(UNUSED std::string const & sURL, qkd::utility::properties const & cConfig) {
     
-    // delve into the given config
     for (auto const & cEntry : cConfig) {
         
-        // grab any key which is intended for us
         if (!is_config_key(cEntry.first)) continue;
-        
-        // ignore standard config keys: they should have been applied already
         if (is_standard_config_key(cEntry.first)) continue;
         
         std::string sKey = cEntry.first.substr(config_prefix().size());
         
-        // module specific config here
         if (sKey == "max_bits_per_second") {
             std::stringstream ss(cEntry.second);
             uint64_t nMaxBitsPerSecond = 0;
@@ -130,7 +125,8 @@ void qkd_throttle::apply_config(UNUSED std::string const & sURL, qkd::utility::p
             set_max_keys_per_second(nMaxKeysPerSecond);
         }
         else {
-            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "found unknown key: \"" << cEntry.first << "\" - don't know how to handle this.";
+            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                    << ": " << "found unknown key: \"" << cEntry.first << "\" - don't know how to handle this.";
         }
     }
 }
@@ -142,8 +138,6 @@ void qkd_throttle::apply_config(UNUSED std::string const & sURL, qkd::utility::p
  * @return  the current bits per second
  */
 double qkd_throttle::bits_per_second() const {
-    
-    // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     return d->m_cBitsPerSecond->sum();
 }
@@ -155,8 +149,6 @@ double qkd_throttle::bits_per_second() const {
  * @return  the current keys per second
  */
 double qkd_throttle::keys_per_second() const {
-    
-    // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     return d->m_cKeysPerSecond->sum();
 }
@@ -168,8 +160,6 @@ double qkd_throttle::keys_per_second() const {
  * @return  the maximum bits per second
  */
 double qkd_throttle::max_bits_per_second() const {
-    
-    // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     return d->nMaxBitsPerSecond;
 }
@@ -181,8 +171,6 @@ double qkd_throttle::max_bits_per_second() const {
  * @return  the maximum keys per second
  */
 double qkd_throttle::max_keys_per_second() const {
-    
-    // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     return d->nMaxKeysPerSecond;
 }
@@ -198,7 +186,6 @@ double qkd_throttle::max_keys_per_second() const {
  */
 bool qkd_throttle::process(UNUSED qkd::key::key & cKey, UNUSED qkd::crypto::crypto_context & cIncomingContext, UNUSED qkd::crypto::crypto_context & cOutgoingContext) {
     
-    // get the current values
     double nMaxBitsPerSecond = 0.0;
     double nMaxKeysPerSecond = 0.0;
     {
@@ -207,19 +194,11 @@ bool qkd_throttle::process(UNUSED qkd::key::key & cKey, UNUSED qkd::crypto::cryp
         nMaxKeysPerSecond = d->nMaxKeysPerSecond;
     }
         
-    // do nothing if no maximum has been set
     if ((nMaxBitsPerSecond == 0.0) && (nMaxKeysPerSecond == 0.0)) return true;
     
-    // add to average
-    d->m_cBitsPerSecond << cKey.data().size() * 8;
-    d->m_cKeysPerSecond << 1.0;
-    
-    // figure out if we should delay based on the incoming values
     bool bDelay = false;
     do {
        
-        // TODO: this does not yet correctly work --> killer test takes way too long
-
         bool bDelayCausedByBits = false;
         bool bDelayCausedByKeys = false;
         volatile double nBitsPerSecond = bits_per_second();
@@ -229,24 +208,27 @@ bool qkd_throttle::process(UNUSED qkd::key::key & cKey, UNUSED qkd::crypto::cryp
 
         bDelay = (bDelayCausedByBits || bDelayCausedByKeys);
         
-        // debug to the user
         if (qkd::utility::debug::enabled()) {
             
             auto cAgeInMS = std::chrono::duration_cast<std::chrono::milliseconds>(age());
             
             std::stringstream ss;
             ss << "time: " << cAgeInMS.count() << "ms ";
-            ss << "current bps: " << nBitsPerSecond << "/" << nMaxBitsPerSecond << " ";
-            ss << "current kps: " << nKeysPerSecond << "/" << nMaxKeysPerSecond << " ";
-            ss << "forwarding: " << (bDelay ? "no" : "yes");
+            ss << "current bps [" << nBitsPerSecond << "/" << nMaxBitsPerSecond << "] ";
+            ss << "- current kps [" << nKeysPerSecond << "/" << nMaxKeysPerSecond << "] ";
+            ss << "- delay current key: " << (bDelay ? "yes" : "no");
             
             qkd::utility::debug() << ss.str();
         }
         
-        // wait for a while, if necessary
         if (bDelay) rest();
             
     } while (bDelay);
+    
+    d->m_cBitsPerSecond << cKey.data().size() * 8;
+    d->m_cKeysPerSecond << 1.0;
+    
+    rest();
     
     return true;
 }
@@ -258,8 +240,6 @@ bool qkd_throttle::process(UNUSED qkd::key::key & cKey, UNUSED qkd::crypto::cryp
  * @param   nMaximum        the new maximum (0 == no maximum)
  */
 void qkd_throttle::set_max_bits_per_second(double nMaximum) {
-    
-    // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     d->nMaxBitsPerSecond = nMaximum;
 }
@@ -271,8 +251,6 @@ void qkd_throttle::set_max_bits_per_second(double nMaximum) {
  * @param   nMaximum        the new maximum (0 == no maximum)
  */
 void qkd_throttle::set_max_keys_per_second(double nMaximum) {
-    
-    // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     d->nMaxKeysPerSecond = nMaximum;
 }

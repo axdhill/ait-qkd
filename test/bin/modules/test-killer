@@ -84,7 +84,7 @@ qkd_qdbus ${MODULE_CAT} /Module resume
 
 # start the THROTTLE
 echo "starting module: ${MODULE_THROTTLE} ..."
-qkd_qdbus ${MODULE_THROTTLE} /Module Set at.ac.ait.qkd.throttle max_keys_per_second 10
+qkd_qdbus ${MODULE_THROTTLE} /Module Set at.ac.ait.qkd.throttle max_keys_per_second 25
 qkd_qdbus ${MODULE_THROTTLE} /Module set_urls "ipc://$(pwd)/killer-throttle.in" "ipc://$(pwd)/killer-tee.in" "" ""
 qkd_qdbus ${MODULE_THROTTLE} /Module run 
 qkd_qdbus ${MODULE_THROTTLE} /Module resume
@@ -125,7 +125,7 @@ qkd_qdbus ${MODULE_TEE} /Module resume
 
 sleep 1
 
-wait_stalled tee throttle cat
+wait_stalled throttle cat tee
 
 # add the output from the 1st TEE to the 2nd TEE and check
 cat killer-keys.1.tee killer-keys.2.tee > killer-keys.total.tee
