@@ -515,6 +515,7 @@ void module::init() {
  * the return value of false.
  */
 void module::interrupt_worker() {
+    if (d->cModuleThread.get_id() == std::thread::id()) return;
     if (d->cModuleThread.get_id() == std::this_thread::get_id()) return;
     pthread_kill(d->cModuleThread.native_handle(), SIGCHLD);
 }
