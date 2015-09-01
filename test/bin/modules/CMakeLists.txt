@@ -64,6 +64,7 @@ configure_file(test-disruptive-drop             ${CMAKE_CURRENT_BINARY_DIR}/test
 configure_file(test-disruptive-reorder          ${CMAKE_CURRENT_BINARY_DIR}/test-disruptive-reorder         @ONLY)
 configure_file(test-full-disruptive             ${CMAKE_CURRENT_BINARY_DIR}/test-full-disruptive            @ONLY)
 configure_file(test-parallel-cat-tee            ${CMAKE_CURRENT_BINARY_DIR}/test-parallel-cat-tee           @ONLY)
+configure_file(test-demux                       ${CMAKE_CURRENT_BINARY_DIR}/test-demux                      @ONLY)
 configure_file(test-simulator-pipeline          ${CMAKE_CURRENT_BINARY_DIR}/test-simulator-pipeline         @ONLY)
 
 
@@ -102,6 +103,7 @@ add_test(disruptive-drop                        ${CMAKE_CURRENT_BINARY_DIR}/test
 add_test(disruptive-reorder                     ${CMAKE_CURRENT_BINARY_DIR}/test-disruptive-reorder)
 add_test(full-disruptive                        ${CMAKE_CURRENT_BINARY_DIR}/test-full-disruptive)
 add_test(parallel-cat-tee                       ${CMAKE_CURRENT_BINARY_DIR}/test-parallel-cat-tee)
+add_test(demux                                  ${CMAKE_CURRENT_BINARY_DIR}/test-demux)
 
 
 # ------------------------------------------------------------
