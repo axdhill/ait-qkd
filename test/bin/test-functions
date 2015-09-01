@@ -44,8 +44,14 @@ export SHARED_SECRET=$(cat ${TEST_BASE}/test/test-data/shared-secret)
 export SHARED_SECRET_FILE="${TEST_BASE}/test/test-data/shared-secret-very-long"
 
 export QKD_DBUS_SESSION_ADDRESS="unix:path=/tmp/qkd-test-dbus/qkd_dbus_socket"
-alias qkd_qdbus='qdbus --address ${QKD_DBUS_SESSION_ADDRESS}'
 
+# newer versions of qdbus use --bus instead of --address
+qdbus --help | grep '\--bus' &> /dev/null
+if [ "$?" = 0 ]; then
+    alias qkd_qdbus='qdbus --bus ${QKD_DBUS_SESSION_ADDRESS}'
+else
+    alias qkd_qdbus='qdbus --address ${QKD_DBUS_SESSION_ADDRESS}'
+fi
 
 # --------------------------------------------------
 # ensure there is a clean environment to test
