@@ -517,7 +517,7 @@ void module::init() {
 void module::interrupt_worker() {
     if (d->cModuleThread.get_id() == std::thread::id()) return;
     if (d->cModuleThread.get_id() == std::this_thread::get_id()) return;
-    pthread_kill(d->cModuleThread.native_handle(), SIGCHLD);
+    pthread_kill(d->cModuleThread.native_handle(), SIGINT);
     std::this_thread::yield();
 }
 
@@ -1425,6 +1425,7 @@ void module::terminate() {
     else {
         d->set_state(module_state::STATE_TERMINATING);
         interrupt_worker();
+        join();
     }
 }
 

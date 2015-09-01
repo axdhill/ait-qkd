@@ -73,7 +73,6 @@ wait_stalled cat drop
 echo "keys droped"
 
 # count remaining keys
-set -x
 REMAINING_KEYS=$(${TEST_BASE}/bin/qkd-key-dump drop_keys.alice | grep '^key' | wc -l)
 DROPPED_KEYS=$((${KEYS_TO_PROCESS} - ${REMAINING_KEYS}))
 echo "dropped ${DROPPED_KEYS}"
