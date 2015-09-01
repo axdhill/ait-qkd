@@ -62,6 +62,7 @@ echo "modules created"
 
 wait_stalled cat tee
 echo "got keys"
+test_cleanup
 
 grep ^key-PULL qkd_tee.1.debug > qkd_tee.1.PULL
 grep ^key-PUSH qkd_tee.1.debug > qkd_tee.1.PUSH

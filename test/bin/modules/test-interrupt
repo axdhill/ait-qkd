@@ -53,7 +53,7 @@ fi
 echo "startet qkd-ping module ..."
 
 qkd_qdbus ${MODULE_PING} /Module terminate
-sleep 2
+sleep 1
 
 # check if the module is still up
 MODULE_PING=$(qkd_qdbus | grep at.ac.ait.qkd.module.ping)

@@ -82,21 +82,25 @@ grep "^key-PUSH" resize_debug.bob  | awk '{ print $3 " " $4 " " $5 " " $6; }' > 
 FILES_LINES=$(echo $(wc -l resize_debug.alice.out) $(wc -l resize_debug.bob.out))
 if [ "${FILES_LINES}" != "333 resize_debug.alice.out 333 resize_debug.bob.out" ]; then
     echo "resize failed"
+    test_cleanup
     exit 1
 fi
 
 # check keys
 if [ ! -s resize_keys.alice ]; then
     echo "alice has not pushed keys"
+    test_cleanup
     exit 1
 fi
 if [ ! -s resize_keys.bob ]; then
     echo "bob has not pushed keys"
+    test_cleanup
     exit 1
 fi
 diff -q resize_debug.alice.out resize_debug.bob.out
 if [ "$?" != "0" ]; then
     echo "result of qkd-resize differ"
+    test_cleanup
     exit 1
 fi
 

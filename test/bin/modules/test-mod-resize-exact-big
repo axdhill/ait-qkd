@@ -78,6 +78,7 @@ echo "got keys"
 OUTPUT_VARIANTS=$(grep ^key-PUSH resize_debug.alice | awk '{ print $6; }' | uniq | wc -l)
 if [ -z "${OUTPUT_VARIANTS}" ]; then
     echo "alice has not pushed keys"
+    test_cleanup
     exit 1
 fi
 
@@ -87,10 +88,12 @@ grep ^key-PUSH resize_debug.alice | awk '{ print $6; }' | while read KEY_SIZE; d
     if [ "${KEY_SIZE}" -ne 8000 ]; then
         echo "alice passed a key other then 1000 bytes"
         GOOD="no"
+        test_cleanup
         exit 1
     fi
 done
 if [ "${GOOD}" != "yes" ]; then
+    test_cleanup
     exit 1
 fi
 echo "all keys of alice are exactly 1000 bytes"
@@ -102,6 +105,9 @@ wait_stalled dekey
 rm -f resize_keys.alice.raw &> /dev/null
 ( cat resize_keys.alice | ${TEST_BASE}/bin/qkd-dekey --file resize_keys.alice.raw --run --debug 1> /dev/null 2> dekey_debug.resize ) &
 wait_stalled dekey
+
+test_cleanup
+
 RESIZE_OUTPUT_SIZE=$(ls -l resize_keys.alice.raw | awk '{ print $5; }')
 dd if=cat_keys.alice.raw of=cat_keys.alice.resized.raw bs=1 count=${RESIZE_OUTPUT_SIZE}
 diff -q cat_keys.alice.resized.raw resize_keys.alice.raw &> /dev/null
@@ -111,7 +117,5 @@ if [ "$?" != "0" ]; then
 fi
 
 echo "qkd-resize exact key size works"
-
-test_cleanup
 
 echo "=== TEST SUCCESS ==="

@@ -515,10 +515,15 @@ void module::init() {
  * the return value of false.
  */
 void module::interrupt_worker() {
+qkd::utility::debug() << __DEBUG_LOCATION__;
     if (d->cModuleThread.get_id() == std::thread::id()) return;
+qkd::utility::debug() << __DEBUG_LOCATION__;
     if (d->cModuleThread.get_id() == std::this_thread::get_id()) return;
+qkd::utility::debug() << __DEBUG_LOCATION__;
     pthread_kill(d->cModuleThread.native_handle(), SIGCHLD);
+qkd::utility::debug() << __DEBUG_LOCATION__;
     std::this_thread::yield();
+qkd::utility::debug() << __DEBUG_LOCATION__;
 }
 
 
