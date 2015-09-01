@@ -155,7 +155,7 @@ function test_init() {
         echo 'Failed to create test folder "${1}"'
         exit 1
     fi
-    rm *
+    rm * &> /dev/null
     
     ulimit -c unlimited
     echo 

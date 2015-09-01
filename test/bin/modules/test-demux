@@ -40,14 +40,85 @@ source ${TEST_BASE}/test/bin/test-functions
 # init test environment
 test_init "test_run/$(basename $0).d"
 
-# zap previous keys
 rm -rf cat_keys.* &> /dev/null
+${TEST_BASE}/bin/qkd-key-gen --silent --size 1000 --keys 1000 cat_keys
 
-# create keys
-${TEST_BASE}/bin/qkd-key-gen --silent --size 100 --randomize-size --keys 1000 --rate 0.04 --errorbits cat_keys
+( ${TEST_BASE}/bin/qkd-cat --run --debug --config ${TEST_BASE}/test/test-data/demux/cat.conf 2> qkd_cat.debug ) &
+( ${TEST_BASE}/bin/qkd-tee --run --debug --config ${TEST_BASE}/test/test-data/demux/tee-1.conf 1> /dev/null 2> qkd_tee.1.debug ) &
+( ${TEST_BASE}/bin/qkd-tee --run --debug --config ${TEST_BASE}/test/test-data/demux/tee-2.conf 1> /dev/null 2> qkd_tee.2.debug ) &
+( ${TEST_BASE}/bin/qkd-tee --run --debug --config ${TEST_BASE}/test/test-data/demux/tee-3.conf 1> /dev/null 2> qkd_tee.3.debug ) &
+( ${TEST_BASE}/bin/qkd-tee --run --debug --config ${TEST_BASE}/test/test-data/demux/tee-4.conf 1> /dev/null 2> qkd_tee.4.debug ) &
+( ${TEST_BASE}/bin/qkd-tee --run --debug --config ${TEST_BASE}/test/test-data/demux/tee-5.conf 1> /dev/null 2> qkd_tee.5.debug ) &
 
+while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module.cat | wc -l)" != "1" ]; do
+    echo "waiting for the pipeline to ignite ..."
+    sleep 1
+done
+while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module.tee | wc -l)" != "5" ]; do
+    echo "waiting for the pipeline to ignite ..."
+    sleep 1
+done
+echo "modules created"
 
+wait_stalled cat tee
+echo "got keys"
 
+grep ^key-PULL qkd_tee.1.debug > qkd_tee.1.PULL
+grep ^key-PUSH qkd_tee.1.debug > qkd_tee.1.PUSH
+grep ^key-PULL qkd_tee.2.debug > qkd_tee.2.PULL
+grep ^key-PUSH qkd_tee.2.debug > qkd_tee.2.PUSH
+grep ^key-PULL qkd_tee.3.debug > qkd_tee.3.PULL
+grep ^key-PUSH qkd_tee.3.debug > qkd_tee.3.PUSH
+grep ^key-PULL qkd_tee.4.debug > qkd_tee.4.PULL
+grep ^key-PUSH qkd_tee.4.debug > qkd_tee.4.PUSH
+grep ^key-PULL qkd_tee.5.debug > qkd_tee.5.PULL
+grep ^key-PUSH qkd_tee.5.debug > qkd_tee.5.PUSH
+if [ $(wc -l qkd_tee.1.PULL | awk '{ print $1; }') = 0 ]; then
+    echo "qkd_tee.1 has not pulled keys"
+    exit 1
+fi
+if [ $(wc -l qkd_tee.2.PULL | awk '{ print $1; }') = 0 ]; then
+    echo "qkd_tee.2 has not pulled keys"
+    exit 1
+fi
+if [ $(wc -l qkd_tee.3.PULL | awk '{ print $1; }') = 0 ]; then
+    echo "qkd_tee.3 has not pulled keys"
+    exit 1
+fi
+if [ $(wc -l qkd_tee.4.PULL | awk '{ print $1; }') = 0 ]; then
+    echo "qkd_tee.4 has not pulled keys"
+    exit 1
+fi
+if [ $(wc -l qkd_tee.5.PULL | awk '{ print $1; }') = 0 ]; then
+    echo "qkd_tee.5 has not pulled keys"
+    exit 1
+fi
+if [ $(wc -l qkd_tee.1.PUSH | awk '{ print $1; }') = 0 ]; then
+    echo "qkd_tee.1 has not pushed keys"
+    exit 1
+fi
+if [ $(wc -l qkd_tee.2.PUSH | awk '{ print $1; }') = 0 ]; then
+    echo "qkd_tee.2 has not pushed keys"
+    exit 1
+fi
+if [ $(wc -l qkd_tee.3.PUSH | awk '{ print $1; }') = 0 ]; then
+    echo "qkd_tee.3 has not pushed keys"
+    exit 1
+fi
+if [ $(wc -l qkd_tee.4.PUSH | awk '{ print $1; }') = 0 ]; then
+    echo "qkd_tee.4 has not pushed keys"
+    exit 1
+fi
+if [ $(wc -l qkd_tee.5.PUSH | awk '{ print $1; }') = 0 ]; then
+    echo "qkd_tee.5 has not pushed keys"
+    exit 1
+fi
+
+cat qkd_tee.1.PUSH qkd_tee.2.PUSH qkd_tee.3.PUSH qkd_tee.4.PUSH qkd_tee.5.PUSH > qkd_tee.pushed
+if [ $(wc -l qkd_tee.pushed | awk '{ print $1; }') != 1000 ]; then
+    echo "not exactly 1000 keys pushed by"
+    exit 1
+fi
 
 test_cleanup
 
