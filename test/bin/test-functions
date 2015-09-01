@@ -137,13 +137,11 @@ function test_init() {
     
     # clean up any remants of previous tests
     test_cleanup
-
+    
     # setup local DBUS for testing
     mkdir -p /tmp/qkd-test-dbus &> /dev/null
     rm -f /tmp/qkd-test-dbus/qkd-dbus.pid &> /dev/null
     dbus-daemon --config-file ${TEST_BASE}/test/test-data/qkd-test-dbus.conf
-    echo "query local temporary DBus with 'qdbus --address unix:path=/tmp/qkd-test-dbus/qkd_dbus_socket'"
-    echo "or use 'export DBUS_SESSION_BUS_ADDRESS=\"unix:path=/tmp/qkd-test-dbus/qkd_dbus_socket\"'"
     DBUS_ID=$(qkd_qdbus org.freedesktop.DBus / GetId)
     if [ -z ${DBUS_ID} ]; then
         echo 'Failed to launch local DBus for testing.'
@@ -151,15 +149,26 @@ function test_init() {
     fi
     
     mkdir -p ${1} 2> /dev/null
+    TEST_DATA_FOLDER=$(readlink -f ${1})
     cd ${1}
     if [ "$?" != "0" ]; then
         echo 'Failed to create test folder "${1}"'
         exit 1
     fi
     
+    ulimit -c unlimited
+    echo 
+    echo "---- test hint ----"
+    echo "test data will be put to: ${TEST_DATA_FOLDER}"
+    echo "query local temporary DBus with 'qdbus --address unix:path=/tmp/qkd-test-dbus/qkd_dbus_socket'"
+    echo "or use 'export DBUS_SESSION_BUS_ADDRESS=\"unix:path=/tmp/qkd-test-dbus/qkd_dbus_socket\"'"
     echo "If you want to examine core dumps you might set"
-    echo "  # echo 1 > /proc/sys/kernel/core_uses_pid"
-    echo "  # echo 'core_%e.%p' > /proc/sys/kernel/core_pattern"
+    echo "      # echo 1 > /proc/sys/kernel/core_uses_pid"
+    echo "      # echo 'core_%e.%p' > /proc/sys/kernel/core_pattern"
+    echo "If you want to see all test details in a file "
+    echo "named 'test_details' invoke the test suite with this:"
+    echo "      $ ctest -V 2>&1 | tee test_details"
+    echo 
 }
 
 
