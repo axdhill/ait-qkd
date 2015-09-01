@@ -1418,14 +1418,22 @@ void module::terminate() {
     if (d->get_state() == module_state::STATE_TERMINATING) return;
     if (d->get_state() == module_state::STATE_TERMINATED) return;
 
+qkd::utility::debug() << __DEBUG_LOCATION__;    
     if (d->cModuleThread.get_id() == std::this_thread::get_id()) {
+qkd::utility::debug() << __DEBUG_LOCATION__;    
         d->release();
+qkd::utility::debug() << __DEBUG_LOCATION__;    
     }
     else {
-        
+qkd::utility::debug() << __DEBUG_LOCATION__;    
         d->set_state(module_state::STATE_TERMINATING);
+qkd::utility::debug() << __DEBUG_LOCATION__;    
         interrupt_worker();
+qkd::utility::debug() << __DEBUG_LOCATION__;    
     }
+    
+    // give worker thread chance to clean up
+    std::this_thread::yield();
 }
 
 
