@@ -46,7 +46,7 @@ test_init
 rm -rf killer-keys.* &> /dev/null
 
 # create keys
-${TEST_BASE}/bin/qkd-key-gen --keys=100 killer-keys
+${TEST_BASE}/bin/qkd-key-gen --silent --keys=100 killer-keys
 
 # create a pipeline: cat --> throttle --> tee
 ${TEST_BASE}/bin/qkd-cat --debug 2> qkd-cat.debug &

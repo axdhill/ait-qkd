@@ -118,7 +118,7 @@ NUMBER_KEYS=1000
 rm -rf keystore-keys.* &> /dev/null
 
 # create keys
-${TEST_BASE}/bin/qkd-key-gen --keys=${NUMBER_KEYS} keystore-keys
+${TEST_BASE}/bin/qkd-key-gen --silent --keys=${NUMBER_KEYS} keystore-keys
 
 # copy alice as bob keys (to be the same then)
 cp keystore-keys.alice keystore-keys.bob

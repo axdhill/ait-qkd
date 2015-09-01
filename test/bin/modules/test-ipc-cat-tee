@@ -44,7 +44,7 @@ NUMBER_TEE=10
 
 rm -rf ipc-keys.* &> /dev/null
 
-${TEST_BASE}/bin/qkd-key-gen --keys=${NUMBER_KEYS} ipc-keys
+${TEST_BASE}/bin/qkd-key-gen --silent --keys=${NUMBER_KEYS} ipc-keys
 rm -f ipc-keys.bob &> /dev/null
 
 # start the modules in the background

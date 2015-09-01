@@ -49,7 +49,7 @@ echo -n > statistics_debug.bob
 
 # create keys
 KEYS_TO_PROCESS="100"
-${TEST_BASE}/bin/qkd-key-gen --size 512 --keys ${KEYS_TO_PROCESS} --rate 0.03 cat_keys
+${TEST_BASE}/bin/qkd-key-gen --silent --size 512 --keys ${KEYS_TO_PROCESS} --rate 0.03 cat_keys
 
 # start two pipelines
 PIPELINE_CONFIG="file://${TEST_BASE}/test/test-data/statistics.conf"

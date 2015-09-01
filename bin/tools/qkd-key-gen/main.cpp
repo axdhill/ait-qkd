@@ -72,6 +72,7 @@ public:
     bool bSetErrorBits;             /**< set error bits in the key */
     double nDisclosedRate;          /**< set disclosed bits in the key */
     bool bQuantumTables;            /**< create quantum tables instead of key material */
+    bool bSilent;                   /**< no console output */
 };
 
 
@@ -491,7 +492,7 @@ int generate(config const & cConfig) {
         cFileAlice << cKeyAlice;
         cFileBob << cKeyBob;
         
-        std::cout << "created key #" << cKeyAlice.id() << std::endl;
+        if (!cConfig.bSilent) std::cout << "created key #" << cKeyAlice.id() << std::endl;
     }
     
     return 0;        
@@ -523,6 +524,7 @@ int main(int argc, char ** argv) {
     cOptions.add_options()("randomize-size", "randomize the key size within 2% standard deviation");
     cOptions.add_options()("rate,r", boost::program_options::value<double>()->default_value(0.05, "0.05"), "error rate in each key");
     cOptions.add_options()("quantum,q", "create quantum detector tables as key material (whereas 1 byte holds 2 events which are 2 key bits)");
+    cOptions.add_options()("silent", "don't be see chatty");
     cOptions.add_options()("version,v", "print version string");
     cOptions.add_options()("exact,x", "produce exact amount of errors");
     cOptions.add_options()("zero,z", "instead of random bits, start with all 0");
@@ -585,6 +587,7 @@ int main(int argc, char ** argv) {
     cConfig.bSetErrorBits = (cVariableMap.count("errorbits") > 0);
     cConfig.nDisclosedRate = cVariableMap["disclosed"].as<double>();
     cConfig.bQuantumTables = (cVariableMap.count("quantum") > 0);
+    cConfig.bSilent = (cVariableMap.count("silent") > 0);
     
     // show config to user
     show_config(cConfig);
@@ -600,6 +603,8 @@ int main(int argc, char ** argv) {
  * @param   cConfig     the config to show
  */
 void show_config(config const & cConfig) {
+    
+    if (cConfig.bSilent) return;
     
     std::cout << "qkd key generation setting: \n";
     std::cout << "\tfile:              " << cConfig.sFile << "\n";

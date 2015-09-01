@@ -44,7 +44,7 @@ NUMBER_TEE=10
 
 rm -rf tcp-keys.* &> /dev/null
 
-${TEST_BASE}/bin/qkd-key-gen --keys=${NUMBER_KEYS} tcp-keys
+${TEST_BASE}/bin/qkd-key-gen --silent --keys=${NUMBER_KEYS} tcp-keys
 rm -f tcp-keys.bob &> /dev/null
 
 # start the modules in the background

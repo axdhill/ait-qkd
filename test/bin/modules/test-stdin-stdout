@@ -44,7 +44,7 @@ test_init
 rm -rf stdin-stdout-keys.* &> /dev/null
 
 # create keys
-${TEST_BASE}/bin/qkd-key-gen --keys=100 stdin-stdout-keys
+${TEST_BASE}/bin/qkd-key-gen --silent --keys=100 stdin-stdout-keys
 
 # start the qkd-tee module in the background 
 # with stdin:// and stdout:// set

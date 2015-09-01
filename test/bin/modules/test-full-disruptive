@@ -70,7 +70,7 @@ echo -n > auth_post_debug.bob
 
 # create keys
 KEYS_TO_PROCESS="1000"
-${TEST_BASE}/bin/qkd-key-gen --size 2048 --keys ${KEYS_TO_PROCESS} --quantum --rate 0.03 cat_keys
+${TEST_BASE}/bin/qkd-key-gen --silent --size 2048 --keys ${KEYS_TO_PROCESS} --quantum --rate 0.03 cat_keys
 
 # prepare the config files
 cp ${TEST_BASE}/test/test-data/disruptive-full.conf ${TEST_BASE}/auth_pre.config

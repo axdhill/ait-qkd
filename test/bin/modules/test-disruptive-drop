@@ -52,7 +52,7 @@ echo -n > cascade_debug.bob
 
 # create keys
 KEYS_TO_PROCESS="100"
-${TEST_BASE}/bin/qkd-key-gen --size 2048 --keys ${KEYS_TO_PROCESS} --rate 0.03 cat_keys
+${TEST_BASE}/bin/qkd-key-gen --silent --size 2048 --keys ${KEYS_TO_PROCESS} --rate 0.03 cat_keys
 
 # start two pipelines
 PIPELINE_CONFIG="file://${TEST_BASE}/test/test-data/disruptive-drop-simple.conf"

@@ -46,7 +46,7 @@ test_init
 rm -rf cat_keys.* &> /dev/null
 
 # create keys
-${TEST_BASE}/bin/qkd-key-gen --keys 1000 --size 1024 ${TEST_BASE}/cat_keys
+${TEST_BASE}/bin/qkd-key-gen --silent --keys 1000 --size 1024 ${TEST_BASE}/cat_keys
 
 # fix pipeline config
 cat ${TEST_BASE}/test/test-data/testing.conf | grep -v "^cat.file_url" > ${TEST_BASE}/testing.config

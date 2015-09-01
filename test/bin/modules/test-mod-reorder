@@ -44,7 +44,7 @@ test_init
 rm -rf cat_keys.* &> /dev/null
 
 KEYS_TO_PROCESS="100"
-${TEST_BASE}/bin/qkd-key-gen --size 64 --keys ${KEYS_TO_PROCESS} cat_keys
+${TEST_BASE}/bin/qkd-key-gen --silent --size 64 --keys ${KEYS_TO_PROCESS} cat_keys
 
 # truncate previous debug out
 echo -n > reorder_debug.alice

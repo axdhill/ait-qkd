@@ -45,7 +45,7 @@ test_init
 
 # create keys
 KEYS_TO_PROCESS="100"                
-${TEST_BASE}/bin/qkd-key-gen --size 4096 --keys ${KEYS_TO_PROCESS} cat_keys
+${TEST_BASE}/bin/qkd-key-gen --silent --size 4096 --keys ${KEYS_TO_PROCESS} cat_keys
 
 # truncate previous debug out
 echo -n > confirmation_debug.alice

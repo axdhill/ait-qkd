@@ -53,7 +53,7 @@ echo -n > throttle_debug.kps
 #    20 keys
 #   200 bits each
 # 40000 bits total
-${TEST_BASE}/bin/qkd-key-gen --keys=20 --size=250 throttle-keys
+${TEST_BASE}/bin/qkd-key-gen --silent --keys=20 --size=250 throttle-keys
 
 
 # ---- test: maximum of 5000 bps ----

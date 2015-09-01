@@ -55,7 +55,7 @@ rm -rf cat-keys.* &> /dev/null
 # create keys
 FIRST_ID=1
 for i in $(seq 1 ${NUMBER_CAT}); do
-    ${TEST_BASE}/bin/qkd-key-gen --id ${FIRST_ID} --keys=${NUMBER_KEYS} cat-keys-${i}
+    ${TEST_BASE}/bin/qkd-key-gen --silent --id ${FIRST_ID} --keys=${NUMBER_KEYS} cat-keys-${i}
     FIRST_ID=$((${FIRST_ID} + ${NUMBER_KEYS}))
 done
 

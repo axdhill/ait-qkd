@@ -46,7 +46,7 @@ test_init
 rm -rf cat_keys.* &> /dev/null
 
 # create keys
-${TEST_BASE}/bin/qkd-key-gen --size 1000 --randomize-size --keys 1000 --rate 0.04 --errorbits cat_keys
+${TEST_BASE}/bin/qkd-key-gen --silent --size 1000 --randomize-size --keys 1000 --rate 0.04 --errorbits cat_keys
 
 # truncate previous debug out
 echo -n > resize_debug.alice
