@@ -37,7 +37,7 @@ source ${TEST_BASE}/test/bin/test-functions
 # ------------------------------------------------------------
 
 # init test environment
-test_init
+test_init "test_run/$(basename $0).d"
 
 ${TEST_BASE}/bin/tools/qkd-statistics-average/qkd-statistics-average ${TEST_BASE}/test/test-data/1000_1024_0.04.alice.*.statistics 1> test-qkd-statistics-average-result
 

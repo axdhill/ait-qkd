@@ -39,7 +39,7 @@ source ${TEST_BASE}/test/bin/test-functions
 # ------------------------------------------------------------
 
 # init test environment
-test_init
+test_init "test_run/$(basename $0).d"
 
 # we need to replace ourselves in the build folder
 cd ${TEST_BASE}

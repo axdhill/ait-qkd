@@ -37,7 +37,7 @@ source ${TEST_BASE}/test/bin/test-functions
 
 # ------------------------------------------------------------
 
-test_init
+test_init "test_run/$(basename $0).d"
 
 rm -f interrupt.* &> /dev/null
 

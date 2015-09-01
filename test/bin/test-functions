@@ -93,7 +93,13 @@ function test_cleanup() {
 # --------------------------------------------------
 # init test environment
 # 
+# $1    name of test folder
 function test_init() {
+
+    if [ -z "${1}" ]; then
+        echo 'No test folder given'
+        exit 1
+    fi
 
     ( 
         cd ${TEST_BASE}/bin;
@@ -143,6 +149,17 @@ function test_init() {
         echo 'Failed to launch local DBus for testing.'
         exit 1
     fi
+    
+    mkdir -p ${1} 2> /dev/null
+    cd ${1}
+    if [ "$?" != "0" ]; then
+        echo 'Failed to create test folder "${1}"'
+        exit 1
+    fi
+    
+    echo "If you want to examine core dumps you might set"
+    echo "  # echo 1 > /proc/sys/kernel/core_uses_pid"
+    echo "  # echo 'core_%e.%p' > /proc/sys/kernel/core_pattern"
 }
 
 
