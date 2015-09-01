@@ -43,6 +43,16 @@ using namespace qkd::module;
 
 
 // ------------------------------------------------------------
+// vars
+
+
+/**
+ * our one and only zmq context
+ */
+void * g_cZMQContext;
+
+
+// ------------------------------------------------------------
 // decl
 
 
@@ -56,49 +66,23 @@ public:
     
     
     /**
-     * dtor
-     */
-    ~zmq_init() {
-        zmq_ctx_term(m_cZMQContext);
-        m_cZMQContext = nullptr;
-    }
-    
-    
-    /**
-     * the single ZeroMQ context used
-     * 
-     * @return  the 0MQ context
-     */
-    static void * ctx() { 
-        static zmq_init z;
-        return z.m_cZMQContext; 
-    }
-    
-
-private:
-    
-    
-    /**
      * ctor
      */
     zmq_init() {
-        m_cZMQContext = zmq_ctx_new();
-        if (m_cZMQContext == nullptr) throw std::runtime_error("unable to create 0MQ context");
+        g_cZMQContext = zmq_ctx_new();
+        if (g_cZMQContext == nullptr) throw std::runtime_error("unable to create 0MQ context");
     }
     
     
     /**
-     * copy ctor
+     * dtor
      */
-    zmq_init(zmq_init const & rhs) = delete;
+    ~zmq_init() {
+        zmq_ctx_term(g_cZMQContext);
+        g_cZMQContext = nullptr;
+    }
     
-    
-    /**
-     * our single ZMQ context used
-     */
-    void * m_cZMQContext;
-    
-};
+} g_cZMQInit;
 
 
 // ------------------------------------------------------------
@@ -474,7 +458,7 @@ void path::setup(bool bServer, int nSocketType, int nTimeout, int nHighWaterMark
     
     // neither void, stdin, stdout now ...
     
-    m_cSocket = zmq_socket(zmq_init::ctx(), nSocketType);
+    m_cSocket = zmq_socket(g_cZMQContext, nSocketType);
     prepare(nHighWaterMark, nTimeout); 
     
     if (is_ambiguous(m_sURL)) {
