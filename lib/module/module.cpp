@@ -518,6 +518,7 @@ void module::interrupt_worker() {
     if (d->cModuleThread.get_id() == std::thread::id()) return;
     if (d->cModuleThread.get_id() == std::this_thread::get_id()) return;
     pthread_kill(d->cModuleThread.native_handle(), SIGCHLD);
+    std::this_thread::yield();
 }
 
 
@@ -1431,9 +1432,6 @@ qkd::utility::debug() << __DEBUG_LOCATION__;
         interrupt_worker();
 qkd::utility::debug() << __DEBUG_LOCATION__;    
     }
-    
-    // give worker thread chance to clean up
-    std::this_thread::yield();
 }
 
 
@@ -1612,6 +1610,8 @@ void module::work() {
             
             if (!read(cKey)) {
 
+qkd::utility::debug() << __DEBUG_LOCATION__;                
+                
                 if (get_state() != qkd::module::module_state::STATE_RUNNING) break;
 
                 qkd::utility::debug() << "failed to read key from previous module in pipe";
