@@ -138,19 +138,24 @@ if [ "${MODULE_SERVICE}" = "" ]; then
     exit 1
 fi
 
+echo "-1-"
 qkd_qdbus ${MODULE_SERVICE} /Module set_urls "stdin://" "stdout://" "" ""
+echo "-2-"
 qkd_qdbus ${MODULE_SERVICE} /Module run
+echo "-3-"
 PIPE_IN=$(qkd_qdbus ${MODULE_SERVICE} /Module url_pipe_in)
 if [ "${PIPE_IN}" != "stdin://" ]; then
     echo "failed to set stdin:// as pipe in"
     exit 1
 fi
+echo "-4-"
 
 THROTTLE_TIMING=$( { time (
 
     rm -f failed &> /dev/null
     
     qkd_qdbus ${MODULE_SERVICE} /Module resume
+echo "-5-"
     sleep 1
 
     while :; do
@@ -162,6 +167,7 @@ THROTTLE_TIMING=$( { time (
             exit 1
         fi
         
+echo "-6-"
         if [ "${KEYS_WRITTEN}" -ge "20" ]; then
             break;
         fi
@@ -170,6 +176,7 @@ THROTTLE_TIMING=$( { time (
     done
 ); } 2>&1 ) 
 
+echo "-7-"
 qkd_qdbus ${MODULE_SERVICE} /Module terminate
 
 if [ -f failed ]; then 
