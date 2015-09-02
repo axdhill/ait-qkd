@@ -127,22 +127,17 @@ sleep 1
 
 wait_stalled throttle cat tee
 
-# add the output from the 1st TEE to the 2nd TEE and check
-cat killer-keys.1.tee killer-keys.2.tee > killer-keys.total.tee
-
-${TEST_BASE}/bin/qkd-key-dump -s killer-keys.alice > killer-keys.alice.in
-${TEST_BASE}/bin/qkd-key-dump -s killer-keys.1.tee > killer-keys.1.out
-${TEST_BASE}/bin/qkd-key-dump -s killer-keys.2.tee > killer-keys.2.out
-${TEST_BASE}/bin/qkd-key-dump -s killer-keys.total.tee > killer-keys.total.out
-
-# make the final check: the input MUST be the output
-diff -q killer-keys.alice killer-keys.total.tee
-if [ "$?" != "0" ]; then
-    echo "failed: killed and relaunched qkd module would have changed result ..."
+# both modules must have pulled something
+# though the overall sum might not be the same since
+# some keys might have been dropped due to timeout
+if [ "$(grep ^key-PULL qkd-tee.1.debug | wc -l)" = "0" ]; then
+    echo "failed: first qkd-tee did not pulled keys"
     exit 1
 fi
-
-# ah ... relaunching a module in the middle DOES NOT change the output
+if [ "$(grep ^key-PULL qkd-tee.2.debug | wc -l)" = "0" ]; then
+    echo "failed: second qkd-tee did not pulled keys"
+    exit 1
+fi
 echo "killing and relaunching a module in the pipeline works ok"
 
 # cleanup finally
