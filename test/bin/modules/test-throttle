@@ -38,12 +38,6 @@ source ${TEST_BASE}/test/bin/test-functions
 
 test_init "test_run/$(basename $0).d"
 
-which bc &> /dev/null
-if [ "$?" != "0" ]; then
-    echo "GNU console calculator 'bc' not found. Please install one from http://www.gnu.org/software/bc/bc.html"
-    exit 1
-fi
-
 # zap previous keys
 rm -rf throttle-keys.* &> /dev/null
 echo -n > throttle_debug.bps
@@ -59,10 +53,8 @@ ${TEST_BASE}/bin/qkd-key-gen --silent --keys=20 --size=250 throttle-keys
 # ---- test: maximum of 5000 bps ----
 
 
-echo "-1-"
 echo "test: throttle to 5000 bps --> minimum of 7 seconds needed for all keys (40000 bits in total)"
 ( cat throttle-keys.alice | ${TEST_BASE}/bin/qkd-throttle --debug --bits 5000 1> keys.throttled 2>> throttle_debug.bps ) &
-echo "-2-"
 sleep 1
 
 MODULE_SERVICE=$(qkd_qdbus | grep at.ac.ait.qkd.module.throttle)
@@ -71,66 +63,38 @@ if [ "${MODULE_SERVICE}" = "" ]; then
     exit 1
 fi
 
-echo "-3-"
 qkd_qdbus ${MODULE_SERVICE} /Module set_urls "stdin://" "stdout://" "" ""
-echo "-4-"
 qkd_qdbus ${MODULE_SERVICE} /Module run
-echo "-5-"
 PIPE_IN=$(qkd_qdbus ${MODULE_SERVICE} /Module url_pipe_in)
 if [ "${PIPE_IN}" != "stdin://" ]; then
     echo "failed to set stdin:// as pipe in"
     exit 1
 fi
+qkd_qdbus ${MODULE_SERVICE} /Module resume
+while :; do
 
-THROTTLE_TIMING=$( { time (
-
-    rm -f failed &> /dev/null
+    KEYS_WRITTEN=$(qkd_qdbus ${MODULE_SERVICE} /Module keys_outgoing)
+    if [ "$?" != "0" ]; then
+        echo "failed to read number of keys written"
+        echo "throttle failed" > failed
+        exit 1
+    fi
     
-    qkd_qdbus ${MODULE_SERVICE} /Module resume
-echo "-6-"
+    if [ "${KEYS_WRITTEN}" -ge "20" ]; then
+        break;
+    fi
+    
     sleep 1
+done
+qkd_qdbus ${MODULE_SERVICE} /Module terminate &> /dev/null
 
-    while :; do
-
-        KEYS_WRITTEN=$(qkd_qdbus ${MODULE_SERVICE} /Module keys_outgoing)
-        if [ "$?" != "0" ]; then
-            echo "failed to read number of keys written"
-            echo "throttle failed" > failed
-            exit 1
-        fi
-        
-echo "-7-"
-        if [ "${KEYS_WRITTEN}" -ge "20" ]; then
-            break;
-        fi
-        
-        sleep 1
-    done
-    
-); } 2>&1 ) 
-
-echo "-8-"
-qkd_qdbus ${MODULE_SERVICE} /Module terminate
-echo "-9-"
-
-if [ -f failed ]; then 
-    echo "throttle test failed"
-    rm -f failed &> /dev/null
+THROTTLE_MINISECONDS=$(grep ^key-PUSH throttle_debug.bps | tail -n -1 | awk '{ print $2 }' | tr '[]ms' ' ' | sed 's/ 0*//')
+echo "qkd-throttle needed ${THROTTLE_MINISECONDS} ms for 20 keys a 2000 bits with 5000 bps"
+if [ "${THROTTLE_MINISECONDS}" -le 7000 ]; then
+    echo "qkd-throttle needed ${THROTTLE_MINISECONDS} which is less than 7000 as expected"
     exit 1
 fi
 
-THROTTLE_SECONDS=$(echo "${THROTTLE_TIMING}" | grep "^real" | awk '{ print $2; }' | cut -d 'm' -f 2 | cut -d 's' -f 1)
-echo "qkd-throttle needed ${THROTTLE_SECONDS} for 20 keys a 2000 bits with 5000 bps"
-
-# check if this number is greater or equal to 3.0
-# hint: the given bps or kps are maxmimum amount, if we have less
-# key material we are finished earlier, but for 20000 bits
-# with 5000 bps we must have at least 3 secs
-THROTTLE_OK=$(echo "${THROTTLE_SECONDS} >= 7.0" | bc)
-if [ "${THROTTLE_OK}" != "1" ]; then
-    echo "seconds used for thottle is '${THROTTLE_SECONDS}' which is not greater or equal to 7.0 (as it should): test failed"
-    exit 1
-fi
 echo "throttle for max bits per seconds ok"
 
 
@@ -154,47 +118,31 @@ if [ "${PIPE_IN}" != "stdin://" ]; then
     echo "failed to set stdin:// as pipe in"
     exit 1
 fi
+qkd_qdbus ${MODULE_SERVICE} /Module resume
+while :; do
 
-THROTTLE_TIMING=$( { time (
-
-    rm -f failed &> /dev/null
+    KEYS_WRITTEN=$(qkd_qdbus ${MODULE_SERVICE} /Module keys_outgoing)
+    if [ "$?" != "0" ]; then
+        echo "failed to read number of keys written"
+        echo "throttle failed" > failed
+        exit 1
+    fi
     
-    qkd_qdbus ${MODULE_SERVICE} /Module resume
+    if [ "${KEYS_WRITTEN}" -ge "20" ]; then
+        break;
+    fi
+    
     sleep 1
+done
+qkd_qdbus ${MODULE_SERVICE} /Module terminate &> /dev/null
 
-    while :; do
-
-        KEYS_WRITTEN=$(qkd_qdbus ${MODULE_SERVICE} /Module keys_outgoing)
-        if [ "$?" != "0" ]; then
-            echo "failed to read number of keys written"
-            echo "throttle failed" > failed
-            exit 1
-        fi
-        
-        if [ "${KEYS_WRITTEN}" -ge "20" ]; then
-            break;
-        fi
-        
-        sleep 1
-    done
-); } 2>&1 ) 
-
-qkd_qdbus ${MODULE_SERVICE} /Module terminate
-
-if [ -f failed ]; then 
-    echo "throttle test failed"
-    rm -f failed &> /dev/null
+THROTTLE_MINISECONDS=$(grep ^key-PUSH throttle_debug.kps | tail -n -1 | awk '{ print $2 }' | tr '[]ms' ' ' | sed 's/ 0*//')
+echo "qkd-throttle needed ${THROTTLE_MINISECONDS} ms for 20 keys a 2 keys per second"
+if [ "${THROTTLE_MINISECONDS}" -le 8000 ]; then
+    echo "qkd-throttle needed ${THROTTLE_MINISECONDS} which is less than 8000 as expected"
     exit 1
 fi
 
-THROTTLE_SECONDS=$(echo "${THROTTLE_TIMING}" | grep "^real" | awk '{ print $2; }' | cut -d 'm' -f 2 | cut -d 's' -f 1)
-echo "qkd-throttle needed ${THROTTLE_SECONDS} for 20 keys a 2000 bits with 2 keys per second"
-
-THROTTLE_OK=$(echo "${THROTTLE_SECONDS} >= 9.0" | bc)
-if [ "${THROTTLE_OK}" != "1" ]; then
-    echo "seconds used for thottle is '${THROTTLE_SECONDS}' which is not greater or equal to 9.0 (as it should): test failed"
-    exit 1
-fi
 echo "throttle for max keys per seconds ok"
 
 echo "=== TEST SUCCESS ==="
