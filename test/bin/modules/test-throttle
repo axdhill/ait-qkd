@@ -59,8 +59,10 @@ ${TEST_BASE}/bin/qkd-key-gen --silent --keys=20 --size=250 throttle-keys
 # ---- test: maximum of 5000 bps ----
 
 
+echo "-1-"
 echo "test: throttle to 5000 bps --> minimum of 7 seconds needed for all keys (40000 bits in total)"
 ( cat throttle-keys.alice | ${TEST_BASE}/bin/qkd-throttle --debug --bits 5000 1> keys.throttled 2>> throttle_debug.bps ) &
+echo "-2-"
 sleep 1
 
 MODULE_SERVICE=$(qkd_qdbus | grep at.ac.ait.qkd.module.throttle)
@@ -69,8 +71,11 @@ if [ "${MODULE_SERVICE}" = "" ]; then
     exit 1
 fi
 
+echo "-3-"
 qkd_qdbus ${MODULE_SERVICE} /Module set_urls "stdin://" "stdout://" "" ""
+echo "-4-"
 qkd_qdbus ${MODULE_SERVICE} /Module run
+echo "-5-"
 PIPE_IN=$(qkd_qdbus ${MODULE_SERVICE} /Module url_pipe_in)
 if [ "${PIPE_IN}" != "stdin://" ]; then
     echo "failed to set stdin:// as pipe in"
@@ -82,6 +87,7 @@ THROTTLE_TIMING=$( { time (
     rm -f failed &> /dev/null
     
     qkd_qdbus ${MODULE_SERVICE} /Module resume
+echo "-6-"
     sleep 1
 
     while :; do
@@ -93,6 +99,7 @@ THROTTLE_TIMING=$( { time (
             exit 1
         fi
         
+echo "-7-"
         if [ "${KEYS_WRITTEN}" -ge "20" ]; then
             break;
         fi
@@ -102,7 +109,9 @@ THROTTLE_TIMING=$( { time (
     
 ); } 2>&1 ) 
 
+echo "-8-"
 qkd_qdbus ${MODULE_SERVICE} /Module terminate
+echo "-9-"
 
 if [ -f failed ]; then 
     echo "throttle test failed"
@@ -138,24 +147,19 @@ if [ "${MODULE_SERVICE}" = "" ]; then
     exit 1
 fi
 
-echo "-1-"
 qkd_qdbus ${MODULE_SERVICE} /Module set_urls "stdin://" "stdout://" "" ""
-echo "-2-"
 qkd_qdbus ${MODULE_SERVICE} /Module run
-echo "-3-"
 PIPE_IN=$(qkd_qdbus ${MODULE_SERVICE} /Module url_pipe_in)
 if [ "${PIPE_IN}" != "stdin://" ]; then
     echo "failed to set stdin:// as pipe in"
     exit 1
 fi
-echo "-4-"
 
 THROTTLE_TIMING=$( { time (
 
     rm -f failed &> /dev/null
     
     qkd_qdbus ${MODULE_SERVICE} /Module resume
-echo "-5-"
     sleep 1
 
     while :; do
@@ -167,7 +171,6 @@ echo "-5-"
             exit 1
         fi
         
-echo "-6-"
         if [ "${KEYS_WRITTEN}" -ge "20" ]; then
             break;
         fi
@@ -176,7 +179,6 @@ echo "-6-"
     done
 ); } 2>&1 ) 
 
-echo "-7-"
 qkd_qdbus ${MODULE_SERVICE} /Module terminate
 
 if [ -f failed ]; then 
