@@ -739,6 +739,7 @@ void engine_instance::disconnect() {
     // stop module worker
     pause();
     interrupt_worker();
+    join();
 
     shutdown_nic();
     shutdown_mq();
