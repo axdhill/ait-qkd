@@ -5,6 +5,25 @@ This file holds the changes of the AIT QKD R10 throughout the versions
 Changes from 9.9999.4 to 9.9999.5
 ---------------------------------
 
+* Dropped support of various timeout on read/recv/send/write
+
+    Due to causing various timing conflicts general timeout support
+    on the API has been dropped. The current timeout values are:
+    
+        - read - read a key from previous module: 1000ms
+        - recv - receive message from peer: infinite
+        - send - send message to peer: infinite
+        - write - write key to next module: infinite
+        
+    In case an I/O operation takes too long the module's worker
+    thread doing all this I/O can be interrupted with the
+    
+        qkd::module::module::interrupt() 
+        
+    method.
+
+    Arbitrary timeouts could be added on demand in future again.
+
 * module connections I/O overhaul
 
     The module's connection pipe_in, pipe_out, peer (alice) and 
@@ -49,10 +68,14 @@ Changes from 9.9999.4 to 9.9999.5
     qkd-confirmation may occur right after error correction.
     As error correction may totally disclose keys it must pass on
     disclosed keys as-is to next module, which should be qkd-resize.
-    qkd-resize in turn merges all keys into new keys ready 
-    for privacy amplification. However, the disclosed keys are
-    not added to new keys but the number of disclosed bits are
-    added which has an impact on privacy amplification.
+    qkd-resize in turn merges all non-disclosed keys into new keys 
+    ready for privacy amplification. However, the disclosed keys are
+    not added but the number of disclosed bits is. This has an impact 
+    on privacy amplification. 
+    
+    Without this privacy amplification works on false numbers since
+    the amount of disclosed bits is far greater if the disclosed
+    keys are not taken into account.
 
 * qkd-buffer has been renamed to qkd-resize
 
