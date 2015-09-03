@@ -38,7 +38,7 @@ source ${TEST_BASE}/test/bin/test-functions
 # ------------------------------------------------------------
 
 # init test environment
-test_init "test_run/$(basename $0).d"
+test_init "$(basename $0).d"
 
 # zap previous database
 rm -rf "${DB_ALICE_2_BOB}" &> /dev/null

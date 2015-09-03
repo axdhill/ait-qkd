@@ -38,7 +38,7 @@ source ${TEST_BASE}/test/bin/test-functions
 # ------------------------------------------------------------
 
 # init test environment
-test_init "test_run/$(basename $0).d"
+test_init "$(basename $0).d"
 
 rm -rf cat_keys.* &> /dev/null
 ${TEST_BASE}/bin/qkd-key-gen --silent --size 1000 --keys 1000 cat_keys

@@ -38,7 +38,7 @@ source ${TEST_BASE}/test/bin/test-functions
 # ------------------------------------------------------------
 
 # init test environment
-test_init "test_run/$(basename $0).d"
+test_init "$(basename $0).d"
 
 # check if q3pd has CAP_NET_ADMIN capabilities set
 if [ "$(/sbin/getcap -vr ${TEST_BASE}/bin/q3pd/q3pd | grep 'cap_net_admin+ep' | wc -l)" != "1" ]; then
