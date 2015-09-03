@@ -732,19 +732,17 @@ void engine_instance::disconnect() {
 
     if (connected()) qkd::utility::syslog::info() << "disconnecting from peer";
     
+    // this has been called by the user (this is a DBus method)
+    // so cancel reconnection feature
     d->m_bReconnect = false;
     
     // stop module worker
-    // TODO: better terminate() ?
     pause();
+    interrupt_worker();
 
-    // wind down nic
     shutdown_nic();
-    
-    // wind down mq
     shutdown_mq();
     
-    // wind down all protocols
     if (d->m_cProtocol.cData) d->m_cProtocol.cData->deleteLater();
     d->m_cProtocol.cData = nullptr;
     if (d->m_cProtocol.cLoad) d->m_cProtocol.cLoad->deleteLater();
@@ -754,30 +752,20 @@ void engine_instance::disconnect() {
     if (d->m_cProtocol.cStore) d->m_cProtocol.cStore->deleteLater();
     d->m_cProtocol.cStore = nullptr;
     
-    // wind down buffers
     shutdown_buffers();
     
-    // stop any communication
     if (d->m_cSocket) {
         d->m_cSocket->disconnectFromHost();
         delete d->m_cSocket;
         d->m_cSocket = nullptr;
     }
     
-    // wind channels
     shutdown_channels();
     
     d->m_cRecvBuffer = QByteArray();
     d->m_bConnected = false;
     
-    // this has been called by the user (this is a DBus method)
-    // so cancel reconnection feature
-    d->m_bReconnect = false;
-    
-    // tell environment
     emit connection_lost();
-    
-    // state switch
     calculate_state();
 }
 

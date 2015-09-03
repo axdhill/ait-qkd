@@ -166,10 +166,13 @@ function test_init() {
     ulimit -c unlimited
     echo 
     echo "---- test hint ----"
-    echo "test data will be put to: ${TEST_DATA_FOLDER}"
-    echo "query local temporary DBus with 'qdbus --address unix:path=/tmp/qkd-test-dbus/qkd_dbus_socket'"
-    echo "or use 'export DBUS_SESSION_BUS_ADDRESS=\"unix:path=/tmp/qkd-test-dbus/qkd_dbus_socket\"'"
-    echo "If you want to examine core dumps you might set"
+    echo "test folder:"
+    echo "      ${TEST_DATA_FOLDER}"
+    echo "query local temporary DBus with: "
+    echo "      $ qdbus --address unix:path=/tmp/qkd-test-dbus/qkd_dbus_socket"
+    echo "or use: "
+    echo "      $ export DBUS_SESSION_BUS_ADDRESS=\"unix:path=/tmp/qkd-test-dbus/qkd_dbus_socket\""
+    echo "If you want to examine core dumps you might set:"
     echo "      # echo 1 > /proc/sys/kernel/core_uses_pid"
     echo "      # echo 'core_%e.%p' > /proc/sys/kernel/core_pattern"
     echo "If you want to see all test details in a file "
