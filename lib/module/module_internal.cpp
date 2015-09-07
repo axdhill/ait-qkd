@@ -72,10 +72,10 @@ module::module_internal::module_internal(module * cParentModule, std::string sId
     cStash.nLastInSyncKeyPicked = 0;
     nTerminateAfter = 0;
     
-    cConListen = new connection(connection_type::LISTEN);
-    cConPeer = new connection(connection_type::PEER);
-    cConPipeIn = new connection(connection_type::PIPE_IN);
-    cConPipeOut = new connection(connection_type::PIPE_OUT);
+    cConListen = new qkd::module::connection(connection_type::LISTEN);
+    cConPeer = new qkd::module::connection(connection_type::PEER);
+    cConPipeIn = new qkd::module::connection(connection_type::PIPE_IN);
+    cConPipeOut = new qkd::module::connection(connection_type::PIPE_OUT);
 
     cConPipeIn->add("stdin://");
     cConPipeOut->add("stdout://");

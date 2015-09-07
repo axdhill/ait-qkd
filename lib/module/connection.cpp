@@ -45,7 +45,7 @@
 #include <qkd/utility/environment.h>
 #include <qkd/utility/syslog.h>
 
-#include "connection.h"
+#include <qkd/module/connection.h>
 
 using namespace qkd::module;
 
@@ -392,12 +392,24 @@ void connection::reset() {
  * 
  * Sending might fail on interrupt.
  *
+ * The path index holds the number of the path to choose. 
+ * On -1 the next suitable path(s) are taken.
+ * 
  * @param   cMessage            the message to send
+ * @param   nPath               the path number to send
  * @returns true, if successfully sent
  */
-bool connection::send_message(qkd::module::message & cMessage) {
+bool connection::send_message(qkd::module::message & cMessage, int nPath) {
     
-    std::list<path_ptr> cPaths = get_next_paths();
+    if (static_cast<size_t>(nPath) >= m_cPaths.size()) throw std::out_of_range("path index out of range");
+    std::list<path_ptr> cPaths;
+    if (nPath == -1) {
+        cPaths = get_next_paths();
+    }
+    else {
+        cPaths.push_back(m_cPaths[nPath]);
+    }
+    
     if (cPaths.size() == 0) return false;
     if (std::all_of(cPaths.begin(), cPaths.end(), [](path_ptr & p) { return p->is_void(); })) return false;
     

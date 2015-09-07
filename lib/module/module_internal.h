@@ -41,9 +41,8 @@
 #include <queue>
 #include <thread>
 
+#include <qkd/module/connection.h>
 #include <qkd/module/module.h>
-
-#include "connection.h"
 
 
 // ------------------------------------------------------------

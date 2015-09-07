@@ -37,7 +37,7 @@
 #include <qkd/utility/environment.h>
 #include <qkd/utility/syslog.h>
 
-#include "path.h"
+#include <qkd/module/path.h>
 
 using namespace qkd::module;
 

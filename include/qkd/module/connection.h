@@ -146,7 +146,15 @@ public:
      */
     bool is_void() const { return std::all_of(m_cPaths.cbegin(), m_cPaths.cend(), [](path_ptr const & p) { return p->is_void(); }); }
     
-
+    
+    /**
+     * return the paths
+     * 
+     * @return  the paths of this connection
+     */
+    std::vector<path_ptr> const & paths() const { return m_cPaths; }
+    
+    
     /**
      * get a next key from PIPE_IN
      * 
@@ -191,10 +199,14 @@ public:
      * 
      * Sending might fail on interrupt.
      *
+     * The path index holds the number of the path to choose. 
+     * On -1 the next suitable path(s) are taken.
+     * 
      * @param   cMessage            the message to send
+     * @param   nPath               the path number to send
      * @returns true, if successfully sent
      */
-    bool send_message(qkd::module::message & cMessage);
+    bool send_message(qkd::module::message & cMessage, int nPath = -1);
         
         
     /**

@@ -276,6 +276,34 @@ std::chrono::high_resolution_clock::time_point module::birth() const {
 
 
 /**
+ * return the connection object associated with a connection type
+ * 
+ * @param   eType           the connection type
+ * @return  the connection associated with this type
+ */
+qkd::module::connection const & qkd::module::module::connection(qkd::module::connection_type eType) const {
+    
+    switch (eType) {
+        
+    case qkd::module::connection_type::LISTEN:
+        return *(d->cConListen);
+        
+    case qkd::module::connection_type::PEER:
+        return *(d->cConPeer);
+        
+    case qkd::module::connection_type::PIPE_IN:
+        return *(d->cConPipeIn);
+        
+    case qkd::module::connection_type::PIPE_OUT:
+        return *(d->cConPipeOut);
+        
+    }
+    
+    throw std::out_of_range("no connection known for this connection type");
+}
+
+
+/**
  * configures the module
  * 
  * The given URL has to point to a so-called INI-file.
@@ -1005,13 +1033,13 @@ void module::run() {
  * @param   cAuthContext        the authentication context involved
  * @returns true, if successfully sent
  */
-bool module::send(qkd::module::message & cMessage, qkd::crypto::crypto_context & cAuthContext) {
+bool module::send(qkd::module::message & cMessage, qkd::crypto::crypto_context & cAuthContext, int nPath) {
     
     qkd::module::connection * cCon = nullptr;
     if (is_alice()) cCon = d->cConPeer;
     if (is_bob()) cCon = d->cConListen;
     
-    if (!cCon->send_message(cMessage)) return false;
+    if (!cCon->send_message(cMessage, nPath)) return false;
     d->debug_message(true, cMessage);
     
     cAuthContext << cMessage.data();

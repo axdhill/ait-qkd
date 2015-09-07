@@ -51,6 +51,7 @@
 // ait
 #include <qkd/key/key.h>
 #include <qkd/module/communicator.h>
+#include <qkd/module/connection.h>
 #include <qkd/module/message.h>
 #include <qkd/module/workload.h>
 #include <qkd/utility/average.h>
@@ -622,6 +623,15 @@ public:
     communicator comm(qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext) { 
         return communicator(this, cIncomingContext, cOutgoingContext); 
     }
+    
+    
+    /**
+     * return the connection object associated with a connection type
+     * 
+     * @param   eType           the connection type
+     * @return  the connection associated with this type
+     */
+    qkd::module::connection const & connection(qkd::module::connection_type eType) const;
 
     
     /**
@@ -1569,12 +1579,16 @@ protected:
      * Afterwards the message's data will be void
      *
      * Sending might fail on interrupt.
+     * 
+     * The path index holds the number of the path to choose. 
+     * On -1 the next suitable path(s) are taken.
      *
      * @param   cMessage            the message to send
      * @param   cAuthContext        the authentication context involved
+     * @param   nPath               path index to send
      * @returns true, if successfully sent
      */
-    virtual bool send(qkd::module::message & cMessage, qkd::crypto::crypto_context & cAuthContext);
+    virtual bool send(qkd::module::message & cMessage, qkd::crypto::crypto_context & cAuthContext, int nPath = -1);
 
     
     /**
