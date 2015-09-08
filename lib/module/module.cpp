@@ -1388,9 +1388,6 @@ void module::synchronize() {
 
     if (qkd::utility::debug::enabled()) qkd::utility::debug() << "synchronizing keys...";
 
-    // TODO: we do not have authenticity when synchronizing keys ... is this a problem? o.O
-    static qkd::crypto::crypto_context cNullContxt = qkd::crypto::engine::create("null");
-    
     qkd::module::message cMessage;
     cMessage.m_cHeader.eType = qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC;
     cMessage.data() << d->cStash.cInSync.size();
@@ -1399,7 +1396,8 @@ void module::synchronize() {
     for (auto const & cStashedKey : d->cStash.cOutOfSync) cMessage.data() << cStashedKey.first;
     
     try {
-        send(cMessage, cNullContxt);
+        qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
+        send(cMessage, cCryptoContext);
     }
     catch (std::runtime_error & cException) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
@@ -1408,7 +1406,8 @@ void module::synchronize() {
     }
     
     try {
-        recv(cMessage, cNullContxt, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
+        qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
+        recv(cMessage, cCryptoContext, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
         recv_synchronize(cMessage);
     }
     catch (std::runtime_error & cException) {}
@@ -1661,8 +1660,8 @@ void module::work() {
         d->bProcessing = true;
         
         // create crypto context for retieved key
-        qkd::crypto::crypto_context cIncomingContext = qkd::crypto::engine::create("null");
-        qkd::crypto::crypto_context cOutgoingContext = qkd::crypto::engine::create("null");
+        qkd::crypto::crypto_context cIncomingContext = qkd::crypto::context::null_context();
+        qkd::crypto::crypto_context cOutgoingContext = qkd::crypto::context::null_context();
         try {
             if (!cKey.meta().sCryptoSchemeIncoming.empty()) {
                 qkd::crypto::scheme cScheme(cKey.meta().sCryptoSchemeIncoming);
@@ -1685,7 +1684,7 @@ void module::work() {
         }
 
         // call the module working method
-        workload cWorkload = { qkd::module::work{ cKey, cIncomingContext, cOutgoingContext, false, -1 } };
+        workload cWorkload = { qkd::module::work() };
         process(cWorkload);
         d->cLastProcessedKey = std::chrono::system_clock::now();
         

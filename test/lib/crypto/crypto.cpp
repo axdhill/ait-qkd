@@ -137,6 +137,10 @@ int test() {
     qkd::crypto::crypto_context cCloneContext;
     
     
+    // --- NULL context ---
+    assert(qkd::crypto::context::null_context().null());
+    
+    
     // --- SCHEMES ---
     
     // arbitrary schemes

@@ -57,3 +57,16 @@ using namespace qkd::crypto;
 crypto_context context::clone_internal() const {
     return qkd::crypto::engine::create(scheme());
 }
+
+
+/**
+ * returns the a null context
+ * 
+ * @return  a NULL crypto context
+ */
+crypto_context context::null_context() {
+    static qkd::crypto::crypto_context cNullContxt = qkd::crypto::engine::create("null");
+    return cNullContxt;
+}
+
+

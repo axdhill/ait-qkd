@@ -164,8 +164,6 @@ qulonglong qkd_resize::minimum_key_size() const {
  */
 void qkd_resize::pick_exact_keys(qkd::module::workload & cWorkload) {
     
-    static qkd::crypto::crypto_context cNullContext = qkd::crypto::engine::create("null");
-
     uint64_t nExactKeySize = exact_key_size();
     if (nExactKeySize == 0) return;
     if (d->nCurrentSize < nExactKeySize) return;
@@ -274,7 +272,7 @@ void qkd_resize::pick_exact_keys(qkd::module::workload & cWorkload) {
                 nTotalBits = 0;
                 nDisclosedBits = 0;
                 d->nCurrentSize -= nExactKeySize;
-                cForwardWork = qkd::module::work{ qkd::key::key(), cNullContext, cNullContext, false, -1 };
+                cForwardWork = qkd::module::work();
             }
         }
     }
@@ -368,13 +366,11 @@ void qkd_resize::pick_minimum_key(qkd::module::workload & cWorkload) {
  */
 void qkd_resize::process(qkd::module::workload & cWorkload) {
     
-    static qkd::crypto::crypto_context cNullContxt = qkd::crypto::engine::create("null");
-    
     // ensure we are talking about the same stuff with the peer
     if (!is_synchronizing()) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " 
                 << "you deliberately turned off key synchonrizing in resizing - but this is essential fot this module: dropping key";
-        cWorkload = { qkd::module::work{ qkd::key::key::null(), cNullContxt, cNullContxt, false, -1 } };
+        cWorkload = { qkd::module::work() };
         return;
     }
     

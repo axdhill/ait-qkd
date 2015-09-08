@@ -226,8 +226,6 @@ bool qkd_auth::authenticate(qkd::key::key & cKey,
     if (!cOutgoingContext->null() && (cTagOutgoingAlice.size() == 0)) return false;
     if (!cOutgoingContext->null() && (cTagOutgoingBob.size() == 0)) return false;
     
-    static qkd::crypto::crypto_context cNullContext = qkd::crypto::engine::create("null");
-    
     // send our tags to the peer and reqeust hers
     qkd::module::message cMessage;
     cMessage.data() << cKey.id();
@@ -242,7 +240,8 @@ bool qkd_auth::authenticate(qkd::key::key & cKey,
     }
     
     try {
-        send(cMessage, cNullContext);
+        qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
+        send(cMessage, cCryptoContext);
     }
     catch (std::runtime_error const & cRuntimeError) {
         qkd::utility::syslog::crit() << __FILENAME__ 
@@ -273,7 +272,8 @@ bool qkd_auth::authenticate(qkd::key::key & cKey,
     qkd::utility::memory cPeerTagIncoming;
     qkd::utility::memory cPeerTagOutgoing;
     try {
-        if (!recv(cMessage, cNullContext)) return false;
+        qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
+        if (!recv(cMessage, cCryptoContext)) return false;
     }
     catch (std::runtime_error const & cRuntimeError) {
         qkd::utility::syslog::crit() 
@@ -499,8 +499,8 @@ bool qkd_auth::process(qkd::key::key & cKey,
             qkd::utility::debug() << "qkd post processing for key " << cKey.id() << " up to now has been authentic";
         }
         
-        cIncomingContext = qkd::crypto::engine::create("null");
-        cOutgoingContext = qkd::crypto::engine::create("null");
+        cIncomingContext = qkd::crypto::context::null_context();
+        cOutgoingContext = qkd::crypto::context::null_context();
        
         refill_local_keystores(cKey);
     }

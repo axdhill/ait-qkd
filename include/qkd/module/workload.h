@@ -50,20 +50,33 @@ namespace qkd {
     
 namespace module {    
     
+    
 /**
- * Work is the single unit consiting of key and auth-contexts for a module to process
+ * Work is the single unit consisting of key and auth-contexts for a module to process
  */
-typedef struct {
+class work {
+    
+public:
+
+    /**
+     * ctor
+     */
+    work() : 
+            cKey(qkd::key::key()), 
+            cIncomingContext(qkd::crypto::context::null_context()),
+            cOutgoingContext(qkd::crypto::context::null_context()),
+            bForward(false), 
+            nPath(-1) {}
     
     qkd::key::key cKey;                                         /**< the current key to process */
     qkd::crypto::crypto_context cIncomingContext;               /**< authentication context for incoming messages */
     qkd::crypto::crypto_context cOutgoingContext;               /**< authentication context for outgoing messages */
-    bool bForward;                                              /**< true, if work done and key shoudl be forwarded */
+    bool bForward;                                              /**< true, if work done and key should be forwarded */
     int nPath;                                                  /**< path number to send the key, -1 == framework pick */
     
-    inline bool is_null() const { return cKey.is_null(); }      /**< check if this is an empty workload */
+    inline bool is_null() const { return cKey.is_null(); }      /**< check if this is an empty work */
     
-} work;
+};
 
 
 /**

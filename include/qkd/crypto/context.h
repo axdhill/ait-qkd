@@ -309,6 +309,14 @@ public:
     
     
     /**
+     * returns the a null context
+     * 
+     * @return  a NULL crypto context
+     */
+    static crypto_context null_context();
+    
+    
+    /**
      * get the size of the result of a computation in bits
      * 
      * if the context is an authentication context, this

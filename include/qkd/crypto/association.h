@@ -99,7 +99,7 @@ public:
         /**
          * ctor
          */
-        association_io() { cIncoming = qkd::crypto::engine::create("null"); cOutgoing = qkd::crypto::engine::create("null"); };
+        association_io() { cIncoming = qkd::crypto::context::null_context(); cOutgoing = qkd::crypto::context::null_context(); };
         
 
         /**
