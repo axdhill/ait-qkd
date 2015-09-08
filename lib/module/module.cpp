@@ -1684,7 +1684,7 @@ void module::work() {
         }
 
         // call the module working method
-        workload cWorkload = { qkd::module::work() };
+        workload cWorkload = { qkd::module::work(cKey, cIncomingContext, cOutgoingContext) };
         process(cWorkload);
         d->cLastProcessedKey = std::chrono::system_clock::now();
         
@@ -1757,16 +1757,13 @@ void module::work() {
  * @return  true, if writing was successful
  */
 bool module::write(qkd::key::key const & cKey, int nPath) {
-    
+
     if (!d->cConPipeOut->write_key(cKey, nPath)) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
                 << ": failed to send key to next module - key-id: " << cKey.id();
         return false;
     }
     
-    // do not add stat if we sent on a void connection
-    if (d->cConPipeOut->is_void()) return true;
-
     d->add_stats_outgoing(cKey);
     if (qkd::utility::debug::enabled()) d->debug_key_push(cKey);
     

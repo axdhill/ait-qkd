@@ -61,12 +61,10 @@ public:
     /**
      * ctor
      */
-    work() : 
-            cKey(qkd::key::key()), 
-            cIncomingContext(qkd::crypto::context::null_context()),
-            cOutgoingContext(qkd::crypto::context::null_context()),
-            bForward(false), 
-            nPath(-1) {}
+    work(qkd::key::key k = qkd::key::key(), 
+            qkd::crypto::crypto_context cInCtx = qkd::crypto::context::null_context(), 
+            qkd::crypto::crypto_context cOutCtx = qkd::crypto::context::null_context()) : 
+                    cKey(k), cIncomingContext(cInCtx), cOutgoingContext(cOutCtx), bForward(false), nPath(-1) {}
     
     qkd::key::key cKey;                                         /**< the current key to process */
     qkd::crypto::crypto_context cIncomingContext;               /**< authentication context for incoming messages */

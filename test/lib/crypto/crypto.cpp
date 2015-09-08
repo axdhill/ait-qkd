@@ -138,7 +138,7 @@ int test() {
     
     
     // --- NULL context ---
-    assert(qkd::crypto::context::null_context().null());
+    assert(qkd::crypto::context::null_context()->null());
     
     
     // --- SCHEMES ---

@@ -5,6 +5,17 @@ This file holds the changes of the AIT QKD R10 throughout the versions
 Changes from 9.9999.4 to 9.9999.5
 ---------------------------------
 
+* writing keys to _void_ pipe_out does now increment key stats
+
+    Writing keys to void (empty) pipe_out connection does now
+    increment key_bits_outgoing, keys_outgoing and the
+    corresponding rate numbers.
+    
+    Rationale: void (empty) is always "good"; so a write to
+    /dev/null is basically the same and therefore successful
+    and as such it has to increase the numbers of successfully
+    written data.
+
 * module's "stalled" property renamed to "idle"
 
 * modules can now enumerate the paths on connections
