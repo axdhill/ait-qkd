@@ -274,7 +274,7 @@ void qkd_resize::pick_exact_keys(qkd::module::workload & cWorkload) {
                 nTotalBits = 0;
                 nDisclosedBits = 0;
                 d->nCurrentSize -= nExactKeySize;
-                cForwardWork = qkd::module::work{ qkd::key::key(), cNullContext, cNullContext, false };
+                cForwardWork = qkd::module::work{ qkd::key::key(), cNullContext, cNullContext, false, -1 };
             }
         }
     }
