@@ -374,7 +374,7 @@ void qkd_resize::process(qkd::module::workload & cWorkload) {
     if (!is_synchronizing()) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " 
                 << "you deliberately turned off key synchonrizing in resizing - but this is essential fot this module: dropping key";
-        cWorkload = { qkd::module::work{ qkd::key::key::null(), cNullContxt, cNullContxt, false } };
+        cWorkload = { qkd::module::work{ qkd::key::key::null(), cNullContxt, cNullContxt, false, -1 } };
         return;
     }
     
