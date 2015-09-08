@@ -72,7 +72,7 @@ while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module.privacy-amplifi
 done
 
 # wait until all keys have been processed
-wait_stalled cat privacy-amplification
+wait_idle cat privacy-amplification
 echo "got keys"
 
 # check differences

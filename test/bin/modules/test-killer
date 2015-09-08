@@ -125,7 +125,7 @@ qkd_qdbus ${MODULE_TEE} /Module resume
 
 sleep 1
 
-wait_stalled throttle cat tee
+wait_idle throttle cat tee
 
 # both modules must have pulled something
 # though the overall sum might not be the same since

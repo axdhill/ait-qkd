@@ -56,7 +56,7 @@ PIPELINE_CONFIG="file://${TEST_BASE}/test/test-data/pipeline.conf"
 
 # wait until the modules did it's work
 sleep 1
-wait_stalled enkey
+wait_idle enkey
 
 # check expected with actual result
 xxd -ps -g 1 blob.alice | while read LINE; do echo -n ${LINE}; done > enkey_expected

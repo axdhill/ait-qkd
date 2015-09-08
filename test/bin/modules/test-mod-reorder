@@ -69,7 +69,7 @@ done
 
 # wait until all keys have been processed
 sleep 1
-wait_stalled cat reorder
+wait_idle cat reorder
 echo "keys reordered"
 
 # compare keys

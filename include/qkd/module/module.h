@@ -356,11 +356,13 @@ enum class module_type : uint8_t {
  * 
  *      debug_message_flow              R/W             enable/disable debug of message flow particles on stderr
  *
+ *      description                      R              Description of the module
+ * 
  *      hint                            R/W             an arbitrary text which helps to interconnect modules
  * 
  *      id                               R              ID of the module
  * 
- *      description                      R              Description of the module
+ *      idle                             R              idle flag: finished work on a key for at least 1 sec ago
  * 
  *      organisation                     R              Organisation/Institute/Company of module
  * 
@@ -381,8 +383,6 @@ enum class module_type : uint8_t {
  *      state                            R              Current state of the module
  * 
  *      state_name                       R              Human readable state description of the module
- * 
- *      stalled                          R              stalled flag: finished work on a key for at least 1 sec ago
  * 
  *      synchronize_keys                R/W             synchronize key-ids with remote peer module before processing
  * 
@@ -463,9 +463,10 @@ class module : public QObject {
 
     Q_PROPERTY(bool debug READ debug WRITE set_debug)                                           /**< get/set module debug flag */
     Q_PROPERTY(bool debug_message_flow READ debug_message_flow WRITE set_debug_message_flow)    /**< get/set module debug flag */
+    Q_PROPERTY(QString description READ description)                                            /**< get the description of the module */
     Q_PROPERTY(QString hint READ hint WRITE set_hint)                                           /**< get/set the arbitrary module hint */
     Q_PROPERTY(QString id READ id)                                                              /**< get the id of the module */
-    Q_PROPERTY(QString description READ description)                                            /**< get the description of the module */
+    Q_PROPERTY(bool idle READ idle)                                                       /**< get the idle flag: finished work on a key for at least 1 sec ago */
     Q_PROPERTY(QString organisation READ organisation)                                          /**< get the organisation/creator of the module */
     Q_PROPERTY(bool paired READ paired)                                                         /**< get module's paired condition */
     Q_PROPERTY(QString pipeline READ pipeline WRITE set_pipeline)                               /**< the pipeline ID this module is assigned to */
@@ -478,7 +479,6 @@ class module : public QObject {
     Q_PROPERTY(qulonglong start_time READ start_time)                                           /**< UNIX epoch timestamp of module creation */       
     Q_PROPERTY(qulonglong state READ state)                                                     /**< the state of the module */    
     Q_PROPERTY(QString state_name READ state_name)                                              /**< the state name description of the module */
-    Q_PROPERTY(bool stalled READ stalled)                                                       /**< get the stalled flag: finished work on a key for at least 1 sec ago */
     Q_PROPERTY(bool synchronize_keys READ synchronize_keys WRITE set_synchronize_keys)          /**< get/set synchronize key ids flag */
     Q_PROPERTY(qulonglong synchronize_ttl READ synchronize_ttl WRITE set_synchronize_ttl)       /**< get/set synchronize TTL in seconds for not in-sync keys */
     Q_PROPERTY(qulonglong terminate_after READ terminate_after WRITE set_terminate_after)       /**< number of keys left before terminating (0 --> do not terminate) */    
@@ -771,6 +771,14 @@ public:
      */
     QString id() const;
     
+    
+    /**
+     * finished work on a key for at least 1 sec ago
+     * 
+     * @return  idle flag
+     */
+    bool idle() const;
+
     
     /**
      * this methods interrupts the worker thread
@@ -1223,14 +1231,6 @@ public:
      */
     virtual void set_url_pipe_out(QString sURL);
     
-    
-    /**
-     * finished work on a key for at least 1 sec ago
-     * 
-     * @return  stalled flag
-     */
-    bool stalled() const;
-
     
     /**
      * runs and resumes the module as soon as possible

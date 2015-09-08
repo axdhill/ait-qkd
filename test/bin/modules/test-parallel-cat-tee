@@ -93,7 +93,7 @@ done
 
 # wait until done
 sleep 1
-wait_stalled cat tee
+wait_idle cat tee
 echo "module work done"
 
 # check results

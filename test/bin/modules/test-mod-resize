@@ -73,7 +73,7 @@ done
 
 # wait until all keys have been processed
 sleep 1
-wait_stalled cat resize
+wait_idle cat resize
 echo "got keys"
 
 # clean up the generated debug output

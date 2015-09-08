@@ -517,6 +517,20 @@ QString module::id() const {
 
 
 /**
+ * finished work on a key for at least 1 sec ago
+ * 
+ * @return  idle flag
+ */
+bool module::idle() const {
+    if (processing() && (get_state() == qkd::module::module_state::STATE_RUNNING)) return false;
+    std::chrono::system_clock::time_point cNow = std::chrono::system_clock::now();
+    bool bIdle = (std::chrono::duration_cast<std::chrono::milliseconds>(cNow - d->cLastProcessedKey)).count() > 1000;
+    return bIdle;
+    
+}
+
+
+/**
  * initialize the module
  */
 void module::init() {
@@ -1282,20 +1296,6 @@ void module::set_url_pipe_out(QString sURL) {
         }
     }
     else d->cConPipeOut->add("");
-}
-
-
-/**
- * finished work on a key for at least 1 sec ago
- * 
- * @return  stalled flag
- */
-bool module::stalled() const {
-    if (processing() && (get_state() == qkd::module::module_state::STATE_RUNNING)) return false;
-    std::chrono::system_clock::time_point cNow = std::chrono::system_clock::now();
-    bool bStalled = (std::chrono::duration_cast<std::chrono::milliseconds>(cNow - d->cLastProcessedKey)).count() > 1000;
-    return bStalled;
-    
 }
 
 

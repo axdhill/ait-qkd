@@ -73,7 +73,7 @@ done
 
 # wait until all keys have been processed
 sleep 1
-wait_stalled cat cascade
+wait_idle cat cascade
 echo "got keys"
 
 # stop machines

@@ -69,7 +69,7 @@ done
 
 # wait until all keys have been processed
 sleep 1
-wait_stalled cat resize
+wait_idle cat resize
 echo "got keys"
 
 OUTPUT_VARIANTS=$(grep ^key-PUSH resize_debug.alice | awk '{ print $6; }' | uniq | wc -l)

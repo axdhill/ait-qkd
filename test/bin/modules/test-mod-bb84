@@ -73,7 +73,7 @@ done
 
 # wait until all keys have been processed
 sleep 1
-wait_stalled cat bb84
+wait_idle cat bb84
 echo "keys sifted"
 
 # keys created?

@@ -58,7 +58,7 @@ PIPELINE_CONFIG="file://${TEST_BASE}/test/test-data/pipeline.conf"
 
 # wait until the modules did their work
 sleep 1
-wait_stalled enkey dekey
+wait_idle enkey dekey
 
 # check expected with actual result
 diff -q blob.alice blobed.alice

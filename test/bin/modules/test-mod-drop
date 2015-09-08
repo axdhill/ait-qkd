@@ -69,7 +69,7 @@ done
 
 # wait until all keys have been processed
 sleep 1
-wait_stalled cat drop
+wait_idle cat drop
 echo "keys droped"
 
 # count remaining keys
