@@ -5,6 +5,22 @@ This file holds the changes of the AIT QKD R10 throughout the versions
 Changes from 9.9999.4 to 9.9999.5
 ---------------------------------
 
+* module's "stalled" property renamed to "idle"
+
+* modules can now enumerate the paths on connections
+
+    Each module has listen, peer, pipe_in and pipe_out connections.
+    On each connections a (theretical) arbitrary number of paths to
+    remotes are allowed. On configuration these paths are seperated
+    with semicolon ';' in the set_url_* functions.
+    
+    qkd::module::module does now support enumeration of configured
+    paths at runtime. Utilizing the qkd::module::module::process()
+    function for the workload (qkd::module::workload) the path 
+    index to be used for forwarding the key to the next module can
+    now be specified. A path index of -1 indicates that the libqkd
+    framework should choose a suitable path on its own.
+
 * Dropped support of various timeout on read/recv/send/write
 
     Due to causing various timing conflicts general timeout support
