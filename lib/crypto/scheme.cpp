@@ -66,12 +66,12 @@ scheme::scheme(std::string const sScheme) {
     // get the tokens
     std::vector<std::string> sTokenScheme;
     boost::split(sTokenScheme, sScheme, boost::is_any_of(":"));
-    if (sTokenScheme.size() == 0) return;
+    if (sTokenScheme.empty()) return;
     
     // parse the first token --> algorithm
     std::vector<std::string> sTokenAlgorithm;
     boost::split(sTokenAlgorithm, sTokenScheme[0], boost::is_any_of("-"));
-    if (sTokenAlgorithm.size() == 0) return;
+    if (sTokenAlgorithm.empty()) return;
     m_sName = sTokenAlgorithm[0];
     
     // get the init key

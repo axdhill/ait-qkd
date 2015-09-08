@@ -195,7 +195,7 @@ void mq_instance::produce() {
         qkd::key::key_vector cKeys = engine()->application_buffer()->find_valid(d->nMaxKeySize, 1);
         
         // if we didn't find any keys left: bail out
-        if (cKeys.size() == 0) break;
+        if (cKeys.empty()) break;
         
         // compile the keys from the buffer into a large key "message"
         qkd::key::key_ring cMQKeyRing(d->nMaxKeySize);

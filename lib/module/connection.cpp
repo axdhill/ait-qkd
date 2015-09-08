@@ -159,7 +159,7 @@ void connection::clear() {
 std::list<path_ptr> connection::get_next_paths() {
     
     std::list<path_ptr> res;
-    if (m_cPaths.size() == 0) return res;
+    if (m_cPaths.empty()) return res;
         
     switch (m_eSocketAccess) {
         
