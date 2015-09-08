@@ -534,11 +534,11 @@ public:
      * ctor
      *
      * @param   nModules                    signature of the irreducible polynom
-     * @param   bTwoStepPrecalculation      do a single or double precalculation table
+     * @param   bTwoStepPrecalc             do a single or double precalculation table
      * @param   cKey                        the value for which fast multiplication is achieved
      */
-    explicit gf2_fast_alpha(unsigned int nModulus, bool bTwoStepPrecalculation, qkd::utility::memory const & cKey) 
-            : gf2<GF_BITS>(nModulus), bTwoStepPrecalculation(bTwoStepPrecalculation) {
+    explicit gf2_fast_alpha(unsigned int nModulus, bool bTwoStepPrecalc, qkd::utility::memory const & cKey) 
+            : gf2<GF_BITS>(nModulus), bTwoStepPrecalculation(bTwoStepPrecalc) {
 
         this->blob_from_memory(alpha, cKey);
         this->precalc_blob_multiplication();

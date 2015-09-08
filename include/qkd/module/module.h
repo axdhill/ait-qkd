@@ -1612,13 +1612,18 @@ protected:
      * method inside of process() if you know _exactly_ what
      * you are doing.
      * 
+     * nPath holds the path index of the PIPE_OUT connection to
+     * write. If nPath == 1 then the framework picks the next
+     * suitable path.
+     * 
      * You should not need to call this directly. It get's called
      * if process() returns "true".
      * 
      * @param   cKey        key to pass to the next module
+     * @param   nPath       path number to write
      * @return  true, if writing was successful
      */
-    virtual bool write(qkd::key::key const & cKey);
+    virtual bool write(qkd::key::key const & cKey, int nPath = -1);
 
     
 signals:

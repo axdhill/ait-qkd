@@ -239,9 +239,10 @@ public:
      * write a key
      * 
      * @param   cKey        key to pass
+     * @param   nPath       path index of connection
      * @return  true, if writing was successful
      */
-    bool write_key(qkd::key::key const & cKey);
+    bool write_key(qkd::key::key const & cKey, int nPath);
     
 
 private:

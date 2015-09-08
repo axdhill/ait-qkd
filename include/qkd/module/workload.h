@@ -59,6 +59,7 @@ typedef struct {
     qkd::crypto::crypto_context cIncomingContext;               /**< authentication context for incoming messages */
     qkd::crypto::crypto_context cOutgoingContext;               /**< authentication context for outgoing messages */
     bool bForward;                                              /**< true, if work done and key shoudl be forwarded */
+    int nPath;                                                  /**< path number to send the key, -1 == framework pick */
     
     inline bool is_null() const { return cKey.is_null(); }      /**< check if this is an empty workload */
     

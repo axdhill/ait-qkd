@@ -72,8 +72,11 @@
 
 // QKD module stuff
 #include <qkd/module/communicator.h>
+#include <qkd/module/connection.h>
 #include <qkd/module/message.h>
 #include <qkd/module/module.h>
+#include <qkd/module/path.h>
+#include <qkd/module/workload.h>
 
 // QKD widgets
 #include <qkd/widget/lcd.h>

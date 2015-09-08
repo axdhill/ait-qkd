@@ -1685,7 +1685,7 @@ void module::work() {
         }
 
         // call the module working method
-        workload cWorkload = { qkd::module::work{ cKey, cIncomingContext, cOutgoingContext, false } };
+        workload cWorkload = { qkd::module::work{ cKey, cIncomingContext, cOutgoingContext, false, -1 } };
         process(cWorkload);
         d->cLastProcessedKey = std::chrono::system_clock::now();
         
@@ -1707,7 +1707,7 @@ void module::work() {
 
                     // the write might fail for EINTR or EAGAIN --> wait or break processing loop
                     // other errors are turned into severe exception
-                    bWrittenToNextModule = write(w.cKey);
+                    bWrittenToNextModule = write(w.cKey, w.nPath);
                     if (!bWrittenToNextModule ) {
                         if (get_state() != qkd::module::module_state::STATE_RUNNING) break;
                         qkd::utility::debug() << "failed to write key to next module in pipe.";
@@ -1747,15 +1747,19 @@ void module::work() {
  * method inside of process() if you know _exactly_ what
  * you are doing.
  * 
+ * nPath holds the path index of the PIPE_OUT connection to
+ * write. If nPath == 1 then the framework picks the next
+ * suitable path.
+ * 
  * You should not need to call this directly. It get's called
  * if process() returns "true".
  * 
  * @param   cKey        key to pass to the next module
  * @return  true, if writing was successful
  */
-bool module::write(qkd::key::key const & cKey) {
+bool module::write(qkd::key::key const & cKey, int nPath) {
     
-    if (!d->cConPipeOut->write_key(cKey)) {
+    if (!d->cConPipeOut->write_key(cKey, nPath)) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
                 << ": failed to send key to next module - key-id: " << cKey.id();
         return false;

@@ -401,12 +401,12 @@ void connection::reset() {
  */
 bool connection::send_message(qkd::module::message & cMessage, int nPath) {
     
-    if (static_cast<size_t>(nPath) >= m_cPaths.size()) throw std::out_of_range("path index out of range");
     std::list<path_ptr> cPaths;
     if (nPath == -1) {
         cPaths = get_next_paths();
     }
     else {
+        if (static_cast<size_t>(nPath) >= m_cPaths.size()) throw std::out_of_range("path index out of range");
         cPaths.push_back(m_cPaths[nPath]);
     }
     
@@ -525,15 +525,23 @@ std::string connection::urls_string() const {
  * write a key
  * 
  * @param   cKey        key to pass
+ * @param   nPath       path index of connection
  * @return  true, if writing was successful
  */
-bool connection::write_key(qkd::key::key const & cKey) {
+bool connection::write_key(qkd::key::key const & cKey, int nPath) {
     
     if (m_eType != connection_type::PIPE_OUT) {
         throw std::runtime_error("tried to write key to a non-pipe-out connection");
     }
     
-    std::list<path_ptr> cPaths = get_next_paths();
+    std::list<path_ptr> cPaths;
+    if (nPath == -1) {
+        cPaths = get_next_paths();
+    }
+    else {
+        if (static_cast<size_t>(nPath) >= m_cPaths.size()) throw std::out_of_range("path index out of range");
+        cPaths.push_back(m_cPaths[nPath]);
+    }
     if (cPaths.size() == 0) return true;
     if (std::all_of(cPaths.begin(), cPaths.end(), [](path_ptr & p) { return p->is_void(); })) return true;
     
