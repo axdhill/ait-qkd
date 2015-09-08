@@ -144,7 +144,7 @@ public:
          * @return  iterator to next in sync key
          */
         std::map<qkd::key::key_id, stashed_key>::iterator next_in_sync() {
-            if (cInSync.size() == 0) return cInSync.end();
+            if (cInSync.empty()) return cInSync.end();
             if (cInSync.size() == 1) return cInSync.begin();
             auto iter = cInSync.lower_bound(nLastInSyncKeyPicked);
             if (iter == cInSync.end()) return cInSync.begin();

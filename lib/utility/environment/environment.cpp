@@ -269,7 +269,7 @@ boost::filesystem::path environment::find_executable(std::string const & sFile) 
     std::list<boost::filesystem::path> cSearch = find_files(sFile, cPaths, false, true, true, false);
     
     // pick first match
-    if (cSearch.size() > 0) return cSearch.front();
+    if (!cSearch.empty()) return cSearch.front();
     
     // we didn't find any
     return boost::filesystem::path();

@@ -94,7 +94,7 @@ public:
      * 
      * @param   cDBus       the DBus connection to use
      */
-    engine_data(QDBusConnection cDBus) : m_cDBus(cDBus), m_bReconnect(false) {
+    engine_data(QDBusConnection cDBus) : m_cDBus(cDBus), m_bReconnect(false), m_nPeerPort(0) {
         
         m_cAssociationDefinition.sAuthenticationIncoming = "evhash-96";
         m_cAssociationDefinition.sAuthenticationOutgoing = "evhash-96";

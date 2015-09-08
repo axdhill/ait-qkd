@@ -79,7 +79,7 @@ public:
     /**
      * ctor
      */
-    mq_data() { };
+    mq_data() : nMaxKey(0), nMaxKeySize(0) { };
     
     
     /**

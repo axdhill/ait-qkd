@@ -68,7 +68,7 @@ public:
     /**
      * ctor
      */
-    handshake_data() { };
+    handshake_data() : m_nLocalNonce(0) { };
     
     uint32_t m_nLocalNonce;             /**< our local random number used */
     

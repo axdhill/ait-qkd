@@ -204,7 +204,7 @@ bool connection::read_key(qkd::key::key & cKey) {
     }
     
     std::list<path_ptr> cPaths = get_next_paths();
-    if (cPaths.size() == 0) return true;
+    if (cPaths.empty()) return true;
     
     // all void paths ---> no key (but it's okay...)
     if (std::all_of(cPaths.begin(), cPaths.end(), [](path_ptr & p) { return p->is_void(); })) return true;
@@ -289,7 +289,7 @@ bool connection::recv_message(qkd::module::message & cMessage) {
     }
     
     std::list<path_ptr> cPaths = get_next_paths();
-    if (cPaths.size() == 0) return false;
+    if (cPaths.empty()) return false;
     if (std::all_of(cPaths.begin(), cPaths.end(), [](path_ptr & p) { return p->is_void(); })) return false;
     
     // iterate over all sockets
@@ -410,7 +410,7 @@ bool connection::send_message(qkd::module::message & cMessage, int nPath) {
         cPaths.push_back(m_cPaths[nPath]);
     }
     
-    if (cPaths.size() == 0) return false;
+    if (cPaths.empty()) return false;
     if (std::all_of(cPaths.begin(), cPaths.end(), [](path_ptr & p) { return p->is_void(); })) return false;
     
     // iterate over all sockets
@@ -542,7 +542,7 @@ bool connection::write_key(qkd::key::key const & cKey, int nPath) {
         if (static_cast<size_t>(nPath) >= m_cPaths.size()) throw std::out_of_range("path index out of range");
         cPaths.push_back(m_cPaths[nPath]);
     }
-    if (cPaths.size() == 0) return true;
+    if (cPaths.empty()) return true;
     if (std::all_of(cPaths.begin(), cPaths.end(), [](path_ptr & p) { return p->is_void(); })) return true;
     
     // iterate over all sockets

@@ -87,7 +87,7 @@ public:
      * 
      * @param   sURL        url of the DB to create
      */
-    db_ram(QString sURL) : db(sURL), m_cKeyData(nullptr), m_cKeyMetaData(nullptr) {};
+    db_ram(QString sURL) : db(sURL), m_nCount(0), m_nCountRealSync(0), m_cKeyData(nullptr), m_cKeyMetaData(nullptr) {};
     
     
     /**
