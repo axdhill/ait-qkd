@@ -466,7 +466,7 @@ class module : public QObject {
     Q_PROPERTY(QString description READ description)                                            /**< get the description of the module */
     Q_PROPERTY(QString hint READ hint WRITE set_hint)                                           /**< get/set the arbitrary module hint */
     Q_PROPERTY(QString id READ id)                                                              /**< get the id of the module */
-    Q_PROPERTY(bool idle READ idle)                                                       /**< get the idle flag: finished work on a key for at least 1 sec ago */
+    Q_PROPERTY(bool idle READ idle)                                                             /**< get the idle flag: finished work on a key for at least 1 sec ago */
     Q_PROPERTY(QString organisation READ organisation)                                          /**< get the organisation/creator of the module */
     Q_PROPERTY(bool paired READ paired)                                                         /**< get module's paired condition */
     Q_PROPERTY(QString pipeline READ pipeline WRITE set_pipeline)                               /**< the pipeline ID this module is assigned to */

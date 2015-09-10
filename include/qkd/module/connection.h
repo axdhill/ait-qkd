@@ -35,8 +35,6 @@
 // ------------------------------------------------------------
 // incs
 
-#include "config.h"
-
 #include <algorithm>
 #include <deque>
 #include <string>
@@ -72,7 +70,6 @@ enum class connection_type : uint8_t {
  */
 enum class socket_access : uint8_t {
     
-    // TODO: BEST_EFFORT,        /**< pick the next send/recv which is available */ does not work currently (zmq_poll broken?)
     ROUND_ROBIN,        /**< send/recv messages on a single socket, but use round robin */
     ALL                 /**< use all available sockets to send/recv the same message */
 };
@@ -83,7 +80,8 @@ enum class socket_access : uint8_t {
  * 
  * a connection maintains at least one single path. 
  * a path is used for sending and/or receiving.
- * if there are more than one path available, a ROUND_ROBIN scheduling is used for send/recv.
+ * if there are more than one path available, a ROUND_ROBIN 
+ * scheduling is used for send/recv at least if not manually specified.
  * 
  * a connection is typed as being one of
  * - pipe input

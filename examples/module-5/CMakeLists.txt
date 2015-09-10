@@ -53,10 +53,16 @@ if (CMAKE_COMPILER_IS_GNUCC)
     # at hand - at least for gcc 4.6.3 and glibc 2.15
     add_definitions(-D_GLIBCXX_USE_SCHED_YIELD)
     
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
     
 endif (CMAKE_COMPILER_IS_GNUCC)
+
+# set compile flags: clang
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+endif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
 
 
 # ------------------------------------------------------------

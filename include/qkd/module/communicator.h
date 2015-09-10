@@ -91,7 +91,7 @@ class module;
  *
  *      }
  *
- * this is as short and easy is can get by now
+ * this is as short and easy as can get by now
  *
  */
 class communicator {
