@@ -593,7 +593,7 @@ public:
     
     
     /**
-     * most exact age of module
+     * most exact age of module, that is: now() - process start timepoint
      * 
      * @return  age of module
      */
@@ -603,7 +603,7 @@ public:
     
     
     /**
-     * most exact date of module birth
+     * most exact date of module birth (module process start)
      * 
      * @return  timepoint of birth as exact as possible
      */
@@ -1030,9 +1030,9 @@ public:
     
     
     /**
-     * get the process id of the key store
+     * get the process id of the module
      * 
-     * @return  the operating system process id of the key store
+     * @return  the operating system process id of the module
      */
     inline unsigned int process_id() const { 
         return qkd::utility::environment::process_id(); 
@@ -1040,9 +1040,9 @@ public:
     
     
     /**
-     * get the process image path of the key store
+     * get the process image path of the module binary on disk
      * 
-     * @return  the operating system process image of this key store
+     * @return  the operating system process image of the module binary on disk
      */
     inline QString process_image() const { 
         return QString::fromStdString(qkd::utility::environment::process_image_path().string()); 
@@ -1251,7 +1251,7 @@ public:
      * Seconds since 1/1/1970 when this module
      * has been launched.
      * 
-     * @return  UNIX epoch timestamp of key-store launch
+     * @return  UNIX epoch timestamp of module launch
      */
     unsigned long start_time() const;
     
