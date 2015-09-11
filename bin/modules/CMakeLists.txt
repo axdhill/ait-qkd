@@ -3,7 +3,7 @@
 # 
 # make: qkd/bin/modules
 #
-# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+# Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
 # Copyright (C) 2012-2015 AIT Austrian Institute of Technology
 # AIT Austrian Institute of Technology GmbH
@@ -32,8 +32,6 @@
 # go through the subs
 
 add_subdirectory(qkd-auth)
-add_subdirectory(qkd-bb84)
-add_subdirectory(qkd-buffer)
 add_subdirectory(qkd-cascade)
 add_subdirectory(qkd-cat)
 add_subdirectory(qkd-confirmation)
@@ -45,6 +43,8 @@ add_subdirectory(qkd-error-estimation)
 add_subdirectory(qkd-ping)
 add_subdirectory(qkd-privacy-amplification)
 add_subdirectory(qkd-reorder)
+add_subdirectory(qkd-resize)
+add_subdirectory(qkd-sifting-bb84)
 add_subdirectory(qkd-statistics)
 add_subdirectory(qkd-tee)
 add_subdirectory(qkd-throttle)

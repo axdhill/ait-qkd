@@ -3,7 +3,7 @@
  * 
  * crypto scheme class implementation
  *
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -42,7 +42,6 @@
 
 #include "crypto_evhash.h"
 #include "crypto_null.h"
-#include "crypto_umac.h"
 #include "crypto_xor.h"
 
 using namespace qkd::crypto;
@@ -67,12 +66,12 @@ scheme::scheme(std::string const sScheme) {
     // get the tokens
     std::vector<std::string> sTokenScheme;
     boost::split(sTokenScheme, sScheme, boost::is_any_of(":"));
-    if (sTokenScheme.size() == 0) return;
+    if (sTokenScheme.empty()) return;
     
     // parse the first token --> algorithm
     std::vector<std::string> sTokenAlgorithm;
     boost::split(sTokenAlgorithm, sTokenScheme[0], boost::is_any_of("-"));
-    if (sTokenAlgorithm.size() == 0) return;
+    if (sTokenAlgorithm.empty()) return;
     m_sName = sTokenAlgorithm[0];
     
     // get the init key
@@ -104,7 +103,9 @@ scheme::scheme(std::string const sScheme) {
     }
     
     // get the state
-    if (sTokenScheme.size() >= 3) m_cState = qkd::utility::memory::from_hex(sTokenScheme[2]);
+    if (sTokenScheme.size() >= 3) {
+        m_cState = qkd::utility::memory::from_hex(sTokenScheme[2]);
+    }
 }
 
 
@@ -127,3 +128,4 @@ std::string scheme::str() const {
     
     return ss.str();
 }
+

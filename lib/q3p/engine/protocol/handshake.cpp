@@ -3,7 +3,7 @@
  *
  * implement the Q3P KeyStore to Q3P KeyStore HANDSHAKE protocol
  * 
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -68,7 +68,7 @@ public:
     /**
      * ctor
      */
-    handshake_data() { };
+    handshake_data() : m_nLocalNonce(0) { };
     
     uint32_t m_nLocalNonce;             /**< our local random number used */
     

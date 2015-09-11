@@ -4,7 +4,7 @@
  * The qkd-ping sends a series of messages back and forth 
  * to test remote module to module interconnection
  * 
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -98,7 +98,6 @@ qkd_ping::qkd_ping() : qkd::module::module("ping", qkd::module::module_type::TYP
     set_synchronize_ttl(0);
     set_urls("", "stdout://", "", "");
     
-    // enforce DBus registration
     new PingAdaptor(this);
 }
 
@@ -109,8 +108,6 @@ qkd_ping::qkd_ping() : qkd::module::module("ping", qkd::module::module_type::TYP
  * @return  the maximum number of roundtrips to do
  */
 qulonglong qkd_ping::max_roundtrip() const {
-    
-    // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     return d->nMaxRoundtrip;
 }
@@ -122,8 +119,6 @@ qulonglong qkd_ping::max_roundtrip() const {
  * @return  the number of bytes sent each roundtrip
  */
 qulonglong qkd_ping::payload_size() const {
-    
-    // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     return d->nPackageSize;
 }
@@ -134,7 +129,6 @@ qulonglong qkd_ping::payload_size() const {
  */
 void qkd_ping::process_alice() {
 
-    // generate a payload
     uint64_t nPackageSize = 0;
     {
         std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
@@ -143,14 +137,13 @@ void qkd_ping::process_alice() {
         }
     }
 
-    // try (and test) the module_communicater facade instance
-    qkd::crypto::crypto_context cIncomingContext = qkd::crypto::engine::create("null");
-    qkd::crypto::crypto_context cOutgoingConetxt = qkd::crypto::engine::create("null");
+    qkd::crypto::crypto_context cIncomingContext = qkd::crypto::context::null_context();
+    qkd::crypto::crypto_context cOutgoingConetxt = qkd::crypto::context::null_context();
     qkd::module::communicator cModuleComm = comm(cIncomingContext, cOutgoingConetxt);
 
+    // real work here...
     if (!ping_alice(cModuleComm, nPackageSize)) return;
    
-    // check if we did enough roundtrips
     d->nRoundtrips++;
     uint64_t nMaxRoundtrip = max_roundtrip();
     if ((nMaxRoundtrip != 0) && (d->nRoundtrips >= nMaxRoundtrip)) {
@@ -182,7 +175,6 @@ void qkd_ping::process_alice() {
  */
 void qkd_ping::process_bob() {
 
-    // generate a payload
     uint64_t nPackageSize = 0;
     {
         std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
@@ -192,10 +184,11 @@ void qkd_ping::process_bob() {
     }
  
     // try (and test) the module_communicater facade instance
-    qkd::crypto::crypto_context cIncomingContext = qkd::crypto::engine::create("null");
-    qkd::crypto::crypto_context cOutgoingConetxt = qkd::crypto::engine::create("null");
+    qkd::crypto::crypto_context cIncomingContext = qkd::crypto::context::null_context();
+    qkd::crypto::crypto_context cOutgoingConetxt = qkd::crypto::context::null_context();
     qkd::module::communicator cModuleComm = comm(cIncomingContext, cOutgoingConetxt);
 
+    // real work here...
     if (!ping_bob(cModuleComm, nPackageSize)) return;
 }
 
@@ -206,8 +199,6 @@ void qkd_ping::process_bob() {
  * @return  the number of current roundtrips
  */
 qulonglong qkd_ping::roundtrips() const {
-    
-    // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     return d->nRoundtrips;
 }
@@ -219,8 +210,6 @@ qulonglong qkd_ping::roundtrips() const {
  * @param   nMaxRoundtrip       the new maximum number of roundtrips to do
  */
 void qkd_ping::set_max_roundtrip(qulonglong nMaxRoundtrip) {
-    
-    // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     d->nMaxRoundtrip = nMaxRoundtrip;
 }
@@ -232,8 +221,6 @@ void qkd_ping::set_max_roundtrip(qulonglong nMaxRoundtrip) {
  * @param   nPayloadSize    the new number of bytes to send and recv
  */    
 void qkd_ping::set_payload_size(qulonglong nPayloadSize) {
-    
-    // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     d->nPackageSize = nPayloadSize;
 }
@@ -241,13 +228,10 @@ void qkd_ping::set_payload_size(qulonglong nPayloadSize) {
 
 /**
  * set a new number of milliseconds to wait between a roundtrip
- * this number must be a multple of timeout()
  * 
  * @param   nSleepTime      the new number of milliseconds to sleep
  */    
 void qkd_ping::set_sleep_time(qulonglong nSleepTime) {
-    
-    // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     d->cSleepTime = std::chrono::milliseconds(nSleepTime);
 }
@@ -259,10 +243,7 @@ void qkd_ping::set_sleep_time(qulonglong nSleepTime) {
  * @return  the time to sleep between calls
  */
 qulonglong qkd_ping::sleep_time() const {
-    
-    // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     return d->cSleepTime.count();
 }
-
 

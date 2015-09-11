@@ -3,7 +3,7 @@
  * 
  * QKD module message implementation
  *
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -41,7 +41,7 @@ using namespace qkd::module;
 
 
 // ------------------------------------------------------------
-// incs
+// vars
 
 
 /**

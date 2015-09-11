@@ -7,7 +7,7 @@
 #
 # TEST: test the q3pd reconnection capabilities once a connection is lost
 #
-# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+# Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
 # Copyright (C) 2012-2015 AIT Austrian Institute of Technology
 # AIT Austrian Institute of Technology GmbH
@@ -38,7 +38,7 @@ source ${TEST_BASE}/test/bin/test-functions
 # ------------------------------------------------------------
 
 # init test environment
-test_init
+test_init "$(basename $0).d"
 
 # zap previous database
 rm -rf "${DB_ALICE_2_BOB}" &> /dev/null
@@ -134,12 +134,10 @@ fi
 
 echo "alice and bob disconnected"
 
-# let alice connect
-echo "reconnect alice connect"
 qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob connect "tcp://127.0.0.1:10021" "${SHARED_SECRET}" &> /dev/null
-echo "reconnect alice connected"
+sleep 1
 
-# check if we have a connection
+echo "reconnect..."
 CONNECTED_ALICE=$(qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob connected)
 CONNECTED_BOB=$(qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice connected)
 if [ "${CONNECTED_ALICE}" != "true" ]; then

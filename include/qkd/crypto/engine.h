@@ -3,7 +3,7 @@
  * 
  * crypto engine interface
  *
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -69,6 +69,7 @@ namespace crypto {
  *          "evhash-96"
  *          "evhash-96:87103893a579"
  *          "evhash-96:02cc942de299:f4b0d86ffd53"
+ *          "evhash-96:02cc942de299:f4b0d86ffd53:12345"
  *          "xor"
  *          "null"
  * 
@@ -101,7 +102,6 @@ public:
      * 
      *      "null"          The empty NULL instance (does not do any crpto stuff)
      *      "evhash"        evaluation hash
-     *      "umac"          UMAC
      *      "xor"           binary xor encryption (init key is ignored)
      * 
      * Some algorithms need keys as input, some need keys as output and
@@ -138,12 +138,6 @@ public:
      *      need output key:        yes
      *      input key bit size:     32, 64, 96, 128, 256
      *      remarks:                evhash with at least 96 bit is recommended
-     * 
-     * name:    "umac"
-     *      need input key:         yes
-     *      need output key:        no
-     *      input key bit size:     128
-     *      remarks:                this is the standard UMAC implementation
      * 
      * name:    "xor"
      *      need input key:         no

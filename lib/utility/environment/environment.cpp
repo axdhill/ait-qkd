@@ -3,7 +3,7 @@
  * 
  * implements functions in environment.h
  * 
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -269,7 +269,7 @@ boost::filesystem::path environment::find_executable(std::string const & sFile) 
     std::list<boost::filesystem::path> cSearch = find_files(sFile, cPaths, false, true, true, false);
     
     // pick first match
-    if (cSearch.size() > 0) return cSearch.front();
+    if (!cSearch.empty()) return cSearch.front();
     
     // we didn't find any
     return boost::filesystem::path();
@@ -732,7 +732,7 @@ std::list<boost::filesystem::path> environment::qkd_modules() {
     
     static const std::list<std::string> cKnownModules = {
         "qkd-auth", 
-        "qkd-bb84", 
+        "qkd-sifting-bb84", 
         "qkd-buffer", 
         "qkd-cascade", 
         "qkd-cat", 

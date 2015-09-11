@@ -3,7 +3,7 @@
  * 
  * crypto context interface
  *
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -89,7 +89,7 @@ typedef boost::shared_ptr<context> crypto_context;
  * 
  *  3. Add memory to the context: method add()
  * 
- *  4. Compute the result with an final key if neeeded: method finalize()
+ *  4. Compute the result with an final key if needed: method finalize()
  * 
  * 
  *      Code sample:
@@ -125,13 +125,7 @@ public:
 
 
     /**
-     * exception type thrown if already finalized
-     */
-    struct context_final : virtual std::exception, virtual boost::exception { };
-    
-
-    /**
-     * exception type thrown when something unexpected happend during init
+     * exception type thrown when something unexpected happened during init
      */
     struct context_init : virtual std::exception, virtual boost::exception { };
     
@@ -157,21 +151,49 @@ public:
     /**
      * stream into
      * 
+     * add another crypto context
+     *
+     * @param   cContext        the crypto context to add
+     * @return  the crypto context
+     */
+    inline context & operator<<(qkd::crypto::crypto_context const & cContext) { 
+        add(cContext); 
+        return *this; 
+    }
+
+
+    /**
+     * stream into
+     * 
      * add a memory blob to the algorithm
      *
      * @param   cMemory         memory block to stream into algorithm
      * @return  the crypto context
      */
-    inline context & operator<<(qkd::utility::memory const & cMemory) { add(cMemory); return *this; }
+    inline context & operator<<(qkd::utility::memory const & cMemory) { 
+        add(cMemory); 
+        return *this; 
+    }
 
 
+    /**
+     * add another crypto context
+     *
+     * @param   cContext        the crypto context to add
+     */
+    inline void add(qkd::crypto::crypto_context const & cContext) { 
+        add_internal(cContext); 
+    }
+
+    
     /**
      * add a memory BLOB to the algorithm
      *
      * @param   cMemory         memory block to be added
-     * @throws  context_final
      */
-    inline void add(qkd::utility::memory const & cMemory) { if (is_finalized()) throw context_final(); add_internal(cMemory); };
+    inline void add(qkd::utility::memory const & cMemory) { 
+        add_internal(cMemory); 
+    }
     
     
     /**
@@ -179,23 +201,26 @@ public:
      * 
      * @return  a new cloned context
      */
-    crypto_context clone() const { if (!is_cloneable()) throw context_not_clonable(); return clone_internal(); };
+    crypto_context clone() const { 
+        if (!is_cloneable()) throw context_not_clonable(); 
+        return clone_internal(); 
+    }
 
 
     /**
      * check if this context allows to reuse the final key
      * 
-     * @return  true, if the final key can be resued
+     * @return  true, if the final key can be reused
      */
-    inline bool final_key_reusable() const { return final_key_reusable_internal(); };
+    inline bool final_key_reusable() const { return final_key_reusable_internal(); }
     
     
     /**
      * get the size of the final key in bytes
      * 
-     * @return  the size of the final key or 0 if inapprobiate
+     * @return  the size of the final key or 0 if inappropriate
      */
-    inline uint64_t final_key_size() const { return final_key_size_internal(); };
+    inline uint64_t final_key_size() const { return final_key_size_internal(); }
     
 
     /**
@@ -204,9 +229,10 @@ public:
      * @param   cKey        the key used to finalize the algorithm
      * @return  a memory BLOB representing the tag
      * @throws  context_wrong_key
-     * @throws  context_final
      */
-    inline qkd::utility::memory finalize(qkd::key::key const & cKey = qkd::key::key::null()) { if (is_finalized()) throw context_final(); m_bFinalized = true; return finalize_internal(cKey); };
+    inline qkd::utility::memory finalize(qkd::key::key const & cKey = qkd::key::key::null()) { 
+        return finalize_internal(cKey); 
+    }
     
     
     /**
@@ -214,23 +240,23 @@ public:
      * 
      * @return  the key used to create the context
      */
-    inline qkd::key::key const & init_key() const { return m_cKey; };
+    inline qkd::key::key const & init_key() const { return m_cKey; }
     
     
     /**
      * check if this context allows to reuse the init key
      * 
-     * @return  true, if the init key can be resued
+     * @return  true, if the init key can be reused
      */
-    inline bool init_key_reusable() const { return init_key_reusable_internal(); };
+    inline bool init_key_reusable() const { return init_key_reusable_internal(); }
     
 
     /**
      * get the size of the init key in bytes
      * 
-     * @return  the size of the init key or 0 if inapprobiate
+     * @return  the size of the init key or 0 if inappropriate
      */
-    inline uint64_t init_key_size() const { return init_key_size_internal(); };
+    inline uint64_t init_key_size() const { return init_key_size_internal(); }
     
 
     /**
@@ -238,15 +264,7 @@ public:
      * 
      * @return  true, if we can make a clone of a concrete instance
      */
-    inline bool is_cloneable() const { return is_cloneable_internal(); };
-    
-    
-    /**
-     * check if this context has been already finalized
-     * 
-     * @return  true, if the finalize method has been called at least once
-     */
-    inline bool is_finalized() const { return m_bFinalized; };
+    inline bool is_cloneable() const { return is_cloneable_internal(); }
     
     
     /**
@@ -271,7 +289,7 @@ public:
      * 
      * @return  true, if a final key is needed
      */
-    inline bool needs_final_key() const { return needs_final_key_internal(); };
+    inline bool needs_final_key() const { return needs_final_key_internal(); }
     
 
     /**
@@ -279,7 +297,7 @@ public:
      * 
      * @return  true, if an init key is needed
      */
-    inline bool needs_init_key() const { return needs_init_key_internal(); };
+    inline bool needs_init_key() const { return needs_init_key_internal(); }
     
 
     /**
@@ -288,6 +306,14 @@ public:
      * @return  true, if it is
      */
     virtual bool null() const = 0;
+    
+    
+    /**
+     * returns the a null context
+     * 
+     * @return  a NULL crypto context
+     */
+    static crypto_context null_context();
     
     
     /**
@@ -300,7 +326,7 @@ public:
      * 
      * @return  expected size of the computation result (or 0 for any size)
      */
-    inline uint64_t result_size() const { return result_size_internal(); };
+    inline uint64_t result_size() const { return result_size_internal(); }
     
     
     /**
@@ -308,16 +334,16 @@ public:
      * 
      * @return  the scheme identifiying this context
      */
-    inline qkd::crypto::scheme scheme() const { return scheme_internal(); };
+    inline qkd::crypto::scheme scheme() const { return scheme_internal(); }
     
-    
+
     /**
      * sets the state as specified in the memory block
      * 
      * @param   cMemory         the BLOB holding the state data
      * @throws  context_init
      */
-    inline void set_state(qkd::utility::memory const & cMemory) { return set_state_internal(cMemory); };
+    inline void set_state(qkd::utility::memory const & cMemory) { return set_state_internal(cMemory); }
     
     
     /**
@@ -325,7 +351,7 @@ public:
      * 
      * @return  a memory BLOB defining the current state
      */
-    inline qkd::utility::memory state() const { return state_internal(); };
+    inline qkd::utility::memory state() const { return state_internal(); }
     
     
 protected:
@@ -337,7 +363,7 @@ protected:
      * @param   cKey        the initial key
      * @throws  context_wrong_key
      */
-    explicit context(qkd::key::key const & cKey = qkd::key::key::null()) : m_bFinalized(false), m_cKey(cKey) {};
+    explicit context(qkd::key::key const & cKey = qkd::key::key::null()) : m_cKey(cKey) {};
 
     
 private:
@@ -351,6 +377,15 @@ private:
     context() {};
     
     
+    /**
+     * add another crypto context
+     *
+     * @param   cContext        the crypto context to add
+     * @throws  context_final, if the algorithm has finished and does not allow another addition
+     */
+    virtual void add_internal(qkd::crypto::crypto_context const & cContext) = 0;
+
+
     /**
      * add a memory BLOB to the algorithm
      *
@@ -377,7 +412,7 @@ private:
     /**
      * check if this context allows to reuse the final key
      * 
-     * @return  true, if the final key can be resued
+     * @return  true, if the final key can be reused
      */
     virtual bool final_key_reusable_internal() const = 0;
     
@@ -385,7 +420,7 @@ private:
     /**
      * get the size of the final key
      * 
-     * @return  the size of the final key or 0 if inapprobiate
+     * @return  the size of the final key or 0 if inappropriate
      */
     virtual uint64_t final_key_size_internal() const = 0;
     
@@ -403,7 +438,7 @@ private:
     /**
      * check if this context allows to reuse the init key
      * 
-     * @return  true, if the init key can be resued
+     * @return  true, if the init key can be reused
      */
     virtual bool init_key_reusable_internal() const = 0;
     
@@ -411,7 +446,7 @@ private:
     /**
      * get the size of the init key
      * 
-     * @return  the size of the init key or 0 if inapprobiate
+     * @return  the size of the init key or 0 if inappropriate
      */
     virtual uint64_t init_key_size_internal() const = 0;
     
@@ -456,7 +491,7 @@ private:
     /**
      * return the scheme string (at the current state) of this context
      * 
-     * @return  the scheme identifiying this context
+     * @return  the scheme identifying this context
      */
     virtual qkd::crypto::scheme scheme_internal() const = 0;
     
@@ -479,12 +514,6 @@ private:
     
     
     /**
-     * finalized flag
-     */
-    bool m_bFinalized;
-    
-    
-    /**
      * the initial key
      */
     qkd::key::key m_cKey;
@@ -498,10 +527,28 @@ private:
  * Add some memory data to the crypto algorithm
  * 
  * @param   lhs     the crypto context object
+ * @param   rhs     the crypto context to add
+ * @return  the crypto context object
+ */
+inline crypto_context & operator<<(crypto_context & lhs, qkd::crypto::crypto_context const & rhs) { 
+    (*lhs) << rhs; 
+    return lhs; 
+}
+
+
+/**
+ * stream into
+ * 
+ * Add some memory data to the crypto algorithm
+ * 
+ * @param   lhs     the crypto context object
  * @param   rhs     the memory to add
  * @return  the crypto context object
  */
-inline crypto_context & operator<<(crypto_context & lhs, qkd::utility::memory const & rhs) { (*lhs) << rhs; return lhs; }
+inline crypto_context & operator<<(crypto_context & lhs, qkd::utility::memory const & rhs) { 
+    (*lhs) << rhs; 
+    return lhs; 
+}
 
 
 }

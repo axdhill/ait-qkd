@@ -3,7 +3,7 @@
  * 
  * the QKD key
  *
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -79,7 +79,7 @@ typedef std::vector<key_id> key_vector;
  */
 enum class key_state : uint8_t {
     
-    KEY_STATE_OTHER = 0,            /**< key data are not key bits. they have to be treated in context of the previous module */
+    KEY_STATE_OTHER = 0,            /**< key data are not key bits: they have to be treated in context of the previous module */
     
     KEY_STATE_RAW,                  /**< this is raw key data */
     KEY_STATE_SIFTED,               /**< this is a sifted key */
@@ -90,7 +90,7 @@ enum class key_state : uint8_t {
     KEY_STATE_AMPLIFIED,            /**< this is a privacy amplified key */
     KEY_STATE_AUTHENTICATED,        /**< this is an authenticated key */
 
-    KEY_STATE_DISCLOSED             /**< this key has been disclosed (and is neither unconfirmed nor uncorrected) */
+    KEY_STATE_DISCLOSED             /**< this key has been disclosed */
 };
 
 
@@ -118,6 +118,49 @@ enum class key_state : uint8_t {
  * 
  * A Key can be used with the qkd::crypto classes to authenticate
  * or encrypt data.
+ * 
+ * Keys are passed from one module to the next on one side (e.g. alice).
+ * A series of keys is the *keystream* which can be written and read to file.
+ * The particles of a keystream are streamed keys which each is a record of:
+ * 
+ *  - key id                    (uint32_t)  [network byte ordering]
+ *  - key state                 (uint8_t)   [network byte ordering]
+ *  - disclosed bits            (uint64_t)  [network byte ordering]
+ *  - error rate                (double)
+ *  - crypto scheme incoming    (various: size (uint64_t)[network byte ordering] + string)
+ *  - crypto scheme outgoing    (various: size (uint64_t)[network byte ordering] + string)
+ *  - key-size in bytes         (uint64_t)  [network byte ordering]
+ *  - key-data                  (BLOB)
+ * 
+ *      0                   1                   2                   3
+ *      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *      |                             key-Id                            |
+ *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *      |  key-state    |             disclosed bits                    
+ *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *                                    disclosed bits                     
+ *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *       disclosed bits |             error rate                                  
+ *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *                                    error rate                         
+ *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *       error rate     |             crypto scheme incoming                      
+ *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *                        ... crypto scheme incoming ...                
+ *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *      |                  ... crypto scheme outgoing ...                
+ *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *      |                         key-size ...                           
+ *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *                               ... key-size                           |
+ *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *      |                         key-data ...                           
+ *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *                            ... key-data ...                           
+ *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *                               ... key-data                           |
+ *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  */
 class key {
 
@@ -154,7 +197,7 @@ public:
          * @param   nShift      the shift value
          * @param   nAdd        the add value
          */
-        key_id_counter(uint32_t nShift = 0, uint32_t nAdd = 0) : m_nCount(0), m_nShift(nShift), m_nAdd(nAdd) {};
+        key_id_counter(uint32_t nShift = 0, uint32_t nAdd = 0) : m_nCount(0), m_nShift(nShift), m_nAdd(nAdd) {}
         
         
         /**
@@ -162,7 +205,7 @@ public:
          * 
          * @param   rhs         right hand side
          */
-        key_id_counter(key_id_counter const & rhs) : m_nCount(rhs.m_nCount), m_nShift(rhs.m_nShift), m_nAdd(rhs.m_nAdd) {};
+        key_id_counter(key_id_counter const & rhs) : m_nCount(rhs.m_nCount), m_nShift(rhs.m_nShift), m_nAdd(rhs.m_nAdd) {}
         
         
         /**
@@ -170,7 +213,7 @@ public:
          * 
          * @return      the add value used
          */
-        inline uint32_t add_value() const { return m_nAdd; };
+        inline uint32_t add_value() const { return m_nAdd; }
         
         
         /**
@@ -178,7 +221,7 @@ public:
          * 
          * @return      the internal counter used
          */
-        inline key_id count() const { return m_nCount; };
+        inline key_id count() const { return m_nCount; }
         
         
         /**
@@ -186,7 +229,7 @@ public:
          * 
          * @return  the new key_id
          */
-        inline key_id inc() { return ((++m_nCount << m_nShift) + m_nAdd); };
+        inline key_id inc() { return ((++m_nCount << m_nShift) + m_nAdd); }
         
         
         /**
@@ -194,7 +237,7 @@ public:
          * 
          * @param   nCount      the new key id to start from
          */
-        inline void set_count(key_id nCount) { m_nCount = nCount; };
+        inline void set_count(key_id nCount) { m_nCount = nCount; }
         
         
         /**
@@ -202,7 +245,7 @@ public:
          * 
          * @return      the shift value used
          */
-        inline uint32_t shift_value() const { return m_nShift; };
+        inline uint32_t shift_value() const { return m_nShift; }
         
         
     private:
@@ -291,7 +334,7 @@ public:
     /**
      * ctor
      */
-    key() : m_nId(0), m_cData(0) { };
+    key() : m_nId(0), m_cData(0) {}
     
     
     /**
@@ -301,7 +344,7 @@ public:
      * 
      * @param   rhs     right hand side
      */
-    key(key const & rhs) : m_nId(rhs.m_nId), m_cData(rhs.m_cData), m_cMeta(rhs.m_cMeta) {};
+    key(key const & rhs) : m_nId(rhs.m_nId), m_cData(rhs.m_cData), m_cMeta(rhs.m_cMeta) {}
 
 
     /**
@@ -312,7 +355,7 @@ public:
      * @param   nId         ID of the key
      * @param   cMemory     memory holding the key bits
      */
-    explicit key(key_id nId, qkd::utility::memory & cMemory) : m_nId(nId), m_cData(cMemory) {};
+    explicit key(key_id nId, qkd::utility::memory & cMemory) : m_nId(nId), m_cData(cMemory) {}
     
     
     /**
@@ -323,7 +366,7 @@ public:
      * @param   nId         ID of the key
      * @param   cMemory     memory holding the key bits
      */
-    explicit key(key_id nId, qkd::utility::memory const & cMemory) : m_nId(nId), m_cData(cMemory.clone()) {};
+    explicit key(key_id nId, qkd::utility::memory const & cMemory) : m_nId(nId), m_cData(cMemory.clone()) {}
     
     
     /**
@@ -331,7 +374,7 @@ public:
      * 
      * Virtual, so a key may be legally subclassed
      */
-    virtual ~key() {};
+    virtual ~key() {}
     
     
     /**
@@ -342,7 +385,7 @@ public:
      * @param   rhs     right hand side
      * @return  true, if both objects are identical
      */
-    inline bool operator==(qkd::key::key const & rhs) const { return (id() == rhs.id()); };
+    inline bool operator==(qkd::key::key const & rhs) const { return (id() == rhs.id()); }
 
 
     /**
@@ -353,7 +396,7 @@ public:
      * @param   rhs     right hand side
      * @return  true, if both objects are different
      */
-    inline bool operator!=(qkd::key::key const & rhs) const { return !(*this == rhs); };
+    inline bool operator!=(qkd::key::key const & rhs) const { return !(*this == rhs); }
     
     
     /**
@@ -364,7 +407,7 @@ public:
      * @param   rhs     right hand side
      * @return  true, if this key id is less then rhs
      */
-    inline bool operator<(qkd::key::key const & rhs) const { return (id() < rhs.id()); };
+    inline bool operator<(qkd::key::key const & rhs) const { return (id() < rhs.id()); }
 
 
     /**
@@ -375,7 +418,7 @@ public:
      * @param   rhs     right hand side
      * @return  true, if this key id is less then or equal to rhs
      */
-    inline bool operator<=(qkd::key::key const & rhs) const { return (((*this) < rhs) || ((*this) == rhs)); };
+    inline bool operator<=(qkd::key::key const & rhs) const { return (((*this) < rhs) || ((*this) == rhs)); }
 
 
     /**
@@ -386,7 +429,7 @@ public:
      * @param   rhs     right hand side
      * @return  true, if this key id is greater then rhs
      */
-    inline bool operator>(qkd::key::key const & rhs) const { return (id() > rhs.id()); };
+    inline bool operator>(qkd::key::key const & rhs) const { return (id() > rhs.id()); }
 
 
     /**
@@ -397,7 +440,7 @@ public:
      * @param   rhs     right hand side
      * @return  true, if this key id is greater then or equal to rhs
      */
-    inline bool operator>=(qkd::key::key const & rhs) const { return (((*this) > rhs) || ((*this) == rhs)); };
+    inline bool operator>=(qkd::key::key const & rhs) const { return (((*this) > rhs) || ((*this) == rhs)); }
 
 
     /**
@@ -407,7 +450,7 @@ public:
      * 
      * @param   cData       the memory to add
      */
-    inline void add(qkd::utility::memory const & cData) { m_cData << cData; };
+    inline void add(qkd::utility::memory const & cData) { m_cData << cData; }
     
     
     /**
@@ -423,7 +466,7 @@ public:
      * 
      * @return  key bits within this key
      */
-    inline qkd::utility::memory & data() { return m_cData; };
+    inline qkd::utility::memory & data() { return m_cData; }
     
     
     /**
@@ -431,7 +474,7 @@ public:
      * 
      * @return  key bits within this key
      */
-    inline qkd::utility::memory const & data() const { return m_cData; };
+    inline qkd::utility::memory const & data() const { return m_cData; }
     
     
     /**
@@ -439,7 +482,9 @@ public:
      * 
      * @return  the duration of the key in the current process
      */
-    inline std::chrono::high_resolution_clock::duration dwell() const { return (std::chrono::high_resolution_clock::now() - m_cMeta.cTimestampRead); };
+    inline std::chrono::high_resolution_clock::duration dwell() const { 
+        return (std::chrono::high_resolution_clock::now() - m_cMeta.cTimestampRead); 
+    }
    
 
     /**
@@ -459,7 +504,18 @@ public:
      * 
      * @return  the key ID
      */
-    inline key_id id() const { return m_nId; };
+    inline key_id id() const { return m_nId; }
+    
+    
+    /**
+     * check if this key is *deeply* (on byte basis) to another
+     * 
+     * @param   rhs         right hand side
+     * @return  true if this key is equal to rhs on deep byte basis
+     */
+    inline bool is_equal(qkd::key::key const & rhs) const { 
+        return ((size() == rhs.size()) && (memcmp(data().get(), rhs.data().get(), size()) == 0));
+    }
     
     
     /**
@@ -467,7 +523,7 @@ public:
      * 
      * @return  true if this key is empty
      */
-    inline bool is_null() const { return (((*this) == null()) && (data().size() == 0)); };
+    inline bool is_null() const { return (((*this) == null()) && (data().size() == 0)); }
     
     
     /**
@@ -475,7 +531,7 @@ public:
      * 
      * @return  the meta object
      */
-    inline meta_data & meta() { return m_cMeta; };
+    inline meta_data & meta() { return m_cMeta; }
     
     
     /**
@@ -483,7 +539,7 @@ public:
      * 
      * @return  the meta object
      */
-    inline meta_data const & meta() const { return m_cMeta; };
+    inline meta_data const & meta() const { return m_cMeta; }
     
     
     /**
@@ -491,7 +547,10 @@ public:
      * 
      * @return  a key which is simply NULL
      */
-    static qkd::key::key const & null() { static qkd::key::key cNullKey; return cNullKey; };
+    static qkd::key::key const & null() { 
+        static qkd::key::key cNullKey; 
+        return cNullKey; 
+    }
     
     
     /**
@@ -529,11 +588,19 @@ public:
 
 
     /**
+     * set a new key id
+     * 
+     * @param   nId         the new key id
+     */
+    inline void set_id(key_id nId) { m_nId = nId; }
+
+
+    /**
      * size of key measured in bytes
      * 
      * @return  bytes of the key
      */
-    inline uint64_t size() const { return m_cData.size(); };
+    inline uint64_t size() const { return m_cData.size(); }
     
     
     /**
@@ -541,7 +608,7 @@ public:
      * 
      * @return  a string holding the key state
      */
-    inline std::string state_string() const { return state_string(meta().eKeyState); };
+    inline std::string state_string() const { return state_string(meta().eKeyState); }
     
 
     /**
@@ -619,7 +686,10 @@ key_vector sub(key_vector const & lhs, key_vector const & rhs);
  * @param   rhs     the right hand side
  * @return  lhs
  */
-inline qkd::key::key & operator<<(qkd::key::key & lhs, qkd::utility::memory const & rhs) { lhs.add(rhs); return lhs; }
+inline qkd::key::key & operator<<(qkd::key::key & lhs, qkd::utility::memory const & rhs) { 
+    lhs.add(rhs); 
+    return lhs; 
+}
 
 
 /**
@@ -631,7 +701,10 @@ inline qkd::key::key & operator<<(qkd::key::key & lhs, qkd::utility::memory cons
  * @param   rhs     the right hand side
  * @return  the stream
  */
-inline std::ostream & operator<<(std::ostream & lhs, qkd::key::key const & rhs) { rhs.write(lhs); return lhs; }
+inline std::ostream & operator<<(std::ostream & lhs, qkd::key::key const & rhs) { 
+    rhs.write(lhs); 
+    return lhs; 
+}
 
 
 /**
@@ -643,7 +716,10 @@ inline std::ostream & operator<<(std::ostream & lhs, qkd::key::key const & rhs) 
  * @param   rhs     the right hand side
  * @return  the buffer
  */
-inline qkd::utility::buffer & operator<<(qkd::utility::buffer & lhs, qkd::key::key const & rhs) { rhs.write(lhs); return lhs; }
+inline qkd::utility::buffer & operator<<(qkd::utility::buffer & lhs, qkd::key::key const & rhs) { 
+    rhs.write(lhs); 
+    return lhs; 
+}
 
 
 /**
@@ -655,7 +731,14 @@ inline qkd::utility::buffer & operator<<(qkd::utility::buffer & lhs, qkd::key::k
  * @param   rhs     the data to add
  * @return  the buffer object
  */
-inline qkd::utility::buffer & operator<<(qkd::utility::buffer & lhs, qkd::key::key_vector const & rhs) { uint64_t nSize = rhs.size(); lhs.push(nSize); for (qkd::key::key_id iter : rhs) lhs.push(iter); return lhs; }
+inline qkd::utility::buffer & operator<<(qkd::utility::buffer & lhs, qkd::key::key_vector const & rhs) { 
+    uint64_t nSize = rhs.size(); 
+    lhs.push(nSize); 
+    for (qkd::key::key_id iter : rhs) {
+        lhs.push(iter); 
+    }
+    return lhs; 
+}
 
 
 /**
@@ -667,7 +750,10 @@ inline qkd::utility::buffer & operator<<(qkd::utility::buffer & lhs, qkd::key::k
  * @param   rhs     the right hand side
  * @return  the stream
  */
-inline std::istream & operator>>(std::istream & lhs, qkd::key::key & rhs) { rhs.read(lhs); return lhs; }
+inline std::istream & operator>>(std::istream & lhs, qkd::key::key & rhs) { 
+    rhs.read(lhs); 
+    return lhs; 
+}
 
 
 /**
@@ -679,7 +765,10 @@ inline std::istream & operator>>(std::istream & lhs, qkd::key::key & rhs) { rhs.
  * @param   rhs     the right hand side
  * @return  the buffer
  */
-inline qkd::utility::buffer & operator>>(qkd::utility::buffer & lhs, qkd::key::key & rhs) { rhs.read(lhs); return lhs; }
+inline qkd::utility::buffer & operator>>(qkd::utility::buffer & lhs, qkd::key::key & rhs) { 
+    rhs.read(lhs); 
+    return lhs; 
+}
 
 
 /**
@@ -691,7 +780,17 @@ inline qkd::utility::buffer & operator>>(qkd::utility::buffer & lhs, qkd::key::k
  * @param   rhs     the data to get
  * @return  the buffer object
  */
-inline qkd::utility::buffer & operator>>(qkd::utility::buffer & lhs, qkd::key::key_vector & rhs) { uint64_t nSize; lhs.pop(nSize); rhs.resize(nSize); for (uint64_t i = 0; i < nSize; i++) { qkd::key::key_id nItem; lhs.pop(nItem); rhs[i] = nItem; } return lhs; }
+inline qkd::utility::buffer & operator>>(qkd::utility::buffer & lhs, qkd::key::key_vector & rhs) { 
+    uint64_t nSize; 
+    lhs.pop(nSize); 
+    rhs.resize(nSize); 
+    for (uint64_t i = 0; i < nSize; i++) { 
+        qkd::key::key_id nItem; 
+        lhs.pop(nItem); 
+        rhs[i] = nItem; 
+    } 
+    return lhs; 
+}
 
 
 /**
@@ -703,7 +802,9 @@ inline qkd::utility::buffer & operator>>(qkd::utility::buffer & lhs, qkd::key::k
  * @param   rhs     right hand side
  * @return  a key vector containing all key_ids in lhs not in rhs
  */
-inline qkd::key::key_vector operator-(qkd::key::key_vector const & lhs, qkd::key::key_vector const & rhs) { return qkd::key::sub(lhs, rhs); }
+inline qkd::key::key_vector operator-(qkd::key::key_vector const & lhs, qkd::key::key_vector const & rhs) { 
+    return qkd::key::sub(lhs, rhs); 
+}
 
 
 #endif

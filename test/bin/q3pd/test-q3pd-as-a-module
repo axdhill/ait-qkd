@@ -7,7 +7,7 @@
 #
 # TEST: test the keystore q3pd link qkd module
 #
-# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+# Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
 # Copyright (C) 2012-2015 AIT Austrian Institute of Technology
 # AIT Austrian Institute of Technology GmbH
@@ -38,7 +38,7 @@ source ${TEST_BASE}/test/bin/test-functions
 # ------------------------------------------------------------
 
 # init test environment
-test_init
+test_init "$(basename $0).d"
 
 # zap previous database
 rm -rf "${DB_ALICE_2_BOB}" &> /dev/null
@@ -118,7 +118,7 @@ NUMBER_KEYS=1000
 rm -rf keystore-keys.* &> /dev/null
 
 # create keys
-${TEST_BASE}/bin/qkd-key-gen --keys=${NUMBER_KEYS} keystore-keys
+${TEST_BASE}/bin/qkd-key-gen --silent --keys=${NUMBER_KEYS} keystore-keys
 
 # copy alice as bob keys (to be the same then)
 cp keystore-keys.alice keystore-keys.bob

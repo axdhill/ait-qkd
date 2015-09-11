@@ -3,7 +3,7 @@
  * 
  * a crypto scheme
  *
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -86,7 +86,7 @@ public:
      * 
      * @return  the key stored in a scheme
      */
-    inline qkd::key::key const & init_key() const { return m_cInitKey; };
+    inline qkd::key::key const & init_key() const { return m_cInitKey; }
     
     
     /**
@@ -94,7 +94,7 @@ public:
      * 
      * @return  the name of the algorithm
      */
-    inline std::string const & name() const { return m_sName; };
+    inline std::string const & name() const { return m_sName; }
     
     
     /**
@@ -102,7 +102,7 @@ public:
      * 
      * @return  true if this is the NULL scheme
      */
-    inline bool null() const { return m_sName == "null"; };
+    inline bool null() const { return m_sName == "null"; }
     
     
     /**
@@ -110,7 +110,7 @@ public:
      * 
      * @return  the state in a scheme
      */
-    inline qkd::utility::memory const & state() const { return m_cState; };
+    inline qkd::utility::memory const & state() const { return m_cState; }
     
     
     /**
@@ -123,7 +123,7 @@ public:
 
 private:    
     
-    
+   
     /**
      * the init key stored
      */

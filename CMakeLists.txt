@@ -1,7 +1,7 @@
 # ------------------------------------------------------------
 # CMakeLists.txt the AIT QKD RX
 #
-# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+# Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 # 
 # Copyright (C) 2012-2015 AIT Austrian Institute of Technology
 # AIT Austrian Institute of Technology GmbH
@@ -43,19 +43,10 @@ ENABLE_TESTING()
 # ------------------------------------------------------------
 # set global compiler flags
 
-set(VERSION "9.9999.4")
+set(VERSION "9.9999.5")
 add_definitions(-DVERSION=\"${VERSION}\")
 
-# we relay on a GNU/BSD SOURCE
 add_definitions(-D_GNU_SOURCE)
-
-# glibc 2.20 and above use "_DEFAULT_SOURCE" 
-# instead of "_BSD_SOURCE"
-#
-# TODO: check glibc version and set definition
-#       properly.
-#
-#add_definitions(-D_BSD_SOURCE)
 add_definitions(-D_DEFAULT_SOURCE)
 
 # define __FILENAME__ as macro like __FILE__ but relativ to CMAKE_SOURCE_DIR
@@ -73,8 +64,7 @@ if (RIGID_COMPILE_MODE)
     endif (CMAKE_COMPILER_IS_GNUCC)
 endif (RIGID_COMPILE_MODE)
 
-
-# set compile flags
+# set compile flags: gcc
 if (CMAKE_COMPILER_IS_GNUCC)
 
     # tweak capabilities of gcc versions prior to 4.8
@@ -110,15 +100,20 @@ if (CMAKE_COMPILER_IS_GNUCC)
 
     endif (${CMAKE_C_COMPILER_VERSION} LESS 4.8)
     
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -Wall -Wextra -pedantic -g -ggdb3 -rdynamic")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x -Wall -Wextra -pedantic -g -ggdb3 -rdynamic")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -Wall -Wextra -pedantic -g -ggdb3 -rdynamic")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -pedantic -g -ggdb3 -rdynamic")
     
-    # TODO: make speed tests with -fno-builtin especially to
-    #       get a better memcpy performance
-    #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-builtin")
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-builtin")
+    # performance
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-builtin")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-builtin")
     
 endif (CMAKE_COMPILER_IS_GNUCC)
+
+# set compile flags: clang
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -Wall -Wextra -g -ggdb3 ")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -g -ggdb3")
+endif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
 
 # additional debug and profiling options
 option(DEBUG_MODE_ENABLED "enable debug mode" off)
@@ -406,7 +401,7 @@ set(CPACK_PACKAGE_CONTACT "Oliver Maurhart <oliver.maurhart@ait.ac.at>")
 set(CPACK_PACKAGE_VENDOR "AIT")
 set(CPACK_PACKAGE_VERSION_MAJOR "9")
 set(CPACK_PACKAGE_VERSION_MINOR "9999")
-set(CPACK_PACKAGE_VERSION_PATCH "4")
+set(CPACK_PACKAGE_VERSION_PATCH "5")
 set(CPACK_PROJECT_VERSION_STRING "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}" )
 
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}-${CMAKE_SYSTEM_PROCESSOR}")

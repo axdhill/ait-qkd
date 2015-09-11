@@ -3,7 +3,7 @@
  * 
  * This is the QKD CONFIRMATION module definition
  * 
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -119,6 +119,19 @@ public:
     
     
 protected:
+    
+    
+    /**
+     * accept a key for processing
+     * 
+     * we accept all keys (also the disclosed ones)
+     *
+     * However, disclosed keys are not confirmed.
+     * 
+     * @param   cKey            the key to check
+     * @return  true, if the key should be processed by this module
+     */
+    bool accept(UNUSED qkd::key::key const & cKey) const { return true; };
     
     
     /**

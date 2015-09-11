@@ -3,7 +3,7 @@
  * 
  * moving average interface
  *
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -124,7 +124,7 @@ public:
     /**
      * dtor
      */
-    virtual ~average_technique() {};
+    virtual ~average_technique() {}
 
 
     /**
@@ -135,7 +135,10 @@ public:
      * @param   rhs         right hand side: a new value to add to the object
      * @return  average
      */
-    inline average_technique & operator<<(double const & rhs) { add(rhs); return *this; };
+    inline average_technique & operator<<(double const & rhs) { 
+        add(rhs); 
+        return *this; 
+    }
     
     
     /**
@@ -143,7 +146,7 @@ public:
      * 
      * @param   nValue      value to add
      */
-    inline void add(double nValue) { add_internal(nValue); };
+    inline void add(double nValue) { add_internal(nValue); }
 
 
     /**
@@ -151,7 +154,7 @@ public:
      * 
      * @return  the current average value as average of all single values inside the window
      */
-    inline double avg() const { trim(); return avg_internal(); };
+    inline double avg() const { trim(); return avg_internal(); }
 
 
     /**
@@ -187,7 +190,10 @@ public:
      * 
      * @return  the oldest value
      */
-    inline double oldest() const { trim(); return oldest_internal(); };
+    inline double oldest() const { 
+        trim(); 
+        return oldest_internal(); 
+    }
 
 
     /**
@@ -195,7 +201,7 @@ public:
      * 
      * @return  the current slope
      */
-    inline double slope() const { return youngest() - oldest(); };
+    inline double slope() const { return youngest() - oldest(); }
 
 
     /**
@@ -203,7 +209,10 @@ public:
      * 
      * @return  the current average value as sum
      */
-    inline double sum() const { trim(); return sum_internal(); };
+    inline double sum() const { 
+        trim(); 
+        return sum_internal(); 
+    }
 
 
     /**
@@ -211,7 +220,7 @@ public:
      * 
      * @return  the window size
      */
-    inline double window() const { return m_nWindowSize; };
+    inline double window() const { return m_nWindowSize; }
 
 
     /**
@@ -219,7 +228,10 @@ public:
      * 
      * @return  the youngest value
      */
-    inline double youngest() const { trim(); return youngest_internal(); };
+    inline double youngest() const { 
+        trim(); 
+        return youngest_internal(); 
+    }
 
 
 protected:
@@ -230,7 +242,7 @@ protected:
      * 
      * @param   nWindowSize     the window size of the moving average
      */
-    average_technique(uint64_t nWindowSize) : m_nWindowSize(nWindowSize) {};
+    average_technique(uint64_t nWindowSize) : m_nWindowSize(nWindowSize) {}
     
     
     /**
@@ -250,7 +262,7 @@ protected:
      * 
      * @return  the internal data pointer list
      */
-    inline std::list<average_data_ptr> & data() const { return d; };
+    inline std::list<average_data_ptr> & data() const { return d; }
     
     
 private:
@@ -329,7 +341,10 @@ private:
  * @param   rhs     the value to add
  * @return  the average object
  */
-inline average & operator<<(average & lhs, double const & rhs) { (*lhs) << rhs; return lhs; }
+inline average & operator<<(average & lhs, double const & rhs) { 
+    (*lhs) << rhs; 
+    return lhs; 
+}
 
 
 }

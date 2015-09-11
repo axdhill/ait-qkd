@@ -4,7 +4,7 @@
  * This is the implementation of the QKD postprocessing
  * authentication facilities
  * 
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -80,13 +80,13 @@ public:
     qkd::q3p::key_db cKeysIncoming;                 /**< incoming authentication key DB */
     qkd::q3p::key_db cKeysOutgoing;                 /**< outgoing authentication key DB */
     
-    uint64_t nThreshold;                            /**< authentication key reserve limit */
+    uint64_t nThreshold;                            /**< authentication key reserve limit in bytes */
     
 };
 
 
 // fwd
-static void eat(qkd::key::key & cKey, qkd::q3p::key_db & cKeyDB, uint64_t nThreshold);
+static void nibble(qkd::key::key & cKey, qkd::q3p::key_db & cKeyDB, uint64_t nThreshold);
 static void store(qkd::utility::memory cMemory, qkd::q3p::key_db & cKeyDB);
 static qkd::utility::memory tag(bool bAlice, qkd::crypto::crypto_context & cContext, qkd::q3p::key_db & cKeyDB, qkd::key::key_vector & cKeys);
 static bool verify_scheme(qkd::crypto::scheme const & cScheme);
@@ -100,10 +100,7 @@ static bool verify_scheme(qkd::crypto::scheme const & cScheme);
  * ctor
  */
 qkd_auth::qkd_auth() : qkd::module::module("auth", qkd::module::module_type::TYPE_OTHER, MODULE_DESCRIPTION, MODULE_ORGANISATION) {
-
     d = boost::shared_ptr<qkd_auth::qkd_auth_data>(new qkd_auth::qkd_auth_data());
-    
-    // enforce DBus registration
     new AuthAdaptor(this);
 }
 
@@ -116,13 +113,9 @@ qkd_auth::qkd_auth() : qkd::module::module("auth", qkd::module::module_type::TYP
  */
 void qkd_auth::apply_config(UNUSED std::string const & sURL, qkd::utility::properties const & cConfig) {
     
-    // delve into the given config
     for (auto const & cEntry : cConfig) {
         
-        // grab any key which is intended for us
         if (!is_config_key(cEntry.first)) continue;
-        
-        // ignore standard config keys: they should have been applied already
         if (is_standard_config_key(cEntry.first)) continue;
         
         std::string sKey = cEntry.first.substr(config_prefix().size());
@@ -160,7 +153,13 @@ void qkd_auth::apply_config(UNUSED std::string const & sURL, qkd::utility::prope
             if (is_bob()) set_next_scheme_out(QString::fromStdString(cEntry.second));
         }
         else {
-            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "found unknown key: \"" << cEntry.first << "\" - don't know how to handle this.";
+            qkd::utility::syslog::warning() << __FILENAME__ 
+                    << '@' 
+                    << __LINE__ 
+                    << ": " 
+                    << "found unknown key: \"" 
+                    << cEntry.first 
+                    << "\" - don't know how to handle this.";
         }
     }
 }
@@ -174,27 +173,26 @@ void qkd_auth::apply_config(UNUSED std::string const & sURL, qkd::utility::prope
  * @param   cOutgoingContext        outgoing crypto context
  * @return  true, if authentication run successfully
  */
-bool qkd_auth::authenticate(qkd::key::key & cKey, qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext) {
+bool qkd_auth::authenticate(qkd::key::key & cKey, 
+        qkd::crypto::crypto_context & cIncomingContext, 
+        qkd::crypto::crypto_context & cOutgoingContext) {
 
     // no security is ... well "authentic" ... if we lack the premise, anything goes
     if (cIncomingContext->null() && cOutgoingContext->null()) return true;
     
     // at least one crypto context is present
 
-    // we might need tags for both directions and roles
     qkd::utility::memory cTagIncomingAlice;
     qkd::utility::memory cTagOutgoingAlice;
     qkd::utility::memory cTagIncomingBob;
     qkd::utility::memory cTagOutgoingBob;
     
-    // these hold the key-ids which have created the tags
     qkd::key::key_vector cFinalKeysIncomingAlice;
     qkd::key::key_vector cFinalKeysOutgoingAlice;
     qkd::key::key_vector cFinalKeysIncomingBob;
     qkd::key::key_vector cFinalKeysOutgoingBob;
     
     {
-        // just for picking the tags lock the modules
         std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
         
         cTagIncomingAlice = tag(true, cIncomingContext, d->cKeysIncoming, cFinalKeysIncomingAlice);
@@ -223,14 +221,10 @@ bool qkd_auth::authenticate(qkd::key::key & cKey, qkd::crypto::crypto_context & 
         
     }
     
-    // check if we have created tags (if we need one)
     if (!cIncomingContext->null() && (cTagIncomingAlice.size() == 0)) return false;
     if (!cIncomingContext->null() && (cTagIncomingBob.size() == 0)) return false;
     if (!cOutgoingContext->null() && (cTagOutgoingAlice.size() == 0)) return false;
     if (!cOutgoingContext->null() && (cTagOutgoingBob.size() == 0)) return false;
-    
-    // for tag comparision (send/recv) we need yet another crypto context
-    static qkd::crypto::crypto_context cNullContext = qkd::crypto::engine::create("null");
     
     // send our tags to the peer and reqeust hers
     qkd::module::message cMessage;
@@ -246,29 +240,49 @@ bool qkd_auth::authenticate(qkd::key::key & cKey, qkd::crypto::crypto_context & 
     }
     
     try {
-        send(cMessage, cNullContext);
+        qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
+        send(cMessage, cCryptoContext);
     }
     catch (std::runtime_error const & cRuntimeError) {
-        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to send message: " << cRuntimeError.what();
+        qkd::utility::syslog::crit() << __FILENAME__ 
+                << '@' 
+                << __LINE__ 
+                << ": " 
+                << "failed to send message: " 
+                << cRuntimeError.what();
         return false;
     }
     
-    // debug to the user
     if (qkd::utility::debug::enabled()) {
-        qkd::utility::debug() << "authentication running - sent: key = " << cKey.id() << " " <<
-            "in-tag-alice = " << cTagIncomingAlice.as_hex() << " out-tag-alice = " << cTagOutgoingAlice.as_hex() << " " <<
-            "in-tag-bob = " << cTagIncomingBob.as_hex() << " out-tag-bob = " << cTagOutgoingBob.as_hex();
+        qkd::utility::debug() << "authentication running - sent: key = " 
+                << cKey.id() 
+                << " " 
+                << "in-tag-alice = " 
+                << cTagIncomingAlice.as_hex() 
+                << " out-tag-alice = " 
+                << cTagOutgoingAlice.as_hex() 
+                << " " 
+                << "in-tag-bob = " 
+                << cTagIncomingBob.as_hex() 
+                << " out-tag-bob = " 
+                << cTagOutgoingBob.as_hex();
     }
     
-    // get peer's tags
     qkd::key::key_id nPeerKeyId;
     qkd::utility::memory cPeerTagIncoming;
     qkd::utility::memory cPeerTagOutgoing;
     try {
-        if (!recv(cMessage, cNullContext)) return false;
+        qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
+        if (!recv(cMessage, cCryptoContext)) return false;
     }
     catch (std::runtime_error const & cRuntimeError) {
-        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to receive message: " << cRuntimeError.what();
+        qkd::utility::syslog::crit() 
+                << __FILENAME__ 
+                << '@' 
+                << __LINE__ 
+                << ": " 
+                << "failed to receive message: " 
+                << cRuntimeError.what();
         return false;
     }
     
@@ -278,28 +292,36 @@ bool qkd_auth::authenticate(qkd::key::key & cKey, qkd::crypto::crypto_context & 
     uint64_t nPeerThreshold = 0;
     if (is_bob()) cMessage.data() >> nPeerThreshold;
     
-    // debug to the user
     if (qkd::utility::debug::enabled()) {
-        qkd::utility::debug() << "authentication running - recv: key = " << nPeerKeyId << " in-tag = " << cPeerTagIncoming.as_hex() << " out-tag = " << cPeerTagOutgoing.as_hex();
+        qkd::utility::debug() << "authentication running - recv: key = " 
+                << nPeerKeyId 
+                << " in-tag = " 
+                << cPeerTagIncoming.as_hex() 
+                << " out-tag = " 
+                << cPeerTagOutgoing.as_hex();
     }
     
     // this is the final test
     bool bAuthentic = (cKey.id() == nPeerKeyId);
     if (is_alice()) {
-        bAuthentic = bAuthentic && (cTagIncomingBob.equal(cPeerTagOutgoing)) && (cTagOutgoingBob.equal(cPeerTagIncoming));
+        bAuthentic = bAuthentic 
+                && (cTagIncomingBob.equal(cPeerTagOutgoing)) 
+                && (cTagOutgoingBob.equal(cPeerTagIncoming));
     }
     if (is_bob()) {
-        bAuthentic = bAuthentic && (cTagIncomingAlice.equal(cPeerTagOutgoing)) && (cTagOutgoingAlice.equal(cPeerTagIncoming));
+        bAuthentic = bAuthentic 
+                && (cTagIncomingAlice.equal(cPeerTagOutgoing)) 
+                && (cTagOutgoingAlice.equal(cPeerTagIncoming));
     }
 
     // if it is authentic we have to kick the keys from the databases
     if (bAuthentic) {
+
         d->cKeysIncoming->del(cFinalKeysIncomingAlice);
         d->cKeysIncoming->del(cFinalKeysIncomingBob);
         d->cKeysOutgoing->del(cFinalKeysOutgoingAlice);
         d->cKeysOutgoing->del(cFinalKeysOutgoingBob);
         
-        // also apply alice's threshold value
         if (is_bob() && (threshold() != nPeerThreshold)) set_threshold(nPeerThreshold);
     }
     
@@ -313,7 +335,6 @@ bool qkd_auth::authenticate(qkd::key::key & cKey, qkd::crypto::crypto_context & 
  * @return  bytes of available key material for incoming authentication
  */
 qulonglong qkd_auth::available_keys_incoming() const {
-    // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     return (d->cKeysIncoming->count() * d->cKeysIncoming->quantum());
 }
@@ -325,155 +346,20 @@ qulonglong qkd_auth::available_keys_incoming() const {
  * @return  bytes of available key material for outgoing authentication
  */
 qulonglong qkd_auth::available_keys_outgoing() const {
-    // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     return (d->cKeysOutgoing->count() * d->cKeysOutgoing->quantum());
 }
 
 
 /**
- * get the current incoming authentication scheme
+ * create new authenticate context 
  * 
- * @return  the current incoming authentication scheme
- */
-QString qkd_auth::current_scheme_in() const {
-    // get exclusive access to properties
-    std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
-    return QString::fromStdString(d->cCurrentSchemeIncoming.str());
-}
-
-
-/**
- * get the current outgoing authentication scheme
- * 
- * @return  the current outgoing authentication scheme
- */
-QString qkd_auth::current_scheme_out() const {
-    // get exclusive access to properties
-    std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
-    return QString::fromStdString(d->cCurrentSchemeOutgoing.str());
-}
-
-
-/**
- * get the next incoming authentication scheme
- * 
- * @return  the next incoming authentication scheme
- */
-QString qkd_auth::next_scheme_in() const {
-    // get exclusive access to properties
-    std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
-    return QString::fromStdString(d->cNextSchemeIncoming.str());
-}
-
-
-/**
- * get the next outgoing authentication scheme
- * 
- * @return  the next outgoing authentication scheme
- */
-QString qkd_auth::next_scheme_out() const {
-    // get exclusive access to properties
-    std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
-    return QString::fromStdString(d->cNextSchemeOutgoing.str());
-}
-
-
-/**
- * module work
- * 
- * @param   cKey                    the key just read from the input pipe
  * @param   cIncomingContext        incoming crypto context
  * @param   cOutgoingContext        outgoing crypto context
- * @return  always true
  */
-bool qkd_auth::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext) {
-    
-    //
-    // Part I: authenticate any given crypto context created by
-    //         modules *before* this authentication module
-    //         
-    //         This usually ends a pipeline processing       
-    //
-    
-    // authenticate if we have a non-null context at hand
-    if (!cIncomingContext->null() || !cOutgoingContext->null()) {
-        
-        // we need exclusive access right now
-        std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
-        
-        // run authentication
-        if (!authenticate(cKey, cIncomingContext, cOutgoingContext)) {
-            
-            // ############################################################
-            //
-            //              S E C U R I T Y    H A Z A R D
-            //
-            //                  Failed Authenticaion
-            //
-            // ############################################################
-            
-            // stop processing any further keys
-            pause();
+void qkd_auth::create_context(qkd::crypto::crypto_context & cIncomingContext, 
+        qkd::crypto::crypto_context & cOutgoingContext) {
 
-            // tell user
-            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed authentication verification for key " << cKey.id() << " - full stop";
-            emit authentication_failed(cKey.id());
-            
-            return false;
-        }
-        else if (qkd::utility::debug::enabled()) {
-            qkd::utility::debug() << "qkd post processing for key " << cKey.id() << " up to now has been authentic";
-        }
-        
-        // clear the contexts
-        cIncomingContext = qkd::crypto::engine::create("null");
-        cOutgoingContext = qkd::crypto::engine::create("null");
-        
-        // consume some keys if we are in need
-        if (cKey.meta().eKeyState == qkd::key::key_state::KEY_STATE_AMPLIFIED) {
-            
-            // alice starts filling incoming, bob starts filling outgoing
-            
-            if (is_alice()) {
-            
-                if (available_keys_incoming() < threshold()) eat(cKey, d->cKeysIncoming, threshold());
-                if (available_keys_outgoing() < threshold()) eat(cKey, d->cKeysOutgoing, threshold());
-            }
-            
-            if (is_bob()) {
-                
-                // need outgoing key material?
-                if (available_keys_outgoing() < threshold()) eat(cKey, d->cKeysOutgoing, threshold());
-                if (available_keys_incoming() < threshold()) eat(cKey, d->cKeysIncoming, threshold());
-            }
-        }
-            
-        // still in need of keys?
-        if ((available_keys_incoming() < threshold()) || (available_keys_outgoing() < threshold())) {
-            qkd::utility::debug() << "key material famine in a key database: " << 
-                                    "incoming: " << available_keys_incoming() << "/" << threshold() << " " <<
-                                    "outgoing: " << available_keys_outgoing() << "/" << threshold();
-            emit starving();
-        }
-        
-        // eat up all key? garfield?
-        if (cKey.data().size() == 0) {
-            qkd::utility::syslog::info() << "ate up the whole key by myself, nothing left to forward";
-            return false;
-        }
-    }
-    
-    //
-    // Part II: apply a crypto context if we have one
-    //
-    //          this creates the initial crypto context here
-    //         
-    //          This usually starts pipeline processing       
-    //
-
-    
-    // we need exclusive access right now
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     
     // change to a new context if requested
@@ -489,25 +375,200 @@ bool qkd_auth::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cInco
             d->bChangeSchemeOutgoing = false;
     }
     
-    // set new incoming context
     try {
-        if (!d->cCurrentSchemeIncoming.null()) cIncomingContext = qkd::crypto::engine::create(d->cCurrentSchemeIncoming);
+        if (!d->cCurrentSchemeIncoming.null()) {
+            cIncomingContext = qkd::crypto::engine::create(d->cCurrentSchemeIncoming);
+        }
     }
     catch (...) {
-        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to setup incoming crypto context";
-        return false;
+        qkd::utility::syslog::crit() << __FILENAME__ 
+                << '@' 
+                << __LINE__ 
+                << ": " 
+                << "failed to setup incoming crypto context";
+    }
+    try {
+        if (!d->cCurrentSchemeOutgoing.null()) {
+            cOutgoingContext = qkd::crypto::engine::create(d->cCurrentSchemeOutgoing);
+        }
+    }
+    catch (...) {
+        qkd::utility::syslog::crit() << __FILENAME__ 
+                << '@' 
+                << __LINE__ 
+                << ": " 
+                << "failed to setup outgoing crypto context";
+    }
+}
+
+
+/**
+ * get the current incoming authentication scheme
+ * 
+ * @return  the current incoming authentication scheme
+ */
+QString qkd_auth::current_scheme_in() const {
+    std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
+    return QString::fromStdString(d->cCurrentSchemeIncoming.str());
+}
+
+
+/**
+ * get the current outgoing authentication scheme
+ * 
+ * @return  the current outgoing authentication scheme
+ */
+QString qkd_auth::current_scheme_out() const {
+    std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
+    return QString::fromStdString(d->cCurrentSchemeOutgoing.str());
+}
+
+
+/**
+ * get the next incoming authentication scheme
+ * 
+ * @return  the next incoming authentication scheme
+ */
+QString qkd_auth::next_scheme_in() const {
+    std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
+    return QString::fromStdString(d->cNextSchemeIncoming.str());
+}
+
+
+/**
+ * get the next outgoing authentication scheme
+ * 
+ * @return  the next outgoing authentication scheme
+ */
+QString qkd_auth::next_scheme_out() const {
+    std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
+    return QString::fromStdString(d->cNextSchemeOutgoing.str());
+}
+
+
+/**
+ * module work
+ * 
+ * @param   cKey                    the key just read from the input pipe
+ * @param   cIncomingContext        incoming crypto context
+ * @param   cOutgoingContext        outgoing crypto context
+ * @return  always true
+ */
+bool qkd_auth::process(qkd::key::key & cKey, 
+        qkd::crypto::crypto_context & cIncomingContext, 
+        qkd::crypto::crypto_context & cOutgoingContext) {
+    
+    //
+    // Part I: authenticate any given crypto context created by
+    //         modules *before* this authentication module
+    //         
+    //         This usually ends a pipeline processing       
+    //
+    
+    // authenticate if we have a non-null context at hand
+    if (!cIncomingContext->null() || !cOutgoingContext->null()) {
+        
+        std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
+        
+        // run authentication
+        if (!authenticate(cKey, cIncomingContext, cOutgoingContext)) {
+            
+            // ############################################################
+            //
+            //              S E C U R I T Y    H A Z A R D
+            //
+            //                  Failed Authenticaion
+            //
+            // ############################################################
+            
+            pause();
+
+            qkd::utility::syslog::crit() << __FILENAME__ 
+                    << '@' 
+                    << __LINE__ 
+                    << ": " 
+                    << "failed authentication verification for key " 
+                    << cKey.id() 
+                    << " - full stop";
+
+            emit authentication_failed(cKey.id());
+            
+            return false;
+        }
+        else if (qkd::utility::debug::enabled()) {
+            qkd::utility::debug() << "qkd post processing for key " << cKey.id() << " up to now has been authentic";
+        }
+        
+        cIncomingContext = qkd::crypto::context::null_context();
+        cOutgoingContext = qkd::crypto::context::null_context();
+       
+        refill_local_keystores(cKey);
     }
     
-    // set new outgoing context
-    try {
-        if (!d->cCurrentSchemeOutgoing.null()) cOutgoingContext = qkd::crypto::engine::create(d->cCurrentSchemeOutgoing);
-    }
-    catch (...) {
-        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to setup outgoing crypto context";
-        return false;
-    }
+    //
+    // Part II: apply a crypto context if we have one
+    //
+    //          this creates the initial crypto context here
+    //         
+    //          This usually starts pipeline processing       
+    //
 
-    return true;
+    create_context(cIncomingContext, cOutgoingContext);
+    
+    return (cKey.size() > 0);
+}
+
+
+/**
+ * ensure the local key stores for authentication have enough keys
+ *
+ * @param   cKey        the key incoming
+ */
+void qkd_auth::refill_local_keystores(qkd::key::key & cKey) {
+
+    if (cKey.meta().eKeyState == qkd::key::key_state::KEY_STATE_AMPLIFIED) {
+        
+        // alice starts filling incoming, bob starts filling outgoing
+        
+        if (is_alice()) {
+            if (available_keys_incoming() < threshold()) {
+                nibble(cKey, d->cKeysIncoming, threshold());
+            }
+            if (available_keys_outgoing() < threshold()) {
+                nibble(cKey, d->cKeysOutgoing, threshold());
+            }
+        }
+        
+        if (is_bob()) {
+            if (available_keys_outgoing() < threshold()) {
+                nibble(cKey, d->cKeysOutgoing, threshold());
+            }
+            if (available_keys_incoming() < threshold()) {
+                nibble(cKey, d->cKeysIncoming, threshold());
+            }
+        }
+    }
+        
+    // still in need of keys?
+    if ((available_keys_incoming() < threshold()) || (available_keys_outgoing() < threshold())) {
+        qkd::utility::debug() << "key material famine in a key database: " 
+                << "incoming: " 
+                << available_keys_incoming() 
+                << "/" 
+                << threshold() 
+                << " " 
+                << "outgoing: " 
+                << available_keys_outgoing() 
+                << "/" 
+                << threshold();
+
+        emit starving();
+    }
+    
+    // eat up all key? garfield?
+    if (cKey.data().size() == 0) {
+        qkd::utility::syslog::info() << "ate up the whole key by myself, nothing left to forward";
+    }
 }
 
 
@@ -518,11 +579,9 @@ bool qkd_auth::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cInco
  */
 void qkd_auth::set_next_scheme_in(QString const & sScheme) {
     
-    // check scheme
     qkd::crypto::scheme cScheme = qkd::crypto::scheme(sScheme.toStdString());
     if (!verify_scheme(cScheme)) return;
-    
-    // get exclusive access to properties
+
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     d->cNextSchemeIncoming = cScheme;
     d->bChangeSchemeIncoming = true;
@@ -536,11 +595,9 @@ void qkd_auth::set_next_scheme_in(QString const & sScheme) {
  */
 void qkd_auth::set_next_scheme_out(QString const & sScheme) {
     
-    // check scheme
     qkd::crypto::scheme cScheme = qkd::crypto::scheme(sScheme.toStdString());
     if (!verify_scheme(cScheme)) return;
 
-    // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     d->cNextSchemeOutgoing = cScheme;
     d->bChangeSchemeOutgoing = true;
@@ -553,7 +610,6 @@ void qkd_auth::set_next_scheme_out(QString const & sScheme) {
  * @param   nThreshold  the new threshold to buffer key material for authentication
  */
 void qkd_auth::set_threshold(qulonglong nThreshold) {
-    // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     d->nThreshold = nThreshold;
 }
@@ -568,13 +624,21 @@ void qkd_auth::store_keys_incoming(QByteArray cAuthenticationKey) {
 
     if (cAuthenticationKey.size() == 0) return;
 
-    // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
-    store(qkd::utility::memory::duplicate((unsigned char *)cAuthenticationKey.data(), cAuthenticationKey.size()), d->cKeysIncoming);
+    store(qkd::utility::memory::duplicate((unsigned char *)cAuthenticationKey.data(), 
+            cAuthenticationKey.size()), 
+            d->cKeysIncoming);
 
-    // check limits
     if (available_keys_incoming() < threshold()) {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "authentication module may not have sufficient key material for incoming: " << available_keys_incoming() << "/" << threshold() << " bytes";
+        qkd::utility::syslog::warning() << __FILENAME__ 
+                << '@' 
+                << __LINE__ 
+                << ": " 
+                << "authentication module may not have sufficient key material for incoming: " 
+                << available_keys_incoming() 
+                << "/" 
+                << threshold() 
+                << " bytes";
     }
 }
 
@@ -588,13 +652,21 @@ void qkd_auth::store_keys_outgoing(QByteArray cAuthenticationKey) {
     
     if (cAuthenticationKey.size() == 0) return;
     
-    // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
-    store(qkd::utility::memory::duplicate((unsigned char *)cAuthenticationKey.data(), cAuthenticationKey.size()), d->cKeysOutgoing);
+    store(qkd::utility::memory::duplicate((unsigned char *)cAuthenticationKey.data(), 
+            cAuthenticationKey.size()), 
+            d->cKeysOutgoing);
     
-    // check limits
     if (available_keys_outgoing() < threshold()) {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "authentication module may not have sufficient key material for outgoing: " << available_keys_outgoing() << "/" << threshold() << " bytes";
+        qkd::utility::syslog::warning() << __FILENAME__ 
+                << '@' 
+                << __LINE__ 
+                << ": " 
+                << "authentication module may not have sufficient key material for outgoing: " 
+                << available_keys_outgoing() 
+                << "/" 
+                << threshold() 
+                << " bytes";
     }
 }
 
@@ -605,7 +677,6 @@ void qkd_auth::store_keys_outgoing(QByteArray cAuthenticationKey) {
  * @return  the threshold to buffer key material for authentication
  */
 qulonglong qkd_auth::threshold() const {
-    // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     return d->nThreshold;
 }
@@ -618,7 +689,7 @@ qulonglong qkd_auth::threshold() const {
  * @param   cKeyDB                  the database to put the key into
  * @param   nThreshold              the maximum amount to eat
  */
-void eat(qkd::key::key & cKey, qkd::q3p::key_db & cKeyDB, uint64_t nThreshold) {
+void nibble(qkd::key::key & cKey, qkd::q3p::key_db & cKeyDB, uint64_t nThreshold) {
 
     uint64_t nKeySize = cKey.data().size();
     uint64_t nEat = std::min(nKeySize, nThreshold);
@@ -632,7 +703,9 @@ void eat(qkd::key::key & cKey, qkd::q3p::key_db & cKeyDB, uint64_t nThreshold) {
     cKey.data().resize(nKeySize - nEat);
     
     // TODO: how to deal with metadata?
-    qkd::utility::debug() << "consumed " << nEat << " bytes of key material from bypassing key - tainting key meta data";
+    qkd::utility::debug() << "consumed " 
+            << nEat 
+            << " bytes of key material from bypassing key - tainting key meta data";
 }
 
 
@@ -644,7 +717,6 @@ void eat(qkd::key::key & cKey, qkd::q3p::key_db & cKeyDB, uint64_t nThreshold) {
  */
 void store(qkd::utility::memory cMemory, qkd::q3p::key_db & cKeyDB) {
     
-    // set up a key ring
     qkd::key::key_ring cKeyRing(cKeyDB->quantum());
     cKeyRing << qkd::key::key(0, cMemory);
     
@@ -652,30 +724,34 @@ void store(qkd::utility::memory cMemory, qkd::q3p::key_db & cKeyDB) {
     uint64_t nKeysInserted = 0;
     for (auto & cKey : cKeyRing) {
         
-        // insert only if they fit
         if (cKey.size() == cKeyDB->quantum()) {
             
             // into the DB!
             qkd::key::key_id nKeyId = cKeyDB->insert(cKey);
             if (nKeyId != 0) {
                 
-                // inserted
                 cKeyDB->set_injected(nKeyId);
                 cKeyDB->set_real_sync(nKeyId);
                 nKeysInserted++;
             }
             else {
                 
-                // failed to insert: syslog
-                qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to injected key into database";
+                qkd::utility::syslog::warning() << __FILENAME__ 
+                        << '@' 
+                        << __LINE__ 
+                        << ": " 
+                        << "failed to injected key into database";
             }
         }
         else {
             
             // key does not fit ... give some message to user
             if (qkd::utility::debug::enabled()) {
-                QString sMessage = QString("dropping %1 bytes of key material - not a key quantum (%2 bytes)").arg(cKey.size()).arg(cKeyDB->quantum());
-                qkd::utility::debug() << sMessage.toStdString();
+                qkd::utility::debug() << "dropping "
+                        << cKey.size()
+                        << " bytes of key material - not a key quantum ("
+                        << cKeyDB->quantum()
+                        << " bytes)";
             }
         }
     }
@@ -696,18 +772,17 @@ void store(qkd::utility::memory cMemory, qkd::q3p::key_db & cKeyDB) {
  * @param   cKeys                   the vector of keys utilized for the tag
  * @return  the tag, this is empty (size() == 0) in case of failure
  */
-qkd::utility::memory tag(bool bAlice, qkd::crypto::crypto_context & cContext, qkd::q3p::key_db & cKeyDB, qkd::key::key_vector & cKeys) {
+qkd::utility::memory tag(bool bAlice, 
+        qkd::crypto::crypto_context & cContext, 
+        qkd::q3p::key_db & cKeyDB, 
+        qkd::key::key_vector & cKeys) {
 
-    // no context, no tag
     if (cContext->null()) return qkd::utility::memory();
     
-    // grab key material
     qkd::key::key cFinalKey;
     if (cContext->needs_final_key()) {
         
-        // pick a series of keys: 2 keys, first for alice, second for bob
         cKeys = cKeyDB->find_continuous(cContext->final_key_size() * 2);
-        
         if (cKeys.size() == 0) {
             
             // #############################################
@@ -723,7 +798,13 @@ qkd::utility::memory tag(bool bAlice, qkd::crypto::crypto_context & cContext, qk
             //
             // #############################################
             
-            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "cannot deduce enough key material for authentication tag creation ==> qkd post processing broken! :( please stop pipeline, provide this module with fresh new keys and restart ... sorry for the inconvenience.";
+            qkd::utility::syslog::crit() << __FILENAME__ 
+                    << '@' 
+                    << __LINE__ 
+                    << ": " 
+                    << "cannot deduce enough key material for authentication tag creation ==> qkd post processing broken! "
+                    << ":( please stop pipeline, provide this module with fresh new keys and restart... "
+                    << "sorry for the inconvenience.";
             return qkd::utility::memory();
         }
         
@@ -733,7 +814,9 @@ qkd::utility::memory tag(bool bAlice, qkd::crypto::crypto_context & cContext, qk
         // and aggregate them into a single key
         qkd::key::key_ring cKeysInDB = cKeyDB->ring(cKeys);
         qkd::key::key_ring cKeysRing(cContext->final_key_size());
-        for (auto k : cKeysInDB) cKeysRing << k;
+        for (auto k : cKeysInDB) {
+            cKeysRing << k;
+        }
         
         // alice picks first key, bob second key
         if (bAlice) cFinalKey = cKeysRing[0];
@@ -746,7 +829,11 @@ qkd::utility::memory tag(bool bAlice, qkd::crypto::crypto_context & cContext, qk
         cTag = cContext->clone()->finalize(cFinalKey);
     }
     catch (...) {
-        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "algorithm failed to create authentication tag";
+        qkd::utility::syslog::crit() << __FILENAME__ 
+                << '@' 
+                << __LINE__ 
+                << ": " 
+                << "algorithm failed to create authentication tag";
     }
 
     return cTag;
@@ -761,13 +848,25 @@ qkd::utility::memory tag(bool bAlice, qkd::crypto::crypto_context & cContext, qk
 bool verify_scheme(qkd::crypto::scheme const & cScheme) {
     
     if (!qkd::crypto::engine::valid_scheme(cScheme)) {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "invalid scheme: " << cScheme.str() << " - refusing to apply scheme";
+        qkd::utility::syslog::warning() << __FILENAME__ 
+                << '@' 
+                << __LINE__ 
+                << ": " 
+                << "invalid scheme: " 
+                << cScheme.str() 
+                << " - refusing to apply scheme";
         return false;
     }
     
     // warn to use inproper schemes
     if ((cScheme.name() != "evhash") && (cScheme.name() != "null")) {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "scheme: " << cScheme.str() << " may not be used as an authentication scheme";
+        qkd::utility::syslog::warning() << __FILENAME__ 
+                << '@' 
+                << __LINE__ 
+                << ": " 
+                << "scheme: " 
+                << cScheme.str() 
+                << " may not be used as an authentication scheme";
     }
     
     return true;

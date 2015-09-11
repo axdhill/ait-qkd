@@ -3,7 +3,7 @@
  * 
  * A key store DB in memory
  *
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -87,7 +87,7 @@ public:
      * 
      * @param   sURL        url of the DB to create
      */
-    db_ram(QString sURL) : db(sURL), m_cKeyData(nullptr), m_cKeyMetaData(nullptr) {};
+    db_ram(QString sURL) : db(sURL), m_nCount(0), m_nCountRealSync(0), m_cKeyData(nullptr), m_cKeyMetaData(nullptr) {};
     
     
     /**

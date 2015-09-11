@@ -3,7 +3,7 @@
  * 
  * random number generator interface
  *
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -158,7 +158,10 @@ public:
      * @param   rhs         right hand side: the next random value
      * @return  the random object
      */
-    inline random_source & operator>>(char & rhs) { get((char*)&rhs, sizeof(rhs)); return *this; };
+    inline random_source & operator>>(char & rhs) { 
+        get((char*)&rhs, sizeof(rhs)); 
+        return *this; 
+    }
 
 
     /**
@@ -169,7 +172,10 @@ public:
      * @param   rhs         right hand side: the next random value
      * @return  the random object
      */
-    inline random_source & operator>>(unsigned char & rhs) { get((char*)&rhs, sizeof(rhs)); return *this; };
+    inline random_source & operator>>(unsigned char & rhs) { 
+        get((char*)&rhs, sizeof(rhs)); 
+        return *this; 
+    }
 
 
     /**
@@ -180,7 +186,10 @@ public:
      * @param   rhs         right hand side: the next random value
      * @return  the random object
      */
-    inline random_source & operator>>(int32_t & rhs) { get((char*)&rhs, sizeof(rhs)); return *this; };
+    inline random_source & operator>>(int32_t & rhs) { 
+        get((char*)&rhs, sizeof(rhs)); 
+        return *this; 
+    }
 
 
     /**
@@ -191,7 +200,10 @@ public:
      * @param   rhs         right hand side: the next random value
      * @return  the random object
      */
-    inline random_source & operator>>(uint32_t & rhs) { get((char*)&rhs, sizeof(rhs)); return *this; };
+    inline random_source & operator>>(uint32_t & rhs) { 
+        get((char*)&rhs, sizeof(rhs)); 
+        return *this; 
+    }
 
 
     /**
@@ -202,7 +214,10 @@ public:
      * @param   rhs         right hand side: the next random value
      * @return  the random object
      */
-    inline random_source & operator>>(int64_t & rhs) { get((char*)&rhs, sizeof(rhs)); return *this; };
+    inline random_source & operator>>(int64_t & rhs) { 
+        get((char*)&rhs, sizeof(rhs)); 
+        return *this; 
+    }
 
 
     /**
@@ -213,7 +228,50 @@ public:
      * @param   rhs         right hand side: the next random value
      * @return  the random object
      */
-    inline random_source & operator>>(uint64_t & rhs) { get((char*)&rhs, sizeof(rhs)); return *this; };
+    inline random_source & operator>>(uint64_t & rhs) { 
+        get((char*)&rhs, sizeof(rhs)); 
+        return *this; 
+    }
+
+
+    /**
+     * stream out
+     *
+     * Get the next random value in [0.0, 1.0).
+     *
+     * @param   rhs         right hand side: the next random value
+     * @return  the random object
+     */
+    inline random_source & operator>>(double & rhs) { 
+        uint64_t a; 
+        uint64_t b; 
+        (*this) >> a; 
+        (*this) >> b; 
+        if (a > b) rhs = (double)b / (double)a; 
+        if (b > a) rhs = (double)a / (double)b; 
+        if (a == b) rhs = 0.0; 
+        return *this; 
+    }
+
+
+    /**
+     * stream out
+     *
+     * Get the next random value in [0.0, 1.0).
+     *
+     * @param   rhs         right hand side: the next random value
+     * @return  the random object
+     */
+    inline random_source & operator>>(float & rhs) { 
+        uint64_t a; 
+        uint64_t b; 
+        (*this) >> a; 
+        (*this) >> b; 
+        if (a > b) rhs = (float)b / (float)a; 
+        if (b > a) rhs = (float)a / (float)b; 
+        if (a == b) rhs = 0.0; 
+        return *this; 
+    }
 
 
     /**
@@ -224,29 +282,10 @@ public:
      * @param   rhs         right hand side: the next random value
      * @return  the random object
      */
-    inline random_source & operator>>(float & rhs) { uint64_t a; uint64_t b; (*this) >> a; (*this) >> b; if (a > b) rhs = (float)b / (float)a; if (b > a) rhs = (float)a / (float)b; if (a == b) rhs = 0.0f; return *this; };
-
-
-    /**
-     * stream out
-     *
-     * Get the next random value.
-     *
-     * @param   rhs         right hand side: the next random value
-     * @return  the random object
-     */
-    inline random_source & operator>>(double & rhs) { uint64_t a; uint64_t b; (*this) >> a; (*this) >> b; if (a > b) rhs = (double)b / (double)a; if (b > a) rhs = (double)a / (double)b; if (a == b) rhs = 0.0; return *this; };
-
-
-    /**
-     * stream out
-     *
-     * Get the next random value.
-     *
-     * @param   rhs         right hand side: the next random value
-     * @return  the random object
-     */
-    inline random_source & operator>>(qkd::utility::memory & rhs) { get((char *)rhs.get(), rhs.size()); return *this; };
+    inline random_source & operator>>(qkd::utility::memory & rhs) { 
+        get((char *)rhs.get(), rhs.size()); 
+        return *this; 
+    }
 
 
     /**
@@ -265,7 +304,7 @@ public:
      * 
      * @return  a HR-string describing the random source
      */
-    virtual std::string describe() const { return "NULL random"; };
+    virtual std::string describe() const { return "NULL random"; }
 
 
     /**
@@ -321,7 +360,10 @@ private:
  * @param   rhs     the next random value
  * @return  the random object
  */
-inline random & operator>>(random & lhs, char & rhs) { (*lhs) >> rhs; return lhs; }
+inline random & operator>>(random & lhs, char & rhs) { 
+    (*lhs) >> rhs; 
+    return lhs; 
+}
 
 
 /**
@@ -333,7 +375,10 @@ inline random & operator>>(random & lhs, char & rhs) { (*lhs) >> rhs; return lhs
  * @param   rhs     the next random value
  * @return  the random object
  */
-inline random & operator>>(random & lhs, unsigned char & rhs) { (*lhs) >> rhs; return lhs; }
+inline random & operator>>(random & lhs, unsigned char & rhs) { 
+    (*lhs) >> rhs; 
+    return lhs; 
+}
 
 
 /**
@@ -345,7 +390,10 @@ inline random & operator>>(random & lhs, unsigned char & rhs) { (*lhs) >> rhs; r
  * @param   rhs     the next random value
  * @return  the random object
  */
-inline random & operator>>(random & lhs, int32_t & rhs) { (*lhs) >> rhs; return lhs; }
+inline random & operator>>(random & lhs, int32_t & rhs) { 
+    (*lhs) >> rhs; 
+    return lhs; 
+}
 
 
 /**
@@ -357,7 +405,10 @@ inline random & operator>>(random & lhs, int32_t & rhs) { (*lhs) >> rhs; return 
  * @param   rhs     the next random value
  * @return  the random object
  */
-inline random & operator>>(random & lhs, uint32_t & rhs) { (*lhs) >> rhs; return lhs; }
+inline random & operator>>(random & lhs, uint32_t & rhs) { 
+    (*lhs) >> rhs; 
+    return lhs; 
+}
 
 
 /**
@@ -369,7 +420,10 @@ inline random & operator>>(random & lhs, uint32_t & rhs) { (*lhs) >> rhs; return
  * @param   rhs     the next random value
  * @return  the random object
  */
-inline random & operator>>(random & lhs, int64_t & rhs) { (*lhs) >> rhs; return lhs; }
+inline random & operator>>(random & lhs, int64_t & rhs) { 
+    (*lhs) >> rhs; 
+    return lhs; 
+}
 
     
 /**
@@ -381,7 +435,10 @@ inline random & operator>>(random & lhs, int64_t & rhs) { (*lhs) >> rhs; return 
  * @param   rhs     the next random value
  * @return  the random object
  */
-inline random & operator>>(random & lhs, uint64_t & rhs) { (*lhs) >> rhs; return lhs; }
+inline random & operator>>(random & lhs, uint64_t & rhs) { 
+    (*lhs) >> rhs; 
+    return lhs; 
+}
 
 
 /**
@@ -393,7 +450,10 @@ inline random & operator>>(random & lhs, uint64_t & rhs) { (*lhs) >> rhs; return
  * @param   rhs     the next random value
  * @return  the random object
  */
-inline random & operator>>(random & lhs, float & rhs) { (*lhs) >> rhs; return lhs; }
+inline random & operator>>(random & lhs, float & rhs) { 
+    (*lhs) >> rhs; 
+    return lhs; 
+}
 
 
 /**
@@ -405,7 +465,10 @@ inline random & operator>>(random & lhs, float & rhs) { (*lhs) >> rhs; return lh
  * @param   rhs     the next random value
  * @return  the random object
  */
-inline random & operator>>(random & lhs, double & rhs) { (*lhs) >> rhs; return lhs; }
+inline random & operator>>(random & lhs, double & rhs) { 
+    (*lhs) >> rhs; 
+    return lhs; 
+}
 
 
 /**
@@ -417,7 +480,10 @@ inline random & operator>>(random & lhs, double & rhs) { (*lhs) >> rhs; return l
  * @param   rhs     the next random value
  * @return  the random object
  */
-inline random & operator>>(random & lhs, qkd::utility::memory & rhs) { (*lhs) >> rhs; return lhs; }
+inline random & operator>>(random & lhs, qkd::utility::memory & rhs) { 
+    (*lhs) >> rhs; 
+    return lhs; 
+}
     
 
     

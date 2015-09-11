@@ -3,7 +3,7 @@
  *
  * Class to get IP addresses in Netlink-compatible format from a string
  *
- * Autor: Stefan Marksteiner, <stefan.marksteiner@joanneum.at>
+ * Author: Stefan Marksteiner, <stefan.marksteiner@joanneum.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -85,12 +85,10 @@ IPAddress::IPAddress(std::string IP,int prefix):IPAddress(IP){
 	if((IPfamily==AF_INET)  && (prefix > 32))  throw IPAddressException("IPv4 prefix can't be greater than 32");
 	if((IPfamily==AF_INET6) && (prefix > 128)) throw IPAddressException("IPv6 prefix can't be greater than 128");
 	IPprefix=(uint8_t)prefix;
-	IPfamily=IPfamily;//only to suppress annoying Eclipse warnings
 }
 
 IPAddress::IPAddress():IPAddress("0.0.0.0"){
 	IPfamily=AF_INET; //only to suppress annoying Eclipse warnings
-	IPprefix=IPprefix; //only to suppress annoying Eclipse warnings
 }
 
 uint16_t IPAddress::getFamily(){

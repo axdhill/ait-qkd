@@ -3,7 +3,7 @@
  * 
  * this is a LED
  * 
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -79,7 +79,7 @@ public:
      * 
      * @param   cParent     parent object
      */
-    led(QWidget * cParent = nullptr) : led("", cParent) {};
+    led(QWidget * cParent = nullptr) : led("", cParent) {}
     
     
     /**
@@ -102,7 +102,7 @@ public:
      *
      * @return  the blinking flag
      */
-    bool blinking() const { return m_bBlinking; };
+    bool blinking() const { return m_bBlinking; }
     
     
     /**
@@ -110,7 +110,7 @@ public:
      * 
      * @return  the rate of blinking in Hz
      */
-    uint64_t blinking_hertz() const { return m_nBlinkingHertz; };
+    uint64_t blinking_hertz() const { return m_nBlinkingHertz; }
     
     
     /**
@@ -118,7 +118,7 @@ public:
      * 
      * @return  the "off" blinking state
      */
-    led_state blinking_back_state() const { return m_eBlinkingBackState; };
+    led_state blinking_back_state() const { return m_eBlinkingBackState; }
     
     
     /**
@@ -126,7 +126,7 @@ public:
      *
      * @param   bBlinking           turn blinking on or off
      */
-    void set_blinking(bool bBlinking) { m_bBlinking = bBlinking; update(); };
+    void set_blinking(bool bBlinking) { m_bBlinking = bBlinking; update(); }
     
     
     /**
@@ -134,7 +134,10 @@ public:
      * 
      * @param   nBlinkingHertz      the new ferquency to blink
      */
-    void set_blinking_hertz(uint64_t nBlinkingHertz) { if ((nBlinkingHertz >= 1) && (nBlinkingHertz <= 10))m_nBlinkingHertz = nBlinkingHertz; update(); };
+    void set_blinking_hertz(uint64_t nBlinkingHertz) { 
+        if ((nBlinkingHertz >= 1) && (nBlinkingHertz <= 10)) m_nBlinkingHertz = nBlinkingHertz; 
+        update(); 
+    }
     
     
     /**
@@ -142,7 +145,10 @@ public:
      * 
      * @param   eBlinkingBackState  the blinking back state
      */
-    void set_blinking_back_state(led_state eBlinkingBackState) { m_eBlinkingBackState = eBlinkingBackState; update(); };
+    void set_blinking_back_state(led_state eBlinkingBackState) { 
+        m_eBlinkingBackState = eBlinkingBackState; 
+        update(); 
+    }
     
     
     /**
@@ -150,7 +156,10 @@ public:
      * 
      * @param   eState      the new state of the LED
      */
-    void set_state(led_state eState) { m_eState = eState; update(); };
+    void set_state(led_state eState) { 
+        m_eState = eState; 
+        update(); 
+    }
     
     
     /**
@@ -158,7 +167,10 @@ public:
      * 
      * @param   sText       the new text associated with the LED
      */
-    void set_text(QString const & sText) { m_sText = sText; update(); };
+    void set_text(QString const & sText) { 
+        m_sText = sText; 
+        update(); 
+    }
     
     
     /**
@@ -166,7 +178,10 @@ public:
      * 
      * @param   bTextVisible    the new text visibility flag
      */
-    void set_text_visible(bool bTextVisible) { m_bTextVisible = bTextVisible; update(); };
+    void set_text_visible(bool bTextVisible) { 
+        m_bTextVisible = bTextVisible; 
+        update(); 
+    }
     
     
     /**
@@ -182,7 +197,7 @@ public:
      * 
      * @return  the current led state
      */
-    led_state state() const { return m_eState; };
+    led_state state() const { return m_eState; }
     
     
     /**
@@ -190,7 +205,7 @@ public:
      * 
      * @return  the text associated with the LED
      */
-    QString text() const { return m_sText; };
+    QString text() const { return m_sText; }
     
     
     /**
@@ -198,7 +213,7 @@ public:
      * 
      * @return  true, if the text should be shown
      */
-    bool text_visible() const { return m_bTextVisible; };
+    bool text_visible() const { return m_bTextVisible; }
     
 
 public slots:

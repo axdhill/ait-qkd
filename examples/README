@@ -290,7 +290,13 @@ Hint: for ease of learning we recommend to run a diff from module to module to c
 
 For any further questions feel free to look at our website: http://sqt.ait.ac.at/software.        
                                 
-    
+
+- template
+  --------
+  
+  The files in the template folder serve as a template for new modules. Copy and paste this code and edit MY_MODULE_* definitions in the code as needed.
+
+                                    
 License
 -------
 

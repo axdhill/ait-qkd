@@ -3,7 +3,7 @@
  * 
  * QKD module internal definition
  *
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -35,17 +35,13 @@
 // ------------------------------------------------------------
 // incs
 
-#include "config.h"
-
-// 0MQ
-#include <zmq.h>
-
 #include <atomic>
 #include <condition_variable>
 #include <map>
 #include <queue>
 #include <thread>
 
+#include <qkd/module/connection.h>
 #include <qkd/module/module.h>
 
 
@@ -67,9 +63,11 @@ class module;
 class qkd::module::module::module_internal {
     
 public:
+    
+    // ---- variables ---
 
     
-    module * cModule;                           /**< containg module */
+    module * cModule;                           /**< containing module */
 
     module_stat cStat;                          /**< the module statistic */
     
@@ -82,8 +80,6 @@ public:
     std::string sRandomUrl;                     /**< random number source URL */
     module_role eRole;                          /**< role of the module */
     unsigned long nStartTimeStamp;              /**< init UNIX epoch: time of birth */
-    int nTimeoutNetwork;                        /**< timeout in milliseconds for network send/recv timeout */
-    int nTimeoutPipe;                           /**< timeout in milliseconds to wait after a failed read */
     module_type eType;                          /**< the type of the module */
 
     std::atomic<uint64_t> nTerminateAfter;      /**< termination counter */
@@ -91,26 +87,12 @@ public:
     std::string sDBusObjectPath;                /**< the DBus object path */
 
     std::mutex cURLMutex;                       /**< sync change on URLs */
-        
-    std::string sURLListen;                     /**< listen URL for peer serving */
-    std::string sURLPeer;                       /**< peer URL for connection  */
-    std::string sURLPipeIn;                     /**< URL for pipe in serving */
-    std::string sURLPipeOut;                    /**< URL for pipe out */
     
-    std::atomic<bool> bSetupListen;             /**< setup a new listen address flag */
-    std::atomic<bool> bSetupPeer;               /**< setup a new peer connect flag */
-    std::atomic<bool> bSetupPipeIn;             /**< setup a new pipe in flag */
-    std::atomic<bool> bSetupPipeOut;            /**< setup a new pipe out flag */
+    qkd::module::connection * cConListen;       /**< listen connection */
+    qkd::module::connection * cConPeer;         /**< peer connection */
+    qkd::module::connection * cConPipeIn;       /**< pipe in connection */
+    qkd::module::connection * cConPipeOut;      /**< pipe out connection */
     
-    bool bPipeInStdin;                          /**< pipe in is stdin:// flag */
-    bool bPipeInVoid;                           /**< pipe in is void flag */
-    bool bPipeOutStdout;                        /**< pipe out is stdout:// flag */
-    bool bPipeOutVoid;                          /**< pipe out is void flag */
-    
-    void * cSocketListener;                     /**< listener socket */
-    void * cSocketPeer;                         /**< connection to peer */
-    void * cSocketPipeIn;                       /**< incoming 0MQ socket of the pipe */
-    void * cSocketPipeOut;                      /**< outgoing 0MQ socket of the pipe */
     
     std::chrono::high_resolution_clock::time_point cModuleBirth;        /**< timestamp of module birth */
     
@@ -162,7 +144,7 @@ public:
          * @return  iterator to next in sync key
          */
         std::map<qkd::key::key_id, stashed_key>::iterator next_in_sync() {
-            if (cInSync.size() == 0) return cInSync.end();
+            if (cInSync.empty()) return cInSync.end();
             if (cInSync.size() == 1) return cInSync.begin();
             auto iter = cInSync.lower_bound(nLastInSyncKeyPicked);
             if (iter == cInSync.end()) return cInSync.begin();
@@ -178,73 +160,24 @@ public:
     std::chrono::system_clock::time_point cLastProcessedKey;    /**< timestamp of last processed key */
     
     
+    // ---- methods ---
+    
+    
     /**
      * ctor
+     * 
+     * @param   cParentModule       the parent module of this inner module
+     * @param   sId                 module id
      */
-    module_internal(module * cParentModule, std::string sId) : cModule(cParentModule), sId(sId), nStartTimeStamp(0) { 
-        
-        // default values
-        
-        eRole = module_role::ROLE_ALICE;
-        nTimeoutNetwork = 2500;
-        nTimeoutPipe = 2500;
-        eType = module_type::TYPE_OTHER;
-        
-        cRandom = qkd::utility::random_source::source();
-        
-        // indicate to setup the connections
-        bSetupListen = true;
-        bSetupPeer = true;
-        bSetupPipeIn = true;
-        bSetupPipeOut = true;
-        
-        bPipeInStdin = true;
-        bPipeInVoid = false;
-        bPipeOutStdout = true;
-        bPipeOutVoid = false;
-        
-        sURLPipeIn = "stdin://";
-        sURLPipeOut = "stdout://";
-        
-        cSocketListener = nullptr;
-        cSocketPeer = nullptr;
-        cSocketPipeIn = nullptr;
-        cSocketPipeOut = nullptr;
-        
-        bSynchronizeKeys = true;
-        nSynchronizeTTL = 10;
-        
-        cLastProcessedKey = std::chrono::system_clock::now() - std::chrono::hours(1);
-        
-        cModuleBirth = std::chrono::high_resolution_clock::now();
-        
-        bProcessing = false;
-
-        bDebugMessageFlow = false;
-
-        cStash.nLastInSyncKeyPicked = 0;
-        
-        nTerminateAfter = 0;
-    };
+    module_internal(module * cParentModule, std::string sId);
     
     
     /**
      * dtor
      */
-    ~module_internal() {
-        
-        // clean up
-        if (cSocketListener != nullptr) zmq_close(cSocketListener);
-        cSocketListener = nullptr;
-        if (cSocketPeer != nullptr) zmq_close(cSocketPeer);
-        cSocketPeer = nullptr;
-        if (cSocketPipeIn != nullptr) zmq_close(cSocketPipeIn);
-        cSocketPipeIn = nullptr;
-        if (cSocketPipeOut != nullptr) zmq_close(cSocketPipeOut);
-        cSocketPipeOut = nullptr;
-    };
+    ~module_internal();
     
-
+    
     /**
      * add key statistics for incoming
      * 
@@ -261,18 +194,6 @@ public:
     void add_stats_outgoing(qkd::key::key const & cKey);
 
 
-    /**
-     * create an IPC incoming path
-     */
-    boost::filesystem::path create_ipc_in() const;
-    
-    
-    /**
-     * create an IPC outgoing path
-     */
-    boost::filesystem::path create_ipc_out() const;
-    
-    
     /**
      * connect to remote instance
      * 
@@ -313,33 +234,6 @@ public:
 
 
     /**
-     * deduce a correct, proper URL from a would-be URL
-     * 
-     * @param   sURL        an url
-     * @return  a good, real, usable url (or empty() in case of failure)
-     */
-    static std::string fix_url(std::string const & sURL);
-    
-    
-    /**
-     * deduce a correct, proper IPC-URL from a would-be IPC-URL
-     * 
-     * @param   sURL        an url
-     * @return  a good, real, usable url (or empty() in case of failure)
-     */
-    static std::string fix_url_ipc(std::string const & sURL);
-    
-    
-    /**
-     * deduce a correct, proper TCP-URL from a would-be TCP-URL
-     * 
-     * @param   sURL        an url
-     * @return  a good, real, usable url (or empty() in case of failure)
-     */
-    static std::string fix_url_tcp(std::string const & sURL);
-    
-    
-    /**
      * get the current module state
      * 
      * @return  the current module state
@@ -354,14 +248,6 @@ public:
     
     
     /**
-     * clean resources on a socket
-     *
-     * @param   cSocket     the socket to release
-     */
-    void release_socket(void * & cSocket);
-
-    
-    /**
      * set a new module state
      * 
      * the working thread will be notified (if waiting)
@@ -369,60 +255,6 @@ public:
      * @param   eNewState       the new module state
      */
     void set_state(module_state eNewState);
-    
-    
-    /**
-     * runs all the setup code for the module worker thread
-     * 
-     * @return  true, if all is laid out properly
-     */
-    bool setup();
-
-    
-    /**
-     * setup listen
-     * 
-     * @return  true, for success
-     */
-    bool setup_listen();
-    
-
-    /**
-     * setup peer connection
-     * 
-     * @return  true, for success
-     */
-    bool setup_peer();
-    
-
-    /**
-     * setup pipe IN
-     * 
-     * @return  true, for success
-     */
-    bool setup_pipe_in();
-    
-
-    /**
-     * setup pipe OUT
-     * 
-     * @return  true, for success
-     */
-    bool setup_pipe_out();
-
-
-    /**
-     * setup socket with high water mark and timeout
-     *
-     * also linger will be set to 0
-     *
-     * @param   cSocket             socket to modify
-     * @param   nHighWaterMark      high water mark
-     * @param   nTimeout            timeout on socket
-     * @param   bTimeoutRecv        set timeout on receive
-     * @param   bTimeoutSent        set timeout on send
-     */
-    void setup_socket(void * & cSocket, int nHighWaterMark, int nTimeout); 
     
     
     /**

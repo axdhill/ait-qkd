@@ -3,7 +3,7 @@
  * 
  * a GUI to inspect some states of a running module
  * 
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2013-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -36,13 +36,19 @@
 
 #include <chrono>
 
+#if defined(__GNUC__) and not defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-pedantic"
+#endif
+
 #include <qwt_plot_curve.h>
 #include <qwt_plot_grid.h>
 #include <qwt_scale_engine.h>
 #include <qwt_scale_widget.h>
+
+#if defined(__GNUC__) and not defined(__clang__)
 #pragma GCC diagnostic pop
+#endif
 
 // ait
 #include <qkd/module/module.h>

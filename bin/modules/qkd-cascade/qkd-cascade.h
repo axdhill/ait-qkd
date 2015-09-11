@@ -4,9 +4,9 @@
  * The qkd-cascade is the standard implementation 
  * of the cascade error correction
  * 
- * Autor: Philipp Grabenweger
- *        Christoph Pacher, <christoph.pacher@ait.ac.at>
- *        Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Philipp Grabenweger
+ *         Christoph Pacher, <christoph.pacher@ait.ac.at>
+ *         Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2014-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH

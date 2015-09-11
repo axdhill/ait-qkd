@@ -3,7 +3,7 @@
  * 
  * interface for the XOR encryption
  *
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -28,8 +28,8 @@
  */
 
  
-#ifndef __QKD_CRYPTO_XOR_H_
-#define __QKD_CRYPTO_XOR_H_
+#ifndef __QKD_CRYPTO_CRYPTO_XOR_H_
+#define __QKD_CRYPTO_CRYPTO_XOR_H_
 
 
 // ------------------------------------------------------------
@@ -108,6 +108,15 @@ private:
     
 
     /**
+     * add another crypto context
+     *
+     * @param   cContext        the crypto context to add
+     * @throws  context_final, if the algorithm has finished and does not allow another addition
+     */
+    void add_internal(qkd::crypto::crypto_context const & cContext);
+
+
+    /**
      * add a memory BLOB to the algorithm
      *
      * @param   cMemory         memory block to be added
@@ -125,7 +134,7 @@ private:
     
 
     /**
-     * get the size of the final key in bits
+     * get the size of the final key in bytes
      * 
      * @return  the size of the final key or 0 if inapprobiate
      */

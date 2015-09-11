@@ -3,7 +3,7 @@
 # 
 # make: tests
 #
-# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+# Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
 # Copyright (C) 2012-2015 AIT Austrian Institute of Technology
 # AIT Austrian Institute of Technology GmbH
@@ -63,6 +63,7 @@ set(TEST_SYSLOG_SRC                         utility/syslog.cpp)
 set(TEST_ZIP_SRC                            utility/zip.cpp)
 
 set(TEST_CRYPTO_SRC                         crypto/crypto.cpp)
+set(TEST_EVHASH_SRC                         crypto/evhash.cpp)
 set(TEST_ASSOCIATION_SRC                    crypto/association.cpp)
 set(TEST_KEY_SRC                            key/key.cpp)
 set(TEST_KEY_RING_SRC                       key/key_ring.cpp)
@@ -97,6 +98,7 @@ add_executable(test-syslog                  ${TEST_SYSLOG_SRC})
 add_executable(test-zip                     ${TEST_ZIP_SRC})
 
 add_executable(test-crypto                  ${TEST_CRYPTO_SRC})
+add_executable(test-evhash                  ${TEST_EVHASH_SRC})
 add_executable(test-association             ${TEST_ASSOCIATION_SRC})
 add_executable(test-key                     ${TEST_KEY_SRC})
 add_executable(test-key_ring                ${TEST_KEY_RING_SRC})
@@ -131,6 +133,7 @@ target_link_libraries(test-syslog               ${CMAKE_REQUIRED_LIBRARIES})
 target_link_libraries(test-zip                  ${CMAKE_REQUIRED_LIBRARIES})
 
 target_link_libraries(test-crypto               ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(test-evhash               ${CMAKE_REQUIRED_LIBRARIES})
 target_link_libraries(test-association          ${CMAKE_REQUIRED_LIBRARIES})
 target_link_libraries(test-key                  ${CMAKE_REQUIRED_LIBRARIES})
 target_link_libraries(test-key_ring             ${CMAKE_REQUIRED_LIBRARIES})
@@ -175,6 +178,7 @@ add_test(dbus                               test-dbus)
 add_test(zip                                test-zip)
 
 add_test(crypto                             test-crypto)
+add_test(evhash                             test-evhash)
 add_test(association                        test-association)
 add_test(key                                test-key)
 add_test(key_ring                           test-key_ring)

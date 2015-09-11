@@ -3,7 +3,7 @@
  * 
  * The ping mechanism itself
  * 
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2014-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -55,21 +55,16 @@
 bool ping_alice(qkd::module::communicator & cModuleComm, uint64_t nPackageSize) {
 
     qkd::utility::memory cPayload;
-    //qkd::module::message cMessage;
     
     // generate a payload
     {
         if (nPackageSize > 0) {
             cPayload.resize(nPackageSize);
             cModuleComm.mod()->random() >> cPayload;
-            //cMessage.data() << cPayload;
         }
     }
     
-    // start clock
     std::chrono::time_point<std::chrono::system_clock> cStart = std::chrono::system_clock::now();
-    
-    // send to bob
     try {
         cModuleComm << cPayload;
     }
@@ -84,7 +79,6 @@ bool ping_alice(qkd::module::communicator & cModuleComm, uint64_t nPackageSize) 
         return false;
     }
     
-    // output info to user
     qkd::utility::checksum cChecksumAlgorithm;
     qkd::utility::memory cChecksumDigest;
     
@@ -93,34 +87,29 @@ bool ping_alice(qkd::module::communicator & cModuleComm, uint64_t nPackageSize) 
     cChecksumAlgorithm >> cChecksumDigest;
     std::cout << "sent " << cPayload.size() << " bytes to peer (crc32: " << cChecksumDigest.as_hex() << ")" << std::endl;
     
-    // check for termination state
     if (cModuleComm.mod()->is_dying_state()) return false;
     
-    // read from bob
     try {
         cPayload.resize(0);
-        if (!(cModuleComm >> cPayload)) return false;
-        // if (!cModuleComm.recv(cMessage)) return false;
+        if (!(cModuleComm >> cPayload)) {
+            qkd::utility::debug() << "failed to read from bob...";
+            std::cout << "failed to read from bob..." << std::endl;
+            cModuleComm.mod()->rest();
+            return false;
+        }
     }
     catch (std::runtime_error const & cRuntimeError) {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to receive message: " << cRuntimeError.what();
         return false;
     }
     
-    // stop clock
     std::chrono::time_point<std::chrono::system_clock> cEnd = std::chrono::system_clock::now();
     std::chrono::nanoseconds cRoundtripTime = std::chrono::duration_cast<std::chrono::nanoseconds>(cEnd - cStart);
 
-    // extract payload
-    //cPayload.resize(0);
-    //cMessage.data() >> cPayload;
-
-    // output info to user
     cChecksumAlgorithm = qkd::utility::checksum_algorithm::create("crc32");
     cChecksumAlgorithm << cPayload;
     cChecksumAlgorithm >> cChecksumDigest;
     
-    // nice time roundtrip value
     std::stringstream ss;
     ss.precision(4);
     ss << std::fixed << (cRoundtripTime.count() / 1000000.0);
@@ -141,11 +130,14 @@ bool ping_alice(qkd::module::communicator & cModuleComm, uint64_t nPackageSize) 
 bool ping_bob(qkd::module::communicator & cModuleComm, uint64_t nPackageSize) {
 
     qkd::utility::memory cPayload;
-    //qkd::module::message cMessage;
     
-    // read from alice
     try {
-        if (!(cModuleComm >> cPayload)) return false;
+        if (!(cModuleComm >> cPayload)) {
+            qkd::utility::debug() << "failed to read from alice...";
+            std::cout << "failed to read from alice..." << std::endl;
+            cModuleComm.mod()->rest();
+            return false;
+        }
     }
     catch (std::runtime_error const & cRuntimeError) {
         
@@ -156,10 +148,6 @@ bool ping_bob(qkd::module::communicator & cModuleComm, uint64_t nPackageSize) {
         return false;
     }
     
-    // extract payload
-    //cMessage.data() >> cPayload;
-
-    // output info to user
     qkd::utility::checksum cChecksumAlgorithm;
     qkd::utility::memory cChecksumDigest;
     cChecksumAlgorithm = qkd::utility::checksum_algorithm::create("crc32");
@@ -167,30 +155,23 @@ bool ping_bob(qkd::module::communicator & cModuleComm, uint64_t nPackageSize) {
     cChecksumAlgorithm >> cChecksumDigest;
     std::cout << "read " << cPayload.size() << " bytes from peer (crc32: " << cChecksumDigest.as_hex() << ")" << std::endl;
     
-    // check for termination state
     if (cModuleComm.mod()->is_dying_state()) return false;
     
-    // generate a payload
-    //cMessage = qkd::module::message();
     {
         if (nPackageSize > 0) {
             cPayload.resize(nPackageSize);
             cModuleComm.mod()->random() >> cPayload;
-            //cMessage.data() << cPayload;
         }
     }
     
-    // send to alice
     try {
         cModuleComm << cPayload;
-        //cModuleComm.send(cMessage);
     }
     catch (std::runtime_error const & cRuntimeError) {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to send message: " << cRuntimeError.what();
         return false;
     }
     
-    // output info to user
     cChecksumAlgorithm = qkd::utility::checksum_algorithm::create("crc32");
     cChecksumAlgorithm << cPayload;
     cChecksumAlgorithm >> cChecksumDigest;

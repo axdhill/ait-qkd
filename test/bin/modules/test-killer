@@ -9,7 +9,7 @@
 #       middle of processing. Then start the module anew
 #       and place it at the killed position again.
 #
-# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+# Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
 # Copyright (C) 2012-2015 AIT Austrian Institute of Technology
 # AIT Austrian Institute of Technology GmbH
@@ -40,13 +40,13 @@ source ${TEST_BASE}/test/bin/test-functions
 # ------------------------------------------------------------
 
 # init test environment
-test_init
+test_init "$(basename $0).d"
 
 # zap previous keys
 rm -rf killer-keys.* &> /dev/null
 
 # create keys
-${TEST_BASE}/bin/qkd-key-gen --keys=100 killer-keys
+${TEST_BASE}/bin/qkd-key-gen --silent --keys=100 killer-keys
 
 # create a pipeline: cat --> throttle --> tee
 ${TEST_BASE}/bin/qkd-cat --debug 2> qkd-cat.debug &
@@ -84,7 +84,7 @@ qkd_qdbus ${MODULE_CAT} /Module resume
 
 # start the THROTTLE
 echo "starting module: ${MODULE_THROTTLE} ..."
-qkd_qdbus ${MODULE_THROTTLE} /Module Set at.ac.ait.qkd.throttle max_keys_per_second 10
+qkd_qdbus ${MODULE_THROTTLE} /Module Set at.ac.ait.qkd.throttle max_keys_per_second 25
 qkd_qdbus ${MODULE_THROTTLE} /Module set_urls "ipc://$(pwd)/killer-throttle.in" "ipc://$(pwd)/killer-tee.in" "" ""
 qkd_qdbus ${MODULE_THROTTLE} /Module run 
 qkd_qdbus ${MODULE_THROTTLE} /Module resume
@@ -106,7 +106,7 @@ ps -ef | grep qkd-tee | awk '{ print $2; }' | xargs kill
 
 # let some time pass
 echo "wait some time ..."
-sleep 2
+sleep 1
 
 # relaunch the module and reconnect
 echo "relaunching TEE module ..."
@@ -125,19 +125,19 @@ qkd_qdbus ${MODULE_TEE} /Module resume
 
 sleep 1
 
-wait_stalled tee throttle cat
+wait_idle throttle cat tee
 
-# add the output from the 1st TEE to the 2nd TEE and check
-cat killer-keys.1.tee killer-keys.2.tee > killer-keys.total.tee
-
-# make the final check: the input MUST be the output
-diff -q killer-keys.alice killer-keys.total.tee
-if [ "$?" != "0" ]; then
-    echo "failed: killed and relaunched qkd module would have changed result ..."
+# both modules must have pulled something
+# though the overall sum might not be the same since
+# some keys might have been dropped due to timeout
+if [ "$(grep ^key-PULL qkd-tee.1.debug | wc -l)" = "0" ]; then
+    echo "failed: first qkd-tee did not pulled keys"
     exit 1
 fi
-
-# ah ... relaunching a module in the middle DOES NOT change the output
+if [ "$(grep ^key-PULL qkd-tee.2.debug | wc -l)" = "0" ]; then
+    echo "failed: second qkd-tee did not pulled keys"
+    exit 1
+fi
 echo "killing and relaunching a module in the pipeline works ok"
 
 # cleanup finally

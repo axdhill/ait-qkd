@@ -7,7 +7,7 @@
 #
 # TEST: test the qkd-start with a simple testing pipeline
 #
-# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+# Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
 # Copyright (C) 2012-2015 AIT Austrian Institute of Technology
 # AIT Austrian Institute of Technology GmbH
@@ -38,7 +38,7 @@ source ${TEST_BASE}/test/bin/test-functions
 # ------------------------------------------------------------
 
 # init test environment
-test_init
+test_init "$(basename $0).d"
 
 # this pipeline is set up to have a running testing pipeline environment
 
@@ -46,7 +46,7 @@ test_init
 rm -rf cat_keys.* &> /dev/null
 
 # create keys
-${TEST_BASE}/bin/qkd-key-gen --keys 1000 --size 1024 ${TEST_BASE}/cat_keys
+${TEST_BASE}/bin/qkd-key-gen --silent --keys 1000 --size 1024 ${TEST_BASE}/cat_keys
 
 # fix pipeline config
 cat ${TEST_BASE}/test/test-data/testing.conf | grep -v "^cat.file_url" > ${TEST_BASE}/testing.config
@@ -60,7 +60,7 @@ PIPELINE_CONFIG="file://${TEST_BASE}/testing.config"
         ${TEST_BASE}/bin/qkd-cat ${PIPELINE_CONFIG} \
         ${TEST_BASE}/bin/qkd-throttle ${PIPELINE_CONFIG} \
         ${TEST_BASE}/bin/qkd-tee ${PIPELINE_CONFIG} \
-        ${TEST_BASE}/bin/qkd-buffer ${PIPELINE_CONFIG} 
+        ${TEST_BASE}/bin/qkd-resize ${PIPELINE_CONFIG} 
 ) &
 
 # state that test ok

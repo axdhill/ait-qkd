@@ -6,7 +6,7 @@
 # This python script parses the output file of qkd-statistics
 # prints the average values on stdout.
 #
-# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+# Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
 # Copyright (C) 2015 AIT Austrian Institute of Technology
 # AIT Austrian Institute of Technology GmbH
@@ -37,7 +37,7 @@ __copyright__   = 'Copyright (C) 2015 AIT Austrian Institute of Technology'
 __license__     = 'GPL v3'
 __licenseurl__  = 'http://www.ait.ac.at'
 __title__       = 'qkd-statistics-average'
-__version__     = '9.9999.4'
+__version__     = '9.9999.5'
 
 
 # ------------------------------------------------------------

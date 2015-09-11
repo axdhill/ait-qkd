@@ -4,7 +4,7 @@
  * Handler class for dealing with the Netlink/XFRM engine to manage the
  * IPsec SP and SA databases
  *
- * Autor: Stefan Marksteiner, <stefan.marksteiner@joanneum.at>
+ * Author: Stefan Marksteiner, <stefan.marksteiner@joanneum.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH

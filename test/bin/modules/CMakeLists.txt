@@ -3,7 +3,7 @@
 # 
 # make: tests
 #
-# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+# Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
 # Copyright (C) 2012-2015 AIT Austrian Institute of Technology
 # AIT Austrian Institute of Technology GmbH
@@ -39,13 +39,18 @@ configure_file(test-throttle                    ${CMAKE_CURRENT_BINARY_DIR}/test
 configure_file(test-killer                      ${CMAKE_CURRENT_BINARY_DIR}/test-killer                     @ONLY)
 configure_file(test-ping                        ${CMAKE_CURRENT_BINARY_DIR}/test-ping                       @ONLY)
 configure_file(test-interrupt                   ${CMAKE_CURRENT_BINARY_DIR}/test-interrupt                  @ONLY)
+configure_file(test-sudden-death                ${CMAKE_CURRENT_BINARY_DIR}/test-sudden-death               @ONLY)
 
 # module pipeline test
 configure_file(test-mod-bb84                    ${CMAKE_CURRENT_BINARY_DIR}/test-mod-bb84                   @ONLY)
 configure_file(test-mod-error-estimation        ${CMAKE_CURRENT_BINARY_DIR}/test-mod-error-estimation       @ONLY)
 configure_file(test-mod-cascade                 ${CMAKE_CURRENT_BINARY_DIR}/test-mod-cascade                @ONLY)
 configure_file(test-mod-confirmation            ${CMAKE_CURRENT_BINARY_DIR}/test-mod-confirmation           @ONLY)
-configure_file(test-mod-buffer                  ${CMAKE_CURRENT_BINARY_DIR}/test-mod-buffer                 @ONLY)
+configure_file(test-mod-resize                  ${CMAKE_CURRENT_BINARY_DIR}/test-mod-resize                 @ONLY)
+configure_file(test-mod-resize-minimum          ${CMAKE_CURRENT_BINARY_DIR}/test-mod-resize-minimum         @ONLY)
+configure_file(test-mod-resize-exact-simple     ${CMAKE_CURRENT_BINARY_DIR}/test-mod-resize-exact-simple    @ONLY)
+configure_file(test-mod-resize-exact-small      ${CMAKE_CURRENT_BINARY_DIR}/test-mod-resize-exact-small     @ONLY)
+configure_file(test-mod-resize-exact-big        ${CMAKE_CURRENT_BINARY_DIR}/test-mod-resize-exact-big       @ONLY)
 configure_file(test-mod-drop                    ${CMAKE_CURRENT_BINARY_DIR}/test-mod-drop                   @ONLY)
 configure_file(test-mod-reorder                 ${CMAKE_CURRENT_BINARY_DIR}/test-mod-reorder                @ONLY)
 configure_file(test-mod-privacy-amplification   ${CMAKE_CURRENT_BINARY_DIR}/test-mod-privacy-amplification  @ONLY)
@@ -59,6 +64,7 @@ configure_file(test-disruptive-drop             ${CMAKE_CURRENT_BINARY_DIR}/test
 configure_file(test-disruptive-reorder          ${CMAKE_CURRENT_BINARY_DIR}/test-disruptive-reorder         @ONLY)
 configure_file(test-full-disruptive             ${CMAKE_CURRENT_BINARY_DIR}/test-full-disruptive            @ONLY)
 configure_file(test-parallel-cat-tee            ${CMAKE_CURRENT_BINARY_DIR}/test-parallel-cat-tee           @ONLY)
+configure_file(test-demux                       ${CMAKE_CURRENT_BINARY_DIR}/test-demux                      @ONLY)
 configure_file(test-simulator-pipeline          ${CMAKE_CURRENT_BINARY_DIR}/test-simulator-pipeline         @ONLY)
 
 
@@ -73,13 +79,18 @@ add_test(throttle                               ${CMAKE_CURRENT_BINARY_DIR}/test
 add_test(killer                                 ${CMAKE_CURRENT_BINARY_DIR}/test-killer)
 add_test(ping                                   ${CMAKE_CURRENT_BINARY_DIR}/test-ping)
 add_test(interrupt                              ${CMAKE_CURRENT_BINARY_DIR}/test-interrupt)
+add_test(sudden-death                           ${CMAKE_CURRENT_BINARY_DIR}/test-sudden-death)
 
 # module pipeline test
 add_test(mod-bb84                               ${CMAKE_CURRENT_BINARY_DIR}/test-mod-bb84)
 add_test(mod-error-estimation                   ${CMAKE_CURRENT_BINARY_DIR}/test-mod-error-estimation)
 add_test(mod-cascade                            ${CMAKE_CURRENT_BINARY_DIR}/test-mod-cascade)
 add_test(mod-confirmation                       ${CMAKE_CURRENT_BINARY_DIR}/test-mod-confirmation)
-add_test(mod-buffer                             ${CMAKE_CURRENT_BINARY_DIR}/test-mod-buffer)
+add_test(mod-resize                             ${CMAKE_CURRENT_BINARY_DIR}/test-mod-resize)
+add_test(mod-resize-minimum                     ${CMAKE_CURRENT_BINARY_DIR}/test-mod-resize-minimum)
+add_test(mod-resize-exact-simple                ${CMAKE_CURRENT_BINARY_DIR}/test-mod-resize-exact-simple)
+add_test(mod-resize-exact-small                 ${CMAKE_CURRENT_BINARY_DIR}/test-mod-resize-exact-small)
+add_test(mod-resize-exact-big                   ${CMAKE_CURRENT_BINARY_DIR}/test-mod-resize-exact-big)
 add_test(mod-drop                               ${CMAKE_CURRENT_BINARY_DIR}/test-mod-drop)
 add_test(mod-reorder                            ${CMAKE_CURRENT_BINARY_DIR}/test-mod-reorder)
 add_test(mod-privacy-amplification              ${CMAKE_CURRENT_BINARY_DIR}/test-mod-privacy-amplification)
@@ -92,6 +103,7 @@ add_test(disruptive-drop                        ${CMAKE_CURRENT_BINARY_DIR}/test
 add_test(disruptive-reorder                     ${CMAKE_CURRENT_BINARY_DIR}/test-disruptive-reorder)
 add_test(full-disruptive                        ${CMAKE_CURRENT_BINARY_DIR}/test-full-disruptive)
 add_test(parallel-cat-tee                       ${CMAKE_CURRENT_BINARY_DIR}/test-parallel-cat-tee)
+add_test(demux                                  ${CMAKE_CURRENT_BINARY_DIR}/test-demux)
 
 
 # ------------------------------------------------------------

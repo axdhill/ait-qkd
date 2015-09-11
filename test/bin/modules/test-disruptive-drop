@@ -8,7 +8,7 @@
 # TEST: test the recover ability 
 #       if keys are dropped randomly in the pipeline
 #
-# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+# Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
 # Copyright (C) 2013-2015 AIT Austrian Institute of Technology
 # AIT Austrian Institute of Technology GmbH
@@ -39,7 +39,7 @@ source ${TEST_BASE}/test/bin/test-functions
 # ------------------------------------------------------------
 
 # init test environment
-test_init
+test_init "$(basename $0).d"
 
 # zap previous keys
 rm -rf cat_keys.* &> /dev/null
@@ -52,7 +52,7 @@ echo -n > cascade_debug.bob
 
 # create keys
 KEYS_TO_PROCESS="100"
-${TEST_BASE}/bin/qkd-key-gen --size 2048 --keys ${KEYS_TO_PROCESS} --rate 0.03 cat_keys
+${TEST_BASE}/bin/qkd-key-gen --silent --size 2048 --keys ${KEYS_TO_PROCESS} --rate 0.03 cat_keys
 
 # start two pipelines
 PIPELINE_CONFIG="file://${TEST_BASE}/test/test-data/disruptive-drop-simple.conf"
@@ -73,7 +73,7 @@ done
 
 # wait until the pipeline is through
 sleep 1
-wait_stalled cat drop cascade
+wait_idle cat drop cascade
 
 # check how many 
 if [ ! -s cascade_keys.alice ]; then

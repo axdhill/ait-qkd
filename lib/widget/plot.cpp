@@ -3,7 +3,7 @@
  * 
  * Implement an enhanced plot
  * 
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2014-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -34,10 +34,16 @@
 // Qt
 #include <QtGui/QApplication>
 
+#if defined(__GNUC__) and not defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-pedantic"
+#endif
+
 #include "qwt_scale_widget.h"
+
+#if defined(__GNUC__) and not defined(__clang__)
 #pragma GCC diagnostic pop
+#endif
 
 #include <qkd/widget/plot.h>
 

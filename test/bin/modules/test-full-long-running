@@ -7,7 +7,7 @@
 #
 # TEST: test the QKD post processing eco-system
 #
-# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+# Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
 # Copyright (C) 2013-2015 AIT Austrian Institute of Technology
 # AIT Austrian Institute of Technology GmbH
@@ -38,7 +38,7 @@ source ${TEST_BASE}/test/bin/test-functions
 # ------------------------------------------------------------
 
 # init test environment
-test_init
+test_init "$(basename $0).d"
 
 # zap previous keys
 rm -rf cat_keys.* &> /dev/null
@@ -55,8 +55,8 @@ echo -n > cascade_debug.alice
 echo -n > cascade_debug.bob
 echo -n > confirmation_debug.alice
 echo -n > confirmation_debug.bob
-echo -n > buffer_debug.alice
-echo -n > buffer_debug.bob
+echo -n > resize_debug.alice
+echo -n > resize_debug.bob
 echo -n > privacy_amplification_debug.alice
 echo -n > privacy_amplification_debug.bob
 echo -n > auth_post_debug.alice
@@ -64,7 +64,7 @@ echo -n > auth_post_debug.bob
 
 # create keys
 KEYS_TO_PROCESS="2000"
-${TEST_BASE}/bin/qkd-key-gen --size 2048 --keys ${KEYS_TO_PROCESS} --quantum --rate 0.03 cat_keys
+${TEST_BASE}/bin/qkd-key-gen --silent --size 2048 --keys ${KEYS_TO_PROCESS} --quantum --rate 0.03 cat_keys
 
 # prepare the config files
 cp ${TEST_BASE}/test/test-data/full-pipeline.conf auth_pre.config
@@ -83,14 +83,14 @@ PIPELINE_POST_CONFIG="auth_post.config"
 # start the modules
 ( ${TEST_BASE}/bin/qkd-auth --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> auth_pre_debug.alice ) &
 ( ${TEST_BASE}/bin/qkd-auth --debug --bob --run --config ${PIPELINE_PRE_CONFIG} 2>> auth_pre_debug.bob ) &
-( ${TEST_BASE}/bin/qkd-bb84 --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> bb84_debug.alice ) &
-( ${TEST_BASE}/bin/qkd-bb84 --debug --bob --run --config ${PIPELINE_PRE_CONFIG} 2>> bb84_debug.bob ) &
+( ${TEST_BASE}/bin/qkd-sifting-bb84 --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> bb84_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-sifting-bb84 --debug --bob --run --config ${PIPELINE_PRE_CONFIG} 2>> bb84_debug.bob ) &
 ( ${TEST_BASE}/bin/qkd-cascade --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> cascade_debug.alice ) &
 ( ${TEST_BASE}/bin/qkd-cascade --debug --bob --run --config ${PIPELINE_PRE_CONFIG} 2>> cascade_debug.bob ) &
 ( ${TEST_BASE}/bin/qkd-confirmation --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> confirmation_debug.alice ) &
 ( ${TEST_BASE}/bin/qkd-confirmation --debug --bob --run --config ${PIPELINE_PRE_CONFIG} 2>> confirmation_debug.bob ) &
-( ${TEST_BASE}/bin/qkd-buffer --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> buffer_debug.alice ) &
-( ${TEST_BASE}/bin/qkd-buffer --debug --bob --run --config ${PIPELINE_PRE_CONFIG} 2>> buffer_debug.bob ) &
+( ${TEST_BASE}/bin/qkd-resize --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> resize_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-resize --debug --bob --run --config ${PIPELINE_PRE_CONFIG} 2>> resize_debug.bob ) &
 ( ${TEST_BASE}/bin/qkd-privacy-amplification --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> privacy_amplification_debug.alice ) &
 ( ${TEST_BASE}/bin/qkd-privacy-amplification --debug --bob --run --config ${PIPELINE_PRE_CONFIG} 2>> privacy_amplification_debug.bob ) &
 ( ${TEST_BASE}/bin/qkd-auth --debug --run --config ${PIPELINE_POST_CONFIG} 1> auth_keys.alice 2>> auth_post_debug.alice ) &

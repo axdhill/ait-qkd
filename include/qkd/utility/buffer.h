@@ -3,7 +3,7 @@
  * 
  * a send/recv buffer
  *
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -78,17 +78,20 @@ class buffer : public qkd::utility::memory {
     
 public:
 
+    
+    using qkd::utility::memory::add;
+    
 
     /**
      * exception type thrown when reading beyond space
      */
-    struct buffer_out_of_bounds : virtual std::exception, virtual boost::exception { };
+    struct buffer_out_of_bounds : virtual std::exception, virtual boost::exception {};
     
     
     /**
      * ctor
      */
-    buffer() : memory(), m_nPosition(0) {};
+    buffer() : memory(), m_nPosition(0) {}
     
     
     /**
@@ -96,13 +99,13 @@ public:
      * 
      * @param   rhs         right hand side
      */
-    buffer(memory const & rhs) : memory(rhs), m_nPosition(0) {};
+    buffer(memory const & rhs) : memory(rhs), m_nPosition(0) {}
     
     
     /**
      * dtor
      */
-    virtual ~buffer() {};
+    virtual ~buffer() {}
     
     
     /**
@@ -111,7 +114,11 @@ public:
      * @param   cData       pointer to data
      * @param   nSize       size of data
      */
-    inline void add(void * cData, uint64_t nSize) { grow(nSize); memcpy(get() + m_nPosition, cData, nSize); m_nPosition += nSize; };
+    inline void add(void * cData, uint64_t nSize) { 
+        grow(nSize); 
+        memcpy(get() + m_nPosition, cData, nSize); 
+        m_nPosition += nSize; 
+    }
     
     
     /**
@@ -119,7 +126,7 @@ public:
      * 
      * @return  true, if there is no more left to be read
      */
-    inline bool eof() const { return (position() == size()); };
+    inline bool eof() const { return (position() == size()); }
     
     
     /**
@@ -128,7 +135,11 @@ public:
      * @param   cData       pointer to receiving data
      * @param   nSize       size of data
      */
-    inline void pick(void * cData, uint64_t nSize) { if ((m_nPosition + nSize) > size()) throw buffer_out_of_bounds(); memcpy(cData, get() + m_nPosition, nSize); m_nPosition += nSize; };
+    inline void pick(void * cData, uint64_t nSize) { 
+        if ((m_nPosition + nSize) > size()) throw buffer_out_of_bounds(); 
+        memcpy(cData, get() + m_nPosition, nSize); 
+        m_nPosition += nSize; 
+    }
     
     
     /**
@@ -136,7 +147,7 @@ public:
      * 
      * @param   b       the bool to read
      */
-    inline void pop(bool & b) { pick(&b, sizeof(b)); };
+    inline void pop(bool & b) { pick(&b, sizeof(b)); }
     
     
     /**
@@ -144,7 +155,7 @@ public:
      * 
      * @param   c       the char to read
      */
-    inline void pop(char & c) { pick(&c, sizeof(c)); };
+    inline void pop(char & c) { pick(&c, sizeof(c)); }
     
     
     /**
@@ -152,7 +163,7 @@ public:
      * 
      * @param   c       the char to read
      */
-    inline void pop(unsigned char & c) { pick(&c, sizeof(c)); };
+    inline void pop(unsigned char & c) { pick(&c, sizeof(c)); }
     
     
     /**
@@ -160,7 +171,11 @@ public:
      * 
      * @param   i       the int16_t to read
      */
-    inline void pop(int16_t & i) { int16_t x; pick(&x, sizeof(x)); i = be16toh(x); };
+    inline void pop(int16_t & i) { 
+        int16_t x; 
+        pick(&x, sizeof(x)); 
+        i = be16toh(x); 
+    }
     
     
     /**
@@ -168,7 +183,11 @@ public:
      * 
      * @param   i       the uint16_t to read
      */
-    inline void pop(uint16_t & i) { uint16_t x; pick(&x, sizeof(x)); i = be16toh(x); };
+    inline void pop(uint16_t & i) { 
+        uint16_t x; 
+        pick(&x, sizeof(x)); 
+        i = be16toh(x); 
+    }
     
     
     /**
@@ -176,7 +195,11 @@ public:
      * 
      * @param   i       the int32_t to read
      */
-    inline void pop(int32_t & i) { int32_t x; pick(&x, sizeof(x)); i = be32toh(x); };
+    inline void pop(int32_t & i) { 
+        int32_t x; 
+        pick(&x, sizeof(x)); 
+        i = be32toh(x); 
+    }
     
     
     /**
@@ -184,7 +207,11 @@ public:
      * 
      * @param   i       the uint32_t to read
      */
-    inline void pop(uint32_t & i) { uint32_t x; pick(&x, sizeof(x)); i = be32toh(x); };
+    inline void pop(uint32_t & i) { 
+        uint32_t x; 
+        pick(&x, sizeof(x)); 
+        i = be32toh(x); 
+    }
     
     
     /**
@@ -192,7 +219,11 @@ public:
      * 
      * @param   i       the int64_t to read
      */
-    inline void pop(int64_t & i) { int64_t x; pick(&x, sizeof(x)); i = be64toh(x); };
+    inline void pop(int64_t & i) { 
+        int64_t x; 
+        pick(&x, sizeof(x)); 
+        i = be64toh(x); 
+    }
     
     
     /**
@@ -200,7 +231,11 @@ public:
      * 
      * @param   i       the uint64_t to read
      */
-    inline void pop(uint64_t & i) { uint64_t x; pick(&x, sizeof(x)); i = be64toh(x); };
+    inline void pop(uint64_t & i) { 
+        uint64_t x; 
+        pick(&x, sizeof(x)); 
+        i = be64toh(x); 
+    }
     
     
     /**
@@ -208,7 +243,7 @@ public:
      * 
      * @param   f       the float to read
      */
-    inline void pop(float & f) { pick(&f, sizeof(f)); };
+    inline void pop(float & f) { pick(&f, sizeof(f)); }
     
     
     /**
@@ -216,7 +251,7 @@ public:
      * 
      * @param   d       the double to read
      */
-    inline void pop(double & d) { pick(&d, sizeof(d)); };
+    inline void pop(double & d) { pick(&d, sizeof(d)); }
     
     
     /**
@@ -224,7 +259,11 @@ public:
      * 
      * @param   m       the memory to get (out)
      */
-    inline void pop(qkd::utility::memory & m) { uint64_t nSize; pop(nSize); m.resize(nSize); pick(m.get(), nSize); };
+    inline void pop(qkd::utility::memory & m) { 
+        uint64_t nSize; pop(nSize); 
+        m.resize(nSize); 
+        pick(m.get(), nSize); 
+    }
     
     
     /**
@@ -232,7 +271,13 @@ public:
      * 
      * @param   s       the string to get (out)
      */
-    inline void pop(std::string & s) { uint64_t nSize; pop(nSize); char * d = new char[nSize]; pick(d, nSize); s = std::string(d, nSize); delete [] d; };
+    inline void pop(std::string & s) { 
+        uint64_t nSize; pop(nSize); 
+        char * d = new char[nSize]; 
+        pick(d, nSize); 
+        s = std::string(d, nSize); 
+        delete [] d; 
+    }
     
     
     /**
@@ -240,7 +285,7 @@ public:
      * 
      * @return  the current read/write position
      */
-    inline uint64_t position() const { return m_nPosition; };
+    inline uint64_t position() const { return m_nPosition; }
     
     
     /**
@@ -248,7 +293,7 @@ public:
      * 
      * @param   b       the bool to add
      */
-    inline void push(bool b) { add(&b, sizeof(b)); };
+    inline void push(bool b) { add(&b, sizeof(b)); }
     
     
     /**
@@ -256,7 +301,7 @@ public:
      * 
      * @param   c       the char to add
      */
-    inline void push(char c) { add(&c, sizeof(c)); };
+    inline void push(char c) { add(&c, sizeof(c)); }
     
     
     /**
@@ -264,7 +309,7 @@ public:
      * 
      * @param   c       the char to add
      */
-    inline void push(unsigned char c) { add(&c, sizeof(c)); };
+    inline void push(unsigned char c) { add(&c, sizeof(c)); }
     
     
     /**
@@ -272,7 +317,10 @@ public:
      * 
      * @param   i       the int16_t to add
      */
-    inline void push(int16_t i) { int16_t x = htobe16(i); add(&x, sizeof(x)); };
+    inline void push(int16_t i) { 
+        int16_t x = htobe16(i); 
+        add(&x, sizeof(x)); 
+    }
     
     
     /**
@@ -280,7 +328,10 @@ public:
      * 
      * @param   i       the uint16_t to add
      */
-    inline void push(uint16_t i) { uint16_t x = htobe16(i); add(&x, sizeof(x)); };
+    inline void push(uint16_t i) { 
+        uint16_t x = htobe16(i); 
+        add(&x, sizeof(x)); 
+    }
     
     
     /**
@@ -288,7 +339,10 @@ public:
      * 
      * @param   i       the int32_t to add
      */
-    inline void push(int32_t i) { int32_t x = htobe32(i); add(&x, sizeof(x)); };
+    inline void push(int32_t i) { 
+        int32_t x = htobe32(i); 
+        add(&x, sizeof(x)); 
+    }
     
     
     /**
@@ -296,7 +350,10 @@ public:
      * 
      * @param   i       the uint32_t to add
      */
-    inline void push(uint32_t i) { uint32_t x = htobe32(i); add(&x, sizeof(x)); };
+    inline void push(uint32_t i) { 
+        uint32_t x = htobe32(i); 
+        add(&x, sizeof(x)); 
+    }
     
     
     /**
@@ -304,7 +361,10 @@ public:
      * 
      * @param   i       the int64_t to add
      */
-    inline void push(int64_t i) { int64_t x = htobe64(i); add(&x, sizeof(x)); };
+    inline void push(int64_t i) { 
+        int64_t x = htobe64(i); 
+        add(&x, sizeof(x)); 
+    }
     
     
     /**
@@ -312,7 +372,10 @@ public:
      * 
      * @param   i       the uint64_t to add
      */
-    inline void push(uint64_t i) { uint64_t x = htobe64(i); add(&x, sizeof(x)); };
+    inline void push(uint64_t i) { 
+        uint64_t x = htobe64(i); 
+        add(&x, sizeof(x)); 
+    }
     
     
     /**
@@ -320,7 +383,7 @@ public:
      * 
      * @param   f       the float to add
      */
-    inline void push(float f) { add(&f, sizeof(f)); };
+    inline void push(float f) { add(&f, sizeof(f)); }
     
     
     /**
@@ -328,7 +391,7 @@ public:
      * 
      * @param   d       the double to add
      */
-    inline void push(double d) { add(&d, sizeof(d)); };
+    inline void push(double d) { add(&d, sizeof(d)); }
     
     
     /**
@@ -336,7 +399,11 @@ public:
      * 
      * @param   m       the memory to add
      */
-    inline void push(qkd::utility::memory const & m) { uint64_t nSize = m.size(); push(nSize); add((void *)m.get(), nSize); };
+    inline void push(qkd::utility::memory const & m) { 
+        uint64_t nSize = m.size(); 
+        push(nSize); 
+        add((void *)m.get(), nSize); 
+    }
     
     
     /**
@@ -344,7 +411,11 @@ public:
      * 
      * @param   s       the string to add
      */
-    inline void push(std::string const & s) { uint64_t nSize = s.size(); push(nSize); add((void *)s.data(), nSize); };
+    inline void push(std::string const & s) { 
+        uint64_t nSize = s.size(); 
+        push(nSize); 
+        add((void *)s.data(), nSize); 
+    }
     
     
     /**
@@ -354,7 +425,7 @@ public:
      * hold within the buffer. it justs repositionate the read/write
      * headert to the beginning of the buffer
      */
-    inline void reset() { set_position(0); };
+    inline void reset() { set_position(0); }
 
 
     /**
@@ -362,7 +433,10 @@ public:
      * 
      * @param   nPosition       the new read/write position
      */
-    inline void set_position(uint64_t nPosition) { if (nPosition > size()) grow(nPosition); m_nPosition = nPosition; };
+    inline void set_position(uint64_t nPosition) { 
+        if (nPosition > size()) grow(nPosition); 
+        m_nPosition = nPosition; 
+    }
     
     
 private:
@@ -380,7 +454,12 @@ private:
      * 
      * @param   nSize       amount of needed free size within the memory managed
      */
-    inline void grow(uint64_t nSize) { if (m_nPosition + nSize <= size()) return; uint64_t nNewSize = m_nPosition + nSize; resize(size() + nSize <= size() + grow_step() ? size() + grow_step() : size() + nSize); resize(nNewSize); };
+    inline void grow(uint64_t nSize) { 
+        if (m_nPosition + nSize <= size()) return; 
+        uint64_t nNewSize = m_nPosition + nSize; 
+        resize(size() + nSize <= size() + grow_step() ? size() + grow_step() : size() + nSize); 
+        resize(nNewSize); 
+    }
         
     
     /**
@@ -389,7 +468,7 @@ private:
      * the grow step is one 10th of the reserved space 
      * and at a minimum 1K and
      */
-    inline uint64_t grow_step() const { return (reserved() / 10 < 1024 ? 1024 : reserved() / 10); };
+    inline uint64_t grow_step() const { return (reserved() / 10 < 1024 ? 1024 : reserved() / 10); }
         
     
     /**
@@ -409,7 +488,10 @@ private:
  * @param   rhs     the data to add
  * @return  the buffer object
  */
-inline buffer & operator<<(buffer & lhs, bool rhs) { lhs.push(rhs); return lhs; }
+inline buffer & operator<<(buffer & lhs, bool rhs) { 
+    lhs.push(rhs); 
+    return lhs; 
+}
 
 
 /**
@@ -421,7 +503,10 @@ inline buffer & operator<<(buffer & lhs, bool rhs) { lhs.push(rhs); return lhs; 
  * @param   rhs     the data to add
  * @return  the buffer object
  */
-inline buffer & operator<<(buffer & lhs, char rhs) { lhs.push(rhs); return lhs; }
+inline buffer & operator<<(buffer & lhs, char rhs) { 
+    lhs.push(rhs); 
+    return lhs; 
+}
 
 
 /**
@@ -433,7 +518,10 @@ inline buffer & operator<<(buffer & lhs, char rhs) { lhs.push(rhs); return lhs; 
  * @param   rhs     the data to add
  * @return  the buffer object
  */
-inline buffer & operator<<(buffer & lhs, unsigned char rhs) { lhs.push(rhs); return lhs; }
+inline buffer & operator<<(buffer & lhs, unsigned char rhs) { 
+    lhs.push(rhs); 
+    return lhs; 
+}
 
 
 /**
@@ -445,7 +533,10 @@ inline buffer & operator<<(buffer & lhs, unsigned char rhs) { lhs.push(rhs); ret
  * @param   rhs     the data to add
  * @return  the buffer object
  */
-inline buffer & operator<<(buffer & lhs, int16_t rhs) { lhs.push(rhs); return lhs; }
+inline buffer & operator<<(buffer & lhs, int16_t rhs) { 
+    lhs.push(rhs); 
+    return lhs; 
+}
 
 
 /**
@@ -457,7 +548,10 @@ inline buffer & operator<<(buffer & lhs, int16_t rhs) { lhs.push(rhs); return lh
  * @param   rhs     the data to add
  * @return  the buffer object
  */
-inline buffer & operator<<(buffer & lhs, uint16_t rhs) { lhs.push(rhs); return lhs; }
+inline buffer & operator<<(buffer & lhs, uint16_t rhs) { 
+    lhs.push(rhs); 
+    return lhs; 
+}
 
 
 /**
@@ -469,7 +563,10 @@ inline buffer & operator<<(buffer & lhs, uint16_t rhs) { lhs.push(rhs); return l
  * @param   rhs     the data to add
  * @return  the buffer object
  */
-inline buffer & operator<<(buffer & lhs, int32_t rhs) { lhs.push(rhs); return lhs; }
+inline buffer & operator<<(buffer & lhs, int32_t rhs) { 
+    lhs.push(rhs); 
+    return lhs; 
+}
 
 
 /**
@@ -481,7 +578,10 @@ inline buffer & operator<<(buffer & lhs, int32_t rhs) { lhs.push(rhs); return lh
  * @param   rhs     the data to add
  * @return  the buffer object
  */
-inline buffer & operator<<(buffer & lhs, uint32_t rhs) { lhs.push(rhs); return lhs; }
+inline buffer & operator<<(buffer & lhs, uint32_t rhs) { 
+    lhs.push(rhs); 
+    return lhs; 
+}
 
 
 /**
@@ -493,7 +593,10 @@ inline buffer & operator<<(buffer & lhs, uint32_t rhs) { lhs.push(rhs); return l
  * @param   rhs     the data to add
  * @return  the buffer object
  */
-inline buffer & operator<<(buffer & lhs, int64_t rhs) { lhs.push(rhs); return lhs; }
+inline buffer & operator<<(buffer & lhs, int64_t rhs) { 
+    lhs.push(rhs); 
+    return lhs; 
+}
 
 
 /**
@@ -505,7 +608,10 @@ inline buffer & operator<<(buffer & lhs, int64_t rhs) { lhs.push(rhs); return lh
  * @param   rhs     the data to add
  * @return  the buffer object
  */
-inline buffer & operator<<(buffer & lhs, uint64_t rhs) { lhs.push(rhs); return lhs; }
+inline buffer & operator<<(buffer & lhs, uint64_t rhs) { 
+    lhs.push(rhs); 
+    return lhs; 
+}
 
 
 /**
@@ -517,7 +623,10 @@ inline buffer & operator<<(buffer & lhs, uint64_t rhs) { lhs.push(rhs); return l
  * @param   rhs     the data to add
  * @return  the buffer object
  */
-inline buffer & operator<<(buffer & lhs, float rhs) { lhs.push(rhs); return lhs; }
+inline buffer & operator<<(buffer & lhs, float rhs) { 
+    lhs.push(rhs); 
+    return lhs; 
+}
 
 
 /**
@@ -529,7 +638,10 @@ inline buffer & operator<<(buffer & lhs, float rhs) { lhs.push(rhs); return lhs;
  * @param   rhs     the data to add
  * @return  the buffer object
  */
-inline buffer & operator<<(buffer & lhs, double rhs) { lhs.push(rhs); return lhs; }
+inline buffer & operator<<(buffer & lhs, double rhs) { 
+    lhs.push(rhs); 
+    return lhs; 
+}
 
 
 /**
@@ -541,7 +653,10 @@ inline buffer & operator<<(buffer & lhs, double rhs) { lhs.push(rhs); return lhs
  * @param   rhs     the data to add
  * @return  the buffer object
  */
-inline buffer & operator<<(buffer & lhs, memory const & rhs) { lhs.push(rhs); return lhs; }
+inline buffer & operator<<(buffer & lhs, memory const & rhs) { 
+    lhs.push(rhs); 
+    return lhs; 
+}
 
 
 /**
@@ -553,7 +668,10 @@ inline buffer & operator<<(buffer & lhs, memory const & rhs) { lhs.push(rhs); re
  * @param   rhs     the data to add
  * @return  the buffer object
  */
-inline buffer & operator<<(buffer & lhs, std::string const & rhs) { lhs.push(rhs); return lhs; }
+inline buffer & operator<<(buffer & lhs, std::string const & rhs) { 
+    lhs.push(rhs); 
+    return lhs; 
+}
 
 
 /**
@@ -613,7 +731,10 @@ template<typename T> buffer & operator<<(buffer & lhs, std::vector<T> const & rh
  * @param   rhs     the data to get
  * @return  the buffer object
  */
-inline buffer & operator>>(buffer & lhs, bool & rhs) { lhs.pop(rhs); return lhs; }
+inline buffer & operator>>(buffer & lhs, bool & rhs) { 
+    lhs.pop(rhs); 
+    return lhs; 
+}
 
 
 /**
@@ -625,7 +746,10 @@ inline buffer & operator>>(buffer & lhs, bool & rhs) { lhs.pop(rhs); return lhs;
  * @param   rhs     the data to get
  * @return  the buffer object
  */
-inline buffer & operator>>(buffer & lhs, char & rhs) { lhs.pop(rhs); return lhs; }
+inline buffer & operator>>(buffer & lhs, char & rhs) { 
+    lhs.pop(rhs); 
+    return lhs; 
+}
 
 
 /**
@@ -637,7 +761,10 @@ inline buffer & operator>>(buffer & lhs, char & rhs) { lhs.pop(rhs); return lhs;
  * @param   rhs     the data to get
  * @return  the buffer object
  */
-inline buffer & operator>>(buffer & lhs, unsigned char & rhs) { lhs.pop(rhs); return lhs; }
+inline buffer & operator>>(buffer & lhs, unsigned char & rhs) { 
+    lhs.pop(rhs); 
+    return lhs; 
+}
 
 
 /**
@@ -649,7 +776,10 @@ inline buffer & operator>>(buffer & lhs, unsigned char & rhs) { lhs.pop(rhs); re
  * @param   rhs     the data to get
  * @return  the buffer object
  */
-inline buffer & operator>>(buffer & lhs, int16_t & rhs) { lhs.pop(rhs); return lhs; }
+inline buffer & operator>>(buffer & lhs, int16_t & rhs) { 
+    lhs.pop(rhs); 
+    return lhs; 
+}
 
 
 /**
@@ -661,7 +791,10 @@ inline buffer & operator>>(buffer & lhs, int16_t & rhs) { lhs.pop(rhs); return l
  * @param   rhs     the data to get
  * @return  the buffer object
  */
-inline buffer & operator>>(buffer & lhs, uint16_t & rhs) { lhs.pop(rhs); return lhs; }
+inline buffer & operator>>(buffer & lhs, uint16_t & rhs) { 
+    lhs.pop(rhs); 
+    return lhs; 
+}
 
 
 /**
@@ -673,7 +806,10 @@ inline buffer & operator>>(buffer & lhs, uint16_t & rhs) { lhs.pop(rhs); return 
  * @param   rhs     the data to get
  * @return  the buffer object
  */
-inline buffer & operator>>(buffer & lhs, int32_t & rhs) { lhs.pop(rhs); return lhs; }
+inline buffer & operator>>(buffer & lhs, int32_t & rhs) { 
+    lhs.pop(rhs); 
+    return lhs; 
+}
 
 
 /**
@@ -685,7 +821,10 @@ inline buffer & operator>>(buffer & lhs, int32_t & rhs) { lhs.pop(rhs); return l
  * @param   rhs     the data to get
  * @return  the buffer object
  */
-inline buffer & operator>>(buffer & lhs, uint32_t & rhs) { lhs.pop(rhs); return lhs; }
+inline buffer & operator>>(buffer & lhs, uint32_t & rhs) { 
+    lhs.pop(rhs); 
+    return lhs; 
+}
 
 
 /**
@@ -697,7 +836,10 @@ inline buffer & operator>>(buffer & lhs, uint32_t & rhs) { lhs.pop(rhs); return 
  * @param   rhs     the data to get
  * @return  the buffer object
  */
-inline buffer & operator>>(buffer & lhs, int64_t & rhs) { lhs.pop(rhs); return lhs; }
+inline buffer & operator>>(buffer & lhs, int64_t & rhs) { 
+    lhs.pop(rhs); 
+    return lhs; 
+}
 
 
 /**
@@ -709,7 +851,10 @@ inline buffer & operator>>(buffer & lhs, int64_t & rhs) { lhs.pop(rhs); return l
  * @param   rhs     the data to get
  * @return  the buffer object
  */
-inline buffer & operator>>(buffer & lhs, uint64_t & rhs) { lhs.pop(rhs); return lhs; }
+inline buffer & operator>>(buffer & lhs, uint64_t & rhs) { 
+    lhs.pop(rhs); 
+    return lhs; 
+}
 
 
 /**
@@ -721,7 +866,10 @@ inline buffer & operator>>(buffer & lhs, uint64_t & rhs) { lhs.pop(rhs); return 
  * @param   rhs     the data to get
  * @return  the buffer object
  */
-inline buffer & operator>>(buffer & lhs, float & rhs) { lhs.pop(rhs); return lhs; }
+inline buffer & operator>>(buffer & lhs, float & rhs) { 
+    lhs.pop(rhs); 
+    return lhs; 
+}
 
 
 /**
@@ -733,7 +881,10 @@ inline buffer & operator>>(buffer & lhs, float & rhs) { lhs.pop(rhs); return lhs
  * @param   rhs     the data to get
  * @return  the buffer object
  */
-inline buffer & operator>>(buffer & lhs, double & rhs) { lhs.pop(rhs); return lhs; }
+inline buffer & operator>>(buffer & lhs, double & rhs) { 
+    lhs.pop(rhs); 
+    return lhs; 
+}
 
 
 /**
@@ -745,7 +896,10 @@ inline buffer & operator>>(buffer & lhs, double & rhs) { lhs.pop(rhs); return lh
  * @param   rhs     the data to get
  * @return  the buffer object
  */
-inline buffer & operator>>(buffer & lhs, memory & rhs) { lhs.pop(rhs); return lhs; }
+inline buffer & operator>>(buffer & lhs, memory & rhs) { 
+    lhs.pop(rhs); 
+    return lhs; 
+}
 
 
 /**
@@ -757,7 +911,10 @@ inline buffer & operator>>(buffer & lhs, memory & rhs) { lhs.pop(rhs); return lh
  * @param   rhs     the data to get
  * @return  the buffer object
  */
-inline buffer & operator>>(buffer & lhs, std::string & rhs) { lhs.pop(rhs); return lhs; }
+inline buffer & operator>>(buffer & lhs, std::string & rhs) { 
+    lhs.pop(rhs); 
+    return lhs; 
+}
 
 
 /**

@@ -7,7 +7,7 @@
 #
 # TEST: test the cascade simple implementation
 #
-# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+# Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
 # Copyright (C) 2012-2015 AIT Austrian Institute of Technology
 # AIT Austrian Institute of Technology GmbH
@@ -38,7 +38,7 @@ source ${TEST_BASE}/test/bin/test-functions
 # ------------------------------------------------------------
 
 # init test environment
-test_init
+test_init "$(basename $0).d"
 
 # zap previous keys
 rm -rf cat_keys.* &> /dev/null
@@ -49,7 +49,7 @@ echo -n > cascade_debug.bob
 
 # create keys
 KEYS_TO_PROCESS="100"
-${TEST_BASE}/bin/qkd-key-gen --size 512 --keys ${KEYS_TO_PROCESS} --rate 0.03 cat_keys
+${TEST_BASE}/bin/qkd-key-gen --silent --size 512 --keys ${KEYS_TO_PROCESS} --rate 0.03 cat_keys
 
 # start two pipelines
 cat ${TEST_BASE}/test/test-data/pipeline.conf | grep -v "^cat.alice.url_pipe_out" | grep -v "^cat.bob.url_pipe_out" > cascade.config
@@ -73,7 +73,7 @@ done
 
 # wait until all keys have been processed
 sleep 1
-wait_stalled cat cascade
+wait_idle cat cascade
 echo "got keys"
 
 # stop machines

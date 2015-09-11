@@ -75,11 +75,11 @@
         <log path="qkd-auth-starting.alice.log" />
     </module>
 
-    <module path="bin/modules/qkd-bb84/qkd-bb84" >
+    <module path="bin/modules/qkd-sifting-bb84/qkd-sifting-bb84" >
         <config path="test/test-data/cat-pipeline.conf" />
         <role value="alice" />
         <args value="--debug" />
-        <log path="qkd-bb84.alice.log" />
+        <log path="qkd-sifting-bb84.alice.log" />
     </module>
 
     <module path="bin/modules/qkd-cascade/qkd-cascade" >
@@ -96,11 +96,11 @@
         <log path="qkd-confirmation.alice.log" />
     </module>
 
-    <module path="bin/modules/qkd-buffer/qkd-buffer" >
+    <module path="bin/modules/qkd-resize/qkd-resize" >
         <config path="test/test-data/cat-pipeline.conf" />
         <role value="alice" />
         <args value="--debug" />
-        <log path="qkd-buffer.alice.log" />
+        <log path="qkd-resize.alice.log" />
     </module>
 
     <module path="bin/modules/qkd-privacy-amplification/qkd-privacy-amplification" >

@@ -1,0 +1,69 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-sudden-death
+# 
+# This is a test file.
+#
+# TEST: test what happens when a peer module dies
+#
+# Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+
+# ------------------------------------------------------------
+
+test_init "$(basename $0).d"
+
+rm -f sudden_death.* &> /dev/null
+
+# start bob ping in the background
+# this will immediately start a worker thread been blocked
+# on a recv
+( ${TEST_BASE}/bin/qkd-ping --debug --run 1> sudden_death.alice 2> sudden_death.debug.alice ) &
+( ${TEST_BASE}/bin/qkd-ping --bob --debug --run 1> sudden_death.bob 2> sudden_death.debug.bob ) &
+sleep 1
+
+PID_BOB=$(${TEST_BASE}/bin/qkd-view -s | grep bob | awk '{ print $9; }')
+if [ -z "${PID_BOB}" ]; then
+    echo "failed to get PID of bob"
+    exit 1
+fi
+
+# kill bob and check how alice reacts to this
+kill ${PID_BOB}
+sleep 1
+
+# check if alice detected bob's missing
+FAILED_RECV=$(grep 'failed to read from bob...' sudden_death.debug.alice | wc -l)
+if [ -z "${FAILED_RECV}" ]; then
+    echo "alice did not notice bob's death, alice seems still locked"
+    exit 1
+fi
+
+# state that test ok
+echo "=== TEST SUCCESS ==="

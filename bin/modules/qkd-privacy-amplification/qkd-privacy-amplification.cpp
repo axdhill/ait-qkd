@@ -4,7 +4,7 @@
  * This is the implementation of the QKD postprocessing
  * privacy amplification
  * 
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -180,14 +180,13 @@ bool qkd_privacy_amplification::process(qkd::key::key & cKey, UNUSED qkd::crypto
     // alice generates random values and sends them to bob
     if (is_alice()) {
 
-        // send seed and shift key data to bob: no timeout
         random() >> cSeed;
         random() >> cShift;
         qkd::module::message cMessage;
         cMessage.data() << cSeed;
         cMessage.data() << cShift;
         try {
-            send(cMessage, cOutgoingContext, -1);
+            send(cMessage, cOutgoingContext);
         }
         catch (std::runtime_error const & cRuntimeError) {
             qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to send message: " << cRuntimeError.what();
@@ -197,10 +196,9 @@ bool qkd_privacy_amplification::process(qkd::key::key & cKey, UNUSED qkd::crypto
     }
     else {
         
-        // receive from alice: no timeout
         qkd::module::message cMessage;
         try {
-            if (!recv(cMessage, cIncomingContext, qkd::module::message_type::MESSAGE_TYPE_DATA, -1)) return false;
+            if (!recv(cMessage, cIncomingContext, qkd::module::message_type::MESSAGE_TYPE_DATA)) return false;
         }
         catch (std::runtime_error const & cRuntimeError) {
             qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to receive message: " << cRuntimeError.what();

@@ -10,7 +10,7 @@
 # * test
 # * package
 #
-# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+# Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 # 
 # Copyright (C) 2012-2015 AIT Austrian Institute of Technology
 # AIT Austrian Institute of Technology GmbH
@@ -94,8 +94,8 @@ mkdir build &> /dev/null
     cmake ..
     echo 'make...'
     make || exit 1
-    echo 'make test...'
-    make test || exit 1
+    echo 'ctest -V...'
+    ctest -V || exit 1
     echo 'make package...'
     make package || exit 1
 )

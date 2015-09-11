@@ -3,7 +3,7 @@
  * 
  * this is the base abstract protocol class
  *
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -167,7 +167,7 @@ public:
      * 
      * @return  the Q3P engine associated
      */
-    qkd::q3p::engine_instance * engine() { return m_cEngine; };
+    qkd::q3p::engine_instance * engine() { return m_cEngine; }
     
     
     /**
@@ -175,7 +175,7 @@ public:
      * 
      * @return  the Q3P engine associated
      */
-    qkd::q3p::engine_instance const * engine() const { return m_cEngine; };
+    qkd::q3p::engine_instance const * engine() const { return m_cEngine; }
     
     
     /**
@@ -226,7 +226,7 @@ public:
      * @param   cMessage        the message read
      * @return  an protocol error variable
      */
-    protocol_error recv(qkd::q3p::message & cMessage) { return recv_internal(cMessage); };
+    protocol_error recv(qkd::q3p::message & cMessage) { return recv_internal(cMessage); }
     
     
     /**
@@ -243,7 +243,7 @@ public:
      * 
      * @return  the socket we operate on
      */
-    QAbstractSocket * socket() { return m_cSocket; };
+    QAbstractSocket * socket() { return m_cSocket; }
 
 
     /**
@@ -251,7 +251,7 @@ public:
      * 
      * @return  the socket we operate on
      */
-    QAbstractSocket const * socket() const { return m_cSocket; };
+    QAbstractSocket const * socket() const { return m_cSocket; }
     
     
     /**
@@ -259,7 +259,12 @@ public:
      * 
      * @return  true, if we are well connected
      */
-    bool valid_socket() const { if (!socket()) return false; if (!socket()->isValid()) return false; if (!socket()->state() == QAbstractSocket::ConnectedState) return false; return true; };
+    bool valid_socket() const {
+        if (!socket()) return false; 
+        if (!socket()->isValid()) return false; 
+        if (socket()->state() != QAbstractSocket::ConnectedState) return false; 
+        return true; 
+    }
     
     
 public slots:
@@ -277,7 +282,7 @@ private slots:
     /**
      * called every second to detect timeouts
      */
-    void timeout() { timeout_internal(); };
+    void timeout() { timeout_internal(); }
     
     
 signals:

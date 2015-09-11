@@ -7,7 +7,7 @@
 #
 # TEST: test the qkd module copy which is: test the pipe-in and pipe-out stuff
 #
-# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+# Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
 # Copyright (C) 2012-2015 AIT Austrian Institute of Technology
 # AIT Austrian Institute of Technology GmbH
@@ -37,7 +37,7 @@ source ${TEST_BASE}/test/bin/test-functions
 
 # ------------------------------------------------------------
 
-test_init
+test_init "$(basename $0).d"
 rm -f "test-config-module.output" &> /dev/null
 
 ( "${TEST_BASE}/test/lib/test-config-module" &> "test-config-module.output" ) &

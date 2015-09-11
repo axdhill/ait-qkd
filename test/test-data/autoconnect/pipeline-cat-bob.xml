@@ -62,7 +62,7 @@
     
 -->
 
-<pipeline name="default" autoconnect="true" pipein="ipc:///tmp/qkd/default.bob.in" pipeout="ipc:///tmp/qkd/default.bob.out">
+<pipeline name="default" autoconnect="true" pipein="ipc:///tmp/qkd/default.bob.in" pipeout="stdout://">
 
     <module path="bin/modules/qkd-cat/qkd-cat">
         <config path="test/test-data/autoconnect/cat-pipeline.conf" />
@@ -78,11 +78,11 @@
         <log path="qkd-auth-starting.bob.log" />
     </module>
 
-    <module path="bin/modules/qkd-bb84/qkd-bb84">
+    <module path="bin/modules/qkd-sifting-bb84/qkd-sifting-bb84">
         <config path="test/test-data/autoconnect/cat-pipeline.conf" />
         <role value="bob" />
         <args value="--debug" />
-        <log path="qkd-bb84.bob.log" />
+        <log path="qkd-sifting-bb84.bob.log" />
     </module>
 
     <module path="bin/modules/qkd-cascade/qkd-cascade">
@@ -99,11 +99,11 @@
         <log path="qkd-confirmation.bob.log" />
     </module>
 
-    <module path="bin/modules/qkd-buffer/qkd-buffer">
+    <module path="bin/modules/qkd-resize/qkd-resize">
         <config path="test/test-data/autoconnect/cat-pipeline.conf" />
         <role value="bob" />
         <args value="--debug" />
-        <log path="qkd-buffer.bob.log" />
+        <log path="qkd-resize.bob.log" />
     </module>
 
     <module path="bin/modules/qkd-privacy-amplification/qkd-privacy-amplification">

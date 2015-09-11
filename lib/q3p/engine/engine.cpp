@@ -3,7 +3,7 @@
  * 
  * implementation of the Q3P engine
  *
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -32,7 +32,7 @@
 // incs
 
 #include <iostream>
-
+#include <thread>
 
 // Qt
 #include <QtCore/QTimer>
@@ -94,7 +94,7 @@ public:
      * 
      * @param   cDBus       the DBus connection to use
      */
-    engine_data(QDBusConnection cDBus) : m_cDBus(cDBus), m_bReconnect(false) {
+    engine_data(QDBusConnection cDBus) : m_cDBus(cDBus), m_bReconnect(false), m_nPeerPort(0) {
         
         m_cAssociationDefinition.sAuthenticationIncoming = "evhash-96";
         m_cAssociationDefinition.sAuthenticationOutgoing = "evhash-96";
@@ -470,6 +470,8 @@ std::string engine_instance::charge_string() const {
 void engine_instance::close() {
     
     // wind down module thread
+    interrupt_worker();
+    std::this_thread::yield();
     terminate();
     join();
     
@@ -730,19 +732,18 @@ void engine_instance::disconnect() {
 
     if (connected()) qkd::utility::syslog::info() << "disconnecting from peer";
     
+    // this has been called by the user (this is a DBus method)
+    // so cancel reconnection feature
     d->m_bReconnect = false;
     
     // stop module worker
-    // TODO: better terminate() ?
     pause();
+    interrupt_worker();
+    join();
 
-    // wind down nic
     shutdown_nic();
-    
-    // wind down mq
     shutdown_mq();
     
-    // wind down all protocols
     if (d->m_cProtocol.cData) d->m_cProtocol.cData->deleteLater();
     d->m_cProtocol.cData = nullptr;
     if (d->m_cProtocol.cLoad) d->m_cProtocol.cLoad->deleteLater();
@@ -752,30 +753,20 @@ void engine_instance::disconnect() {
     if (d->m_cProtocol.cStore) d->m_cProtocol.cStore->deleteLater();
     d->m_cProtocol.cStore = nullptr;
     
-    // wind down buffers
     shutdown_buffers();
     
-    // stop any communication
     if (d->m_cSocket) {
         d->m_cSocket->disconnectFromHost();
         delete d->m_cSocket;
         d->m_cSocket = nullptr;
     }
     
-    // wind channels
     shutdown_channels();
     
     d->m_cRecvBuffer = QByteArray();
     d->m_bConnected = false;
     
-    // this has been called by the user (this is a DBus method)
-    // so cancel reconnection feature
-    d->m_bReconnect = false;
-    
-    // tell environment
     emit connection_lost();
-    
-    // state switch
     calculate_state();
 }
 

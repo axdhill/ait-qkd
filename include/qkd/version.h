@@ -3,7 +3,7 @@
  *
  * version information file
  * 
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -41,7 +41,7 @@
 // ------------------------------------------------------------
 // defs
 
-#define QKD_VERSION             "9.9999.4"
+#define QKD_VERSION             "9.9999.5"
 
 
 // ------------------------------------------------------------
@@ -101,6 +101,17 @@ uint32_t qkd_version_9_9999_3();
  * @return  value, representing the version
  */
 uint32_t qkd_version_9_9999_4();
+
+
+/**
+ * version check for 9.9999.5 
+ * 
+ * any compiler and linker may link against the qkd library
+ * requesting this funtcion to ensure availablity
+ * 
+ * @return  value, representing the version
+ */
+uint32_t qkd_version_9_9999_5();
 
 
 #endif

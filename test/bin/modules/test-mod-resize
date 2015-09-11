@@ -1,0 +1,115 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-resize
+# 
+# This is a test file.
+#
+# TEST: test the QKD resize module
+#
+# Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+
+# ------------------------------------------------------------
+
+# init test environment
+test_init "$(basename $0).d"
+
+# zap previous keys
+rm -rf cat_keys.* &> /dev/null
+
+# create keys
+${TEST_BASE}/bin/qkd-key-gen --silent --size 1000 --keys 1000 --rate 0.04 --errorbits cat_keys
+
+# truncate previous debug out
+echo -n > resize_debug.alice
+echo -n > resize_debug.bob
+
+# fix pipeline config
+cat ${TEST_BASE}/test/test-data/pipeline.conf | grep -v "^cat.alice.url_pipe_out" | grep -v "^cat.bob.url_pipe_out" > resize.config
+
+echo "cat.alice.url_pipe_out = ipc:///tmp/qkd/resize.alice.in" >> resize.config
+echo "cat.bob.url_pipe_out = ipc:///tmp/qkd/resize.bob.in" >> resize.config
+
+# start two pipelines
+PIPELINE_CONFIG="resize.config"
+
+# start the modules - for the resize we are using the same keys in the first round
+( ${TEST_BASE}/bin/qkd-cat --run --config ${PIPELINE_CONFIG} --file "cat_keys.alice" ) &
+( ${TEST_BASE}/bin/qkd-cat --bob --run --config ${PIPELINE_CONFIG} --file "cat_keys.bob" ) &
+( ${TEST_BASE}/bin/qkd-resize --debug --run --config ${PIPELINE_CONFIG} 1> resize_keys.alice 2>> resize_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-resize --debug --bob --run --config ${PIPELINE_CONFIG} 1> resize_keys.bob 2>> resize_debug.bob ) &
+
+# wait until the modules are up
+while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module.resize | wc -l)" = "0" ]; do
+    echo "waiting for the pipeline to ignite ..."
+    sleep 1
+done
+
+# wait until all keys have been processed
+sleep 1
+wait_idle cat resize
+echo "got keys"
+
+# clean up the generated debug output
+grep "^key-PUSH" resize_debug.alice | awk '{ print $3 " " $4 " " $5 " " $6; }' > resize_debug.alice.out
+grep "^key-PUSH" resize_debug.bob  | awk '{ print $3 " " $4 " " $5 " " $6; }' > resize_debug.bob.out
+FILES_LINES=$(echo $(wc -l resize_debug.alice.out) $(wc -l resize_debug.bob.out))
+if [ "${FILES_LINES}" != "333 resize_debug.alice.out 333 resize_debug.bob.out" ]; then
+    echo "resize failed"
+    test_cleanup
+    exit 1
+fi
+
+# check keys
+if [ ! -s resize_keys.alice ]; then
+    echo "alice has not pushed keys"
+    test_cleanup
+    exit 1
+fi
+if [ ! -s resize_keys.bob ]; then
+    echo "bob has not pushed keys"
+    test_cleanup
+    exit 1
+fi
+diff -q resize_debug.alice.out resize_debug.bob.out
+if [ "$?" != "0" ]; then
+    echo "result of qkd-resize differ"
+    test_cleanup
+    exit 1
+fi
+
+echo "qkd-resize works"
+
+# stop machines
+test_cleanup
+
+# state that test ok
+echo "=== TEST SUCCESS ==="
+
+exit 0

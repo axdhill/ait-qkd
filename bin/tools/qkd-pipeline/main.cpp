@@ -3,7 +3,7 @@
  * 
  * This is the qkd pipeline tool
  *
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2013-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -254,7 +254,6 @@ bool autoconnect_modules() {
     QString sNextModulePipeIn = QString::fromStdString(g_cPipeline.sURLPipeOut);
 
     // interconnect modules in reverse order
-
     QDBusConnection cDBus = qkd::utility::dbus::qkd_dbus();
     for (auto iter = g_cPipeline.cModules.rbegin(); iter != g_cPipeline.cModules.rend(); ++iter) {
 
@@ -285,21 +284,18 @@ bool autoconnect_modules() {
 
         cDBus.call(cMessage, QDBus::NoBlock);
 
-        if (!sNextModulePipeIn.isEmpty()) {
+        cMessage = QDBusMessage::createMethodCall(
+                QString::fromStdString((*iter).sDBusServiceName), 
+                "/Module", 
+                "org.freedesktop.DBus.Properties", 
+                "Set");
 
-            cMessage = QDBusMessage::createMethodCall(
-                    QString::fromStdString((*iter).sDBusServiceName), 
-                    "/Module", 
-                    "org.freedesktop.DBus.Properties", 
-                    "Set");
+        cMessage 
+                << "at.ac.ait.qkd.module" 
+                << "url_pipe_out" 
+                << QVariant::fromValue(QDBusVariant(sNextModulePipeIn)); 
 
-            cMessage 
-                    << "at.ac.ait.qkd.module" 
-                    << "url_pipe_out" 
-                    << QVariant::fromValue(QDBusVariant(sNextModulePipeIn)); 
-
-            cDBus.call(cMessage, QDBus::NoBlock);
-        }
+        cDBus.call(cMessage, QDBus::NoBlock);
 
         sNextModulePipeIn = sURLPipeIn;
     }

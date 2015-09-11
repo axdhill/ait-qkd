@@ -5,7 +5,7 @@
 # 
 # This holds some functions for testing
 #
-# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+# Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
 # Copyright (C) 2012-2015 AIT Austrian Institute of Technology
 # AIT Austrian Institute of Technology GmbH
@@ -44,8 +44,14 @@ export SHARED_SECRET=$(cat ${TEST_BASE}/test/test-data/shared-secret)
 export SHARED_SECRET_FILE="${TEST_BASE}/test/test-data/shared-secret-very-long"
 
 export QKD_DBUS_SESSION_ADDRESS="unix:path=/tmp/qkd-test-dbus/qkd_dbus_socket"
-alias qkd_qdbus='qdbus --address ${QKD_DBUS_SESSION_ADDRESS}'
 
+# newer versions of qdbus use --bus instead of --address
+qdbus --help | grep '\--bus' &> /dev/null
+if [ "$?" = 0 ]; then
+    alias qkd_qdbus='qdbus --bus ${QKD_DBUS_SESSION_ADDRESS}'
+else
+    alias qkd_qdbus='qdbus --address ${QKD_DBUS_SESSION_ADDRESS}'
+fi
 
 # --------------------------------------------------
 # ensure there is a clean environment to test
@@ -93,14 +99,20 @@ function test_cleanup() {
 # --------------------------------------------------
 # init test environment
 # 
+# $1    name of test folder
 function test_init() {
+
+    if [ -z "${1}" ]; then
+        echo 'No test folder given'
+        exit 1
+    fi
 
     ( 
         cd ${TEST_BASE}/bin;
     
         ln -f -s modules/qkd-auth/qkd-auth;
-        ln -f -s modules/qkd-bb84/qkd-bb84;
-        ln -f -s modules/qkd-buffer/qkd-buffer;
+        ln -f -s modules/qkd-sifting-bb84/qkd-sifting-bb84;
+        ln -f -s modules/qkd-resize/qkd-resize;
         ln -f -s modules/qkd-cascade/qkd-cascade;
         ln -f -s modules/qkd-cat/qkd-cat;
         ln -f -s modules/qkd-confirmation/qkd-confirmation;
@@ -131,17 +143,42 @@ function test_init() {
     
     # clean up any remants of previous tests
     test_cleanup
-
+    
     # setup local DBUS for testing
     mkdir -p /tmp/qkd-test-dbus &> /dev/null
     rm -f /tmp/qkd-test-dbus/qkd-dbus.pid &> /dev/null
     dbus-daemon --config-file ${TEST_BASE}/test/test-data/qkd-test-dbus.conf
-    echo "query local temporary DBus with 'qdbus --address unix:path=/tmp/qkd-test-dbus/qkd_dbus_socket'"
     DBUS_ID=$(qkd_qdbus org.freedesktop.DBus / GetId)
     if [ -z ${DBUS_ID} ]; then
         echo 'Failed to launch local DBus for testing.'
         exit 1
     fi
+    
+    mkdir -p ${1} 2> /dev/null
+    TEST_DATA_FOLDER=$(readlink -f ${1})
+    cd ${1}
+    if [ "$?" != "0" ]; then
+        echo 'Failed to create test folder "${1}"'
+        exit 1
+    fi
+    rm * &> /dev/null
+    
+    ulimit -c unlimited
+    echo 
+    echo "---- test hint ----"
+    echo "test folder:"
+    echo "      ${TEST_DATA_FOLDER}"
+    echo "query local temporary DBus with: "
+    echo "      $ qdbus --address unix:path=/tmp/qkd-test-dbus/qkd_dbus_socket"
+    echo "or use: "
+    echo "      $ export DBUS_SESSION_BUS_ADDRESS=\"unix:path=/tmp/qkd-test-dbus/qkd_dbus_socket\""
+    echo "If you want to examine core dumps you might set:"
+    echo "      # echo 1 > /proc/sys/kernel/core_uses_pid"
+    echo "      # echo 'core_%e.%p' > /proc/sys/kernel/core_pattern"
+    echo "If you want to see all test details in a file "
+    echo "named 'test_details' invoke the test suite with this:"
+    echo "      $ ctest -V 2>&1 | tee test_details"
+    echo 
 }
 
 
@@ -217,6 +254,33 @@ function q3pd_stop() {
 
 
 # --------------------------------------------------
+# wait for set idle flag in the given list of modules
+#
+# ${+}      id of modules
+# 
+function wait_idle() {
+
+    MODULE=${1}
+    while [ "${MODULE}" ]; do
+    
+        echo "waiting for module(s) '${MODULE}' to be idle ..."
+        ${TEST_BASE}/bin/qkd-view --short | grep "module: *${MODULE}.*true *$" | while read LINE; do
+            qkd_qdbus $(echo ${LINE} | awk '{ print $3; }') /Module terminate > /dev/null
+            echo "sent terminate signal to module" $(echo ${LINE} | awk '{ print $3; }')
+        done
+        
+        NOT_STALLED=$(${TEST_BASE}/bin/qkd-view --short | grep "module: *${MODULE}.*false *$" | wc -l)
+        if [ "${NOT_STALLED}" -gt 0 ]; then
+            sleep 1
+        else
+            shift
+            MODULE=${1}
+        fi
+    done
+}
+
+
+# --------------------------------------------------
 # wait for outgoing keys in a set of modules
 #
 # ${1}      minimum number of keys out
@@ -256,32 +320,6 @@ function wait_keys() {
             sleep 1
         fi
 
-    done
-}
-
-
-# --------------------------------------------------
-# wait for set stalled flag in the given list of modules
-#
-# ${+}      id of modules
-# 
-function wait_stalled() {
-
-    MODULE=${1}
-    while [ "${MODULE}" ]; do
-    
-        echo "waiting for module(s) '${MODULE}' to be stalled ..."
-        ${TEST_BASE}/bin/qkd-view --short | grep "module: *${MODULE}.*true *$" | while read LINE; do
-            qkd_qdbus $(echo ${LINE} | awk '{ print $3; }') /Module terminate > /dev/null
-        done
-        
-        NOT_STALLED=$(${TEST_BASE}/bin/qkd-view --short | grep "module: *${MODULE}.*false *$" | wc -l)
-        if [ "${NOT_STALLED}" -gt 0 ]; then
-            sleep 1
-        else
-            shift
-            MODULE=${1}
-        fi
     done
 }
 

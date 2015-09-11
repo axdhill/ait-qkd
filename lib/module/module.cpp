@@ -3,7 +3,7 @@
  * 
  * QKD module implementation
  *
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -69,14 +69,7 @@
 
 #include "module_internal.h"
 
-
 using namespace qkd::module;
-
-
-// ------------------------------------------------------------
-// fwd.
-
-void memory_delete(void * cData, void * cHint);
 
 
 // ------------------------------------------------------------
@@ -176,8 +169,6 @@ void module::apply_config(UNUSED std::string const & sURL, UNUSED qkd::utility::
  *      module.ID.random_url
  *      module.ID.synchronize_keys
  *      module.ID.synchronize_ttl
- *      module.ID.timeout_network
- *      module.ID.timeout_pipe
  * 
  * where ID is the module id as been resulted by the id() call.
  * 
@@ -268,16 +259,6 @@ bool module::apply_standard_config(std::string const & sKey, std::string const &
         set_terminate_after(std::stoll(sValue));
         return true;
     }
-    else
-    if (sSubKey == "timeout_network") {
-        set_timeout_network(std::stoll(sValue));
-        return true;
-    }
-    else
-    if (sSubKey == "timeout_pipe") {
-        set_timeout_pipe(std::stoll(sValue));
-        return true;
-    }
     
     // here it is a known key but not applicable.
     return true;
@@ -291,6 +272,34 @@ bool module::apply_standard_config(std::string const & sKey, std::string const &
  */
 std::chrono::high_resolution_clock::time_point module::birth() const {
     return d->cModuleBirth;
+}
+
+
+/**
+ * return the connection object associated with a connection type
+ * 
+ * @param   eType           the connection type
+ * @return  the connection associated with this type
+ */
+qkd::module::connection const & qkd::module::module::connection(qkd::module::connection_type eType) const {
+    
+    switch (eType) {
+        
+    case qkd::module::connection_type::LISTEN:
+        return *(d->cConListen);
+        
+    case qkd::module::connection_type::PEER:
+        return *(d->cConPeer);
+        
+    case qkd::module::connection_type::PIPE_IN:
+        return *(d->cConPipeIn);
+        
+    case qkd::module::connection_type::PIPE_OUT:
+        return *(d->cConPipeOut);
+        
+    }
+    
+    throw std::out_of_range("no connection known for this connection type");
 }
 
 
@@ -330,9 +339,7 @@ bool module::configure(QString sConfigURL, bool bRequired) {
             qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << ss.str();
 
             if (bRequired) {
-                qkd::utility::syslog::warning() << __FILENAME__ 
-                        << '@' 
-                        << __LINE__ 
+                qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
                         << ": as configuration is required, this is futile --> aborted"; 
                 std::exit(1);
             }
@@ -354,9 +361,7 @@ bool module::configure(QString sConfigURL, bool bRequired) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << ss.str();
 
         if (bRequired) {
-            qkd::utility::syslog::warning() << __FILENAME__ 
-                    << '@' 
-                    << __LINE__ 
+            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
                     << ": as configuration is required, this is futile --> aborted"; 
             std::exit(1);
         }
@@ -368,18 +373,11 @@ bool module::configure(QString sConfigURL, bool bRequired) {
     std::string sFile = cConfigURL.toLocalFile().toStdString();
     std::ifstream cConfigFile(sFile);
     if (!cConfigFile.is_open()) {
-        qkd::utility::syslog::warning() << __FILENAME__ 
-                << '@' 
-                << __LINE__ 
-                << ": " 
-                << "failed to open configuration '" 
-                << sFile 
-                << "'";
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                << ": failed to open configuration '" << sFile << "'";
 
         if (bRequired) {
-            qkd::utility::syslog::warning() << __FILENAME__ 
-                    << '@' 
-                    << __LINE__ 
+            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
                     << ": as configuration is required, this is futile --> aborted"; 
             std::exit(1);
         }
@@ -411,25 +409,14 @@ bool module::configure(QString sConfigURL, bool bRequired) {
         
     }
     catch (boost::program_options::invalid_syntax const & cErrInvalidSyntax) {
-        qkd::utility::syslog::crit() << __FILENAME__ 
-                << '@' 
-                << __LINE__ 
-                << ": " 
-                << "failed to parse config file: " 
-                << sFile 
-                << " invalid syntax at: '" 
-                << cErrInvalidSyntax.tokens() 
-                << "'";
+        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ 
+                << ": failed to parse config file: " << sFile 
+                << " invalid syntax at: '" << cErrInvalidSyntax.tokens() << "'";
     }
     catch (std::exception const & cException) {
-        qkd::utility::syslog::crit() << __FILENAME__ 
-                << '@' 
-                << __LINE__ 
-                << ": " 
-                << "failed to parse config file: " 
-                << sFile 
-                << " exception: " 
-                << cException.what();
+        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ 
+                << ": failed to parse config file: " << sFile 
+                << " exception: "    << cException.what();
     }
 
     return true;
@@ -530,6 +517,20 @@ QString module::id() const {
 
 
 /**
+ * finished work on a key for at least 1 sec ago
+ * 
+ * @return  idle flag
+ */
+bool module::idle() const {
+    if (processing() && (get_state() == qkd::module::module_state::STATE_RUNNING)) return false;
+    std::chrono::system_clock::time_point cNow = std::chrono::system_clock::now();
+    bool bIdle = (std::chrono::duration_cast<std::chrono::milliseconds>(cNow - d->cLastProcessedKey)).count() > 1000;
+    return bIdle;
+    
+}
+
+
+/**
  * initialize the module
  */
 void module::init() {
@@ -556,8 +557,10 @@ void module::init() {
  * the return value of false.
  */
 void module::interrupt_worker() {
+    if (d->cModuleThread.get_id() == std::thread::id()) return;
     if (d->cModuleThread.get_id() == std::this_thread::get_id()) return;
-    pthread_kill(d->cModuleThread.native_handle(), SIGCHLD);
+    pthread_kill(d->cModuleThread.native_handle(), SIGINT);
+    std::this_thread::yield();
 }
 
 
@@ -584,8 +587,6 @@ bool module::is_standard_config_key(std::string const & sKey) const {
     if (sSubKey == "synchronize_keys") return true;
     if (sSubKey == "synchronize_ttl") return true;
     if (sSubKey == "terminate_after") return true;
-    if (sSubKey == "timeout_network") return true;
-    if (sSubKey == "timeout_pipe") return true;
     
     return false;
 }
@@ -650,6 +651,36 @@ QString module::pipeline() const {
 
 
 /**
+ * this is the real module's working method on a single key
+ * 
+ * You have to overwrite this to work on a single key.
+ * 
+ * This method is called by work() for a new key. If the input pipe
+ * has been set to void ("") then the input key is always a NULL key
+ * and the crypto contexts are "null".
+ * 
+ * This method is ought to process the new incoming key and to perform
+ * actions on this key. The given parameter "cKey" is passed by reference
+ * and should contain the modified key for the next module in the pipe.
+ * 
+ * If the modified key is to be forwarded to the next module, then this
+ * method has to return "true".
+ * 
+ * @param   cKey                    the key just read from the input pipe
+ * @param   cIncomingContext        incoming crypto context
+ * @param   cOutgoingContext        outgoing crypto context
+ * @return  true, if the key is to be pushed to the output pipe
+ */
+bool module::process(UNUSED qkd::key::key & cKey, 
+        UNUSED qkd::crypto::crypto_context & cIncomingContext, 
+        UNUSED qkd::crypto::crypto_context & cOutgoingContext) {
+    
+    qkd::utility::debug() << "implementation for process() missing - please check for module code.";
+    return false;
+}
+
+
+/**
  * check if the module is currently processing a key    
  * 
  * @return  true, if we currently processing a key
@@ -694,42 +725,13 @@ QString module::random_url() const {
 bool module::read(qkd::key::key & cKey) {
     
     cKey = qkd::key::key::null();
-    
-    if (d->bSetupPipeIn) d->setup_pipe_in();
-    if (d->bPipeInVoid) return true;
-    
-    if (d->bPipeInStdin) {
-        std::cin >> cKey;
-    }
-    else if (d->cSocketPipeIn) {
-        
-        zmq_msg_t cZMQMessage;
-        assert(zmq_msg_init(&cZMQMessage) == 0);
-        int nRead = zmq_msg_recv(&cZMQMessage, d->cSocketPipeIn, 0);
-        if (nRead == -1) {
-
-            // EAGAIN and EINTR are not critical
-            if ((zmq_errno() == EAGAIN) || (zmq_errno() == EINTR)) {
-                return false;
-            }
-
-            std::stringstream ss;
-            ss << "failed reading key: " << strerror(zmq_errno());
-            zmq_msg_close(&cZMQMessage);
-            throw std::runtime_error(ss.str());
-        }
-
-        qkd::utility::buffer cData = qkd::utility::buffer(
-                qkd::utility::memory::wrap((unsigned char *)zmq_msg_data(&cZMQMessage), zmq_msg_size(&cZMQMessage)));
-        cData >> cKey;
-
-        zmq_msg_close(&cZMQMessage);
-    }
-    
-    if (cKey == qkd::key::key::null()) {
+    if (!d->cConPipeIn->read_key(cKey)) {
         rest();
         return false;
     }
+    
+    // do not add stat if we received on a void connection
+    if (d->cConPipeIn->is_void()) return true;
     
     d->add_stats_incoming(cKey);
     cKey.meta().cTimestampRead = std::chrono::high_resolution_clock::now();
@@ -742,14 +744,8 @@ bool module::read(qkd::key::key & cKey) {
 /**
  * read a message from the peer module
  * 
- * this call is blocking (with respect to timeout)
+ * this call is blocking
  * 
- * The nTimeOut value is interpreted in these ways:
- * 
- *      n ...   wait n milliseconds for an reception of a message
- *      0 ...   do not wait: get the next message and return
- *     -1 ...   wait infinite (must be interrupted: see interrupt_worker())
- *     
  * The given message object will be deleted with delet before assigning new values.
  * Therefore if message receive has been successful the message is not NULL
  * 
@@ -762,16 +758,13 @@ bool module::read(qkd::key::key & cKey) {
  * @param   cMessage            this will receive the message
  * @param   cAuthContext        the authentication context involved
  * @param   eType               message type to receive
- * @param   nTimeOut            timeout in ms
  * @return  true, if we have receuived a message
  */
 bool module::recv(qkd::module::message & cMessage, 
         qkd::crypto::crypto_context & cAuthContext, 
-        qkd::module::message_type eType, 
-        int nTimeOut) throw (std::runtime_error) {
+        qkd::module::message_type eType) {
 
     bool bReceived = false;
-    auto cStartOfRecv = std::chrono::high_resolution_clock::now();
 
     // ensure there is at least an empty message queue for this message type
     if (d->cMessageQueues.find(eType) == d->cMessageQueues.end()) {
@@ -787,12 +780,11 @@ bool module::recv(qkd::module::message & cMessage,
     }
     else {
 
-        // receive message and push them into queue
-        // until a) correct type received or b) timeout
+        // receive message and push them into queue until correct type received
 
         do {
 
-            bReceived = recv_internal(cMessage, nTimeOut);
+            bReceived = recv_internal(cMessage);
             if (!bReceived) return false;
 
             if (cMessage.type() != eType) {
@@ -807,20 +799,6 @@ bool module::recv(qkd::module::message & cMessage,
                         << static_cast<uint32_t>(eType) 
                         << " - pushed into queue for later dispatch.";
                 bReceived = false;
-
-                if (nTimeOut >= 0) {
-
-                    auto cNow = std::chrono::high_resolution_clock::now();
-                    auto nPassed = std::chrono::duration_cast<std::chrono::milliseconds>(cNow - cStartOfRecv).count();
-                    if (nPassed > nTimeOut) {
-
-                        // timeout over: failed to get proper message from peer! =(
-                        // clear message (remove memory artifacts) and exit
-                        memset(&(cMessage.m_cHeader), 0, sizeof(cMessage.m_cHeader));
-                        cMessage.data() = qkd::utility::memory(0);
-                        return false;
-                    }
-                }
             }
 
         } while (!bReceived); 
@@ -839,14 +817,8 @@ bool module::recv(qkd::module::message & cMessage,
  * this is called by the protected recv method and stuffs the received
  * messages into queues depending on their message type.
  * 
- * this call is blocking (with respect to timeout)
+ * this call is blocking
  * 
- * The nTimeOut value is interpreted in these ways:
- * 
- *      n ...   wait n milliseconds for an reception of a message
- *      0 ...   do not wait: get the next message and return
- *     -1 ...   wait infinite (must be interrupted: see interrupt_worker())
- *     
  * The given message object will be deleted with delet before assigning new values.
  * Therefore if message receive has been successful the message is not NULL
  * 
@@ -854,88 +826,18 @@ bool module::recv(qkd::module::message & cMessage,
  * is NOT the case a exception is thrown.
  * 
  * @param   cMessage            this will receive the message
- * @param   nTimeOut            timeout in ms
- * @return  true, if we have receuived a message
+ * @return  true, if we have received a message
  */
-bool module::recv_internal(qkd::module::message & cMessage, int nTimeOut) throw (std::runtime_error) {
+bool module::recv_internal(qkd::module::message & cMessage) {
+
+    qkd::module::connection * cCon = nullptr;
+    if (is_alice()) cCon = d->cConPeer;
+    if (is_bob()) cCon = d->cConListen;
     
-    bool bIsAlice = is_alice();
-    bool bIsBob = is_bob();
-
-    if (bIsAlice && d->bSetupPeer) d->setup_peer();
-    if (bIsBob && d->bSetupListen) d->setup_listen();
-        
-    if (bIsAlice && (d->cSocketPeer == nullptr)) throw std::runtime_error("no connection to peer");
-    if (bIsBob && (d->cSocketListener == nullptr)) throw std::runtime_error("not accepting connection");
-    
-    void * cSocket = nullptr;
-    if (bIsAlice) cSocket = d->cSocketPeer;
-    if (bIsBob) cSocket = d->cSocketListener;
-    
-    if (!cSocket) {
-        qkd::utility::syslog::warning() << __FILENAME__ 
-                << '@' 
-                << __LINE__ 
-                << ": " 
-                << "failed to decide which channel to use for receive";
-        throw std::runtime_error("failed to decide which channel to use for recv");
-    }
-    
-    if (zmq_setsockopt(cSocket, ZMQ_RCVTIMEO, &nTimeOut, sizeof(nTimeOut)) == -1) {
-        std::stringstream ss;
-        ss << "failed to set timeout on socket: " << strerror(zmq_errno());
-        throw std::runtime_error(ss.str());
-    }
-    
-    zmq_msg_t cZMQHeader;
-    assert(zmq_msg_init(&cZMQHeader) == 0);
-    int nReadHeader = zmq_msg_recv(&cZMQHeader, cSocket, 0);
-    if (nReadHeader == -1) {
-
-        // EAGAIN and EINTR are not critical
-        if ((zmq_errno() == EAGAIN) || (zmq_errno() == EINTR)) {
-            zmq_msg_close(&cZMQHeader);
-            return false;
-        }
-
-        std::stringstream ss;
-        ss << "failed reading message header from peer: " << strerror(zmq_errno());
-        zmq_msg_close(&cZMQHeader);
-        throw std::runtime_error(ss.str());
-    }
-    if (!zmq_msg_more(&cZMQHeader) || (zmq_msg_size(&cZMQHeader) != sizeof(cMessage.m_cHeader))) {
-            throw std::runtime_error("received invalid message header");
-    }
-
-    memcpy(&(cMessage.m_cHeader), (unsigned char *)zmq_msg_data(&cZMQHeader), sizeof(cMessage.m_cHeader));
-    zmq_msg_close(&cZMQHeader);
-
-    zmq_msg_t cZMQData;
-    assert(zmq_msg_init(&cZMQData) == 0);
-    int nReadData = zmq_msg_recv(&cZMQData, cSocket, 0);
-    if (nReadData == -1) {
-
-        // EAGAIN and EINTR are not critical
-        if ((zmq_errno() == EAGAIN) || (zmq_errno() == EINTR)) {
-            zmq_close(&cZMQData);
-            return false;
-        }
-
-        std::stringstream ss;
-        ss << "failed reading message data from peer: " << strerror(zmq_errno());
-        zmq_msg_close(&cZMQData);
-        throw std::runtime_error(ss.str());
-    }
-
-    cMessage.data().resize(zmq_msg_size(&cZMQData));
-    memcpy(cMessage.data().get(), zmq_msg_data(&cZMQData), zmq_msg_size(&cZMQData));
-    cMessage.data().set_position(0);
-    zmq_msg_close(&cZMQData);
-
+    if (!cCon->recv_message(cMessage)) return false;
     if (is_dying_state()) return false;
 
     cMessage.m_cTimeStamp = std::chrono::high_resolution_clock::now();
-    
     d->debug_message(false, cMessage);
   
     return true;
@@ -947,7 +849,7 @@ bool module::recv_internal(qkd::module::message & cMessage, int nTimeOut) throw 
  * 
  * @param   cMessage            the message received
  */
-void module::recv_synchronize(qkd::module::message & cMessage) throw (std::runtime_error) {
+void module::recv_synchronize(qkd::module::message & cMessage) {
     
     if (cMessage.type() != qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC) {
         throw std::runtime_error("accidently tried to sync keys based on a non-sync message");
@@ -1044,11 +946,8 @@ void module::register_dbus() {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << sMessage.toStdString();
     }
     
-    qkd::utility::syslog::info() << "connected to DBus:" 
-            << getenv("DBUS_SESSION_BUS_ADDRESS") 
-            << " as \"" 
-            << sServiceName.toStdString() 
-            << "\"";
+    qkd::utility::syslog::info() << "connected to DBus:" << getenv("DBUS_SESSION_BUS_ADDRESS") 
+            << " as \"" << sServiceName.toStdString() << "\"";
 
     if (!cDBus.registerObject("/Module", this)) {
         QString sMessage = QString("failed to register DBus object /Module");
@@ -1061,7 +960,7 @@ void module::register_dbus() {
 
 
 /**
- * rest timeout() milliseconds for a next communication try
+ * rest 50 milliseconds for a next communication try
  */
 void module::rest() const {
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -1125,10 +1024,10 @@ void module::run() {
     d->set_state(module_state::STATE_NEW);
     
     qkd::utility::debug() << "run module: " << 
-            "in='" << d->sURLPipeIn << "' " <<
-            "out='" << d->sURLPipeOut << "' " << 
-            "listen='" << d->sURLListen << "' " << 
-            "peer='" << d->sURLPeer << "'";
+            "in='" << d->cConPipeIn->urls_string() << "' " <<
+            "out='" << d->cConPipeOut->urls_string() << "' " << 
+            "listen='" << d->cConListen->urls_string() << "' " << 
+            "peer='" << d->cConPeer->urls_string() << "'";
     
     d->cModuleThread = std::thread([this]{ thread(); });
 }
@@ -1137,14 +1036,8 @@ void module::run() {
 /**
  * send a message to the peer module
  * 
- * this call is blocking (with respect to timout)
+ * this call is blocking
  * 
- * The nTimeOut value is interpreted in these ways:
- * 
- *      n ...   wait n milliseconds
- *      0 ...   do not wait
- *     -1 ...   wait infinite (must be interrupted: see interrupt_worker())
- *     
  * Note: this function takes ownership of the message's data sent! 
  * Afterwards the message's data will be void
  * 
@@ -1152,70 +1045,17 @@ void module::run() {
  *
  * @param   cMessage            the message to send
  * @param   cAuthContext        the authentication context involved
- * @param   nTimeOut            timeout in ms
  * @returns true, if successfully sent
  */
-bool module::send(qkd::module::message & cMessage, 
-        qkd::crypto::crypto_context & cAuthContext, 
-        int nTimeOut) throw (std::runtime_error) {
+bool module::send(qkd::module::message & cMessage, qkd::crypto::crypto_context & cAuthContext, int nPath) {
     
-    bool bIsAlice = is_alice();
-    bool bIsBob = is_bob();
-
-    if (bIsAlice && d->bSetupPeer) d->setup_peer();
-    if (bIsBob && d->bSetupListen) d->setup_listen();
-        
-    if (bIsAlice && (d->cSocketPeer == nullptr)) throw std::runtime_error("no connection to peer");
-    if (bIsBob && (d->cSocketListener == nullptr)) throw std::runtime_error("not accepting connection");
-   
-    void * cSocket = nullptr;
-    if (bIsAlice) cSocket = d->cSocketPeer;
-    if (bIsBob) cSocket = d->cSocketListener;
+    qkd::module::connection * cCon = nullptr;
+    if (is_alice()) cCon = d->cConPeer;
+    if (is_bob()) cCon = d->cConListen;
     
-    if (!cSocket) {
-        qkd::utility::syslog::warning() << __FILENAME__ 
-                << '@' 
-                << __LINE__ 
-                << ": " 
-                << "failed to decide which channel to use for send";
-        throw std::runtime_error("failed to decide which channel to use for send");
-    }
-
-    if (zmq_setsockopt(cSocket, ZMQ_SNDTIMEO, &nTimeOut, sizeof(nTimeOut)) == -1) {
-        std::stringstream ss;
-        ss << "failed to set timeout on socket: " << strerror(zmq_errno());
-        throw std::runtime_error(ss.str());
-    }
-
-    cMessage.m_cHeader.nId = htobe32(++qkd::module::message::m_nLastId);
-    cMessage.m_cTimeStamp = std::chrono::high_resolution_clock::now();
+    if (!cCon->send_message(cMessage, nPath)) return false;
     d->debug_message(true, cMessage);
-
-    int nSentHeader = zmq_send(cSocket, &(cMessage.m_cHeader), sizeof(cMessage.m_cHeader), ZMQ_SNDMORE);
-    if (nSentHeader == -1) {
-
-        // EINTR is not critical
-        if (zmq_errno() == EINTR) {
-            return false;
-        }
-
-        std::stringstream ss;
-        ss << "failed sending message header to peer: " << strerror(zmq_errno());
-        throw std::runtime_error(ss.str());
-    }
-
-    int nSentData = zmq_send(cSocket, cMessage.data().get(), cMessage.data().size(), 0);
-    if (nSentData == -1) {
-
-        // EINTR is not critical
-        if (zmq_errno() == EINTR) {
-            return false;
-        }
-        std::stringstream ss;
-        ss << "failed sending message data to peer: " << strerror(zmq_errno());
-        throw std::runtime_error(ss.str());
-    }
-
+    
     cAuthContext << cMessage.data();
     cMessage = qkd::module::message();    
 
@@ -1238,13 +1078,9 @@ QString module::service_name() const {
     ss << id().toStdString() << "-" << process_id();
     
     if (!qkd::utility::dbus::valid_service_name_particle(ss.str())) {
-        qkd::utility::syslog::crit() << __FILENAME__ 
-                << '@' 
-                << __LINE__ 
-                << ": " 
-                << "DBus service name 'at.ac.ait.qkd.module." 
-                << ss.str() 
-                << "' is not valid - impossible to register on DBus";
+        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ 
+                << ": DBus service name 'at.ac.ait.qkd.module." 
+                << ss.str() << "' is not valid - impossible to register on DBus";
     }
     
     // try anyway to connect to DBus
@@ -1284,11 +1120,8 @@ void module::set_pipeline(QString sPipeline) {
         // warn user: the module is already up and working
         // changing the pipeline should have been done earlier
         // this may cause problems ...
-        qkd::utility::syslog::warning() << __FILENAME__ 
-                << '@' 
-                << __LINE__ 
-                << ": " 
-                << "warning: setting pipeline in working state.";
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                << ": warning: setting pipeline in working state.";
     }
     
     d->sPipeline = sPipeline.toStdString();
@@ -1334,13 +1167,8 @@ void module::set_role(qulonglong nRole) {
         d->eRole = module_role::ROLE_BOB;
     }
     else {
-        qkd::utility::syslog::warning() << __FILENAME__ 
-                << '@' 
-                << __LINE__ 
-                << ": " 
-                << "refusing to set role to " 
-                << nRole 
-                << " - unknown role id.";
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                << ": refusing to set role to " << nRole << " - unknown role id.";
     }
 }
 
@@ -1384,68 +1212,6 @@ void module::set_terminate_after(qulonglong nTerminateAfter) {
 
 
 /**
- * set the number of milliseconds for network send/recv timeout
- * 
- * @param   nTimeout        the new number of milliseconds for network send/recv timeout
- */
-void module::set_timeout_network(qlonglong nTimeout) {
-    
-    std::lock_guard<std::mutex> cLock(d->cURLMutex);
-    d->nTimeoutNetwork = nTimeout;
-    if (d->cSocketListener) {
-        if (zmq_setsockopt(d->cSocketListener, ZMQ_RCVTIMEO, &d->nTimeoutNetwork, sizeof(d->nTimeoutNetwork)) == -1) {
-            std::stringstream ss;
-            ss << "failed to set timeout on socket: " << strerror(zmq_errno());
-            throw std::runtime_error(ss.str());
-        }
-        if (zmq_setsockopt(d->cSocketListener, ZMQ_SNDTIMEO, &d->nTimeoutNetwork, sizeof(d->nTimeoutNetwork)) == -1) {
-            std::stringstream ss;
-            ss << "failed to set timeout on socket: " << strerror(zmq_errno());
-            throw std::runtime_error(ss.str());
-        }
-    }
-    if (d->cSocketPeer) {
-        if (zmq_setsockopt(d->cSocketPeer, ZMQ_RCVTIMEO, &d->nTimeoutNetwork, sizeof(d->nTimeoutNetwork)) == -1) {
-            std::stringstream ss;
-            ss << "failed to set timeout on socket: " << strerror(zmq_errno());
-            throw std::runtime_error(ss.str());
-        }
-        if (zmq_setsockopt(d->cSocketPeer, ZMQ_SNDTIMEO, &d->nTimeoutNetwork, sizeof(d->nTimeoutNetwork)) == -1) {
-            std::stringstream ss;
-            ss << "failed to set timeout on socket: " << strerror(zmq_errno());
-            throw std::runtime_error(ss.str());
-        }
-    }
-}
-
-
-/**
- * set the number of milliseconds after a failed read
- * 
- * @param   nTimeout        the new number of milliseconds to wait after a failed read
- */
-void module::set_timeout_pipe(qlonglong nTimeout) {
-    
-    std::lock_guard<std::mutex> cLock(d->cURLMutex);
-    d->nTimeoutPipe = nTimeout;
-    if (d->cSocketPipeIn) {
-        if (zmq_setsockopt(d->cSocketPipeIn, ZMQ_RCVTIMEO, &d->nTimeoutPipe, sizeof(d->nTimeoutPipe)) == -1) {
-            std::stringstream ss;
-            ss << "failed to set timeout on socket: " << strerror(zmq_errno());
-            throw std::runtime_error(ss.str());
-        }
-    }
-    if (d->cSocketPipeOut) {
-        if (zmq_setsockopt(d->cSocketPipeOut, ZMQ_SNDTIMEO, &d->nTimeoutPipe, sizeof(d->nTimeoutPipe)) == -1) {
-            std::stringstream ss;
-            ss << "failed to set timeout on socket: " << strerror(zmq_errno());
-            throw std::runtime_error(ss.str());
-        }
-    }
-}
-
-
-/**
  * convenience method to set all URLs at once
  * 
  * @param   sURLPipeIn          pipe in URL
@@ -1468,8 +1234,14 @@ void module::set_urls(QString sURLPipeIn, QString sURLPipeOut, QString sURLListe
  */
 void module::set_url_listen(QString sURL) {
     std::lock_guard<std::mutex> cLock(d->cURLMutex);
-    d->sURLListen = sURL.toStdString();
-    d->bSetupListen = true;
+    d->cConListen->clear();
+    std::string s = sURL.toStdString();
+    if (!s.empty()) {
+        for (auto & u : connection::split_urls(s)) {
+            d->cConListen->add(u, 1000, id().toStdString(), "listen");
+        }
+    }
+    else d->cConListen->add("");
 }
 
 
@@ -1480,8 +1252,14 @@ void module::set_url_listen(QString sURL) {
  */
 void module::set_url_peer(QString sURL) {
     std::lock_guard<std::mutex> cLock(d->cURLMutex);
-    d->sURLPeer = sURL.toStdString();
-    d->bSetupPeer = true;
+    d->cConPeer->clear();
+    std::string s = sURL.toStdString();
+    if (!s.empty()) {
+        for (auto & u : connection::split_urls(s)) {
+            d->cConPeer->add(u, 1000, id().toStdString(), "listen");
+        }
+    }
+    else d->cConPeer->add("");
 }
 
 
@@ -1492,8 +1270,14 @@ void module::set_url_peer(QString sURL) {
  */
 void module::set_url_pipe_in(QString sURL) {
     std::lock_guard<std::mutex> cLock(d->cURLMutex);
-    d->sURLPipeIn = sURL.toStdString();
-    d->bSetupPipeIn = true;
+    d->cConPipeIn->clear();
+    std::string s = sURL.toStdString();
+    if (!s.empty()) {
+        for (auto & u : connection::split_urls(s)) {
+            d->cConPipeIn->add(u, 10, id().toStdString(), "in");
+        }
+    }
+    else d->cConPipeIn->add("");
 }
 
 
@@ -1504,21 +1288,14 @@ void module::set_url_pipe_in(QString sURL) {
  */
 void module::set_url_pipe_out(QString sURL) {
     std::lock_guard<std::mutex> cLock(d->cURLMutex);
-    d->sURLPipeOut = sURL.toStdString();
-    d->bSetupPipeOut = true;
-}
-
-
-/**
- * finished work on a key for at least 1 sec ago
- * 
- * @return  stalled flag
- */
-bool module::stalled() const {
-    if (processing()) return false;
-    std::chrono::system_clock::time_point cNow = std::chrono::system_clock::now();
-    return (std::chrono::duration_cast<std::chrono::milliseconds>(cNow - d->cLastProcessedKey)).count() > 1000;
-    
+    d->cConPipeOut->clear();
+    std::string s = sURL.toStdString();
+    if (!s.empty()) {
+        for (auto & u : connection::split_urls(s)) {
+            d->cConPipeOut->add(u, 10, id().toStdString(), "in");
+        }
+    }
+    else d->cConPipeOut->add("");
 }
 
 
@@ -1611,9 +1388,6 @@ void module::synchronize() {
 
     if (qkd::utility::debug::enabled()) qkd::utility::debug() << "synchronizing keys...";
 
-    // TODO: we do not have authenticity when synchronizing keys ... is this a problem? o.O
-    static qkd::crypto::crypto_context cNullContxt = qkd::crypto::engine::create("null");
-    
     qkd::module::message cMessage;
     cMessage.m_cHeader.eType = qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC;
     cMessage.data() << d->cStash.cInSync.size();
@@ -1622,20 +1396,18 @@ void module::synchronize() {
     for (auto const & cStashedKey : d->cStash.cOutOfSync) cMessage.data() << cStashedKey.first;
     
     try {
-        send(cMessage, cNullContxt, timeout_network());
+        qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
+        send(cMessage, cCryptoContext);
     }
     catch (std::runtime_error & cException) {
-        qkd::utility::syslog::warning() << __FILENAME__ 
-                << '@' 
-                << __LINE__ 
-                << ": " 
-                << "failed to send list of stashed keys to peer: " 
-                << cException.what();
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                << ": failed to send list of stashed keys to peer: " << cException.what();
         return;
     }
     
     try {
-        recv(cMessage, cNullContxt, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC, timeout_network());
+        qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
+        recv(cMessage, cCryptoContext, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
         recv_synchronize(cMessage);
     }
     catch (std::runtime_error & cException) {}
@@ -1678,9 +1450,9 @@ void module::terminate() {
         d->release();
     }
     else {
-        
         d->set_state(module_state::STATE_TERMINATING);
         interrupt_worker();
+        join();
     }
 }
 
@@ -1690,23 +1462,12 @@ void module::terminate() {
  */
 void module::thread() {
 
-    if (!d->setup()) {
-        qkd::utility::syslog::crit() << __FILENAME__ 
-                << '@' 
-                << __LINE__ 
-                << ": " 
-                << "unable to setup module thread: terminating";
-        d->release();
-        emit terminated();
-        return;
-    }
-    
-    qkd::utility::debug() << "module setup done - entering ready state";
+    qkd::utility::debug() << "entering ready state";
     d->debug_config();
     d->set_state(module_state::STATE_READY);
     emit ready();
     work();
-    qkd::utility::debug() << "module work done - winding down module";
+    qkd::utility::debug() << "winding down module";
     
     d->release();
     emit terminated();
@@ -1728,28 +1489,6 @@ void module::thread() {
  */    
 qulonglong module::terminate_after() const {
     return d->nTerminateAfter;
-}
-
-
-/**
- * return the number of milliseconds for network send/recv timeout
- * 
- * @return  the number of milliseconds for network send/recv timeout
- */
-qlonglong module::timeout_network() const {
-    std::lock_guard<std::mutex> cLock(d->cURLMutex);
-    return d->nTimeoutNetwork;
-}
-
-
-/**
- * return the number of milliseconds after a failed read
- * 
- * @return  the number of milliseconds to wait after a failed read
- */
-qlonglong module::timeout_pipe() const {
-    std::lock_guard<std::mutex> cLock(d->cURLMutex);
-    return d->nTimeoutPipe;
 }
 
 
@@ -1794,7 +1533,7 @@ QString module::type_name(module_type eType) {
  * @return  the URL for peer (serving endpoint)
  */
 QString module::url_listen() const {
-    return QString::fromStdString(d->sURLListen);
+    return QString::fromStdString(d->cConListen->urls_string());
 }
 
 
@@ -1804,7 +1543,7 @@ QString module::url_listen() const {
  * @return  the URL of the peer connection (where this module connected to)
  */
 QString module::url_peer() const {
-    return QString::fromStdString(d->sURLPeer);
+    return QString::fromStdString(d->cConPeer->urls_string());
 }
 
 
@@ -1814,7 +1553,7 @@ QString module::url_peer() const {
  * @return  the URL of incoming Pipe (serving endpoint)
  */
 QString module::url_pipe_in() const {
-    return QString::fromStdString(d->sURLPipeIn);
+    return QString::fromStdString(d->cConPipeIn->urls_string());
 }
 
 
@@ -1824,7 +1563,7 @@ QString module::url_pipe_in() const {
  * @return  the URL of outgoing Pipe
  */
 QString module::url_pipe_out() const {
-    return QString::fromStdString(d->sURLPipeOut);
+    return QString::fromStdString(d->cConPipeOut->urls_string());
 }
 
 
@@ -1867,6 +1606,7 @@ void module::work() {
 
     qkd::utility::debug() << "working on incoming keys started";
     
+    // main worker loop: get key, create context, process, forward, and check for termination
     do {
         
         d->bProcessing = false;
@@ -1874,7 +1614,8 @@ void module::work() {
         eState = get_state();
         while (eState == qkd::module::module_state::STATE_READY) eState = wait_for_state_change(eState);
         if (eState != qkd::module::module_state::STATE_RUNNING) break;
-        
+
+        // get a key
         qkd::key::key cKey;
         if (d->cStash.cInSync.size() > 0) {
             
@@ -1916,8 +1657,11 @@ void module::work() {
             }
         }
         
-        qkd::crypto::crypto_context cIncomingContext = qkd::crypto::engine::create("null");
-        qkd::crypto::crypto_context cOutgoingContext = qkd::crypto::engine::create("null");
+        d->bProcessing = true;
+        
+        // create crypto context for retieved key
+        qkd::crypto::crypto_context cIncomingContext = qkd::crypto::context::null_context();
+        qkd::crypto::crypto_context cOutgoingContext = qkd::crypto::context::null_context();
         try {
             if (!cKey.meta().sCryptoSchemeIncoming.empty()) {
                 qkd::crypto::scheme cScheme(cKey.meta().sCryptoSchemeIncoming);
@@ -1925,11 +1669,8 @@ void module::work() {
             }
         }
         catch (...) {
-            qkd::utility::syslog::warning() << __FILENAME__ 
-                    << '@' 
-                    << __LINE__ 
-                    << ": " 
-                    << "failed to create incoming crypto context for key";
+            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                    << ": failed to create incoming crypto context for key";
         }
         try {
             if (!cKey.meta().sCryptoSchemeOutgoing.empty()) {
@@ -1938,35 +1679,49 @@ void module::work() {
             }
         }
         catch (...) {
-            qkd::utility::syslog::warning() << __FILENAME__ 
-                    << '@' 
-                    << __LINE__ 
-                    << ": " 
-                    << "failed to create outgoing crypto context for key";
+            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                    << ": failed to create outgoing crypto context for key";
         }
 
-        d->bProcessing = true;
-        bool bForwardKey = process(cKey, cIncomingContext, cOutgoingContext);
+        // call the module working method
+        workload cWorkload = { qkd::module::work(cKey, cIncomingContext, cOutgoingContext) };
+        process(cWorkload);
         d->cLastProcessedKey = std::chrono::system_clock::now();
-        d->bProcessing = false;
         
         eState = get_state();
         while (eState == qkd::module::module_state::STATE_READY) eState = wait_for_state_change(eState);
         if (eState != qkd::module::module_state::STATE_RUNNING) break;
         
-        if (bForwardKey) {
-            
-            cKey.meta().sCryptoSchemeIncoming = cIncomingContext->scheme().str();
-            cKey.meta().sCryptoSchemeOutgoing = cOutgoingContext->scheme().str();
-            if (cKey.meta().sCryptoSchemeIncoming == "null") cKey.meta().sCryptoSchemeIncoming = "";
-            if (cKey.meta().sCryptoSchemeOutgoing == "null") cKey.meta().sCryptoSchemeOutgoing = "";
+        // foward all keys processed
+        for (auto & w : cWorkload) {
+            if (w.bForward) {
+                
+                w.cKey.meta().sCryptoSchemeIncoming = w.cIncomingContext->scheme().str();
+                w.cKey.meta().sCryptoSchemeOutgoing = w.cOutgoingContext->scheme().str();
+                if (w.cKey.meta().sCryptoSchemeIncoming == "null") w.cKey.meta().sCryptoSchemeIncoming = "";
+                if (w.cKey.meta().sCryptoSchemeOutgoing == "null") w.cKey.meta().sCryptoSchemeOutgoing = "";
 
-            if (!write(cKey)) {
+                bool bWrittenToNextModule = false;
+                do {
+
+                    // the write might fail for EINTR or EAGAIN --> wait or break processing loop
+                    // other errors are turned into severe exception
+                    bWrittenToNextModule = write(w.cKey, w.nPath);
+                    if (!bWrittenToNextModule ) {
+                        if (get_state() != qkd::module::module_state::STATE_RUNNING) break;
+                        qkd::utility::debug() << "failed to write key to next module in pipe.";
+                        std::this_thread::yield();
+                    }
+
+                } while (!bWrittenToNextModule);
+
                 if (get_state() != qkd::module::module_state::STATE_RUNNING) break;
-                qkd::utility::debug() << "failed to write key to next module in pipe.";
             }
         }
 
+        d->bProcessing = false;
+        
+        // check for exit
         if (d->nTerminateAfter != 0) {
 
             d->nTerminateAfter--;
@@ -1991,75 +1746,27 @@ void module::work() {
  * method inside of process() if you know _exactly_ what
  * you are doing.
  * 
+ * nPath holds the path index of the PIPE_OUT connection to
+ * write. If nPath == 1 then the framework picks the next
+ * suitable path.
+ * 
  * You should not need to call this directly. It get's called
  * if process() returns "true".
  * 
  * @param   cKey        key to pass to the next module
  * @return  true, if writing was successful
  */
-bool module::write(qkd::key::key const & cKey) {
+bool module::write(qkd::key::key const & cKey, int nPath) {
 
-    if (d->bSetupPipeOut) d->setup_pipe_out();
-    if (d->bPipeOutVoid) return true;
-    
-    bool bFailed = true;
-    
-    if (d->bPipeOutStdout) {
-        std::cout << cKey;
-        bFailed = false;
-    }
-    else if (d->cSocketPipeOut) {
-        
-        qkd::utility::buffer cBuffer;
-        cBuffer << cKey;
-
-        int nWritten = zmq_send(d->cSocketPipeOut, cBuffer.get(), cBuffer.size(), 0);
-        if (nWritten == -1) {
-
-            // EINTR is not critical
-            if (zmq_errno() == EINTR) {
-                return false;
-            }
-
-            std::stringstream ss;
-            ss << "failed writing key to next module: " << strerror(zmq_errno());
-            throw std::runtime_error(ss.str());
-        }
-
-        bFailed = false;
-    }
-    
-    if (bFailed) {
-        qkd::utility::syslog::warning() << __FILENAME__ 
-                << '@' 
-                << __LINE__ 
-                << ": " 
-                << "failed to send key to next module - key-id: " 
-                << cKey.id();
+    if (!d->cConPipeOut->write_key(cKey, nPath)) {
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                << ": failed to send key to next module - key-id: " << cKey.id();
         return false;
     }
-
-    d->add_stats_outgoing(cKey);
     
+    d->add_stats_outgoing(cKey);
     if (qkd::utility::debug::enabled()) d->debug_key_push(cKey);
     
     return true;
-}
-
-
-/**
- * delete a buffer function
- * needed for ZMQ delayed deletion of queued messges
- * 
- * This function assumes that the object referenced
- * by cHint is a qkd::utility::buffer instance
- * created with "new".
- * 
- * @param   cData           the data sent
- * @param   cHint           the buffer object itself
- */
-void memory_delete(UNUSED void * cData, void * cHint) {
-    qkd::utility::memory * cMemory = static_cast<qkd::utility::memory *>(cHint);
-    if (cMemory != nullptr) delete cMemory;
 }
 

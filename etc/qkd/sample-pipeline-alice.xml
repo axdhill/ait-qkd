@@ -61,11 +61,11 @@
 
 <pipeline name="default" autoconnect="true" pipein="ipc:///tmp/qkd/default.alice.in" pipeout="ipc:///tmp/qkd/default.alice.out">
 
-    <module path="qkd-bb84" >
+    <module path="qkd-sifting-bb84" >
         <config path="/etc/qkd/pipeline-default.conf" />
         <role value="alice" />
         <args value="--debug" />
-        <log path="qkd-bb84.alice.log" />
+        <log path="qkd-sifting-bb84.alice.log" />
     </module>
 
     <module path="qkd-cascade" >
@@ -82,11 +82,11 @@
         <log path="qkd-confirmation.alice.log" />
     </module>
 
-    <module path="qkd-buffer" >
+    <module path="qkd-resize" >
         <config path="/etc/qkd/pipeline-default.conf" />
         <role value="alice" />
         <args value="--debug" />
-        <log path="qkd-buffer.alice.log" />
+        <log path="qkd-resize.alice.log" />
     </module>
 
     <module path="qkd-privacy-amplification" >

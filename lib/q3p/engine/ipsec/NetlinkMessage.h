@@ -6,7 +6,7 @@
  * The NetlinkManager uses this class and its subclasses to manage
  * the IPsec databases (SAD and SPD) via Netlink
  *
- * Autor: Stefan Marksteiner, <stefan.marksteiner@joanneum.at>
+ * Author: Stefan Marksteiner, <stefan.marksteiner@joanneum.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH

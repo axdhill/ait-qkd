@@ -3,7 +3,7 @@
  * 
  * The Q3P Key DB interface
  *
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -144,6 +144,7 @@ public:
      * exception type thrown on init errors
      */
     class db_init_error : public std::exception { 
+        
     public: 
 
         /**
@@ -159,6 +160,7 @@ public:
      * exception type thrown for unknown DB url schemes
      */
     class db_url_scheme_unknown : public std::exception { 
+        
     public: 
 
         /**
@@ -172,7 +174,7 @@ public:
     /**
      * dtor
      */
-    virtual ~db() { };
+    virtual ~db() { }
     
     
     /**
@@ -180,7 +182,7 @@ public:
      * 
      * @return  the maximum count of keys in the db possible
      */
-    inline qulonglong amount() const { return max_id() - min_id(); };
+    inline qulonglong amount() const { return max_id() - min_id(); }
     
 
     /**
@@ -194,7 +196,10 @@ public:
      * 
      * @return  the number of keys stored in this DB
      */
-    inline qulonglong count() const { std::lock_guard<std::recursive_mutex> cLock(m_cMTX); return count_internal(); };
+    inline qulonglong count() const { 
+        std::lock_guard<std::recursive_mutex> cLock(m_cMTX); 
+        return count_internal(); 
+    }
     
     
     /**
@@ -202,7 +207,10 @@ public:
      * 
      * @return  the number of keys in real
      */
-    inline qulonglong count_real_sync() const { std::lock_guard<std::recursive_mutex> cLock(m_cMTX); return count_real_sync_internal(); };
+    inline qulonglong count_real_sync() const { 
+        std::lock_guard<std::recursive_mutex> cLock(m_cMTX); 
+        return count_real_sync_internal(); 
+    }
     
     
     /**
@@ -210,7 +218,10 @@ public:
      * 
      * @param   nKeyId      the ID of the key to delete
      */
-    inline void del(qkd::key::key_id nKeyId) { std::lock_guard<std::recursive_mutex> cLock(m_cMTX); del_internal(nKeyId); };
+    inline void del(qkd::key::key_id nKeyId) { 
+        std::lock_guard<std::recursive_mutex> cLock(m_cMTX); 
+        del_internal(nKeyId); 
+    }
     
 
     /**
@@ -218,7 +229,10 @@ public:
      * 
      * @param   cKeys       the list of keys to delete
      */
-    inline void del(qkd::key::key_vector cKeys) { std::lock_guard<std::recursive_mutex> cLock(m_cMTX); for (auto & nKeyId : cKeys) del_internal(nKeyId); };
+    inline void del(qkd::key::key_vector cKeys) { 
+        std::lock_guard<std::recursive_mutex> cLock(m_cMTX); 
+        for (auto & nKeyId : cKeys) del_internal(nKeyId); 
+    }
     
 
     /**
@@ -240,7 +254,9 @@ public:
      * @param   nAdded      keys recently added
      * @param   nDeleted    keys recently deleted
      */
-    inline void emit_charge_change(uint64_t nAdded, uint64_t nDeleted) { emit charge_change(count(), nAdded, nDeleted); };
+    inline void emit_charge_change(uint64_t nAdded, uint64_t nDeleted) { 
+        emit charge_change(count(), nAdded, nDeleted); 
+    }
     
     
     /**
@@ -253,7 +269,10 @@ public:
      * @param   nKeyId      the ID of the key to get
      * @return  true, if the key with the id is in real sync state
      */
-    inline bool eventual_sync(qkd::key::key_id nKeyId) const { std::lock_guard<std::recursive_mutex> cLock(m_cMTX); return eventual_sync_internal(nKeyId); };
+    inline bool eventual_sync(qkd::key::key_id nKeyId) const { 
+        std::lock_guard<std::recursive_mutex> cLock(m_cMTX); 
+        return eventual_sync_internal(nKeyId); 
+    }
     
     
     /**
@@ -270,7 +289,10 @@ public:
      * @param   nCount      applies nCount on the keys if nCount != 0
      * @return  a list of coninuous key ids (list may be empty in case of failure)
      */
-    inline qkd::key::key_vector find_continuous(uint64_t nBytes, uint32_t nCount = 0) { std::lock_guard<std::recursive_mutex> cLock(m_cMTX); return find_continuous_internal(nBytes, nCount); };
+    inline qkd::key::key_vector find_continuous(uint64_t nBytes, uint32_t nCount = 0) { 
+        std::lock_guard<std::recursive_mutex> cLock(m_cMTX); 
+        return find_continuous_internal(nBytes, nCount); 
+    }
     
     
     /**
@@ -290,7 +312,10 @@ public:
      * @param   nCount      applies nCount on the keys if nCount != 0
      * @return  a list of spare key ids (list may be empty in case of failure or full DB)
      */
-    inline qkd::key::key_vector find_spare(uint64_t nBytes, uint32_t nCount = 0) { std::lock_guard<std::recursive_mutex> cLock(m_cMTX); return find_spare_internal(nBytes, nCount); };
+    inline qkd::key::key_vector find_spare(uint64_t nBytes, uint32_t nCount = 0) { 
+        std::lock_guard<std::recursive_mutex> cLock(m_cMTX); 
+        return find_spare_internal(nBytes, nCount); 
+    }
     
 
     /**
@@ -310,7 +335,10 @@ public:
      * @param   nCount      applies nCount on the keys if nCount != 0
      * @return  a list of valid key ids (list may be empty in case of failure or empty DB)
      */
-    inline qkd::key::key_vector find_valid(uint64_t nBytes, uint32_t nCount = 0) { std::lock_guard<std::recursive_mutex> cLock(m_cMTX); return find_valid_internal(nBytes, nCount); };
+    inline qkd::key::key_vector find_valid(uint64_t nBytes, uint32_t nCount = 0) { 
+        std::lock_guard<std::recursive_mutex> cLock(m_cMTX); 
+        return find_valid_internal(nBytes, nCount); 
+    }
     
 
     /**
@@ -322,7 +350,10 @@ public:
      * @param   nKeyId      the ID of the key to get
      * @return  the key with the given id
      */
-    inline qkd::key::key get(qkd::key::key_id nKeyId = 0) const { std::lock_guard<std::recursive_mutex> cLock(m_cMTX); return get_internal(nKeyId); };
+    inline qkd::key::key get(qkd::key::key_id nKeyId = 0) const { 
+        std::lock_guard<std::recursive_mutex> cLock(m_cMTX); 
+        return get_internal(nKeyId); 
+    }
     
 
     /**
@@ -334,7 +365,10 @@ public:
      * @param   nKeyId      key id requested
      * @return  true, if the key has been injected in DB without peer interaction
      */
-    inline bool injected(qkd::key::key_id nKeyId) const { std::lock_guard<std::recursive_mutex> cLock(m_cMTX); return injected_internal(nKeyId); };
+    inline bool injected(qkd::key::key_id nKeyId) const { 
+        std::lock_guard<std::recursive_mutex> cLock(m_cMTX); 
+        return injected_internal(nKeyId); 
+    }
     
 
     /**
@@ -351,7 +385,10 @@ public:
      * @param   cKey        the key to fill in
      * @return  the new key if (or 0 if full)
      */
-    inline qkd::key::key_id insert(qkd::key::key cKey) { std::lock_guard<std::recursive_mutex> cLock(m_cMTX); return insert_internal(cKey); };
+    inline qkd::key::key_id insert(qkd::key::key cKey) { 
+        std::lock_guard<std::recursive_mutex> cLock(m_cMTX); 
+        return insert_internal(cKey); 
+    }
     
 
     /**
@@ -362,7 +399,10 @@ public:
      * @param   nKeyId      the ID of the key
      * @return  count of the key
      */
-    inline uint32_t key_count(qkd::key::key_id nKeyId) const { std::lock_guard<std::recursive_mutex> cLock(m_cMTX); return key_count_internal(nKeyId); };
+    inline uint32_t key_count(qkd::key::key_id nKeyId) const { 
+        std::lock_guard<std::recursive_mutex> cLock(m_cMTX); 
+        return key_count_internal(nKeyId); 
+    }
     
 
     /**
@@ -370,7 +410,7 @@ public:
      * 
      * @return  the maximum key count value
      */
-    inline uint32_t key_count_max() const { return key_count_max_internal(); };
+    inline uint32_t key_count_max() const { return key_count_max_internal(); }
     
     
     /**
@@ -378,7 +418,7 @@ public:
      * 
      * @return  the maximum ID of a key
      */
-    inline qulonglong max_id() const { return max_id_internal(); };
+    inline qulonglong max_id() const { return max_id_internal(); }
     
 
     /**
@@ -386,7 +426,7 @@ public:
      * 
      * @return  the minimum ID of a key
      */
-    inline qulonglong min_id() const { return min_id_internal(); };
+    inline qulonglong min_id() const { return min_id_internal(); }
     
     
     /**
@@ -394,7 +434,7 @@ public:
      * 
      * @return  the mutex for synchronized access
      */
-    inline std::recursive_mutex & mutex() const { return m_cMTX; };
+    inline std::recursive_mutex & mutex() const { return m_cMTX; }
     
 
     /**
@@ -411,7 +451,7 @@ public:
      * 
      * @return  true, if the DB is opened
      */
-    inline bool opened() const { return opened_internal(); };
+    inline bool opened() const { return opened_internal(); }
     
     
     /**
@@ -422,7 +462,7 @@ public:
      * 
      * @return  the fixed size in bytes of a key in the DB
      */
-    inline qulonglong quantum() const { return quantum_internal(); };
+    inline qulonglong quantum() const { return quantum_internal(); }
     
 
     /**
@@ -434,7 +474,10 @@ public:
      * @param   nKeyId      key id requested
      * @return  true, if the key with the id is in real sync state
      */
-    inline bool real_sync(qkd::key::key_id nKeyId) const { std::lock_guard<std::recursive_mutex> cLock(m_cMTX); return real_sync_internal(nKeyId); };
+    inline bool real_sync(qkd::key::key_id nKeyId) const { 
+        std::lock_guard<std::recursive_mutex> cLock(m_cMTX); 
+        return real_sync_internal(nKeyId); 
+    }
     
 
     /**
@@ -442,7 +485,10 @@ public:
      * 
      * though this does not close the DB
      */
-    inline void reset() { std::lock_guard<std::recursive_mutex> cLock(m_cMTX); return reset_internal(); };
+    inline void reset() { 
+        std::lock_guard<std::recursive_mutex> cLock(m_cMTX); 
+        return reset_internal(); 
+    }
     
 
     /**
@@ -451,7 +497,10 @@ public:
      * @param   cKeys       a list of keys
      * @return  a key ring holding all these keys
      */
-    inline qkd::key::key_ring ring(qkd::key::key_vector const & cKeys) { std::lock_guard<std::recursive_mutex> cLock(m_cMTX); return ring_internal(cKeys); };
+    inline qkd::key::key_ring ring(qkd::key::key_vector const & cKeys) { 
+        std::lock_guard<std::recursive_mutex> cLock(m_cMTX); 
+        return ring_internal(cKeys); 
+    }
     
 
     /**
@@ -460,7 +509,10 @@ public:
      * @param   cKeys       a list of keys
      * @return  a key ring holding all these keys
      */
-    inline qkd::key::key_ring ring(qkd::key::key_vector const & cKeys) const { std::lock_guard<std::recursive_mutex> cLock(m_cMTX); return ring_internal(cKeys); };
+    inline qkd::key::key_ring ring(qkd::key::key_vector const & cKeys) const { 
+        std::lock_guard<std::recursive_mutex> cLock(m_cMTX); 
+        return ring_internal(cKeys); 
+    }
     
 
     /**
@@ -468,7 +520,10 @@ public:
      * 
      * @param   cKey        the key to store in the DB
      */
-    inline void set(qkd::key::key const & cKey) { std::lock_guard<std::recursive_mutex> cLock(m_cMTX); set_internal(cKey); };
+    inline void set(qkd::key::key const & cKey) { 
+        std::lock_guard<std::recursive_mutex> cLock(m_cMTX); 
+        set_internal(cKey); 
+    }
     
 
     /**
@@ -481,7 +536,10 @@ public:
      * @param   nKeyId      the ID of the key to get
      * @return  true, if the key with the id is in real sync state
      */
-    inline void set_eventual_sync(qkd::key::key_id nKeyId) { std::lock_guard<std::recursive_mutex> cLock(m_cMTX); set_eventual_sync_internal(nKeyId); };
+    inline void set_eventual_sync(qkd::key::key_id nKeyId) { 
+        std::lock_guard<std::recursive_mutex> cLock(m_cMTX); 
+        set_eventual_sync_internal(nKeyId); 
+    }
     
 
     /**
@@ -493,7 +551,10 @@ public:
      * @param   nKeyId      the ID of the key to get
      * @return  true, if the key with the id is in real sync state
      */
-    inline void set_injected(qkd::key::key_id nKeyId) { std::lock_guard<std::recursive_mutex> cLock(m_cMTX); set_injected_internal(nKeyId); };
+    inline void set_injected(qkd::key::key_id nKeyId) { 
+        std::lock_guard<std::recursive_mutex> cLock(m_cMTX); 
+        set_injected_internal(nKeyId); 
+    }
     
 
     /**
@@ -502,7 +563,10 @@ public:
      * @param   nKeyId      the ID of the key
      * @param   nCount      count of the key
      */
-    inline void set_key_count(qkd::key::key_id nKeyId, uint32_t nCount) { std::lock_guard<std::recursive_mutex> cLock(m_cMTX); set_key_count_internal(nKeyId, nCount); };
+    inline void set_key_count(qkd::key::key_id nKeyId, uint32_t nCount) { 
+        std::lock_guard<std::recursive_mutex> cLock(m_cMTX); 
+        set_key_count_internal(nKeyId, nCount); 
+    }
     
 
     /**
@@ -511,7 +575,10 @@ public:
      * @param   cKeyIds     the IDs of the keys to set the key count
      * @param   nCount      count of the key
      */
-    inline void set_key_count(qkd::key::key_vector const & cKeyIds, uint32_t nCount) { std::lock_guard<std::recursive_mutex> cLock(m_cMTX); set_key_count_internal(cKeyIds, nCount); };
+    inline void set_key_count(qkd::key::key_vector const & cKeyIds, uint32_t nCount) { 
+        std::lock_guard<std::recursive_mutex> cLock(m_cMTX); 
+        set_key_count_internal(cKeyIds, nCount); 
+    }
     
 
     /**
@@ -522,13 +589,19 @@ public:
      * 
      * @param   nKeyId      key id requested
      */
-    inline void set_real_sync(qkd::key::key_id nKeyId) { std::lock_guard<std::recursive_mutex> cLock(m_cMTX); set_real_sync_internal(nKeyId); };
+    inline void set_real_sync(qkd::key::key_id nKeyId) { 
+        std::lock_guard<std::recursive_mutex> cLock(m_cMTX); 
+        set_real_sync_internal(nKeyId); 
+    }
     
 
     /**
      * sync and flushes the DB to disk
      */
-    inline void sync() { std::lock_guard<std::recursive_mutex> cLock(m_cMTX); sync_internal(); };
+    inline void sync() { 
+        std::lock_guard<std::recursive_mutex> cLock(m_cMTX); 
+        sync_internal(); 
+    }
     
     
     /**
@@ -536,7 +609,7 @@ public:
      * 
      * @return  the URL of the KeyStore DB
      */
-    inline QString const & url() const { return m_sURL; };
+    inline QString const & url() const { return m_sURL; }
     
     
     /**
@@ -545,7 +618,10 @@ public:
      * @param   nKeyId          the key id in question
      * @return  true, if there is a key with this id
      */
-    inline bool valid(qkd::key::key_id nKeyId) const { std::lock_guard<std::recursive_mutex> cLock(m_cMTX); return valid_internal(nKeyId); };
+    inline bool valid(qkd::key::key_id nKeyId) const { 
+        std::lock_guard<std::recursive_mutex> cLock(m_cMTX); 
+        return valid_internal(nKeyId); 
+    }
     
 
 signals:
@@ -569,7 +645,7 @@ protected:
      * 
      * @param   sURL        the DB url
      */
-    db(QString sURL) : m_sURL(sURL) { };
+    db(QString sURL) : m_sURL(sURL) {}
     
     
 private:

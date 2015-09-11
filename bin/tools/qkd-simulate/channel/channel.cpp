@@ -3,9 +3,9 @@
  *
  * implementation of a quantum channel
  *
- * Autor: Mario Kahn
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
- * Autor: Philipp Grabenweger
+ * Author: Mario Kahn
+ *         Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ *         Philipp Grabenweger
  *
  * Copyright (C) 2013-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -421,7 +421,7 @@ void channel::set_pipe(void * & cSocket, std::string const & sPipe) {
     
     cSocket = zmq_socket(m_cZMQContext, ZMQ_PUSH);
 
-    int nHighWaterMark = 1000;
+    int nHighWaterMark = 10;
     if (zmq_setsockopt(cSocket, ZMQ_SNDHWM, &nHighWaterMark, sizeof(nHighWaterMark)) == -1) {
         std::stringstream ss;
         ss << "failed to set high water mark on socket: " << strerror(zmq_errno());

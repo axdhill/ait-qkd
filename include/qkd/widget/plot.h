@@ -3,7 +3,7 @@
  * 
  * an enhanced plot
  * 
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2014-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -40,11 +40,17 @@
 #include <QtGui/QWidget>
 
 // Qwt
+#if defined(__GNUC__) and not defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-pedantic"
+#endif
+
 #include <qwt/qwt_plot.h>
 #include <qwt/qwt_text.h>
+
+#if defined(__GNUC__) and not defined(__clang__)
 #pragma GCC diagnostic pop
+#endif
 
 
 // ------------------------------------------------------------
@@ -88,7 +94,7 @@ public:
     /**
      * dtor
      */
-    virtual ~plot() {};
+    virtual ~plot() {}
     
 
     /**

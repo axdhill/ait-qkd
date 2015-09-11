@@ -5,7 +5,7 @@
  *
  * TEST: test the qkd::crypto class
  *
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -45,6 +45,55 @@
 
 // include the all-in-one header
 #include <qkd/qkd.h>
+
+
+// ------------------------------------------------------------
+// vars
+
+
+char const * g_sText[5] = {
+"\
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. \
+Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at \
+nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris. Fusce nec \
+tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget nulla. \
+Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos \
+himenaeos. Curabitur sodales ligula in libero. Sed dignissim lacinia nunc.",
+
+"\
+Curabitur tortor. Pellentesque nibh. Aenean quam. In scelerisque sem at dolor. \
+Maecenas mattis. Sed convallis tristique sem. Proin ut ligula vel nunc egestas \
+porttitor. Morbi lectus risus, iaculis vel, suscipit quis, luctus non, massa. \
+Fusce ac turpis quis ligula lacinia aliquet. Mauris ipsum. Nulla metus metus, \
+ullamcorper vel, tincidunt sed, euismod in, nibh. Quisque volutpat condimentum \
+velit.",
+
+"\
+Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos \
+himenaeos. Nam nec ante. Sed lacinia, urna non tincidunt mattis, tortor neque \
+adipiscing diam, a cursus ipsum ante quis turpis. Nulla facilisi. Ut fringilla. \
+Suspendisse potenti. Nunc feugiat mi a tellus consequat imperdiet. Vestibulum \
+sapien. Proin quam. Etiam ultrices. Suspendisse in justo eu magna luctus suscipit. \
+Sed lectus.",
+
+"\
+Integer euismod lacus luctus magna. Quisque cursus, metus vitae pharetra auctor, \
+sem massa mattis sem, at interdum magna augue eget diam. Vestibulum ante ipsum primis \
+in faucibus orci luctus et ultrices posuere cubilia Curae; Morbi lacinia molestie dui. \
+Praesent blandit dolor. Sed non quam. In vel mi sit amet augue congue elementum. \
+Morbi in ipsum sit amet pede facilisis laoreet. Donec lacus nunc, viverra nec, \
+blandit vel, egestas et, augue. Vestibulum tincidunt malesuada tellus. Ut ultrices \
+ultrices enim. Curabitur sit amet mauris. Morbi in dui quis est pulvinar ullamcorper. \
+Nulla facilisi.",
+
+"\
+Integer lacinia sollicitudin massa. Cras metus. Sed aliquet risus a tortor. Integer \
+id quam. Morbi mi. Quisque nisl felis, venenatis tristique, dignissim in, ultrices \
+sit amet, augue. Proin sodales libero eget ante. Nulla quam. Aenean laoreet. Vestibulum \
+nisi lectus, commodo ac, facilisis ac, ultricies eu, pede. Ut orci risus, accumsan \
+porttitor, cursus quis, aliquet eget, justo. Sed pretium blandit orci."
+
+};
 
 
 // ------------------------------------------------------------
@@ -88,6 +137,10 @@ int test() {
     qkd::crypto::crypto_context cCloneContext;
     
     
+    // --- NULL context ---
+    assert(qkd::crypto::context::null_context()->null());
+    
+    
     // --- SCHEMES ---
     
     // arbitrary schemes
@@ -111,7 +164,6 @@ int test() {
     assert(qkd::crypto::engine::valid_scheme(qkd::crypto::scheme("evhash-96")));
     assert(qkd::crypto::engine::valid_scheme(qkd::crypto::scheme("evhash-128")));
     assert(qkd::crypto::engine::valid_scheme(qkd::crypto::scheme("evhash-256")));
-    assert(qkd::crypto::engine::valid_scheme(qkd::crypto::scheme("umac-128")));
     assert(qkd::crypto::engine::valid_scheme(qkd::crypto::scheme("xor")));
     
     
@@ -284,8 +336,8 @@ int test() {
     // check result
     assert(cMemoryOutput.as_hex() == "05df48f9ff890eb250b18178264ced0e8d311042bb3d3495f7bd195d79b44acc");
     assert(cCloneContext->finalize(cKeyFinal).equal(cMemoryOutput));
-    
-    
+   
+
     // --- context reuse
     
     // here we create 3 evhash with the same init key
@@ -326,30 +378,6 @@ int test() {
     cMemoryOutput = cEvHash96->finalize(cKeyFinal);
     
 
-    // --- UMAC ---
-    
-    // prepare input
-    cMemoryInput = qkd::utility::memory(strlen(sInputText));
-    memcpy(cMemoryInput.get(), sInputText, strlen(sInputText));
-    
-    // create init key
-    cKeyInit = qkd::key::key(301, qkd::utility::memory(128/8));
-    memcpy(cKeyInit.data().get(), sInputKeyText128, 128/8);
-    
-    // get context
-    qkd::crypto::crypto_context cUMAC128 = qkd::crypto::engine::create("umac", cKeyInit);
-    assert(cUMAC128->name() == "umac");
-    
-    // add 10 times some data
-    for (uint32_t i = 0; i < 10; i++) cUMAC128 << cMemoryInput;
-
-    // get the final tag
-    cMemoryOutput = cUMAC128->finalize();
-    
-    // check result
-    assert(cMemoryOutput.as_hex() == "2328d826a97727db1f1dea0313e4332e");
-    
-    
     // --- the unknown algorithm ---
     
     try {
@@ -361,17 +389,14 @@ int test() {
 
     // --- crypto scheme string testing ---
         
-    // scheme test data
-    const char * sText_A = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. ";
-    const char * sText_B = "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
-    
+   
     cScheme = qkd::crypto::scheme("evhash-96:1e58217ab632751f02fa966c");
     qkd::key::key cFinalKey = qkd::key::key(1, qkd::utility::memory::from_hex("83c4db79fdf2c6e5b5d25889"));
     
-    qkd::utility::memory cMemA(strlen(sText_A));
-    qkd::utility::memory cMemB(strlen(sText_B));
-    memcpy(cMemA.get(), sText_A, strlen(sText_A));
-    memcpy(cMemB.get(), sText_B, strlen(sText_B));
+    qkd::utility::memory cMemA(strlen(g_sText[0]));
+    qkd::utility::memory cMemB(strlen(g_sText[1]));
+    memcpy(cMemA.get(), g_sText[0], strlen(g_sText[0]));
+    memcpy(cMemB.get(), g_sText[1], strlen(g_sText[1]));
     
     // EvHash (only 96 Bit as an example)
     
@@ -413,12 +438,57 @@ int test() {
     qkd::utility::memory cTag_E = cEvHash96_Scheme_E->finalize(cKeyFinal);
     
     assert(cTag_A.equal(cTag_E));
+   
+
+    // --- concatenate tags ---
+
+    cScheme = qkd::crypto::scheme("evhash-96:1e58217ab632751f02fa966c");
+    cFinalKey = qkd::key::key(1, qkd::utility::memory::from_hex("83c4db79fdf2c6e5b5d25889"));
+
+    qkd::utility::memory cText[5];
+    for (int i = 0; i < 5; ++i) {
+        cText[i].resize(strlen(g_sText[i]));
+        memcpy(cText[i].get(), g_sText[i], strlen(g_sText[i]));
+    }
+    qkd::crypto::crypto_context cEvHash96_A = qkd::crypto::engine::create(cScheme);
+    qkd::crypto::crypto_context cEvHash96_B = qkd::crypto::engine::create(cScheme);
+    qkd::crypto::crypto_context cEvHash96_C = qkd::crypto::engine::create(cScheme);
+
+    // ideal tag
+    cEvHash96_A << cText[0];
+    cEvHash96_A << cText[1];
+    cEvHash96_A << cText[2];
+
+    cEvHash96_A->finalize(cFinalKey);   // <--- cut: add remainding message bytes to tag now
+                                        //      the final key does not modify the internal
+                                        //      state of the ev-hash
+    cEvHash96_A << cText[3];
+    cEvHash96_A << cText[4];
+    qkd::utility::memory cTagA = cEvHash96_A->finalize(cFinalKey);
+    assert(cTagA.as_hex() == "372f13623300c2d8f758bb78");
+
+    // combine 2 tags
+    cEvHash96_B << cText[0];
+    cEvHash96_B << cText[1];
+    cEvHash96_B << cText[2];
     
-    // Scheme string for UMAC is broken, NULL and XOR do not make sense
+    // instead of cutting the existing context B, we create a new one C
+    // and start inserting messages into the latter, then we concatenate
+    // B << C. This must yield the very same result
+    cEvHash96_C << cText[3];
+    cEvHash96_C << cText[4];
+
+    // add C to B
+    cEvHash96_B << cEvHash96_C;
+    qkd::utility::memory cTagB = cEvHash96_B->finalize(cFinalKey);
     
-    
+    // a series of A (with finalize() at the proper cut) *must*
+    // yield the same result as B << C
+    assert(cTagB.as_hex() == "372f13623300c2d8f758bb78");
+
     return 0;
 }
+
 
 int main(UNUSED int argc, UNUSED char** argv) {
     return test();

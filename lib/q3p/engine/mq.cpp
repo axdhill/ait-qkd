@@ -3,7 +3,7 @@
  *
  * implement the message queue (aka "Key Pump")
  * 
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -79,7 +79,7 @@ public:
     /**
      * ctor
      */
-    mq_data() { };
+    mq_data() : nMaxKey(0), nMaxKeySize(0) { };
     
     
     /**
@@ -195,7 +195,7 @@ void mq_instance::produce() {
         qkd::key::key_vector cKeys = engine()->application_buffer()->find_valid(d->nMaxKeySize, 1);
         
         // if we didn't find any keys left: bail out
-        if (cKeys.size() == 0) break;
+        if (cKeys.empty()) break;
         
         // compile the keys from the buffer into a large key "message"
         qkd::key::key_ring cMQKeyRing(d->nMaxKeySize);

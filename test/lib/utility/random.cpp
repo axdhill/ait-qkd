@@ -5,7 +5,7 @@
  *
  * TEST: test the qkd::utility::random class
  *
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -63,6 +63,8 @@ int test() {
     uint32_t nR_ui;
     int64_t nR_l;
     uint64_t nR_ul;
+    float nR_f;
+    double nR_d;
     qkd::utility::memory cMemory(32);
     
     // read
@@ -78,6 +80,10 @@ int test() {
     std::cout << "         random long: " << nR_l << std::endl;
     cRandom >> nR_ul;
     std::cout << "random unsigned long: " << nR_ul << std::endl;
+    cRandom >> nR_f;
+    std::cout << "        random float: " << nR_f << std::endl;
+    cRandom >> nR_d;
+    std::cout << "       random double: " << nR_d << std::endl;
     cRandom >> cMemory;
     std::cout << "       random memory: " << cMemory.as_hex() << std::endl;
     

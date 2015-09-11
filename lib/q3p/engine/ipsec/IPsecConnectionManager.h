@@ -21,6 +21,8 @@ class IPsecConnectionManager {
 public:
 	IPsecConnectionManager(KernelIPsecManager& manager_param);//& manager_param);
 
+	KernelIPsecManager const & manager() const { return kernel_manager; }
+	
 private:
 	KernelIPsecManager &kernel_manager;
 };

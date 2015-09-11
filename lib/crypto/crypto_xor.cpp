@@ -3,7 +3,7 @@
  * 
  * implement the XOR encryption
  *
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -54,6 +54,17 @@ using namespace qkd::utility;
  * @throws  context_wrong_key
  */
 crypto_xor::crypto_xor(qkd::key::key const & cKey) : context(cKey) {
+}
+
+
+/**
+ * add another crypto context
+ *
+ * @param   cContext        the crypto context to add
+ * @throws  context_final, if the algorithm has finished and does not allow another addition
+ */
+void crypto_xor::add_internal(UNUSED qkd::crypto::crypto_context const & cContext) {
+    throw std::logic_error("xor crypto context cannot be added");
 }
 
 

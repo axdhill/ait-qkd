@@ -7,7 +7,7 @@
 #
 # TEST: test the QKD enkey module
 #
-# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+# Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
 # Copyright (C) 2012-2015 AIT Austrian Institute of Technology
 # AIT Austrian Institute of Technology GmbH
@@ -37,7 +37,7 @@ source ${TEST_BASE}/test/bin/test-functions
 # ------------------------------------------------------------
 
 # init test environment
-test_init
+test_init "$(basename $0).d"
 
 # zap previous keys
 rm -rf enkey_keys.* &> /dev/null
@@ -56,7 +56,7 @@ PIPELINE_CONFIG="file://${TEST_BASE}/test/test-data/pipeline.conf"
 
 # wait until the modules did it's work
 sleep 1
-wait_stalled enkey
+wait_idle enkey
 
 # check expected with actual result
 xxd -ps -g 1 blob.alice | while read LINE; do echo -n ${LINE}; done > enkey_expected

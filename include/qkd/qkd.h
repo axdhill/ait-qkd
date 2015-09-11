@@ -3,7 +3,7 @@
  * 
  * The all-in-one include header for the AIT QKD library
  *
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -72,8 +72,11 @@
 
 // QKD module stuff
 #include <qkd/module/communicator.h>
+#include <qkd/module/connection.h>
 #include <qkd/module/message.h>
 #include <qkd/module/module.h>
+#include <qkd/module/path.h>
+#include <qkd/module/workload.h>
 
 // QKD widgets
 #include <qkd/widget/lcd.h>

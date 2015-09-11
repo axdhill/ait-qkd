@@ -7,7 +7,7 @@
 #
 # TEST: test the QKD keystream postprocessing authentication
 #
-# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+# Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
 # Copyright (C) 2012-2015 AIT Austrian Institute of Technology
 # AIT Austrian Institute of Technology GmbH
@@ -38,7 +38,7 @@ source ${TEST_BASE}/test/bin/test-functions
 # ------------------------------------------------------------
 
 # init test environment
-test_init
+test_init "$(basename $0).d"
 
 # zap previous keys
 rm -rf cat_keys.* &> /dev/null
@@ -53,7 +53,7 @@ echo -n > auth_post_debug.bob
 
 # create keys
 KEYS_TO_PROCESS="10"
-${TEST_BASE}/bin/qkd-key-gen --size 2048 --keys ${KEYS_TO_PROCESS} --rate 0.03 cat_keys
+${TEST_BASE}/bin/qkd-key-gen --silent --size 2048 --keys ${KEYS_TO_PROCESS} --rate 0.03 cat_keys
 
 # prepare the config files
 cp ${TEST_BASE}/test/test-data/auth-test.conf auth_pre.config
@@ -83,7 +83,7 @@ done
 
 # wait until all keys have been processed
 sleep 1
-wait_stalled cat cascade auth
+wait_idle cat cascade auth
 echo "got keys"
 
 # check how many 

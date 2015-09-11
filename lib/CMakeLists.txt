@@ -3,7 +3,7 @@
 # 
 # make: ait-backtrace
 #
-# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+# Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
 # Copyright (C) 2012-2015 AIT Austrian Institute of Technology
 # AIT Austrian Institute of Technology GmbH
@@ -46,24 +46,10 @@ set(QKD_SRC
     crypto/context.cpp
     crypto/crypto_evhash.cpp
     crypto/crypto_null.cpp
-    crypto/crypto_umac.cpp
     crypto/crypto_xor.cpp
     crypto/engine.cpp
+    crypto/evhash.cpp
     crypto/scheme.cpp
-    
-    # old and dirty crypto stuff
-    crypto/old/evhash/evhash-32.c
-    crypto/old/evhash/evhash-64.c
-    crypto/old/evhash/evhash-96.c
-    crypto/old/evhash/evhash-128.c
-    crypto/old/evhash/evhash-256.c
-    crypto/old/umac/rijndael-alg-fst.c
-    crypto/old/umac/umac-32.c
-    crypto/old/umac/umac-64.c
-    crypto/old/umac/umac-96.c
-    crypto/old/umac/umac-128.c
-    crypto/old/simple-state.c
-    crypto/old/utility.c
     
     # atof - locale "C" version enforced
     utility/atof/atof.cpp
@@ -164,10 +150,13 @@ set(QKD_SRC
     q3p/engine/ipsec/Utils.cpp
     
     # QKD module
+    module/connection.cpp
     module/communicator.cpp
     module/message.cpp
     module/module.cpp
     module/module_internal.cpp
+    module/path.cpp
+    module/workload.cpp
     
     # widgets
     widget/lcd.cpp

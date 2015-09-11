@@ -3,7 +3,7 @@
  * 
  * This is the base of all QKD modules
  *
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
  * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
@@ -51,7 +51,9 @@
 // ait
 #include <qkd/key/key.h>
 #include <qkd/module/communicator.h>
+#include <qkd/module/connection.h>
 #include <qkd/module/message.h>
+#include <qkd/module/workload.h>
 #include <qkd/utility/average.h>
 #include <qkd/utility/debug.h>
 #include <qkd/utility/environment.h>
@@ -339,28 +341,6 @@ enum class module_type : uint8_t {
  * This hint maybe usefull if you start a series of the very same module participating
  * on the very samy pipeline.
  * 
- * 
- * Note on timeouts:
- * 
- * A module supports two different timeout values:
- * 
- *      timeout_network:    This is the timeout value for send/recv operations
- *                          to/from the peer module when paired. 
- *
- *      timeout_pipe:       This is the timeout value for send/recv operations
- *                          to/from the peer module when paired. The value has
- *                          these interpretations:
- * 
- *      The value has these interpretations:
- * 
- *      n ......... any value >0 is treated as maximum wait time in milliseconds
- * 
- *      0 ......... do not wait at all. For recv this means pick the next message
- *                  if there is one. If there doesn't then return immediately
- * 
- *      -1 ........ wait infinite.                                  
- * 
- * 
  * To check all present modules on the current system use a investigation object.
  * 
  * 
@@ -376,11 +356,13 @@ enum class module_type : uint8_t {
  * 
  *      debug_message_flow              R/W             enable/disable debug of message flow particles on stderr
  *
+ *      description                      R              Description of the module
+ * 
  *      hint                            R/W             an arbitrary text which helps to interconnect modules
  * 
  *      id                               R              ID of the module
  * 
- *      description                      R              Description of the module
+ *      idle                             R              idle flag: finished work on a key for at least 1 sec ago
  * 
  *      organisation                     R              Organisation/Institute/Company of module
  * 
@@ -402,18 +384,12 @@ enum class module_type : uint8_t {
  * 
  *      state_name                       R              Human readable state description of the module
  * 
- *      stalled                          R              stalled flag: finished work on a key for at least 1 sec ago
- * 
  *      synchronize_keys                R/W             synchronize key-ids with remote peer module before processing
  * 
  *      synchronize_ttl                 R/W             TTL in seconds for not in-sync keys
  * 
  *      terminate_after                 R/W             number of keys left before terminating (0 --> do not terminate) [this is for testing and defines when to stop]
  *
- *      timeout_network                 R/W             number of milliseconds for network send/recv timeout
- * 
- *      timeout_pipe                    R/W             number of milliseconds to wait after a failed read (from pipein)
- * 
  *      type                             R              Type of the module (Sifting, Error Correction, etc ...)
  * 
  *      type_name                        R              Human readable type description of the module
@@ -487,9 +463,10 @@ class module : public QObject {
 
     Q_PROPERTY(bool debug READ debug WRITE set_debug)                                           /**< get/set module debug flag */
     Q_PROPERTY(bool debug_message_flow READ debug_message_flow WRITE set_debug_message_flow)    /**< get/set module debug flag */
+    Q_PROPERTY(QString description READ description)                                            /**< get the description of the module */
     Q_PROPERTY(QString hint READ hint WRITE set_hint)                                           /**< get/set the arbitrary module hint */
     Q_PROPERTY(QString id READ id)                                                              /**< get the id of the module */
-    Q_PROPERTY(QString description READ description)                                            /**< get the description of the module */
+    Q_PROPERTY(bool idle READ idle)                                                             /**< get the idle flag: finished work on a key for at least 1 sec ago */
     Q_PROPERTY(QString organisation READ organisation)                                          /**< get the organisation/creator of the module */
     Q_PROPERTY(bool paired READ paired)                                                         /**< get module's paired condition */
     Q_PROPERTY(QString pipeline READ pipeline WRITE set_pipeline)                               /**< the pipeline ID this module is assigned to */
@@ -502,12 +479,9 @@ class module : public QObject {
     Q_PROPERTY(qulonglong start_time READ start_time)                                           /**< UNIX epoch timestamp of module creation */       
     Q_PROPERTY(qulonglong state READ state)                                                     /**< the state of the module */    
     Q_PROPERTY(QString state_name READ state_name)                                              /**< the state name description of the module */
-    Q_PROPERTY(bool stalled READ stalled)                                                       /**< get the stalled flag: finished work on a key for at least 1 sec ago */
     Q_PROPERTY(bool synchronize_keys READ synchronize_keys WRITE set_synchronize_keys)          /**< get/set synchronize key ids flag */
     Q_PROPERTY(qulonglong synchronize_ttl READ synchronize_ttl WRITE set_synchronize_ttl)       /**< get/set synchronize TTL in seconds for not in-sync keys */
     Q_PROPERTY(qulonglong terminate_after READ terminate_after WRITE set_terminate_after)       /**< number of keys left before terminating (0 --> do not terminate) */    
-    Q_PROPERTY(qlonglong timeout_network READ timeout_network WRITE set_timeout_network)        /**< number of milliseconds for network send/recv timeout */    
-    Q_PROPERTY(qlonglong timeout_pipe READ timeout_pipe WRITE set_timeout_pipe)                 /**< number of milliseconds to wait after a failed read */    
     Q_PROPERTY(qulonglong type READ type)                                                       /**< the type of the module */    
     Q_PROPERTY(QString type_name READ type_name)                                                /**< the type name description of the module */
 
@@ -619,17 +593,17 @@ public:
     
     
     /**
-     * most exact age of module
+     * most exact age of module, that is: now() - process start timepoint
      * 
      * @return  age of module
      */
     inline std::chrono::high_resolution_clock::duration age() const { 
         return (std::chrono::high_resolution_clock::now() - birth()); 
-    };    
+    }  
     
     
     /**
-     * most exact date of module birth
+     * most exact date of module birth (module process start)
      * 
      * @return  timepoint of birth as exact as possible
      */
@@ -648,7 +622,16 @@ public:
      */
     communicator comm(qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext) { 
         return communicator(this, cIncomingContext, cOutgoingContext); 
-    };
+    }
+    
+    
+    /**
+     * return the connection object associated with a connection type
+     * 
+     * @param   eType           the connection type
+     * @return  the connection associated with this type
+     */
+    qkd::module::connection const & connection(qkd::module::connection_type eType) const;
 
     
     /**
@@ -669,7 +652,7 @@ public:
      */
     inline std::string config_prefix() const { 
         return std::string("module." + id().toStdString() + "."); 
-    };
+    }
      
     
     /**
@@ -698,7 +681,7 @@ public:
      * 
      * @return  true, if debug messages ought to go to stderr
      */
-    inline bool debug() const { return qkd::utility::debug::enabled(); };
+    inline bool debug() const { return qkd::utility::debug::enabled(); }
     
     
     /**
@@ -725,7 +708,7 @@ public:
     inline qulonglong disclosed_bits_incoming() const { 
         std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
         return statistics().nDisclosedBitsIncoming; 
-    };
+    }
     
     
     /**
@@ -736,7 +719,7 @@ public:
     inline qulonglong disclosed_bits_incoming_rate() const { 
         std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
         return statistics().cDisclosedBitsIncomingRate->slope(); 
-    };
+    }
 
     
     /**
@@ -747,7 +730,7 @@ public:
     inline qulonglong disclosed_bits_outgoing() const { 
         std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
         return statistics().nDisclosedBitsOutgoing; 
-    };
+    }
     
     
     /**
@@ -758,7 +741,7 @@ public:
     inline qulonglong disclosed_bits_outgoing_rate() const { 
         std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
         return statistics().cDisclosedBitsOutgoingRate->slope(); 
-    };
+    }
     
   
     /**
@@ -790,6 +773,14 @@ public:
     
     
     /**
+     * finished work on a key for at least 1 sec ago
+     * 
+     * @return  idle flag
+     */
+    bool idle() const;
+
+    
+    /**
      * this methods interrupts the worker thread
      * 
      * this is usefull if you find the worker thread been
@@ -811,7 +802,7 @@ public:
      */
     inline bool is_alice() const { 
         return (role() == (unsigned long)qkd::module::module_role::ROLE_ALICE); 
-    };
+    }
     
     
     /**
@@ -821,7 +812,7 @@ public:
      */
     inline bool is_bob() const { 
         return (role() == (unsigned long)qkd::module::module_role::ROLE_BOB); 
-    };
+    }
     
     
     /**
@@ -832,7 +823,7 @@ public:
      */
     inline bool is_config_key(std::string const & sKey) const { 
         return (sKey.substr(0, config_prefix().size()) == config_prefix()); 
-    };
+    }
     
     
     /**
@@ -842,7 +833,7 @@ public:
      */
     inline bool is_dying_state() const { 
         return is_dying_state(get_state()); 
-    };
+    }
     
     
     /**
@@ -853,7 +844,7 @@ public:
      */
     static bool is_dying_state(module_state eState) { 
         return ((eState == module_state::STATE_TERMINATED) || (eState == module_state::STATE_TERMINATING)); 
-    };
+    }
     
     
     /**
@@ -863,7 +854,7 @@ public:
      */
     inline bool is_running() const { 
         return (get_state() == module_state::STATE_RUNNING); 
-    };
+    }
     
     
     /**
@@ -882,7 +873,7 @@ public:
      */
     inline bool is_synchronizing() const { 
         return (paired() && synchronize_keys() && !url_pipe_in().isEmpty()); 
-    };
+    }
     
     
     /**
@@ -892,7 +883,7 @@ public:
      */
     inline bool is_working_state() const { 
         return is_working_state(get_state()); 
-    };
+    }
     
     
     /**
@@ -903,8 +894,8 @@ public:
      */
     static bool is_working_state(module_state eState) { 
         return ((eState == module_state::STATE_READY) || (eState == module_state::STATE_RUNNING)); 
-    };
-    
+    }
+
     
     /**
      * waits until the module's worker thread finished
@@ -929,7 +920,7 @@ public:
     inline qulonglong key_bits_incoming() const { 
         std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
         return statistics().nKeyBitsIncoming; 
-    };
+    }
     
     
     /**
@@ -940,7 +931,7 @@ public:
     inline qulonglong key_bits_incoming_rate() const { 
         std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
         return statistics().cKeyBitsIncomingRate->slope(); 
-    };
+    }
 
     
     /**
@@ -951,7 +942,7 @@ public:
     inline qulonglong key_bits_outgoing() const { 
         std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
         return statistics().nKeyBitsOutgoing; 
-    };
+    }
     
     
     /**
@@ -962,7 +953,7 @@ public:
     inline qulonglong key_bits_outgoing_rate() const { 
         std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
         return statistics().cKeyBitsOutgoingRate->slope(); 
-    };
+    }
 
     
     /**
@@ -973,7 +964,7 @@ public:
     inline qulonglong keys_incoming() const { 
         std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
         return statistics().nKeysIncoming; 
-    };
+    }
     
     
     /**
@@ -984,7 +975,7 @@ public:
     inline qulonglong keys_incoming_rate() const { 
         std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
         return statistics().cKeysIncomingRate->slope(); 
-    };
+    }
 
     
     /**
@@ -995,7 +986,7 @@ public:
     inline qulonglong keys_outgoing() const { 
         std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
         return statistics().nKeysOutgoing; 
-    };
+    }
     
     
     /**
@@ -1006,7 +997,7 @@ public:
     inline qulonglong keys_outgoing_rate() const { 
         std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
         return statistics().cKeysOutgoingRate->slope(); 
-    };
+    }
 
     
     /**
@@ -1027,7 +1018,7 @@ public:
      */
     inline bool paired() const { 
         return (!url_listen().isEmpty() || !url_peer().isEmpty()); 
-    };
+    }
     
 
     /**
@@ -1039,23 +1030,23 @@ public:
     
     
     /**
-     * get the process id of the key store
+     * get the process id of the module
      * 
-     * @return  the operating system process id of the key store
+     * @return  the operating system process id of the module
      */
     inline unsigned int process_id() const { 
         return qkd::utility::environment::process_id(); 
-    };
+    }
     
     
     /**
-     * get the process image path of the key store
+     * get the process image path of the module binary on disk
      * 
-     * @return  the operating system process image of this key store
+     * @return  the operating system process image of the module binary on disk
      */
     inline QString process_image() const { 
         return QString::fromStdString(qkd::utility::environment::process_image_path().string()); 
-    };
+    }
     
     
     /**
@@ -1083,7 +1074,7 @@ public:
     
     
     /**
-     * rest timeout() milliseconds for a next communication try
+     * rest 50 milliseconds for a next communication try
      */
     void rest() const;
 
@@ -1103,7 +1094,7 @@ public:
      */
     inline QString role_name() const { 
         return role_name((module_role)role()); 
-    };
+    }
     
     
     /**
@@ -1134,7 +1125,7 @@ public:
      */
     inline void set_debug(bool bDebug) { 
         qkd::utility::debug::enabled() = bDebug; 
-    };
+    }
     
     
     /**
@@ -1194,22 +1185,6 @@ public:
 
 
     /**
-     * set the number for network send/recv
-     * 
-     * @param   nTimeout        the new number of milliseconds for network send/recv
-     */
-    void set_timeout_network(qlonglong nTimeout);
-    
-    
-    /**
-     * set the number of milliseconds after a failed read
-     * 
-     * @param   nTimeout        the new number of milliseconds to wait after a failed read
-     */
-    void set_timeout_pipe(qlonglong nTimeout);
-    
-    
-    /**
      * set the synchronize key ids flag
      * 
      * @param   bSynchronize    the new synchronize key id flag
@@ -1258,14 +1233,6 @@ public:
     
     
     /**
-     * finished work on a key for at least 1 sec ago
-     * 
-     * @return  stalled flag
-     */
-    bool stalled() const;
-
-    
-    /**
      * runs and resumes the module as soon as possible
      * 
      * this is a helper function, which calls run()
@@ -1284,7 +1251,7 @@ public:
      * Seconds since 1/1/1970 when this module
      * has been launched.
      * 
-     * @return  UNIX epoch timestamp of key-store launch
+     * @return  UNIX epoch timestamp of module launch
      */
     unsigned long start_time() const;
     
@@ -1304,7 +1271,7 @@ public:
      */
     inline QString state_name() const { 
         return state_name((module_state)state()); 
-    };
+    }
     
     
     /**
@@ -1365,22 +1332,6 @@ public:
 
 
     /**
-     * return the number for network send/recv timeout
-     * 
-     * @return  the number of milliseconds for network send/recv timeout
-     */
-    qlonglong timeout_network() const;
-    
-    
-    /**
-     * return the number of milliseconds after a failed read
-     * 
-     * @return  the number of milliseconds to wait after a failed read
-     */
-    qlonglong timeout_pipe() const;
-    
-    
-    /**
      * return the type of the module
      * 
      * @return  the module-type as integer
@@ -1395,7 +1346,7 @@ public:
      */
     inline QString type_name() const { 
         return type_name((module_type)type()); 
-    };
+    }
     
     
     /**
@@ -1547,8 +1498,6 @@ protected:
      *      module.ID.random_url
      *      module.ID.synchronize_keys
      *      module.ID.synchronize_ttl
-     *      module.ID.timeout_network
-     *      module.ID.timeout_pipe
      * 
      * where ID is the module id as been resulted by the id() call.
      * 
@@ -1588,36 +1537,25 @@ protected:
     /**
      * read a message from the peer module
      * 
-     * this call is blocking (with respect to timeout)
-     * 
-     * The nTimeOut value is interpreted in these ways:
-     * 
-     *      n ...   wait n milliseconds for an reception of a message
-     *      0 ...   do not wait: get the next message and return
-     *     -1 ...   wait infinite (must be interrupted: see interrupt_worker())
-     *     
-     *      the value of std::numeric_limits< int >::min() means: no change to the
-     *      current timeout setting
+     * this call is blocking
      * 
      * The given message object will be deleted with delet before assigning new values.
      * Therefore if message receive has been successful the message is not NULL
      * 
      * This call waits explcitly for the next message been of type eType. If this
      * is NOT the case a exception is thrown.
-     *
+     * 
      * Internally the recv_internal method is called and the actual receive
      * is performed. 
      * 
      * @param   cMessage            this will receive the message
      * @param   cAuthContext        the authentication context involved
      * @param   eType               message type to receive
-     * @param   nTimeOut            timeout in ms
-     * @return  true, if we have receuived a message
+     * @return  true, if we have received a message, false else
      */
     virtual bool recv(qkd::module::message & cMessage, 
             qkd::crypto::crypto_context & cAuthContext, 
-            qkd::module::message_type eType = qkd::module::message_type::MESSAGE_TYPE_DATA, 
-            int nTimeOut = -1) throw (std::runtime_error);
+            qkd::module::message_type eType = qkd::module::message_type::MESSAGE_TYPE_DATA);
 
     
     /**
@@ -1635,29 +1573,22 @@ protected:
     /**
      * send a message to the peer module
      * 
-     * this call is blocking (with respect to timout)
-     * 
-     * The nTimeOut value is interpreted in these ways:
-     * 
-     *      n ...   wait n milliseconds
-     *      0 ...   do not wait
-     *     -1 ...   wait infinite (must be interrupted: see interrupt_worker())
-     *     
      * this call is blocking
      * 
      * Note: this function takes ownership of the message's data sent! 
      * Afterwards the message's data will be void
      *
      * Sending might fail on interrupt.
+     * 
+     * The path index holds the number of the path to choose. 
+     * On -1 the next suitable path(s) are taken.
      *
      * @param   cMessage            the message to send
      * @param   cAuthContext        the authentication context involved
-     * @param   nTimeOut            timeout in ms
+     * @param   nPath               path index to send
      * @returns true, if successfully sent
      */
-    virtual bool send(qkd::module::message & cMessage, 
-            qkd::crypto::crypto_context & cAuthContext, 
-            int nTimeOut = -1) throw (std::runtime_error);
+    virtual bool send(qkd::module::message & cMessage, qkd::crypto::crypto_context & cAuthContext, int nPath = -1);
 
     
     /**
@@ -1681,13 +1612,18 @@ protected:
      * method inside of process() if you know _exactly_ what
      * you are doing.
      * 
+     * nPath holds the path index of the PIPE_OUT connection to
+     * write. If nPath == 1 then the framework picks the next
+     * suitable path.
+     * 
      * You should not need to call this directly. It get's called
      * if process() returns "true".
      * 
      * @param   cKey        key to pass to the next module
+     * @param   nPath       path number to write
      * @return  true, if writing was successful
      */
-    virtual bool write(qkd::key::key const & cKey);
+    virtual bool write(qkd::key::key const & cKey, int nPath = -1);
 
     
 signals:
@@ -1756,9 +1692,9 @@ private:
     
     
     /**
-     * this is the real module's working method
+     * this is the real module's working method on a single key
      * 
-     * You have to overwrite this.
+     * You have to overwrite this to work on a single key.
      * 
      * This method is called by work() for a new key. If the input pipe
      * has been set to void ("") then the input key is always a NULL key
@@ -1778,7 +1714,25 @@ private:
      */
     virtual bool process(qkd::key::key & cKey, 
             qkd::crypto::crypto_context & cIncomingContext, 
-            qkd::crypto::crypto_context & cOutgoingContext) = 0;
+            qkd::crypto::crypto_context & cOutgoingContext);
+            
+            
+    /**
+     * this is the module's working method on a list of keys
+     * 
+     * Overwrite this if your work results in multiple keys.
+     * 
+     * This method is called by work() for a new key. If the input pipe
+     * has been set to void ("") then the input key is always a NULL key
+     * and the crypto contexts are "null".
+     * 
+     * @param   cWorkload               the work to be done
+     */
+    virtual void process(qkd::module::workload & cWorkload) {
+        for (auto & w : cWorkload) {
+            w.bForward = process(w.cKey, w.cIncomingContext, w.cOutgoingContext);
+        }
+    }
     
     
     /**
@@ -1787,14 +1741,8 @@ private:
      * this is called by the protected recv method and stuffs the received
      * messages into queues depending on their message type.
      * 
-     * this call is blocking (with respect to timeout)
+     * this call is blocking
      * 
-     * The nTimeOut value is interpreted in these ways:
-     * 
-     *      n ...   wait n milliseconds for an reception of a message
-     *      0 ...   do not wait: get the next message and return
-     *     -1 ...   wait infinite (must be interrupted: see interrupt_worker())
-     *     
      * The given message object will be deleted with delet before assigning new values.
      * Therefore if message receive has been successful the message is not NULL
      * 
@@ -1802,10 +1750,9 @@ private:
      * is NOT the case a exception is thrown.
      * 
      * @param   cMessage            this will receive the message
-     * @param   nTimeOut            timeout in ms
      * @return  true, if we have receuived a message
      */
-    bool recv_internal(qkd::module::message & cMessage, int nTimeOut = -1) throw (std::runtime_error);
+    bool recv_internal(qkd::module::message & cMessage);
 
 
     /**
@@ -1813,7 +1760,7 @@ private:
      * 
      * @param   cMessage            the message received
      */
-    void recv_synchronize(qkd::module::message & cMessage) throw (std::runtime_error);
+    void recv_synchronize(qkd::module::message & cMessage);
     
     
     /**

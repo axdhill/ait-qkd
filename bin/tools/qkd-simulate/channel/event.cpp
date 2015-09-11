@@ -3,7 +3,7 @@
  * 
  * Implementation of event class
  * 
- * Autor: Oliver Maurhart
+ * Author: Oliver Maurhart
  *
  * Copyright (C) 2013-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH

@@ -3,7 +3,7 @@
  * 
  * number theoretical transforms
  * 
- * Autor: Christoph Pacher
+ * Author: Christoph Pacher
  *
  * Copyright (C) 2010-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH

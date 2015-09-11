@@ -7,7 +7,7 @@
 #
 # TEST: test the QKD reorder module
 #
-# Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+# Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
 # Copyright (C) 2013-2015 AIT Austrian Institute of Technology
 # AIT Austrian Institute of Technology GmbH
@@ -38,13 +38,13 @@ source ${TEST_BASE}/test/bin/test-functions
 # ------------------------------------------------------------
 
 # init test environment
-test_init
+test_init "$(basename $0).d"
 
 # zap previous keys
 rm -rf cat_keys.* &> /dev/null
 
 KEYS_TO_PROCESS="100"
-${TEST_BASE}/bin/qkd-key-gen --size 64 --keys ${KEYS_TO_PROCESS} cat_keys
+${TEST_BASE}/bin/qkd-key-gen --silent --size 64 --keys ${KEYS_TO_PROCESS} cat_keys
 
 # truncate previous debug out
 echo -n > reorder_debug.alice
@@ -69,7 +69,7 @@ done
 
 # wait until all keys have been processed
 sleep 1
-wait_stalled cat reorder
+wait_idle cat reorder
 echo "keys reordered"
 
 # compare keys

@@ -23,7 +23,7 @@ namespace qkd {
 
 namespace IPsec {
 
-class Exception : virtual std::exception {
+class Exception {
 public:
 	Exception(std::string errmsg) throw(){this->errmsg=errmsg;type=GENERIC_ERROR;};
 	virtual const char* what() const throw(){

@@ -3,9 +3,9 @@
  * 
  * random number distribution functions
  * 
- * Autor: Mario Kahn
- * Autor: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
- * Autor: Philipp Grabenweger
+ * Author: Mario Kahn
+ *         Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ *         Philipp Grabenweger
  *
  * Copyright (C) 2013-2015 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
