@@ -5,7 +5,7 @@ This file holds the changes of the AIT QKD R10 throughout the versions
 Changes from 9.9999.4 to 9.9999.5
 ---------------------------------
 
-* writing keys to _void_ pipe_out does now increment key stats
+* writing keys to void pipe_out does now increment key stats
 
     Writing keys to void (empty) pipe_out connection does now
     increment key_bits_outgoing, keys_outgoing and the
@@ -45,7 +45,7 @@ Changes from 9.9999.4 to 9.9999.5
     In case an I/O operation takes too long the module's worker
     thread doing all this I/O can be interrupted with the
     
-        qkd::module::module::interrupt() 
+        qkd::module::module::interrupt_worker() 
         
     method.
 
@@ -78,8 +78,8 @@ Changes from 9.9999.4 to 9.9999.5
 
 * clang-3.6 support
 
-    If you want to compile with clang (clang.llvm.org) than we do now
-    support this compiler suite. After install 
+    If you want to compile with clang (http://clang.llvm.org) than we 
+    do now support this compiler suite. After install 
     (e.g. $ sudo apt-get install clang) you may switch freely between
     gcc and clang.
     
@@ -139,7 +139,7 @@ Changes from 9.9999.4 to 9.9999.5
 * Crypto Contexts are now concatenable!
 
     A crypto context, especially the evalution hash algorithm, can
-    now be contacatenated. This enables two seperate message streams
+    now be concatenated. This enables two seperate message streams
     to me melted into a single tag for later authentication.
 
     This is needed when one concatenates keys to form a larger one.

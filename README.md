@@ -73,6 +73,7 @@ The whole project compiles in one single step, meaning no subprojects. This resu
     |   +-- module-3                                        continuative example 
     |   +-- module-4                                        continuative example 
     |   +-- module-5                                        complex example incl. DBus
+    |   +-- template                                        template code for arbitrary QKD modules
     +-- include                                         header files
     +-- lib                                             libqkd (QKD Module Framework / Q3P Links / etc.)  <--- !! THIS IS THE CORE !! --->
     +-- share                                           shared files (like graphics)
