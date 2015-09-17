@@ -104,12 +104,6 @@ public:
 
 
     /**
-     * message queues for different messages of different type
-     */
-    std::map<qkd::module::message_type, std::queue<qkd::module::message>> cMessageQueues;
-    
-    
-    /**
      * this is holds the information for a single stashed key
      */
     typedef struct {
