@@ -763,51 +763,31 @@ bool module::read(qkd::key::key & cKey) {
 bool module::recv(qkd::module::message & cMessage, 
         qkd::crypto::crypto_context & cAuthContext, 
         qkd::module::message_type eType) {
-
-    bool bReceived = false;
-
-    // ensure there is at least an empty message queue for this message type
-    if (d->cMessageQueues.find(eType) == d->cMessageQueues.end()) {
-        d->cMessageQueues[eType] = std::queue<qkd::module::message>();
+    
+    if (!recv_internal(cMessage)) return false;
+    if (eType == cMessage.type()) {
+        cAuthContext << cMessage.data();
+        cMessage.data().set_position(0);
+        return true;
     }
-
-    if (!d->cMessageQueues[eType].empty()) {
-        cMessage = d->cMessageQueues[eType].front();
-        d->cMessageQueues[eType].pop();
-        qkd::utility::debug() << "message for type " 
-                << static_cast<uint32_t>(eType) 
-                << " already in message queue - popped from queue.";
-    }
-    else {
-
-        // receive message and push them into queue until correct type received
-
-        do {
-
-            bReceived = recv_internal(cMessage);
-            if (!bReceived) return false;
-
-            if (cMessage.type() != eType) {
-
-                if (d->cMessageQueues.find(cMessage.type()) == d->cMessageQueues.end()) {
-                    d->cMessageQueues[cMessage.type()] = std::queue<qkd::module::message>();
-                }
-                d->cMessageQueues[cMessage.type()].push(cMessage);
-                qkd::utility::debug() << "received a QKD message for message type " 
-                        << static_cast<uint32_t>(cMessage.type()) 
-                        << " when expecting " 
-                        << static_cast<uint32_t>(eType) 
-                        << " - pushed into queue for later dispatch.";
-                bReceived = false;
-            }
-
-        } while (!bReceived); 
-    }
+    
+    // waited for different message type ... %(
+    if ((eType == qkd::module::message_type::MESSAGE_TYPE_DATA) && (cMessage.type() == qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC)) {
         
-    cAuthContext << cMessage.data();
-    cMessage.data().set_position(0);
-
-    return bReceived;
+        // waited for data but received sync:
+        // our module worker wants some data, but our sent us a sync
+        // either the peer crashed or 
+        send_synchronize();
+        recv_synchronize(cMessage);
+    }
+    
+    qkd::utility::debug() << "received a QKD message for message type " 
+            << static_cast<uint32_t>(cMessage.type()) 
+            << " when expecting " 
+            << static_cast<uint32_t>(eType) 
+            << " - pushed into queue for later dispatch.";    
+            
+    return false;
 }
 
 
@@ -1060,6 +1040,30 @@ bool module::send(qkd::module::message & cMessage, qkd::crypto::crypto_context &
     cMessage = qkd::module::message();    
 
     return true;
+}
+
+
+/**
+ * send a synchronize message
+ */
+void module::send_synchronize() {
+    
+    qkd::module::message cMessage;
+    cMessage.m_cHeader.eType = qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC;
+    cMessage.data() << d->cStash.cInSync.size();
+    for (auto const & cStashedKey : d->cStash.cInSync) cMessage.data() << cStashedKey.first;
+    cMessage.data() << d->cStash.cOutOfSync.size();
+    for (auto const & cStashedKey : d->cStash.cOutOfSync) cMessage.data() << cStashedKey.first;
+    
+    try {
+        qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
+        send(cMessage, cCryptoContext);
+    }
+    catch (std::runtime_error & cException) {
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                << ": failed to send list of stashed keys to peer: " << cException.what();
+        return;
+    }
 }
 
 
@@ -1385,30 +1389,15 @@ QString module::state_name(module_state eState) {
 void module::synchronize() {
     
     if (!is_synchronizing()) return;
-
-    if (qkd::utility::debug::enabled()) qkd::utility::debug() << "synchronizing keys...";
-
-    qkd::module::message cMessage;
-    cMessage.m_cHeader.eType = qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC;
-    cMessage.data() << d->cStash.cInSync.size();
-    for (auto const & cStashedKey : d->cStash.cInSync) cMessage.data() << cStashedKey.first;
-    cMessage.data() << d->cStash.cOutOfSync.size();
-    for (auto const & cStashedKey : d->cStash.cOutOfSync) cMessage.data() << cStashedKey.first;
+    qkd::utility::debug() << "synchronizing keys...";
     
+    send_synchronize();
     try {
+        qkd::module::message cMessage;
         qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
-        send(cMessage, cCryptoContext);
-    }
-    catch (std::runtime_error & cException) {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
-                << ": failed to send list of stashed keys to peer: " << cException.what();
-        return;
-    }
-    
-    try {
-        qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
-        recv(cMessage, cCryptoContext, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
-        recv_synchronize(cMessage);
+        if (recv(cMessage, cCryptoContext, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC)) {
+            recv_synchronize(cMessage);
+        }
     }
     catch (std::runtime_error & cException) {}
 }

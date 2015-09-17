@@ -1764,6 +1764,12 @@ private:
     
     
     /**
+     * send a synchronize message
+     */
+    void send_synchronize();
+    
+    
+    /**
      * this is the entry point of the main thread worker
      */
     void thread();
