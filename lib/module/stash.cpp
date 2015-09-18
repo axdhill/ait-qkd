@@ -43,6 +43,23 @@ using namespace qkd::module;
 
 
 // ------------------------------------------------------------
+// decl
+
+
+/**
+ * sync message commands
+ */
+enum class sync_command : uint32_t {
+    
+    SYNC_COMMAND_LIST,              /**< the message contains a list of stashed key ids */
+    SYNC_COMMAND_PICK,              /**< the message contains the id of a key to pick */
+    SYNC_COMMAND_NOPICK,            /**< there is no key to pick */
+    SYNC_COMMAND_PICK_ACK,          /**< the peer acknowledges the key id */
+    SYNC_COMMAND_PICK_NACK          /**< the peer does not acknowledge the key id */
+};
+    
+
+// ------------------------------------------------------------
 // fwd
 
 
@@ -58,28 +75,57 @@ static void debug_expired(std::list<qkd::key::key_id> const & cExpired);
  * dumps a debug line about the current keys we have
  * 
  * @param   sHeader                 line header
- * @param   nSyncMessageNumber      the sync message number
  * @param   cStash                  the stash of current keys
  */
-static void debug_sync(std::string const & sHeader, 
-        uint64_t nSyncMessageNumber, 
-        std::list<qkd::module::stash::stashed_key> const & cStash);
+static void debug_sync(std::string const & sHeader, std::list<qkd::module::stash::stashed_key> const & cStash);
 
 
 /**
  * dumps a debug line about the current keys we have
  * 
  * @param   sHeader                 line header
- * @param   nSyncMessageNumber      the sync message number
  * @param   cStash                  the stash of current keys
  */
-static void debug_sync(std::string const & sHeader, 
-        uint64_t nSyncMessageNumber, 
-        std::list<qkd::key::key_id> const & cStash);
+static void debug_sync(std::string const & sHeader, std::list<qkd::key::key_id> const & cStash);
 
 
 // ------------------------------------------------------------
 // code
+
+
+/**
+ * ctor
+ * 
+ * @param   cModule     the parent module
+ */
+stash::stash(qkd::module::module * cModule) : 
+        m_bSynchronize(true), 
+        m_nTTL(10), 
+        m_cModule(cModule) { 
+            
+    if (!m_cModule) throw std::invalid_argument("stash: parent module is null"); 
+}
+
+
+/**
+ * choose a key from our stash knowledge
+ * 
+ * @return  the first key which is present in both stashes (or null key)
+ */
+qkd::key::key stash::choose() const {
+    
+    auto iter = std::find_first_of(
+        m_cStash.begin(), 
+        m_cStash.end(), 
+        m_cPeerStash.begin(), 
+        m_cPeerStash.end(), 
+        [](stashed_key const & cKeyStash, qkd::key::key_id const & cPeerKey) { return (cKeyStash.cKey.id() == cPeerKey); });
+    
+    if (iter == m_cStash.end()) return qkd::key::key::null();
+    
+    return (*iter).cKey;
+}
+
 
 
 /**
@@ -90,7 +136,6 @@ static void debug_sync(std::string const & sHeader,
  * @return  the first key in both lists
  */
 qkd::key::key stash::pick() {
-    
     if (m_cModule->is_alice()) return pick_alice();
     return pick_bob();
 }
@@ -105,18 +150,63 @@ qkd::key::key stash::pick() {
  */
 qkd::key::key stash::pick_alice() {
     
-    auto iter = std::find_first_of(
-        m_cStash.begin(), 
-        m_cStash.end(), 
-        m_cPeerStash.begin(), 
-        m_cPeerStash.end(), 
-        [](stashed_key const & cKeyStash, qkd::key::key_id const & cPeerKey) { return (cKeyStash.cKey.id() == cPeerKey); });
+    qkd::key::key cKey = choose();
+
+    qkd::module::message cMessage(qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
+    if (cKey.is_null()) {
+        cMessage.data() << (uint32_t)sync_command::SYNC_COMMAND_NOPICK;
+        qkd::utility::debug() << "key-SYNC no key to pick";
+    }
+    else {
+        cMessage.data() << (uint32_t)sync_command::SYNC_COMMAND_PICK;
+        cMessage.data() << cKey.id();
+        qkd::utility::debug() << "key-SYNC pick key #" << cKey.id();
+    }
+
+    try {
+        qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
+        m_cModule->send(cMessage, cCryptoContext);
+    }
+    catch (std::runtime_error & cException) {
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                << ": failed to send pick of key to peer: " << cException.what();
+        return qkd::key::key::null();
+    }
+
+    if (cKey.is_null()) return cKey;
     
-    if (iter == m_cStash.end()) return qkd::key::key::null();
+    cMessage = qkd::module::message();
+    try {
+        qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
+        m_cModule->recv(cMessage, cCryptoContext, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
+    }
+    catch (std::runtime_error & cException) {
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                << ": failed to receive acknowledge of key to pick: " << cException.what();
+        return qkd::key::key::null();
+    }
     
-    qkd::key::key cKey = (*iter).cKey;
-    m_cPeerStash.erase(std::find(m_cPeerStash.begin(), m_cPeerStash.end(), cKey.id()));
-    m_cStash.erase(iter);
+    if (cMessage.type() != qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC) {
+        throw std::runtime_error("received a non-sync message during key sync pick");
+    }
+    
+    sync_command nCmdSync;
+    cMessage.data() >> (uint32_t &)nCmdSync;
+    
+    switch (nCmdSync) {
+        
+    case sync_command::SYNC_COMMAND_PICK_ACK:
+        break;
+        
+    case sync_command::SYNC_COMMAND_PICK_NACK:
+        qkd::utility::debug() << "key-SYNC key pick rejected by peer";
+        return qkd::key::key::null();
+        
+    default:
+        throw std::runtime_error("received a invalid answer for key pick assignment");
+    }
+    
+    remove(cKey.id());
     
     return cKey;
 }
@@ -130,22 +220,66 @@ qkd::key::key stash::pick_alice() {
  * @return  the first key in both lists
  */
 qkd::key::key stash::pick_bob() {
+   
+    qkd::module::message cMessage;
+    try {
+        qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
+        m_cModule->recv(cMessage, cCryptoContext, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
+    }
+    catch (std::runtime_error & cException) {
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                << ": failed to recv pick of key to peer: " << cException.what();
+        return qkd::key::key::null();
+    }
     
-    auto iter = std::find_first_of(
-        m_cPeerStash.begin(), 
-        m_cPeerStash.end(), 
-        m_cStash.begin(), 
-        m_cStash.end(), 
-        [](qkd::key::key_id const & cPeerKey, stashed_key const & cKeyStash) { return (cKeyStash.cKey.id() == cPeerKey); });
+    if (cMessage.type() != qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC) {
+        throw std::runtime_error("accidently received a non-sync message when waiting for key to pick");
+    }
     
-    if (iter == m_cPeerStash.end()) return qkd::key::key::null();
+    sync_command nCmdSync;
+    cMessage.data() >> (uint32_t &)nCmdSync;
+    switch (nCmdSync) {
+        
+    case sync_command::SYNC_COMMAND_PICK:
+        break;
+        
+    case sync_command::SYNC_COMMAND_NOPICK:
+        qkd::utility::debug() << "key-SYNC no key to pick";
+        return qkd::key::key::null();
+        
+    default:
+        throw std::runtime_error("key sync message does not contain pick command");
+    }
     
-    auto cKeyIter = std::find_if(m_cStash.begin(), m_cStash.end(), [&](stashed_key const & cKeyStash) { return (cKeyStash.cKey.id() == *(iter)); });
-    if (cKeyIter == m_cStash.end()) throw std::runtime_error("stash::pick - unable to re-find sync key in local stash");
+    qkd::key::key_id nKeyId;
+    cMessage.data() >> nKeyId;
+    auto iter = std::find_if(
+            m_cStash.begin(), 
+            m_cStash.end(), 
+            [&](stashed_key const & cKeyStash) { return (cKeyStash.cKey.id() == nKeyId); });
     
-    qkd::key::key cKey = (*cKeyIter).cKey;
-    m_cStash.erase(cKeyIter);
-    m_cPeerStash.erase(iter);
+    cMessage = qkd::module::message(qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
+    if (iter != m_cStash.end()) {
+        cMessage.data() << (uint32_t)sync_command::SYNC_COMMAND_PICK_ACK;
+    }
+    else {
+        cMessage.data() << (uint32_t)sync_command::SYNC_COMMAND_PICK_NACK;
+    }
+    
+    try {
+        qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
+        m_cModule->send(cMessage, cCryptoContext);
+    }
+    catch (std::runtime_error & cException) {
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                << ": failed to send ack/nack of key to peer: " << cException.what();
+        return qkd::key::key::null();
+    }
+    
+    if (iter == m_cStash.end()) return qkd::key::key::null();
+    
+    qkd::key::key cKey = (*iter).cKey;
+    remove(nKeyId);
     
     return cKey;
 }
@@ -179,9 +313,7 @@ void stash::purge() {
  * @param   cKey        key to push
  */
 void stash::push(qkd::key::key & cKey) {
-    
     if (cKey.is_null()) return;
-    
     qkd::module::stash::stashed_key k = { cKey, std::chrono::system_clock::now() };
     m_cStash.push_back(k);
 }
@@ -200,8 +332,12 @@ void stash::recv(qkd::module::message & cMessage) {
 
     m_cPeerStash.clear();
     
-    uint64_t nSyncMessageNumber = 0;
-    cMessage.data() >> nSyncMessageNumber;
+    sync_command nSyncCmd;
+    cMessage.data() >> (uint32_t &)nSyncCmd;
+    if (nSyncCmd != sync_command::SYNC_COMMAND_LIST) {
+        throw std::runtime_error("sync list expected, but other command received");
+    }
+    
     uint64_t nPeerStashKeys = 0;
     cMessage.data() >> nPeerStashKeys;
     
@@ -211,24 +347,44 @@ void stash::recv(qkd::module::message & cMessage) {
         m_cPeerStash.push_back(cKeyId);
     }
     
-    debug_sync("key-SYNC recv", nSyncMessageNumber, m_cPeerStash);
+    debug_sync("key-SYNC recv", m_cPeerStash);
 }
 
 
 /**
- * sends our keys to the peer
+ * removes a key with a given id from both stashes
+ * 
+ * @param   nKeyId          id of key to remove
+ */
+void stash::remove(qkd::key::key_id nKeyId) {
+
+    {
+        auto iter = std::find_if(
+                m_cStash.begin(), 
+                m_cStash.end(), 
+                [&](stashed_key const & cKeyStash) { return (cKeyStash.cKey.id() == nKeyId); });
+
+        if (iter != m_cStash.end()) m_cStash.erase(iter);
+    }
+    
+    {
+        auto iter = std::find(m_cPeerStash.begin(), m_cPeerStash.end(), nKeyId);
+        if (iter != m_cPeerStash.end()) m_cPeerStash.erase(iter);
+    }
+}
+
+
+/**
+ * bob: sends our keys to the peer
  */
 void stash::send() {
     
-    static uint64_t nSyncMessageNumber = 0;
-    ++nSyncMessageNumber;
-    
     qkd::module::message cMessage(qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
-    cMessage.data() << nSyncMessageNumber;
+    cMessage.data() << (uint32_t)sync_command::SYNC_COMMAND_LIST;
     cMessage.data() << m_cStash.size();
     for (auto const & k : m_cStash) cMessage.data() << k.cKey.id();
     
-    debug_sync("key-SYNC send", nSyncMessageNumber, m_cStash);
+    debug_sync("key-SYNC send", m_cStash);
     
     try {
         qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
@@ -247,17 +403,21 @@ void stash::send() {
 void stash::sync() {
     
     qkd::utility::debug() << "synchronizing keys...";
-    
+
     purge();
-    send();
-    try {
-        qkd::module::message cMessage;
-        qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
-        if (m_cModule->recv(cMessage, cCryptoContext, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC)) {
-            recv(cMessage);
-        }
+    if (m_cModule->is_bob()) {
+        send();
     }
-    catch (std::runtime_error & cException) {}
+    else {
+        try {
+            qkd::module::message cMessage;
+            qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
+            if (m_cModule->recv(cMessage, cCryptoContext, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC)) {
+                recv(cMessage);
+            }
+        }
+        catch (std::runtime_error & cException) {}
+    }
 }
 
 
@@ -286,12 +446,9 @@ void debug_expired(std::list<qkd::key::key_id> const & cExpired) {
  * dumps a debug line about the current keys we have
  * 
  * @param   sHeader                 line header
- * @param   nSyncMessageNumber      the sync message number
  * @param   cStash                  the stash of current keys
  */
-void debug_sync(std::string const & sHeader, 
-        uint64_t nSyncMessageNumber, 
-        std::list<qkd::module::stash::stashed_key> const & cStash) {
+void debug_sync(std::string const & sHeader, std::list<qkd::module::stash::stashed_key> const & cStash) {
     
     if (!qkd::utility::debug::enabled()) return;
     
@@ -303,7 +460,7 @@ void debug_sync(std::string const & sHeader,
         bFirst = false;
     }
 
-    qkd::utility::debug() << sHeader << " <" << nSyncMessageNumber << "> [" << ss.str() << "]";
+    qkd::utility::debug() << sHeader << " [" << ss.str() << "]";
 }
 
 
@@ -311,12 +468,9 @@ void debug_sync(std::string const & sHeader,
  * dumps a debug line about the current keys we have
  * 
  * @param   sHeader                 line header
- * @param   nSyncMessageNumber      the sync message number
  * @param   cStash                  the stash of current keys
  */
-void debug_sync(std::string const & sHeader, 
-        uint64_t nSyncMessageNumber, 
-        std::list<qkd::key::key_id> const & cStash) {
+void debug_sync(std::string const & sHeader, std::list<qkd::key::key_id> const & cStash) {
             
     if (!qkd::utility::debug::enabled()) return;
     
@@ -328,5 +482,5 @@ void debug_sync(std::string const & sHeader,
         bFirst = false;
     }
 
-    qkd::utility::debug() << sHeader << " <" << nSyncMessageNumber << "> [" << ss.str() << "]";
+    qkd::utility::debug() << sHeader << " [" << ss.str() << "]";
 }

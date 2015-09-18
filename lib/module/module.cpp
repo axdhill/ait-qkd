@@ -771,21 +771,21 @@ bool module::recv(qkd::module::message & cMessage,
         return true;
     }
     
-    // waited for different message type ... %(
-    if ((eType == qkd::module::message_type::MESSAGE_TYPE_DATA) && (cMessage.type() == qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC)) {
-        
-        // waited for data but received sync:
-        // our module worker wants some data, but our sent us a sync
-        // either the peer crashed or 
-        d->cStash->send();
-        d->cStash->recv(cMessage);
-    }
-    
     qkd::utility::debug() << "received a QKD message for message type " 
             << static_cast<uint32_t>(cMessage.type()) 
             << " when expecting " 
             << static_cast<uint32_t>(eType);    
             
+    // waited for different message type ... %(
+    if ((eType == qkd::module::message_type::MESSAGE_TYPE_DATA) && (cMessage.type() == qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC)) {
+        
+        // waited for data but received sync:
+        // our module worker wants some data, 
+        // but our peer sent us a sync
+        d->cStash->send();
+        d->cStash->recv(cMessage);
+    }
+    
     return false;
 }
 
@@ -1132,7 +1132,7 @@ void module::set_url_listen(QString sURL) {
     std::string s = sURL.toStdString();
     if (!s.empty()) {
         for (auto & u : connection::split_urls(s)) {
-            d->cConListen->add(u, 1000, id().toStdString(), "listen");
+            d->cConListen->add(u, 1, id().toStdString(), "listen");
         }
     }
     else d->cConListen->add("");
@@ -1150,7 +1150,7 @@ void module::set_url_peer(QString sURL) {
     std::string s = sURL.toStdString();
     if (!s.empty()) {
         for (auto & u : connection::split_urls(s)) {
-            d->cConPeer->add(u, 1000, id().toStdString(), "listen");
+            d->cConPeer->add(u, 1, id().toStdString(), "listen");
         }
     }
     else d->cConPeer->add("");
@@ -1486,18 +1486,19 @@ void module::work() {
 
         // get a key
         qkd::key::key cKey = qkd::key::key::null();
-        if (is_synchronizing()) cKey = d->cStash->pick();
+        if (is_synchronizing()) {
+            synchronize();
+            cKey = d->cStash->pick();
+        }
         if (!cKey.is_null()) {
-            qkd::utility::debug() << "key " << cKey.id() << " is present at peer - picked";
+            qkd::utility::debug() << "key #" << cKey.id() << " is present at peer - picked";
         }
         else {
             
             if (!read(cKey)) {
 
                 if (get_state() != qkd::module::module_state::STATE_RUNNING) break;
-
                 qkd::utility::debug() << "failed to read key from previous module in pipe";
-                synchronize();
                 continue;
             }
             
@@ -1512,7 +1513,6 @@ void module::work() {
             
             if (is_synchronizing()) {
                 d->cStash->push(cKey);
-                synchronize();
                 continue;
             }
         }

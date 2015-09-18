@@ -111,9 +111,7 @@ public:
      * 
      * @param   cModule     the parent module
      */
-    stash(qkd::module::module * cModule) : m_bSynchronize(true), m_nTTL(10), m_cModule(cModule) { 
-        if (!m_cModule) throw std::invalid_argument("stash: parent module is null"); 
-    }
+    stash(qkd::module::module * cModule);
     
     
     /**
@@ -161,6 +159,22 @@ public:
     
     
 private:
+    
+    
+    /**
+     * choose a key from our stash knowledge
+     * 
+     * @return  the first key which is present in both stashes (or null key)
+     */
+    qkd::key::key choose() const;
+    
+    
+    /**
+     * removes a key with a given id from both stashes
+     * 
+     * @param   nKeyId          id of key to remove
+     */
+    void remove(qkd::key::key_id nKeyId);
     
 
     /**
