@@ -73,7 +73,7 @@ done
 
 # wait until the pipeline is through
 sleep 1
-wait_idle cat reorder cascade
+wait_idle cascade reorder cat
 
 # check how many 
 if [ ! -s cascade_keys.alice ]; then

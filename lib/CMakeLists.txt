@@ -156,6 +156,7 @@ set(QKD_SRC
     module/module.cpp
     module/module_internal.cpp
     module/path.cpp
+    module/stash.cpp
     module/workload.cpp
     
     # widgets
