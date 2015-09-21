@@ -5,6 +5,11 @@ This file holds the changes of the AIT QKD R10 throughout the versions
 Changes from 9.9999.5 to 9.9999.6
 ---------------------------------
 
+* revamp of key synchronization
+
+    New key sync protocol introduces a new step when picking
+    a key. This is yet more stable and recovers broken 
+    pipelines at either side.
 
 
 Changes from 9.9999.4 to 9.9999.5
