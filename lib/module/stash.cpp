@@ -190,10 +190,10 @@ qkd::key::key stash::pick_alice() {
         throw std::runtime_error("received a non-sync message during key sync pick");
     }
     
-    sync_command nCmdSync;
-    cMessage.data() >> (uint32_t &)nCmdSync;
+    uint32_t nCmdSync = 0;
+    cMessage.data() >> nCmdSync;
     
-    switch (nCmdSync) {
+    switch ((sync_command)nCmdSync) {
         
     case sync_command::SYNC_COMMAND_PICK_ACK:
         break;
@@ -236,9 +236,9 @@ qkd::key::key stash::pick_bob() {
         throw std::runtime_error("accidently received a non-sync message when waiting for key to pick");
     }
     
-    sync_command nCmdSync;
-    cMessage.data() >> (uint32_t &)nCmdSync;
-    switch (nCmdSync) {
+    uint32_t nCmdSync;
+    cMessage.data() >> nCmdSync;
+    switch ((sync_command)nCmdSync) {
         
     case sync_command::SYNC_COMMAND_PICK:
         break;
@@ -332,9 +332,9 @@ void stash::recv(qkd::module::message & cMessage) {
 
     m_cPeerStash.clear();
     
-    sync_command nSyncCmd;
-    cMessage.data() >> (uint32_t &)nSyncCmd;
-    if (nSyncCmd != sync_command::SYNC_COMMAND_LIST) {
+    uint32_t nSyncCmd;
+    cMessage.data() >> nSyncCmd;
+    if ((sync_command)nSyncCmd != sync_command::SYNC_COMMAND_LIST) {
         throw std::runtime_error("sync list expected, but other command received");
     }
     
