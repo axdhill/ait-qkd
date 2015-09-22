@@ -313,10 +313,6 @@ bool qkd_cascade::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cI
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to transmit seed value - " << e.what();
         return false;
     }
-    catch (...) {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "unkown exception caught while transmitting seed value";
-        return false;
-    }
 
     // create the list of different pass categories
     // hence, currently this is not used but defaults
@@ -367,13 +363,27 @@ bool qkd_cascade::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cI
         cCategories.push_back(cCategory);
 
     	// for all steps: add "parity-checks", i.e. parity infos to list of checks
-        cFrame.add_checker(new parity_checker(cFrame, perm, inv_perm, cCategories, comm(cIncomingContext, cOutgoingContext)));
+        try {
+            cFrame.add_checker(new parity_checker(cFrame, perm, inv_perm, cCategories, comm(cIncomingContext, cOutgoingContext)));
+        }
+        catch (std::exception & e) {
+            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " 
+                    << "exception caught while exchanging parities - " << e.what();
+            return false;
+        }
 
 	    // correct all blocks with different parity in first step
         if (step == 1) {
 
             // enforce the correction of all odd (partity differs) block in the first step
-            cFrame.checkers()[0]->correct_blocks(cFrame.checkers()[0]->get_odd_parity_blocks()); 
+            try {
+                cFrame.checkers()[0]->correct_blocks(cFrame.checkers()[0]->get_odd_parity_blocks()); 
+            }
+            catch (std::exception & e) {
+                qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " 
+                        << "exception caught while exchanging parities - " << e.what();
+                return false;
+            }
         }
         else {
 
@@ -398,7 +408,14 @@ bool qkd_cascade::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cI
                 }
 	            
                 // correct all odd parity blocks (in parallel)
-                cFrame.checkers()[corr_step]->correct_blocks(cFrame.checkers()[corr_step]->get_odd_parity_blocks());
+                try {
+                    cFrame.checkers()[corr_step]->correct_blocks(cFrame.checkers()[corr_step]->get_odd_parity_blocks());
+                }
+                catch (std::exception & e) {
+                    qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " 
+                            << "exception caught while exchanging parities - " << e.what();
+                    return false;
+                }
             }
         } 
     } 

@@ -52,7 +52,7 @@ using namespace qkd::module;
  * @param   cParentModule       the parent module of this inner module
  * @param   sId                 module id
  */
-module::module_internal::module_internal(module * cParentModule, std::string sId) : cModule(cParentModule), sId(sId), nStartTimeStamp(0) { 
+module::module_internal::module_internal(module * cParentModule, std::string sId) : cModule(cParentModule), sId(sId), nStartTimeStamp(0), cStash(nullptr) { 
     
     // default values
     
@@ -61,15 +61,11 @@ module::module_internal::module_internal(module * cParentModule, std::string sId
     
     cRandom = qkd::utility::random_source::source();
     
-    bSynchronizeKeys = true;
-    nSynchronizeTTL = 10;
-    
     cLastProcessedKey = std::chrono::system_clock::now() - std::chrono::hours(1);
     cModuleBirth = std::chrono::high_resolution_clock::now();
     bProcessing = false;
     bDebugMessageFlow = false;
 
-    cStash.nLastInSyncKeyPicked = 0;
     nTerminateAfter = 0;
     
     cConListen = new qkd::module::connection(connection_type::LISTEN);
@@ -79,6 +75,8 @@ module::module_internal::module_internal(module * cParentModule, std::string sId
 
     cConPipeIn->add("stdin://");
     cConPipeOut->add("stdout://");
+    
+    cStash = new qkd::module::stash(cParentModule);
 }
 
 
@@ -86,6 +84,8 @@ module::module_internal::module_internal(module * cParentModule, std::string sId
  * dtor
  */
 module::module_internal::~module_internal() {
+    if (cStash != nullptr) delete cStash;
+    cStash = nullptr;
     if (cConPipeOut != nullptr) delete cConPipeOut;
     cConPipeOut = nullptr;
     if (cConPipeIn != nullptr) delete cConPipeIn;

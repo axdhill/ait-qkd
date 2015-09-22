@@ -87,8 +87,10 @@ public:
     
     /**
      * ctor
+     * 
+     * @param   eType       type of message
      */
-    message();
+    message(qkd::module::message_type eType = qkd::module::message_type::MESSAGE_TYPE_DATA);
     
 
     /**

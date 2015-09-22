@@ -228,27 +228,16 @@ bool parity_checker::calculate_block_diffparities(std::vector<parity_block> & cC
 	    // TODO: we exchange a uint8 for each bit --> change to bit vector
         std::vector<uint8_t> cRemoteParities;
         
-        try {
+        // send our parities 
+        qkd::utility::buffer cSendBuffer;
+        cSendBuffer << cExchangeParities;
+        m_cComm << cSendBuffer;
 
-            // send our parities 
-            qkd::utility::buffer cSendBuffer;
-            cSendBuffer << cExchangeParities;
-            m_cComm << cSendBuffer;
-
-            // recv remote parities
-            qkd::utility::buffer cRecvBuffer;
-            m_cComm >> cRecvBuffer;
-            cRecvBuffer.reset();
-            cRecvBuffer >> cRemoteParities;
-        }
-        catch (std::exception & e) {
-            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "exception caught while exchanging parities - " << e.what();
-            return false;
-        }
-        catch (...) {
-            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "unkown exception caught while exchanging parity bits with bob.";
-            return false;
-        }
+        // recv remote parities
+        qkd::utility::buffer cRecvBuffer;
+        m_cComm >> cRecvBuffer;
+        cRecvBuffer.reset();
+        cRecvBuffer >> cRemoteParities;
 
         // peer must have sent the same amount of bits
         if (cRemoteParities.size() != cExchangeParities.size()) {

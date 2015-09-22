@@ -162,25 +162,29 @@ public:
      * >> operator
      *
      * recv a message
+     * 
+     * This operator throws an exception if the message could not
+     * be receive successfully
      *
      * @param   cMessage        message to receive
-     * @return  true for success
      */
-    inline bool operator>>(qkd::module::message & cMessage) {  return recv(cMessage); }
+    inline void operator>>(qkd::module::message & cMessage) {  if (!recv(cMessage)) throw std::runtime_error("failed to receive message"); }
 
 
     /**
      * << operator
      *
      * send a blob
+     * 
+     * This operator throws an exception if the message could not
+     * be sent successfully
      *
      * @param   cBuffer         blob to send
-     * @return  true for success
      */
     inline void operator<<(qkd::utility::buffer const & cBuffer) { 
         qkd::module::message cMessage; 
         cMessage.data() << cBuffer; 
-        send(cMessage); 
+        if (!send(cMessage)) throw std::runtime_error("failed to send message"); 
     }
 
 

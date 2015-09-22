@@ -56,10 +56,12 @@ uint32_t qkd::module::message::m_nLastId = 0;
 
 /**
  * ctor
+ * 
+ * @param   eType       type of message
  */
-message::message() {
+message::message(qkd::module::message_type eType) {
     m_cHeader.nId = 0;
-    m_cHeader.eType = qkd::module::message_type::MESSAGE_TYPE_DATA;
+    m_cHeader.eType = eType;
 }
 
 

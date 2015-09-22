@@ -41,7 +41,7 @@
 // ------------------------------------------------------------
 // defs
 
-#define QKD_VERSION             "9.9999.5"
+#define QKD_VERSION             "9.9999.6"
 
 
 // ------------------------------------------------------------
@@ -112,6 +112,17 @@ uint32_t qkd_version_9_9999_4();
  * @return  value, representing the version
  */
 uint32_t qkd_version_9_9999_5();
+
+
+/**
+ * version check for 9.9999.6
+ * 
+ * any compiler and linker may link against the qkd library
+ * requesting this funtcion to ensure availablity
+ * 
+ * @return  value, representing the version
+ */
+uint32_t qkd_version_9_9999_6();
 
 
 #endif

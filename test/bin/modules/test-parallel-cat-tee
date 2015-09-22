@@ -93,11 +93,11 @@ done
 
 # wait until done
 sleep 1
-wait_idle cat tee
+wait_idle tee cat
 echo "module work done"
 
 # check results
-rm cat_total_keys
+rm cat_total_keys &> /dev/null
 for i in $(seq 1 ${NUMBER_CAT}); do
     cat cat-keys-${i}.alice >> cat_total_keys
 done

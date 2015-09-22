@@ -507,6 +507,7 @@ class module : public QObject {
     // friends
     friend class communicator;
     friend class module_thread;    
+    friend class stash;    
 
     
 public:
@@ -1750,19 +1751,11 @@ private:
      * is NOT the case a exception is thrown.
      * 
      * @param   cMessage            this will receive the message
-     * @return  true, if we have receuived a message
+     * @return  true, if we have received a message
      */
     bool recv_internal(qkd::module::message & cMessage);
 
 
-    /**
-     * process a received synchronize message
-     * 
-     * @param   cMessage            the message received
-     */
-    void recv_synchronize(qkd::module::message & cMessage);
-    
-    
     /**
      * this is the entry point of the main thread worker
      */
