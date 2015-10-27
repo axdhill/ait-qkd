@@ -290,6 +290,14 @@ or ensure that the `qkd-dbus` service is running and the environment variable `Q
 Note: if you launch GUI applications like `qkd-module-manager` or `qkd-simulate` remotely, you still need to login via SSH and X11-forwarding enabled.
 
 
+**6.3 Clang 3.6 and boost-1.58**
+
+Clang 3.6 seems to have problems with boost-1.58. Especially the boost Program Options. Whenever you run into some undefined linker references like
+
+    undefined reference to boost::program_options::arg
+    
+then most likely your boost-1.58 is incompatible with your clang. Try to change to a newer Clang compiler or switch to gcc.
+
     
 7. License
 ----------
