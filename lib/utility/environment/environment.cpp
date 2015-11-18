@@ -341,7 +341,10 @@ std::list<boost::filesystem::path> environment::find_files(std::string const & s
         }
         
         // canonical call, symlink free
-        boost::filesystem::path cDirectory = boost::filesystem::canonical(boost::filesystem::path(sToken));
+        boost::filesystem::path cDirectory = boost::filesystem::path(sToken);
+        if (!boost::filesystem::exists(cDirectory)) continue;
+        
+        cDirectory = boost::filesystem::canonical(cDirectory);
         
         // base folder in this loop
 #ifdef FIX_STD_MAP_EMPLACE
