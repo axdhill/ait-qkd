@@ -216,7 +216,7 @@ check_include_file(sys/mman.h HAVE_SYS_MMAN_H)
 
 
 # enforce pthread linkage (may be obsolete with gcc >= 4.8)
-check_library_exists(pthread pthread_kill "/lib;/usr/lib;/usr/local/lib" HAVE_PTHREAD_LIB)
+check_library_exists(pthread pthread_kill "/usr/local/lib;/usr/lib;/lib" HAVE_PTHREAD_LIB)
 if (HAVE_PTHREAD_LIB)
     set(CMAKE_REQUIRED_LIBRARIES "pthread;${CMAKE_REQUIRED_LIBRARIES}")
 endif (HAVE_PTHREAD_LIB)
@@ -224,7 +224,7 @@ endif (HAVE_PTHREAD_LIB)
 
 # get message queues
 check_include_file(mqueue.h HAVE_MQUEUE_H)
-check_library_exists(rt mq_open "/lib;/usr/lib;/usr/local/lib" HAVE_RT_LIB)
+check_library_exists(rt mq_open "/usr/local/lib;/usr/lib;/lib" HAVE_RT_LIB)
 if (HAVE_RT_LIB)
     set(CMAKE_REQUIRED_LIBRARIES "rt;${CMAKE_REQUIRED_LIBRARIES}")
 else (HAVE_RT_LIB)
@@ -234,7 +234,7 @@ endif (HAVE_RT_LIB)
 
 # get UUID
 check_include_file(uuid/uuid.h HAVE_UUID_UUID_H)
-check_library_exists(uuid uuid_generate "/lib;/usr/lib;/usr/local/lib" HAVE_UUID_LIB)
+check_library_exists(uuid uuid_generate "/usr/local/lib;/usr/lib;/lib" HAVE_UUID_LIB)
 if (HAVE_UUID_LIB)
     set(CMAKE_REQUIRED_LIBRARIES "uuid;${CMAKE_REQUIRED_LIBRARIES}")
 else (HAVE_UUID_LIB)
@@ -244,7 +244,7 @@ endif (HAVE_UUID_LIB)
 
 # get the GMP lib
 check_include_file(gmp.h HAVE_GMP_H)
-check_library_exists(gmp __gmp_version "/lib;/usr/lib;/usr/local/lib" HAVE_GMP_LIB)
+check_library_exists(gmp __gmp_version "/usr/local/lib;/usr/lib;/lib" HAVE_GMP_LIB)
 if (HAVE_GMP_LIB)
     set(CMAKE_REQUIRED_LIBRARIES "gmp;${CMAKE_REQUIRED_LIBRARIES}")
 else (HAVE_GMP_LIB)
@@ -254,7 +254,7 @@ endif (HAVE_GMP_LIB)
 
 # get the 0MQ (zeromq: http://www.zeromq.org)
 check_include_file(zmq.h HAVE_ZMQ_H)
-check_library_exists(zmq zmq_init "/lib;/usr/lib;/usr/local/lib" HAVE_ZMQ_LIB)
+check_library_exists(zmq zmq_init "/usr/local/lib;/usr/lib;/lib" HAVE_ZMQ_LIB)
 if (HAVE_ZMQ_LIB)
     set(CMAKE_REQUIRED_LIBRARIES "zmq;${CMAKE_REQUIRED_LIBRARIES}")
 else (HAVE_ZMQ_LIB)
