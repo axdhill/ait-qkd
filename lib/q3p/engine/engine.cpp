@@ -208,7 +208,6 @@ static engine_map g_cEngines;
  */
 engine_instance::engine_instance(QString const & sNode, QString const & sId) : qkd::module::module("keystore", qkd::module::module_type::TYPE_KEYSTORE, MODULE_DESCRIPTION, MODULE_ORGANISATION) {
     
-    // create pimpl
     d = boost::shared_ptr<qkd::q3p::engine_instance::engine_data>(new qkd::q3p::engine_instance::engine_data(qkd::utility::dbus::qkd_dbus()));
 
     d->m_sNode = sNode;
@@ -216,7 +215,6 @@ engine_instance::engine_instance(QString const & sNode, QString const & sId) : q
     d->m_sDBusObjectPath = QString("/Link/") + sId;
     d->m_bReconnect = false;
     
-    // fix special module settings for keystore
     module::set_url_listen("");
     module::set_url_peer("");
     module::set_url_pipe_in("");
@@ -224,7 +222,6 @@ engine_instance::engine_instance(QString const & sNode, QString const & sId) : q
     module::set_synchronize_keys(false);
     module::set_synchronize_ttl(0);
     
-    // setup our buffers
     setup_buffers();
     
     // setup timer
@@ -269,7 +266,6 @@ engine_instance::~engine_instance() {
  */
 bool engine_instance::accept(qkd::key::key const & cKey) const {
     
-    // disclosed keys are clearly unacceptable
     if (cKey.meta().eKeyState == qkd::key::key_state::KEY_STATE_DISCLOSED) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "received key #" << cKey.id() << " has state: DISCLOSED. unacceptable. discarded.";
         return false;
@@ -1027,10 +1023,8 @@ void engine_instance::handshake_success() {
         sPipeIn = QString::fromStdString(ss.str());
     }
     
-    // grab the url of the peer/listen
     QString sConnect = QString("tcp://") + sAddress + ":" + QString::number(nPort + 1); 
     
-    // run the module
     set_synchronize_keys(false);
     set_synchronize_ttl(0);
     set_url_pipe_in(sPipeIn);
@@ -1038,7 +1032,6 @@ void engine_instance::handshake_success() {
     else set_url_listen(sConnect);
     start_later();
     
-    // state switch
     calculate_state();
 }
 
@@ -1070,51 +1063,42 @@ key_db const & engine_instance::incoming_buffer() const {
  */
 void engine_instance::inject(QByteArray cSecretBits) {
     
-    // measure time
+    qkd::utility::debug() << "injecting keys: " << cSecretBits.size() << " bytes";
+    
     auto nStart = std::chrono::high_resolution_clock::now();
     
-    // a database at hand?
     if (!db_opened()) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "won't inject keys without an opened database";
         return;
     }
     
-    // already connected?
     if (connected()) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "won't inject keys while connected. disconnect first.";
         return;
     }
     
-    // set up a key ring
     qkd::key::key_ring cKeyRing(d->m_cCommonStoreDB->quantum());
     qkd::key::key cKey(0, qkd::utility::memory::duplicate((unsigned char *)cSecretBits.data(), cSecretBits.size()));
     cKeyRing << cKey;
     
-    // iterate over the keys to insert
     uint64_t nKeysInserted = 0;
     for (auto & cKey : cKeyRing) {
         
-        // insert only if they fit
         if (cKey.size() == d->m_cCommonStoreDB->quantum()) {
             
-            // into the DB!
             qkd::key::key_id nKeyId = d->m_cCommonStoreDB->insert(cKey);
             if (nKeyId != 0) {
                 
-                // inserted
                 d->m_cCommonStoreDB->set_injected(nKeyId);
                 d->m_cCommonStoreDB->set_real_sync(nKeyId);
                 nKeysInserted++;
             }
             else {
-                
-                // failed to insert: syslog
                 qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to injected key into database";
             }
         }
         else {
             
-            // key does not fit ... give some message to user
             if (qkd::utility::debug::enabled()) {
                 QString sMessage = QString("dropping %1 bytes of key material - not a key quantum (%2 bytes)").arg(cKey.size()).arg(d->m_cCommonStoreDB->quantum());
                 qkd::utility::debug() << sMessage.toStdString();
@@ -1122,15 +1106,12 @@ void engine_instance::inject(QByteArray cSecretBits) {
         }
     }
         
-    // measure time
     auto nStop = std::chrono::high_resolution_clock::now();
     auto nTimeDiff = std::chrono::duration_cast<std::chrono::milliseconds>(nStop - nStart);
     
-    // syslog
     QString sMessage = QString("injected %1 keys into database in %2 millisec").arg(nKeysInserted).arg(nTimeDiff.count());
     qkd::utility::syslog::info() << sMessage.toStdString();
     
-    // tell the environment
     d->m_cCommonStoreDB->emit_charge_change(nKeysInserted, 0);
 }
 
@@ -1142,19 +1123,12 @@ void engine_instance::inject(QByteArray cSecretBits) {
  */
 void engine_instance::inject_url(QString sURL) {
     
-    // check what we have
-    QUrl cURL(sURL, QUrl::TolerantMode);
+    qkd::utility::debug() << "injecting keys from url: " << sURL.toStdString();
     
-    // switch for the correct scheme
+    QUrl cURL(sURL, QUrl::TolerantMode);
     if (cURL.isLocalFile()) {
         
         QString sFileName = cURL.toLocalFile();
-        
-        // syslog
-        QString sMessage = QString("injecting key from \"%1\"").arg(sFileName);
-        qkd::utility::syslog::info() << sMessage.toStdString();
-        
-        // open file
         QFile cFile(sFileName);
         if (!cFile.open(QIODevice::ReadOnly)) {
             QString sMessage = QString("failed to open file \"%1\"").arg(sFileName);
@@ -1162,12 +1136,10 @@ void engine_instance::inject_url(QString sURL) {
             return;
         }
         
-        // read all data and process it
         QByteArray cKeyData = cFile.readAll();
         inject(cKeyData);
     }
     else {
-        // syslog
         QString sMessage = QString("failed to injected keys by url: \"%1\" - unknown scheme").arg(sURL);
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << sMessage.toStdString();
     }
@@ -1271,10 +1243,9 @@ QString engine_instance::link_state_description(unsigned int nState) {
  */
 void engine_instance::listen(QString sURI, QByteArray cSecret) {
     
-    // sanity checks
-    if (sURI.length() == 0) return;
+    qkd::utility::debug() << "start public listening on: " << sURI.toStdString();
     
-    // parse URI
+    if (sURI.length() == 0) return;
     QUrl cURL(sURI);
     QString sScheme = cURL.scheme();
     if (sScheme != "tcp") {
@@ -1289,33 +1260,27 @@ void engine_instance::listen(QString sURI, QByteArray cSecret) {
     }
     nPort = (unsigned int)cURL.port();
 
-    // decuce proper IP of host
     QString sAddress = cURL.host();
     if (sAddress.isEmpty() || sAddress == "*") {
         
-        // so we ought to guess the IP ourselves ... -.-
+        // we ought to guess the IP ourselves ... -.-
         qkd::utility::nic cDefaultGatewayNic = qkd::utility::environment::default_gateway();
         if (cDefaultGatewayNic.sIPv4.empty()) {
             qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to listen: can't deduce public IP to bind";
             return;
         }
         
-        // we got a public IP to bind
         qkd::utility::syslog::info() << "provided '*' as host to listen on, picked IPv4: '" << cDefaultGatewayNic.sIPv4 << "' to bind";
         sAddress = QString::fromStdString(cDefaultGatewayNic.sIPv4);
     }
     
-    // turn any (possible) hostname into an IP address
     std::set<std::string> cAddressesForHost = qkd::utility::environment::host_lookup(sAddress.toStdString());
     if (cAddressesForHost.empty()) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to listen: unable to get IP address for hostname: " << sAddress.toStdString();
         return;
     }
-    
-    // pick the first
     sAddress = QString::fromStdString(*cAddressesForHost.begin());
     
-    // check if we have enough shared secrets to start
     uint64_t nKeyConsumptionPerRound = qkd::crypto::association::key_consumption(d->m_cAssociationDefinition);
     if ((uint64_t)cSecret.size() < nKeyConsumptionPerRound) {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "not enough shared secret bytes provided. needed min.: " << nKeyConsumptionPerRound << " bytes, provided: " << cSecret.size() << " bytes.";
@@ -1323,36 +1288,29 @@ void engine_instance::listen(QString sURI, QByteArray cSecret) {
     }
     d->m_cInitialSecret = qkd::key::key(0, qkd::utility::memory::duplicate((unsigned char * const)cSecret.data(), cSecret.size()));
     
-    // syslog
     if (d->m_cServer) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "changing public socket listener";
         delete d->m_cServer;
         d->m_cServer = nullptr;
     }
     
-    // set module role
     set_role((qulonglong)qkd::module::module_role::ROLE_BOB);
     
-    // create a new tcp socket listener
     d->m_cServer = new QTcpServer(this);
     QObject::connect(d->m_cServer, SIGNAL(newConnection()), SLOT(server_new()));
     
-    // start listening
     if (!d->m_cServer->listen(QHostAddress(sAddress), nPort)) {
-        
         QString sMessage = QString("failed to start listening on \"%1\"\nmaybe address already in use?").arg(sURI);
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << sMessage.toStdString();
         return;
     }
     
-    // syslog
     sURI = sScheme + "://" + sAddress + ":" + QString::number(nPort);
     QString sMessage = QString("started listening on public address \"%1\"").arg(sURI);
     qkd::utility::syslog::info() << sMessage.toStdString();
     
     emit listening(sURI);
     
-    // state switch
     calculate_state();
 }
 
@@ -1433,20 +1391,17 @@ QString engine_instance::nic() const {
  */
 void engine_instance::open_db(QString sURL) {
     
-    // measure time
+    qkd::utility::debug() << "opening keystore DB at: " << sURL.toStdString();
+    
     auto nStart = std::chrono::high_resolution_clock::now();
     
-    // do not proceed if we have an opened DB already
     if (db_opened()) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "refusing to open key DB - already an instance open";
         return;
     }
     
     try {
-        
-        // OPEN KEY DB!
         d->m_cCommonStoreDB = qkd::q3p::db::open(sURL);
-        
     }
     catch (qkd::q3p::db::db_url_scheme_unknown & cDBUrlSchemeUnknown) {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to open key DB - unknown URL scheme: \"" + sURL.toStdString() + "\"";
@@ -1457,14 +1412,11 @@ void engine_instance::open_db(QString sURL) {
         return;
     }
     
-    // enforce key counting
     uint64_t nKeyCount = d->m_cCommonStoreDB->count();
 
-    // measure time
     auto nStop = std::chrono::high_resolution_clock::now();
     auto nTimeDiff = std::chrono::duration_cast<std::chrono::milliseconds>(nStop - nStart);
 
-    // register CommonStore on DBus
     new DatabaseAdaptor(d->m_cCommonStoreDB.get());
     QString sCommonStoreObjectPath = d->m_sDBusObjectPath + "/CommonStore";
     bool bSuccess = d->m_cDBus.registerObject(sCommonStoreObjectPath, d->m_cCommonStoreDB.get());
@@ -1476,13 +1428,11 @@ void engine_instance::open_db(QString sURL) {
         qkd::utility::syslog::info() << "registered CommonStore DB on DBus as \"" << sCommonStoreObjectPath.toStdString() << "\"";
     }
     
-    // syslog
     QString sMessage = QString("database opened in %1 millisec - %2 keys in database").arg(nTimeDiff.count()).arg(nKeyCount);
     qkd::utility::syslog::info() << sMessage.toStdString();
     
     emit db_opened(sURL);
     
-    // state switch
     calculate_state();
 }
 
@@ -1534,20 +1484,17 @@ bool engine_instance::process(UNUSED qkd::key::key & cKey, UNUSED qkd::crypto::c
  */
 void engine_instance::q3p_timeout() {
     
-    // in connecetd state we got a lot of work to do
+    qkd::utility::debug() << "timeout: running Q3P LOAD and Q3P STORE or reconnect";
+    
     if (connected()) {
     
-        // run protocols ... if any
         if (d->m_cProtocol.cLoad) d->m_cProtocol.cLoad->run();
         if (d->m_cProtocol.cLoadRequest) d->m_cProtocol.cLoadRequest->run();
         if (d->m_cProtocol.cStore) d->m_cProtocol.cStore->run();
-        
-        // fill up mq
         if (d->m_cMQ.get()) d->m_cMQ->produce();
     }
     else {
         
-        // check if we ought to reconnect on a connection lost
         if ((link_state() == (unsigned int)engine_state::ENGINE_OPEN) && (d->m_bReconnect)) {
             QByteArray cSecret((char const *)(d->m_cInitialSecret.data().get()), d->m_cInitialSecret.data().size());
             connect(QString("%1%2:%3").arg("tcp://").arg(d->m_cPeerAddress.toString()).arg(d->m_nPeerPort), cSecret);
@@ -1562,8 +1509,6 @@ void engine_instance::q3p_timeout() {
  * @param   cData       the data to received
  */
 void engine_instance::recv_data(qkd::utility::memory const & cData) {
-    
-    // write the receive data to the NIC handler
     d->m_cNIC->write(cData);
 }
 
@@ -1575,8 +1520,7 @@ void engine_instance::recv_data(qkd::utility::memory const & cData) {
  * @return  true, if the engine has been registered
  */
 bool engine_instance::register_engine(engine cEngine) {
-
-    // don't register an engine twice
+    
     engine_map::iterator cIter = g_cEngines.find(cEngine->link_id());
     if (cIter == g_cEngines.end()) {
         g_cEngines.insert(std::pair<QString, qkd::q3p::engine>(cEngine->link_id(), cEngine));
@@ -1624,6 +1568,8 @@ QStringList engine_instance::remote_modules() {
 
     QStringList cModules;
     
+    // TODO: to be implemented
+    
     return cModules;
 }
 
@@ -1635,19 +1581,16 @@ QStringList engine_instance::remote_modules() {
  */
 void engine_instance::send_data(qkd::utility::memory const & cData) {
     
-    // do not send anything when not connected
     if (!d->m_bConnected) {
         qkd::utility::debug() << "refused to send data when not connected";
         return;
     }
     
-    // we need a data protocol instance
     if (!d->m_cProtocol.cData) {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "tried to send data (" << cData.size() << " bytes), I'm connected - but I lack a DATA protocol instance. This must not happen. This is a bug. Sorry";
         return;
     }
 
-    // send the packet
     qkd::q3p::message cMessage(true, true);
     cMessage << cData;
     
@@ -1661,13 +1604,13 @@ void engine_instance::send_data(qkd::utility::memory const & cData) {
  */
 void engine_instance::server_new() {
     
-    // sanity check
+    qkd::utility::debug() << "peer connect!";
+    
     if (!d->m_cServer) return;
     
     QTcpSocket * cConnection = d->m_cServer->nextPendingConnection();
     if (!cConnection) return;
     
-    // reject pending connections when we don't have a db opened
     if (!db_opened()) {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "won't connect to peer without an opened database";
         delete cConnection;
@@ -1675,7 +1618,6 @@ void engine_instance::server_new() {
         return;
     }
     
-    // reject pending connections when we don't have keys
     if (d->m_cCommonStoreDB->count() < MIN_KEYS_IN_DB) {
         QString sMessage = QString("insufficient keys in database (minimum is %1): inject keys first in order to connect").arg(MIN_KEYS_IN_DB);
         qkd::utility::syslog::info() << sMessage.toStdString();
@@ -1684,7 +1626,6 @@ void engine_instance::server_new() {
         return;
     }
     
-    // reject pending connections if we have a connection already
     if (link_state() > (unsigned int)engine_state::ENGINE_CONNECTING) {
         QString sMessage = QString("connection attempt by \"%1:%2\" discarded: already connected or attempting to connect to peer").arg(cConnection->peerAddress().toString()).arg(cConnection->peerPort());
         qkd::utility::syslog::info() << sMessage.toStdString();
@@ -1700,33 +1641,27 @@ void engine_instance::server_new() {
     if ((nPos = d->m_cAssociationDefinition.sEncryptionIncoming.find(':')) != std::string::npos) d->m_cAssociationDefinition.sEncryptionIncoming.resize(nPos);
     if ((nPos = d->m_cAssociationDefinition.sEncryptionOutgoing.find(':')) != std::string::npos) d->m_cAssociationDefinition.sEncryptionOutgoing.resize(nPos);
     
-    // syslog
     QString sMessage = QString("connected by \"%1:%2\" - running handshake").arg(cConnection->peerAddress().toString()).arg(cConnection->peerPort());
     qkd::utility::syslog::info() << sMessage.toStdString();
 
-    // set up socket
     d->m_cSocket = cConnection;
     QObject::connect(d->m_cSocket, SIGNAL(connected()), SLOT(socket_connected()));
     QObject::connect(d->m_cSocket, SIGNAL(error(QAbstractSocket::SocketError)), SLOT(socket_error(QAbstractSocket::SocketError)));
     QObject::connect(d->m_cSocket, SIGNAL(readyRead()), SLOT(socket_ready_read()));
     
-    // clean receive buffer
     d->m_cRecvBuffer = QByteArray();
     
-    // run the handshake
     d->m_cProtocol.cHandshake = new protocol::handshake(d->m_cSocket, this);
     QObject::connect(d->m_cProtocol.cHandshake, SIGNAL(failed(uint8_t)), SLOT(handshake_failed(uint8_t)));
     QObject::connect(d->m_cProtocol.cHandshake, SIGNAL(success()), SLOT(handshake_success()));
     d->m_cProtocol.cHandshake->run();
     
-    // tell the environment
     emit connection_established(link_peer());
     
     // if we are connected, then we wont force reconnection
     // on connection lost
     d->m_bReconnect = false;
     
-    // state switch
     calculate_state();
 }
 
@@ -1790,7 +1725,6 @@ void engine_instance::set_encryption_context_name_outgoing(QString const & sSche
  */
 void engine_instance::set_master(bool bMaster) {
     
-    // don't do anything if we are connected
     if (connected()) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "won't change master/slave relationship during connection. refusing change of role.";
         return;
@@ -1814,7 +1748,6 @@ void engine_instance::set_master(bool bMaster) {
  */
 void engine_instance::set_slave(bool bSlave) {
     
-    // don't do anything if we are connected
     if (connected()) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "won't change master/slave relationship during connection. refusing change of role.";
         return;
@@ -1832,11 +1765,12 @@ void engine_instance::set_slave(bool bSlave) {
  */
 void engine_instance::setup_buffers() {
     
+    qkd::utility::debug() << "setting up internal keystore buffers...";
+    
     d->m_cIncomingDB = qkd::q3p::db::open("ram://");
     d->m_cOutgoingDB = qkd::q3p::db::open("ram://");
     d->m_cApplicationDB = qkd::q3p::db::open("ram://");
     
-    // register Incoming Buffer
     new DatabaseAdaptor(d->m_cIncomingDB.get());
     QString sIncomingDBObjectPath = d->m_sDBusObjectPath + "/IncomingBuffer";
     bool bSuccess = d->m_cDBus.registerObject(sIncomingDBObjectPath, d->m_cIncomingDB.get());
@@ -1845,7 +1779,6 @@ void engine_instance::setup_buffers() {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << sMessage.toStdString();
     }
     
-    // register Outgoing Buffer
     new DatabaseAdaptor(d->m_cOutgoingDB.get());
     QString sOutgoingDBObjectPath = d->m_sDBusObjectPath + "/OutgoingBuffer";
     bSuccess = d->m_cDBus.registerObject(sOutgoingDBObjectPath, d->m_cOutgoingDB.get());
@@ -1854,7 +1787,6 @@ void engine_instance::setup_buffers() {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << sMessage.toStdString();
     }
     
-    // register Application Buffer
     new DatabaseAdaptor(d->m_cApplicationDB.get());
     QString sApplicationDBObjectPath = d->m_sDBusObjectPath + "/ApplicationBuffer";
     bSuccess = d->m_cDBus.registerObject(sApplicationDBObjectPath, d->m_cApplicationDB.get());
@@ -1870,11 +1802,11 @@ void engine_instance::setup_buffers() {
  */
 void engine_instance::setup_channel() {
     
-    // increase channel number
+    qkd::utility::debug() << "setting up new channel...";
+    
     d->m_nChannelId++;
     if (d->m_nChannelId == 0) d->m_nChannelId = 1;
     
-    // check if this channel exists
     if (d->m_cChannelMap.find(d->m_nChannelId) != d->m_cChannelMap.end()) {
         
         // woha! this channel already exists! why? should have been killed!
@@ -1883,13 +1815,9 @@ void engine_instance::setup_channel() {
     }
     
     try {
-        
-        // create a new channel
         d->m_cChannelMap.insert(std::pair<unsigned short, qkd::q3p::channel>(d->m_nChannelId, qkd::q3p::channel(d->m_nChannelId, this, qkd::crypto::association(d->m_cAssociationDefinition))));
     }
     catch (...) {
-        
-        // something along channel creation went wrong ... :(
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "tried to create channel " << d->m_nChannelId << " but it already existed! This should not happen. This is a bug.";
         return;
     }
@@ -1901,6 +1829,8 @@ void engine_instance::setup_channel() {
  */
 void engine_instance::setup_ipsec() {
 
+    qkd::utility::debug() << "setting up IPSec...";
+    
     // TODO: Stefan
     std::cerr << "engine_instance::setup_ipsec(): STEFAN: Bitte implement me." << std::endl;
 }
@@ -1911,9 +1841,10 @@ void engine_instance::setup_ipsec() {
  */
 void engine_instance::setup_mq() {
     
+    qkd::utility::debug() << "setting up message queue...";
+    
     d->m_cMQ = boost::shared_ptr<qkd::q3p::mq_instance>(new qkd::q3p::mq_instance(this));
     
-    // register message queue
     new MqAdaptor(d->m_cMQ.get());
     QString sMQObjectPath = d->m_sDBusObjectPath + "/MQ";
     if (!d->m_cDBus.registerObject(sMQObjectPath, d->m_cMQ.get())) {
@@ -1928,9 +1859,10 @@ void engine_instance::setup_mq() {
  */
 void engine_instance::setup_nic() {
     
+    qkd::utility::debug() << "setting up virtual NIC...";
+    
     d->m_cNIC = boost::shared_ptr<qkd::q3p::nic_instance>(new qkd::q3p::nic_instance(this));
     
-    // register network interface "card"
     new NicAdaptor(d->m_cNIC.get());
     QString sNICObjectPath = d->m_sDBusObjectPath + "/NIC";
     if (!d->m_cDBus.registerObject(sNICObjectPath, d->m_cNIC.get())) {
@@ -1944,6 +1876,9 @@ void engine_instance::setup_nic() {
  * shutdown buffers
  */
 void engine_instance::shutdown_buffers() {
+    
+    qkd::utility::debug() << "shutting down internal keystore buffers...";
+    
     d->m_cIncomingDB = qkd::q3p::db::open("ram://");
     d->m_cOutgoingDB = qkd::q3p::db::open("ram://");
     d->m_cApplicationDB = qkd::q3p::db::open("ram://");
@@ -1954,6 +1889,9 @@ void engine_instance::shutdown_buffers() {
  * shutdown channels
  */
 void engine_instance::shutdown_channels() {
+    
+    qkd::utility::debug() << "shutting down channels...";
+    
     d->m_cChannelMap.clear();
     d->m_nChannelId = 0;
 }
@@ -1964,6 +1902,8 @@ void engine_instance::shutdown_channels() {
  */
 void engine_instance::shutdown_ipsec() {
     
+    qkd::utility::debug() << "shutting down IPSec...";
+    
     // TODO: Stefan
     std::cerr << "engine_instance::shutdown_ipsec(): STEFAN: Bitte implement me." << std::endl;
 }
@@ -1973,6 +1913,7 @@ void engine_instance::shutdown_ipsec() {
  * shutdown message queue
  */
 void engine_instance::shutdown_mq() {
+    qkd::utility::debug() << "shutting down message queue...";
     d->m_cMQ = boost::shared_ptr<qkd::q3p::mq_instance>();
 }
     
@@ -1981,6 +1922,7 @@ void engine_instance::shutdown_mq() {
  * shutdown nic
  */
 void engine_instance::shutdown_nic() {
+    qkd::utility::debug() << "shutting down virtual NIC...";
     d->m_cNIC = boost::shared_ptr<qkd::q3p::nic_instance>();
 }
     
@@ -2000,7 +1942,8 @@ bool engine_instance::slave() const {
  */
 void engine_instance::socket_connected() {
     
-    // sanity check
+    qkd::utility::debug() << "connected to peer...";
+    
     if (!d->m_cSocket) return;
     
     // tweak crypto schemes: cut off any old key values (better safe than sorry)
@@ -2010,20 +1953,16 @@ void engine_instance::socket_connected() {
     if ((nPos = d->m_cAssociationDefinition.sEncryptionIncoming.find(':')) != std::string::npos) d->m_cAssociationDefinition.sEncryptionIncoming.resize(nPos);
     if ((nPos = d->m_cAssociationDefinition.sEncryptionOutgoing.find(':')) != std::string::npos) d->m_cAssociationDefinition.sEncryptionOutgoing.resize(nPos);
     
-    // syslog
     QString sMessage = QString("connected to \"%1:%2\" - running handshake").arg(d->m_cSocket->peerAddress().toString()).arg(d->m_cSocket->peerPort());
     qkd::utility::syslog::info() << sMessage.toStdString();
 
-    // clean up the receive buffer
     d->m_cRecvBuffer = QByteArray();
     
-    // run the handshake
     d->m_cProtocol.cHandshake = new protocol::handshake(d->m_cSocket, this);
     QObject::connect(d->m_cProtocol.cHandshake, SIGNAL(failed(uint8_t)), SLOT(handshake_failed(uint8_t)));
     QObject::connect(d->m_cProtocol.cHandshake, SIGNAL(success()), SLOT(handshake_success()));
     d->m_cProtocol.cHandshake->run();
     
-    // tell the environment
     emit connection_established(link_peer());
     
     // we made a connection
@@ -2032,7 +1971,6 @@ void engine_instance::socket_connected() {
     d->m_cPeerAddress = d->m_cSocket->peerAddress();
     d->m_nPeerPort = d->m_cSocket->peerPort();
     
-    // check state
     calculate_state();
 }
 
@@ -2061,23 +1999,16 @@ void engine_instance::socket_error(QAbstractSocket::SocketError eSocketError) {
         sMessage = QString("connection error: %1 - %2").arg(eSocketError).arg(QString::fromStdString(socket_error_strings::str(eSocketError)));
     }
     
-    // syslog
     qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << sMessage.toStdString();
     
     // stop module worker
     // TODO: better terminate() ?
     pause();
 
-    // wind down mq
     shutdown_mq();
-    
-    // wind down nic
     shutdown_nic();
-    
-    // wind down ipsec
     shutdown_ipsec();
     
-    // wind down any open protocol
     if (d->m_cProtocol.cData) d->m_cProtocol.cData->deleteLater();
     d->m_cProtocol.cData = nullptr;
     if (d->m_cProtocol.cHandshake) d->m_cProtocol.cHandshake->deleteLater();
@@ -2089,20 +2020,15 @@ void engine_instance::socket_error(QAbstractSocket::SocketError eSocketError) {
     if (d->m_cProtocol.cStore) d->m_cProtocol.cStore->deleteLater();
     d->m_cProtocol.cStore = nullptr;
     
-    // wind down buffers
     shutdown_buffers();
     
-    // wind channels
     shutdown_channels();
     
-    // kick our socket
     d->m_cSocket = nullptr;
     d->m_bConnected = false;
     
-    // tell environment
     emit connection_lost();
 
-    // check state
     calculate_state();
 }
 
@@ -2114,13 +2040,10 @@ void engine_instance::socket_error(QAbstractSocket::SocketError eSocketError) {
  */
 void engine_instance::socket_ready_read() {
 
-    // sometimes we get this signal, but the socket has been killed underneath
     if (!d->m_cSocket) return;
     
-    // read in what's available
     d->m_cRecvBuffer.append(d->m_cSocket->readAll());
 
-    // parse message (if any ...)
     qkd::q3p::message cMessage;
     qkd::q3p::protocol::protocol_type eProtocol;
     qkd::q3p::protocol::protocol_error eError = qkd::q3p::protocol::protocol::recv(d->m_cRecvBuffer, cMessage, eProtocol);
@@ -2135,28 +2058,22 @@ void engine_instance::socket_ready_read() {
     // we got presumably more than 1 message: call parsing soon again
     if (d->m_cRecvBuffer.size()) QTimer::singleShot(0, this, SLOT(socket_ready_read()));
     
-    // debug?
-    if (qkd::utility::debug::enabled()) qkd::utility::debug() << "<Q3P-RECV>" << cMessage.str();
+    qkd::utility::debug() << "<Q3P-RECV>" << cMessage.str();
     
-    // get the channel and decode the message
     if (cMessage.channel_id()) {
         
-        // pick up the channel
         qkd::q3p::channel cChannel = channel(cMessage.channel_id());
         if (cChannel.id() == 0) {
-            
             qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "got message on channel: " << cMessage.channel_id() << " which is currently not configured or setup: message silently discarded.";
             return;
         }
 
-        // decode message
         qkd::q3p::channel_error eChannelError = cChannel.decode(cMessage);
-        
         if (eChannelError != qkd::q3p::channel_error::CHANNEL_ERROR_NO_ERROR) {
             qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
-            << "failed to decode message on channel #" << cChannel.id() 
-            << " decoding message returned: " << (unsigned int)eChannelError 
-            << " (" << qkd::q3p::channel::channel_error_description(eChannelError) << ")";
+                    << "failed to decode message on channel #" << cChannel.id() 
+                    << " decoding message returned: " << (unsigned int)eChannelError 
+                    << " (" << qkd::q3p::channel::channel_error_description(eChannelError) << ")";
             return;
         }
     }
@@ -2169,7 +2086,6 @@ void engine_instance::socket_ready_read() {
         }
     }
     
-    // dispatch message
     switch (eProtocol) {
         
     case qkd::q3p::protocol::protocol_type::PROTOCOL_HANDSHAKE:
