@@ -73,7 +73,7 @@ key_db db::open(QString sURL) {
     }
     
     // file://
-    if (cURL.isLocalFile()) {
+    if (cURL.isLocalFile() || (cURL.scheme() == "")) {
         key_db cKeyDB = boost::shared_ptr<db>(new qkd::q3p::db_file(sURL));
         cKeyDB->init(sURL);
         return cKeyDB;

@@ -33,6 +33,7 @@
 
 # q3pd test scripts
 configure_file(test-q3pd-start-stop             ${CMAKE_CURRENT_BINARY_DIR}/test-q3pd-start-stop            @ONLY)
+configure_file(test-q3pd-file-db                ${CMAKE_CURRENT_BINARY_DIR}/test-q3pd-file-db               @ONLY)
 configure_file(test-q3pd-inject                 ${CMAKE_CURRENT_BINARY_DIR}/test-q3pd-inject                @ONLY)
 configure_file(test-q3pd-connect                ${CMAKE_CURRENT_BINARY_DIR}/test-q3pd-connect               @ONLY)
 configure_file(test-q3pd-reconnect              ${CMAKE_CURRENT_BINARY_DIR}/test-q3pd-reconnect             @ONLY)
@@ -44,6 +45,7 @@ configure_file(test-q3pd-as-a-module            ${CMAKE_CURRENT_BINARY_DIR}/test
 
 # tests
 add_test(q3pd-start-stop                        ${CMAKE_CURRENT_BINARY_DIR}/test-q3pd-start-stop)
+add_test(q3pd-file-db                           ${CMAKE_CURRENT_BINARY_DIR}/test-q3pd-file-db)
 add_test(q3pd-inject                            ${CMAKE_CURRENT_BINARY_DIR}/test-q3pd-inject)
 add_test(q3pd-connect                           ${CMAKE_CURRENT_BINARY_DIR}/test-q3pd-connect)
 add_test(q3pd-reconnect                         ${CMAKE_CURRENT_BINARY_DIR}/test-q3pd-reconnect)

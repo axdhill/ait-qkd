@@ -72,12 +72,10 @@ static inline uint64_t file_size(qkd::q3p::db const & cDB);
  */
 void db_file::close_internal() {
     
-    // don't proceed if we ain't got something to do
     if (m_nFD <= 0) return;
     
     sync();
     
-    // unmap and close file
     if (meta()) munmap(meta(), file_size(*this));
     ::close(m_nFD);
     
@@ -107,7 +105,6 @@ QString db_file::describe() const {
  */
 void db_file::init(QString sURL) {
     
-    // setup init values
     data() = nullptr;
     meta() = nullptr;
     
@@ -115,46 +112,33 @@ void db_file::init(QString sURL) {
     
     std::string sFileName = QUrl(sURL, QUrl::TolerantMode).toLocalFile().toStdString();
 
-    // syslog
     qkd::utility::syslog::info() << "opening file DB at \"" << sURL.toStdString() << "\"";
 
-    // open file
     m_nFD = ::open(sFileName.c_str(), O_RDWR | O_CREAT, 0666);
     if (m_nFD == -1) {
-        
-        // error ...
         std::string sError = strerror(errno);
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed opening file DB at \"" << sURL.toStdString() << "\": " << sError;
         throw qkd::q3p::db::db_init_error();
     }
     
-    // truncate file
     if (ftruncate(m_nFD, file_size(*this))) {
-        
-        // error ...
         std::string sError = strerror(errno);
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to map file DB at \"" << sURL.toStdString() << "\": " << sError;
         throw qkd::q3p::db::db_init_error();
     }
     
-    // mmap file
     void * cData = mmap(nullptr, file_size(*this), PROT_READ | PROT_WRITE, MAP_SHARED, m_nFD, 0);
     if (cData == (void *)-1) {
-        
-        // error ...
         std::string sError = strerror(errno);
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to map file DB at \"" << sURL.toStdString() << "\": " << sError;
         throw qkd::q3p::db::db_init_error();
     }
     
-    // we have it!
     meta() = (unsigned char *)cData;
     data() = meta() + amount();
     
-    // reset DB
     reset();
     
-    // syslog
     qkd::utility::syslog::info() << "opened file DB at \"" << sURL.toStdString() << "\"";
 }
 
@@ -164,14 +148,10 @@ void db_file::init(QString sURL) {
  */
 void db_file::sync_internal() {
     
-    // sanity check
     if (!meta()) return;
     
-    // write memory back to disk
     int nError = msync(meta(), file_size(*this), MS_SYNC);
     if (nError == -1) {
-        
-        // error ...
         std::string sError = strerror(errno);
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to sync file DB to disk: " << sError;
     }
@@ -189,5 +169,3 @@ void db_file::sync_internal() {
 uint64_t file_size(qkd::q3p::db const & cDB) { 
     return (cDB.amount() + cDB.amount() * cDB.quantum()); 
 }
-
-
