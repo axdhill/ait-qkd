@@ -469,7 +469,6 @@ void engine_instance::close() {
     interrupt_worker();
     std::this_thread::yield();
     terminate();
-    join();
     
     // disconnect link peer
     disconnect();
@@ -733,7 +732,6 @@ void engine_instance::disconnect() {
     d->m_bReconnect = false;
     
     // stop module worker
-    pause();
     interrupt_worker();
     join();
 

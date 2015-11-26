@@ -1310,7 +1310,9 @@ qulonglong module::synchronize_ttl() const {
 void module::terminate() {
 
     qkd::utility::debug() << "terminate call received" 
-            << " processing()=" << processing() << " idle()=" << idle() << " get_state()=" << get_state();
+            << " processing=" << (processing() ? "true" : "false")
+            << " idle=" << (idle() ? "true" : "false")
+            << " state=" << state_name(get_state()).toStdString();
 
     if (d->get_state() == module_state::STATE_TERMINATING) return;
     if (d->get_state() == module_state::STATE_TERMINATED) return;
