@@ -43,6 +43,8 @@ test_init "$(basename $0).d"
 # start both nodes
 ${TEST_BASE}/bin/q3pd/q3pd --debug --config ${TEST_BASE}/test/test-data/q3pd-file-db.conf alice 2>q3pd_file_db.stderr &
 sleep 1
+qkd_qdbus at.ac.ait.q3p.node-alice /Node quit
+
 grep 'opened file DB at "alice_to_bob.db"' q3pd_file_db.stderr &> /dev/null
 if [ "$?" != "0" ]; then
     echo "Failed to create local file Q3P common store DB"
