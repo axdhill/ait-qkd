@@ -1186,7 +1186,7 @@ void module::set_url_pipe_out(QString sURL) {
     std::string s = sURL.toStdString();
     if (!s.empty()) {
         for (auto & u : connection::split_urls(s)) {
-            d->cConPipeOut->add(u, 10, id().toStdString(), "in");
+            d->cConPipeOut->add(u, 10, id().toStdString(), "out");
         }
     }
     else d->cConPipeOut->add("");
