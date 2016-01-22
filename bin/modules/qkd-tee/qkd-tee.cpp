@@ -88,10 +88,7 @@ public:
  * ctor
  */
 qkd_tee::qkd_tee() : qkd::module::module("tee", qkd::module::module_type::TYPE_OTHER, MODULE_DESCRIPTION, MODULE_ORGANISATION) {
-
     d = boost::shared_ptr<qkd_tee::qkd_tee_data>(new qkd_tee::qkd_tee_data());
-    
-    // enforce DBus registration
     new TeeAdaptor(this);
 }
 
@@ -104,18 +101,13 @@ qkd_tee::qkd_tee() : qkd::module::module("tee", qkd::module::module_type::TYPE_O
  */
 void qkd_tee::apply_config(UNUSED std::string const & sURL, qkd::utility::properties const & cConfig) {
     
-    // delve into the given config
     for (auto const & cEntry : cConfig) {
         
-        // grab any key which is intended for us
         if (!is_config_key(cEntry.first)) continue;
-        
-        // ignore standard config keys: they should have been applied already
         if (is_standard_config_key(cEntry.first)) continue;
         
         std::string sKey = cEntry.first.substr(config_prefix().size());
         
-        // module specific config here
         if (sKey == "file_url") {
             set_file_url(QString::fromStdString(cEntry.second));
         }
@@ -132,8 +124,6 @@ void qkd_tee::apply_config(UNUSED std::string const & sURL, qkd::utility::proper
  * @return  the file URL to write to
  */
 QString qkd_tee::file_url() const {
-    
-    // get exclusive access to properties
     std::unique_lock<std::recursive_mutex> cLock(d->cPropertyMutex);
     return QString::fromStdString(d->sFileURL);
 }
@@ -149,29 +139,21 @@ QString qkd_tee::file_url() const {
  */
 bool qkd_tee::process(qkd::key::key & cKey, UNUSED qkd::crypto::crypto_context & cIncomingContext, UNUSED qkd::crypto::crypto_context & cOutgoingContext) {
     
-    // do not process NULL keys
     if (cKey == qkd::key::key::null()) return false;
 
-    // check if our input stream is open
     if (!d->cKeyFile.is_open() && d->bTryToOpen) {
         
-        // do not try again
         d->bTryToOpen = false;
-        
-        // only proceed if we DO have a file to write to
         if (!d->sFileURL.empty()) {
         
-            // get exclusive access to properties
             std::unique_lock<std::recursive_mutex> cLock(d->cPropertyMutex);
             
-            // check URL
             QUrl cURL(QString::fromStdString(d->sFileURL));
             if (!cURL.isLocalFile()) {
                 qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "'" << d->sFileURL << "' seems not to point to a local file - wont proceed";
             }
             else {
                 
-                // open file
                 d->cKeyFile.open(cURL.toLocalFile().toStdString());
                 if (!d->cKeyFile.is_open()) {
                     qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to open file '" << d->sFileURL << "'";
@@ -180,8 +162,10 @@ bool qkd_tee::process(qkd::key::key & cKey, UNUSED qkd::crypto::crypto_context &
         }
     }
     
-    // if file is open: write the  key
-    if (d->cKeyFile.is_open()) d->cKeyFile << cKey;
+    if (d->cKeyFile.is_open()) {
+        d->cKeyFile << cKey;
+        d->cKeyFile.flush();
+    }
 
     return true;
 }
@@ -194,7 +178,6 @@ bool qkd_tee::process(qkd::key::key & cKey, UNUSED qkd::crypto::crypto_context &
  */
 void qkd_tee::set_file_url(QString sFileURL) {
     
-    // get exclusive access to properties
     std::unique_lock<std::recursive_mutex> cLock(d->cPropertyMutex);
     
     // close already opened file

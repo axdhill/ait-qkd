@@ -92,7 +92,7 @@ public:
     void set_passes(qulonglong nPasses);
    
 
- protected:
+protected:
     
     
     /**
