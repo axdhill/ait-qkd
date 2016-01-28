@@ -43,6 +43,7 @@ configure_file(test-sudden-death                ${CMAKE_CURRENT_BINARY_DIR}/test
 
 # module pipeline test
 configure_file(test-mod-bb84                    ${CMAKE_CURRENT_BINARY_DIR}/test-mod-bb84                   @ONLY)
+configure_file(test-mod-bb84-qauth              ${CMAKE_CURRENT_BINARY_DIR}/test-mod-bb84-qauth             @ONLY)
 configure_file(test-mod-error-estimation        ${CMAKE_CURRENT_BINARY_DIR}/test-mod-error-estimation       @ONLY)
 configure_file(test-mod-cascade                 ${CMAKE_CURRENT_BINARY_DIR}/test-mod-cascade                @ONLY)
 configure_file(test-mod-confirmation            ${CMAKE_CURRENT_BINARY_DIR}/test-mod-confirmation           @ONLY)
@@ -83,6 +84,7 @@ add_test(sudden-death                           ${CMAKE_CURRENT_BINARY_DIR}/test
 
 # module pipeline test
 add_test(mod-bb84                               ${CMAKE_CURRENT_BINARY_DIR}/test-mod-bb84)
+add_test(mod-bb84-qauth                         ${CMAKE_CURRENT_BINARY_DIR}/test-mod-bb84-qauth)
 add_test(mod-error-estimation                   ${CMAKE_CURRENT_BINARY_DIR}/test-mod-error-estimation)
 add_test(mod-cascade                            ${CMAKE_CURRENT_BINARY_DIR}/test-mod-cascade)
 add_test(mod-confirmation                       ${CMAKE_CURRENT_BINARY_DIR}/test-mod-confirmation)
