@@ -5,7 +5,7 @@
  *
  * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
- * Copyright (C) 2013-2015 AIT Austrian Institute of Technology
+ * Copyright (C) 2013-2016 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
  * Donau-City-Strasse 1 | 1220 Vienna | Austria
  * http://www.ait.ac.at
@@ -437,7 +437,7 @@ void get_pipeline_pipes(std::string & sURLPipeIn, std::string & sURLPipeOut) {
 int main(int argc, char ** argv) {
     
     std::string sApplication = std::string("qkd-pipeline - AIT QKD Key Pipeline Tool V") + VERSION;
-    std::string sDescription = std::string("\nThis tools let start/stop/restart a full QKD pipeline.\n\nCopyright 2013-2015 AIT Austrian Institute of Technology GmbH");
+    std::string sDescription = std::string("\nThis tools let start/stop/restart a full QKD pipeline.\n\nCopyright 2013-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS] COMMAND PIPELINE-CONFIG";
     
     boost::program_options::options_description cOptions(sApplication + "\n" + sDescription + "\n\n\t" + sSynopsis + "\n\nAllowed Options");

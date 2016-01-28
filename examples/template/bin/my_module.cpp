@@ -12,7 +12,7 @@
  *
  *
  *
- * Copyright (C) 2013-2015 AIT Austrian Institute of Technology
+ * Copyright (C) 2014-2016 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
  * Donau-City-Strasse 1 | 1220 Vienna | Austria
  * http://www.ait.ac.at

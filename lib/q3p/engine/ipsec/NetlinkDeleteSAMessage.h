@@ -7,7 +7,7 @@
  *
  * Author: Stefan Marksteiner, <stefan.marksteiner@joanneum.at>
  *
- * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+ * Copyright (C) 2012-2016 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
  * Donau-City-Strasse 1 | 1220 Vienna | Austria
  * http://www.ait.ac.at

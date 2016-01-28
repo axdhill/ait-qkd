@@ -8,7 +8,7 @@
  *         Christoph Pacher, <christoph.pacher@ait.ac.at>
  *         Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
- * Copyright (C) 2014-2015 AIT Austrian Institute of Technology
+ * Copyright (C) 2014-2016 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
  * Donau-City-Strasse 1 | 1220 Vienna | Austria
  * http://www.ait.ac.at
@@ -49,7 +49,7 @@
 // defs
 
 #define MODULE_DESCRIPTION      "This is the qkd-cascade QKD Module. The AIT standard implementation of the cascade error correction."
-#define MODULE_ORGANISATION     "(C)opyright 2014-2015 AIT Austrian Institute of Technology, http://www.ait.ac.at"
+#define MODULE_ORGANISATION     "(C)opyright 2014-2016 AIT Austrian Institute of Technology, http://www.ait.ac.at"
 
 
 // ------------------------------------------------------------

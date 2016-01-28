@@ -5,7 +5,7 @@
  *
  * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
- * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+ * Copyright (C) 2012-2016 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
  * Donau-City-Strasse 1 | 1220 Vienna | Austria
  * http://www.ait.ac.at
@@ -171,7 +171,7 @@ int main(int argc, char ** argv) {
     
     // create the command line header
     std::string sApplication = std::string("q3p-keystore-dump - AIT Q3P KeyStore Dump Tool V") + VERSION;
-    std::string sDescription = std::string("\nThis prints the content of an AIT Q3P KeyStore.\n\nCopyright 2012-2015 AIT Austrian Institute of Technology GmbH");
+    std::string sDescription = std::string("\nThis prints the content of an AIT Q3P KeyStore.\n\nCopyright 2012-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS] URL";
     
     // define program options

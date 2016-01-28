@@ -307,7 +307,7 @@ The AIT QKD Software Suite is licensed under the GPL 3.
 Some GUI parts use images and graphics created by [http://www.creativefreedom.co.uk](http://www.creativefreedom.co.uk) under the "CC Attribution-No Derivative 3.0" License. See [http://creativecommons.org/licenses/by-nd/3.0](http://creativecommons.org/licenses/by-nd/3.0) for details.
 
 
-(C)opyright 2012-2015 AIT Austrian Institute of Technology
+(C)opyright 2012-2016 AIT Austrian Institute of Technology
 
 
 Oliver Maurhart  

@@ -7,7 +7,7 @@
  * 
  * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
- * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+ * Copyright (C) 2012-2016 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
  * Donau-City-Strasse 1 | 1220 Vienna | Austria
  * http://www.ait.ac.at
@@ -57,7 +57,7 @@ int main(int argc, char ** argv) {
     QCoreApplication cApp(argc, argv);
     
     std::string sApplication = std::string("qkd-error-estimation - AIT QKD Module 'error estimation' V") + VERSION;
-    std::string sDescription = std::string("\nThis is an AIT QKD module.\n\nThis module discloses a portion of the bits to estimation an error.\n\nCopyright 2012-2015 AIT Austrian Institute of Technology GmbH");
+    std::string sDescription = std::string("\nThis is an AIT QKD module.\n\nThis module discloses a portion of the bits to estimation an error.\n\nCopyright 2012-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS]";
     
     boost::program_options::options_description cOptions(sApplication + "\n" + sDescription + "\n\n\t" + sSynopsis + "\n\nAllowed Options");

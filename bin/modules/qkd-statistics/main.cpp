@@ -10,7 +10,7 @@
  * 
  * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
- * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+ * Copyright (C) 2015-2016 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
  * Donau-City-Strasse 1 | 1220 Vienna | Austria
  * http://www.ait.ac.at
@@ -60,7 +60,7 @@ int main(int argc, char ** argv) {
     QCoreApplication cApp(argc, argv);
     
     std::string sApplication = std::string("qkd-statistics - AIT QKD Module 'statistics' V") + VERSION;
-    std::string sDescription = std::string("\nThis is an AIT QKD module.\n\nIt takes keys from a previous module and places some statistic data into a file..\n\nCopyright 2015 AIT Austrian Institute of Technology GmbH");
+    std::string sDescription = std::string("\nThis is an AIT QKD module.\n\nIt takes keys from a previous module and places some statistic data into a file..\n\nCopyright 2015-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS]";
     
     boost::program_options::options_description cOptions(sApplication + "\n" + sDescription + "\n\n\t" + sSynopsis + "\n\nAllowed Options");

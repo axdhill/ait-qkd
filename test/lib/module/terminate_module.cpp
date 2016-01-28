@@ -7,7 +7,7 @@
  *
  * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
- * Copyright (C) 2015 AIT Austrian Institute of Technology
+ * Copyright (C) 2015-2016 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
  * Donau-City-Strasse 1 | 1220 Vienna | Austria
  * http://www.ait.ac.at
@@ -67,7 +67,7 @@ public:
         "config", 
         qkd::module::module_type::TYPE_OTHER, 
         "This is a terminate qkd module: it terminate after an amount of processed keys.", 
-        "(C)opyright 2015, AIT Austrian Institute of Technology, http://www.ait.ac.at") {};
+        "(C)opyright 2015-2016 AIT Austrian Institute of Technology, http://www.ait.ac.at") {};
 
     
 private:

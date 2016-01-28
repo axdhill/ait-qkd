@@ -10,7 +10,7 @@
 ### END INIT INFO
 # -*- coding: utf-8 -*-
 # Debian init.d script for QKD D-BUS
-# Copyright © 2015 Oliver Maurhart <oliver.maurhart@ait.ac.at>
+# Copyright © 2015-2016 Oliver Maurhart <oliver.maurhart@ait.ac.at>
 
 set -e
 

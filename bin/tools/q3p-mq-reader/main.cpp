@@ -5,7 +5,7 @@
  *
  * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
- * Copyright (C) 2012-2015 AIT Austrian Institute of Technology
+ * Copyright (C) 2012-2016 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
  * Donau-City-Strasse 1 | 1220 Vienna | Austria
  * http://www.ait.ac.at
@@ -155,7 +155,7 @@ int main(int argc, char ** argv) {
     
     // create the command line header
     std::string sApplication = std::string("q3p-mq-reader - AIT Q3P Message Queue Reader Tool V") + VERSION;
-    std::string sDescription = std::string("\nThis extracts keys from a Q3P message queue.\n\nCopyright 2012-2015 AIT Austrian Institute of Technology GmbH");
+    std::string sDescription = std::string("\nThis extracts keys from a Q3P message queue.\n\nCopyright 2012-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS] [MQ]";
     
     // define program options

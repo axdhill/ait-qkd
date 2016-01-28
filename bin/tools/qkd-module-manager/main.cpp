@@ -5,7 +5,7 @@
  *
  * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
- * Copyright (C) 2013-2015 AIT Austrian Institute of Technology
+ * Copyright (C) 2013-2016 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
  * Donau-City-Strasse 1 | 1220 Vienna | Austria
  * http://www.ait.ac.at
@@ -61,7 +61,7 @@ int main(int argc, char ** argv) {
     
     // create the command line header
     std::string sApplication = std::string("qkd-module-manager - AIT QKD Module Manager V") + VERSION;
-    std::string sDescription = std::string("\nVisually manage QKD modules.\n\nCopyright 2013-2015 AIT Austrian Institute of Technology GmbH");
+    std::string sDescription = std::string("\nVisually manage QKD modules.\n\nCopyright 2013-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS]";
     
     // define program options
