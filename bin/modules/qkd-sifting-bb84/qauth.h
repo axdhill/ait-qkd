@@ -1,0 +1,114 @@
+/*
+ * qauth.h
+ * 
+ * Implements the QAuth protocol parts as depicted at
+ *
+ *      http://www.iaria.org/conferences2015/awardsICQNM15/icqnm2015_a3.pdf
+ * 
+ * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+ *
+ * Copyright (C) 2012-2016 AIT Austrian Institute of Technology
+ * AIT Austrian Institute of Technology GmbH
+ * Donau-City-Strasse 1 | 1220 Vienna | Austria
+ * http://www.ait.ac.at
+ *
+ * This file is part of the AIT QKD Software Suite.
+ *
+ * The AIT QKD Software Suite is free software: you can redistribute 
+ * it and/or modify it under the terms of the GNU General Public License 
+ * as published by the Free Software Foundation, either version 3 of 
+ * the License, or (at your option) any later version.
+ * 
+ * The AIT QKD Software Suite is distributed in the hope that it will 
+ * be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with the AIT QKD Software Suite. 
+ * If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+#ifndef __QKD_MODULE_QAUTH_H_
+#define __QKD_MODULE_QAUTH_H_
+
+
+// ------------------------------------------------------------
+// incs
+
+#include <memory>
+
+
+// ------------------------------------------------------------
+// decl
+
+
+/**
+ * a qauth data particle
+ */
+typedef struct {
+    
+    uint32_t nValue;            /**< the random base value */
+    uint64_t nPosition;         /**< the position to place the base */
+    
+} qauth_data_particle;
+
+
+typedef struct {
+    
+    uint32_t nKv;               /**< k_v */
+    uint32_t nKp;               /**< k_p */
+    uint32_t nValue0;           /**< v_0 */
+    uint32_t nPosition0;        /**< p_0 */
+    
+} qauth_init;
+
+/**
+ * Implements the QAuth protocol parts for BB84
+ */
+class qauth {
+    
+public:
+
+
+    /**
+     * ctor
+     * 
+     * @param   cQAuthInit      init values of qauth
+     * @param   nModulus        m
+     */
+    qauth(qauth_init const & cQAuthInit, uint32_t nModulus);
+
+
+    /**
+     * dtor
+     */
+    virtual ~qauth();
+    
+    
+    /**
+     * return the next qauth_data_particle
+     * 
+     * @return  the next in qauth data values in the series
+     */
+    qauth_data_particle next();
+
+    
+private:
+    
+    
+    // pimpl
+    class qauth_data;
+    std::shared_ptr<qauth_data> d;
+    
+};
+
+
+/**
+ * a managed pointer to a qauth instance
+ */
+typedef std::shared_ptr<qauth> qauth_ptr;
+
+
+#endif

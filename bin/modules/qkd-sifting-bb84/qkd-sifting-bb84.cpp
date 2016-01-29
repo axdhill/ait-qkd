@@ -38,6 +38,7 @@
 #include <qkd/utility/memory.h>
 #include <qkd/utility/syslog.h>
 
+#include "qauth.h"
 #include "qkd-sifting-bb84.h"
 #include "qkd_sifting_bb84_dbus.h"
 
@@ -89,14 +90,21 @@ public:
     qkd::utility::bigint cBits;             /**< the generated key bits so far */
     uint64_t nCurrentPosition;              /**< current bit position to write */
     
+    bool bQAuthEnabled;                     /**< true if qauth algorithm is enabled */
 };
 
 
 // fwd 
+
 static bool base_to_bit(bool & bBit, bb84_base eBase, unsigned char nQuantumEvent);
+
 static void bases_to_bits(qkd::utility::bigint & cBits, uint64_t & nPosition, double & nBaseRatio, bool bAlice, qkd::utility::memory const & cBases, qkd::utility::memory const & cQuantumTable);
+
 static bb84_base get_measurement(unsigned char nEvent);
-static qkd::utility::memory quantum_table_to_base_table(qkd::utility::memory const & cQuantumTable);
+
+static qkd::utility::memory quantum_table_to_base_table(qkd::utility::memory const & cQuantumTable, qauth_ptr cQAuth = qauth_ptr(nullptr));
+
+static bool parse_bool(std::string const & s);
 
 
 // ------------------------------------------------------------
@@ -173,6 +181,17 @@ void qkd_sifting_bb84::apply_config(UNUSED std::string const & sURL, qkd::utilit
             uint64_t nLength = 0;
             ss >> nLength;
             set_rawkey_length(nLength);
+        }
+        else
+        if (sKey == "qauth") {
+            bool bEnable = false;
+            try {
+                bEnable = parse_bool(cEntry.second);
+            }
+            catch (std::exception & e) {
+                qkd::utility::syslog::warning() << "failed to parse 'qauth' value. " + std::string(e.what());
+            }
+            set_qauth(bEnable);
         }
         else {
             qkd::utility::syslog::warning() << __FILENAME__ 
@@ -405,7 +424,26 @@ bool qkd_sifting_bb84::process_bob(qkd::key::key & cKey,
 
     set_rawkey_length(nLength);
     
-    qkd::utility::memory cBases = quantum_table_to_base_table(cKey.data());
+    qauth_ptr cQAuth = qauth_ptr(nullptr);
+    if (qauth()) {
+        
+        uint32_t nKv;
+        uint32_t nKp;
+        uint32_t nModulus = 1024;
+        uint32_t nValue0;
+        uint32_t nPosition0;
+        
+        random() >> nKv;
+        random() >> nKp;
+        random() >> nValue0;
+        random() >> nPosition0;
+        nPosition0 = nPosition0 % nModulus;
+        
+        qauth_init cQAuthInit = { nKv, nKp, nValue0, nPosition0 };
+        cQAuth = qauth_ptr(new ::qauth(cQAuthInit, nModulus));
+    }
+    
+    qkd::utility::memory cBases = quantum_table_to_base_table(cKey.data(), cQAuth);
     cMessage = qkd::module::message();
     cMessage.data() << cBases;
     try {
@@ -474,6 +512,19 @@ qulonglong qkd_sifting_bb84::rawkey_length() const {
 
 
 /**
+ * return the QAuth enabled state
+ * 
+ * see: http://www.iaria.org/conferences2015/awardsICQNM15/icqnm2015_a3.pdf
+ * 
+ * @return  true, if qauth is enabled
+ */
+bool qkd_sifting_bb84::qauth() const {
+    std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
+    return d->bQAuthEnabled;
+}
+
+
+/**
  * sets a new key id pattern as string
  * 
  * the key id pattern is a string consisting of
@@ -505,6 +556,19 @@ void qkd_sifting_bb84::set_key_id_pattern(QString sPattern) {
     
     qkd::key::key::counter() = qkd::key::key::key_id_counter(nShift, nAdd);
     d->nKeyId = qkd::key::key::counter().inc();
+}
+
+
+/**
+ * sets the QAuth enabled state
+ * 
+ * see: http://www.iaria.org/conferences2015/awardsICQNM15/icqnm2015_a3.pdf
+ * 
+ * @param   bEnable     the new qauth enabled state
+ */
+void qkd_sifting_bb84::set_qauth(bool bEnable) {
+    std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
+    d->bQAuthEnabled = bEnable;
 }
 
 
@@ -654,7 +718,7 @@ bb84_base get_measurement(unsigned char nEvent) {
  * @param   cQuantumTable       as received
  * @return  bases table
  */
-qkd::utility::memory quantum_table_to_base_table(qkd::utility::memory const & cQuantumTable) {
+qkd::utility::memory quantum_table_to_base_table(qkd::utility::memory const & cQuantumTable, qauth_ptr cQAuth) {
     
     // we have 4 detector bits for a base
     // a base is 00, 01, 10 or 11
@@ -670,7 +734,46 @@ qkd::utility::memory quantum_table_to_base_table(qkd::utility::memory const & cQ
         
         cBases.get()[i] = (b0 << 6) | (b1 << 4) | (b2 << 2) | b3;
     }
+    
+    // mix qauth random bases into the base table
+    if (cQAuth) {
+        
+        // collext list of random values and positions
+        std::list<qauth_data_particle> cQAuthValues;
+        qauth_data_particle cQAuthData = cQAuth->next();
+        while (cQAuthData.nPosition < (cBases.size() + cQAuthValues.size())) {
+            cQAuthValues.push_back(cQAuthData);
+            cQAuthData = cQAuth->next();
+        }
+        
+qkd::utility::debug() << __DEBUG_LOCATION__ << "cBases.size()=" << cBases.size() << ", cQAuthValues.size()=" << cQAuthValues.size();        
+
+    }
 
     return cBases;
 }
 
+
+/**
+ * parse a string holding a bool value
+ * 
+ * @param   s       the string holding a bool value
+ * @return  true if the string holds "true", "on", "yes" or "1"
+ */
+bool parse_bool(std::string const & s) {
+    
+    std::string sLower(s);
+    boost::algorithm::to_lower(sLower);
+    
+    if (sLower == "true") return true;
+    if (sLower == "on") return true;
+    if (sLower == "yes") return true;
+    if (sLower == "1") return true;
+    
+    if (sLower == "false") return false;
+    if (sLower == "off") return false;
+    if (sLower == "no") return false;
+    if (sLower == "0") return false;
+    
+    throw std::runtime_error("not a bool value: '" + s + "'");
+}

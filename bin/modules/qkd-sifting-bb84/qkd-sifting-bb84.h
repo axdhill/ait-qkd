@@ -99,6 +99,7 @@ class qkd_sifting_bb84 : public qkd::module::module {
     Q_PROPERTY(qulonglong current_id READ current_id)                                       /**< get the current key id we are sifting */
     Q_PROPERTY(qulonglong current_length READ current_length)                               /**< get the current key length in bits we have sifted so far */
     Q_PROPERTY(QString key_id_pattern READ key_id_pattern WRITE set_key_id_pattern)         /**< get/set key id pattern */
+    Q_PROPERTY(bool qauth READ qauth WRITE set_qauth)                                       /**< get/set the qauth enabled state */
     Q_PROPERTY(qulonglong rawkey_length READ rawkey_length WRITE set_rawkey_length)         /**< get/set minimum raw key length in bytes */
     
 
@@ -148,6 +149,16 @@ public:
     
     
     /**
+     * return the QAuth enabled state
+     * 
+     * see: http://www.iaria.org/conferences2015/awardsICQNM15/icqnm2015_a3.pdf
+     * 
+     * @return  true, if qauth is enabled
+     */
+    bool qauth() const;
+    
+    
+    /**
      * get the minimum length of the raw key generated in bytes
      * 
      * @return  the minimum length of the generated raw key length in bytes
@@ -165,6 +176,16 @@ public:
      * @param   sPattern    the new key generation pattern
      */
     void set_key_id_pattern(QString sPattern);
+    
+    
+    /**
+     * sets the QAuth enabled state
+     * 
+     * see: http://www.iaria.org/conferences2015/awardsICQNM15/icqnm2015_a3.pdf
+     * 
+     * @param   bEnable     the new qauth enabled state
+     */
+    void set_qauth(bool bEnable);
     
     
     /**
@@ -219,7 +240,7 @@ private:
     /**
      * module work as bob
      * 
-    * @param   cKey                    the raw key with quantum events encoded
+     * @param   cKey                    the raw key with quantum events encoded
      * @param   cIncomingContext        incoming crypto context
      * @param   cOutgoingContext        outgoing crypto context
      * @return  always true
