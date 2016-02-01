@@ -38,6 +38,8 @@
 // ait
 #include <qkd/module/module.h>
 
+#include "qauth.h"
+
 
 // ------------------------------------------------------------
 // decl
@@ -212,6 +214,99 @@ private:
     
     
     /**
+     * create the base table
+     * 
+     * @param   cKey            the key
+     * @param   cQAuthInit      the qauth init (if needed)
+     * @return  the base tabel memory
+     */
+    qkd::utility::memory create_base_table(qkd::key::key const & cKey, qauth_init const & cQAuthInit) const;
+    
+    
+    /**
+     * creates a new QAuth init structure
+     * 
+     * @return  a new QAuth init struct
+     */
+    qauth_init create_qauth_init();
+    
+
+    /**
+     * exchange the bases with the peer
+     * 
+     * @param   cBasesPeer          will receive peer bases
+     * @param   cBasesLocal         out local bases
+     * @param   cIncomingContext    incoming crypto context
+     * @param   cOutgoingContext    outgoing crypto context
+     * @return  true, if exchange has been successful
+     */
+    bool exchange_bases(qkd::utility::memory & cBasesPeer, 
+            qkd::utility::memory const & cBasesLocal, 
+            qkd::crypto::crypto_context & cIncomingContext, 
+            qkd::crypto::crypto_context & cOutgoingContext);
+    
+    
+    /**
+     * exchange the qauth base
+     * 
+     * NOTE: this should be done out-of-band elsewhere
+     * 
+     * @param   cQAuthInitPeer      will receive the peer qauth init values
+     * @param   cQAuthInitLocal     the local qauth init values
+     * @param   cIncomingContext    incoming crypto context
+     * @param   cOutgoingContext    outgoing crypto context
+     * @return  true, if exchange has been successful
+     */
+    bool exchange_qauth_init(qauth_init & cQAuthInitPeer, 
+            qauth_init const & cQAuthInitLocal, 
+            qkd::crypto::crypto_context & cIncomingContext, 
+            qkd::crypto::crypto_context & cOutgoingContext);
+    
+    
+    /**
+     * convert a dense quantum table into a sparse one with each event direct accessible
+     * 
+     * a dense quantum table has stored a single event into 4 bits. each bit
+     * corresponds to a single detector. therefore there are 2 events per byte
+     * in the dense table.
+     * 
+     * the sparse quantum table holds now just 1 single event per byte and is thus
+     * easier to access.
+     * 
+     * @param   cQuantumTable       a dense quantum table
+     * @return  a sparse quantum table
+     */
+    qkd::utility::memory extract_quantum_table(qkd::utility::memory const & cQuantumTable) const;
+    
+    
+    /**
+     * compare the bases and check qauth (if enabled)
+     * 
+     * @param   cBases              will receive the final base values
+     * @param   cBasesLocal         local bases we have
+     * @param   cBasesPeer          bases of the peer
+     * @param   cQAuthInitLocal     local QAuth init values
+     * @param   cQAuthInitPeer      peer's QAuth init values
+     * @return  true for success
+     */
+    bool match_bases(qkd::utility::memory & cBases, 
+        qkd::utility::memory const & cBasesLocal, 
+        qkd::utility::memory const & cBasesPeer, 
+        qauth_init const & cQAuthInitLocal,
+        qauth_init const & cQAuthInitPeer);
+    
+    
+    /**
+     * merge bases and qauth values
+     * 
+     * @param   cBases          the genuine bases
+     * @param   cQAuthValues    the qauth values
+     * @return  megred bases values
+     */
+    qkd::utility::memory merge_qauth_values(qkd::utility::memory const & cBases, qauth_data_particles const & cQAuthValues) const;
+        
+        
+    /**
      * module work
      * 
      * @param   cKey                    the raw key with quantum events encoded
@@ -225,27 +320,67 @@ private:
 
     
     /**
-     * module work as alice
+     * convert a spare quantum table to base table
      * 
-     * @param   cKey                    the raw key with quantum events encoded
-     * @param   cIncomingContext        incoming crypto context
-     * @param   cOutgoingContext        outgoing crypto context
-     * @return  always true
+     * a spare quantum table is created via extract_quantum_table
+     * 
+     * @param   cQuantumTable           the spare quantum table
+     * @return  the base table
      */
-    bool process_alice(qkd::key::key & cKey, 
-            qkd::crypto::crypto_context & cIncomingContext, 
-            qkd::crypto::crypto_context & cOutgoingContext);
+    qkd::utility::memory quantum_table_to_base_table(qkd::utility::memory const & cQuantumTable) const;
+    
+    
+    /**
+     * receive bases from the peer
+     * 
+     * @param   cBases                  the bases to receive
+     * @param   cIncomingContext        incoming crypto context
+     * @return  true, for success
+     */
+    bool recv_bases(qkd::utility::memory & cBases, qkd::crypto::crypto_context & cIncomingContext);
 
     
     /**
-     * module work as bob
+     * receive qauth_init from the peer
+     * 
+     * NOTE: this should be done out-of-band elsewhere
+     * 
+     * @param   cQAuthInit              qauth init to receive 
+     * @param   cIncomingContext        incoming crypto context
+     * @return  true, for success
+     */
+    bool recv_qauth_init(qauth_init & cQAuthInit, qkd::crypto::crypto_context & cIncomingContext);
+
+    
+    /**
+     * send bases to the peer
+     * 
+     * @param   cBases                  the bases to send
+     * @param   cOutgoingContext        outgoing crypto context
+     * @return  true, for success
+     */
+    bool send_bases(qkd::utility::memory const & cBases, qkd::crypto::crypto_context & cOutgoingContext);
+
+    
+    /**
+     * send qauth_init to the peer
+     * 
+     * @param   cQAuthInit              the qauth_init to send
+     * @param   cOutgoingContext        outgoing crypto context
+     * @return  true, for success
+     */
+    bool send_qauth_init(qauth_init const & cQAuthInit, qkd::crypto::crypto_context & cOutgoingContext);
+
+    
+    /**
+     * synchronize on our key data with the peer
      * 
      * @param   cKey                    the raw key with quantum events encoded
      * @param   cIncomingContext        incoming crypto context
      * @param   cOutgoingContext        outgoing crypto context
-     * @return  always true
+     * @return  true, if we sync'ed key meta data
      */
-    bool process_bob(qkd::key::key & cKey, 
+    bool sync_key_data(qkd::key::key & cKey, 
             qkd::crypto::crypto_context & cIncomingContext, 
             qkd::crypto::crypto_context & cOutgoingContext);
 

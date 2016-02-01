@@ -28,6 +28,25 @@
 # ------------------------------------------------------------
 
 
+
+# --------------------------------------------------
+# test cpp sources
+
+include_directories(${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR})
+
+set(CMAKE_REQUIRED_LIBRARIES "qkd;${CMAKE_REQUIRED_LIBRARIES}")
+
+set(TEST_BB84_QAUTH                             
+    ${CMAKE_SOURCE_DIR}/bin/modules/qkd-sifting-bb84/qauth.cpp
+    bb84_qauth.cpp)
+
+add_executable(test-bb84-qauth                  ${TEST_BB84_QAUTH})
+
+target_link_libraries(test-bb84-qauth           ${CMAKE_REQUIRED_LIBRARIES})
+
+add_test(bb84-qauth                             test-bb84-qauth)
+
+
 # ------------------------------------------------------------
 # test scripts
 

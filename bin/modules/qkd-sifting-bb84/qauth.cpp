@@ -55,6 +55,8 @@
  * Note: we use evhash-32 here as our universal hashing. In order to mitigate any memory
  *       effects of the hash function, I (Oliver) create the hash function everytime anew. 
  *       This might not be necessary though.
+ * 
+ *       Using evhash-32 from the qkd/crypto lib is sure a wired hack here... =(
  */
 class qauth::qauth_data {
     
@@ -65,20 +67,17 @@ public:
      * ctor
      * 
      * @param   cQAuthInit      init values of qauth
-     * @param   nModulus        m
      */
-    qauth_data(qauth_init const & cQAuthInit, uint32_t nModulus) : m_nModulus(nModulus), m_cQAuthInit(cQAuthInit) {
+    qauth_data(qauth_init const & cQAuthInit) : m_cQAuthInit(cQAuthInit) {
         
         m_cCurrent.nPosition = cQAuthInit.nPosition0;
         m_cCurrent.nValue = cQAuthInit.nValue0;
-                
-//         std::string sHash_Kv_init = "evhash-32:" + qkd::utility::memory::wrap(reinterpret_cast<unsigned char *>(&cQAuthInit.nKv), sizeof(cQAuthInit.nKv)).as_hex();
-// qkd::utility::debug() << __DEBUG_LOCATION__ << "sHash_Kv_init=" << sHash_Kv_init;        
-//         m_cHash_Kv = qkd::crypto::engine::create(sHash_Kv_init);
-//         
-//         std::string sHash_Kp_init = "evhash-32:" + qkd::utility::memory::wrap(reinterpret_cast<unsigned char *>(&cQAuthInit.nKp), sizeof(cQAuthInit.nKp)).as_hex();
-// qkd::utility::debug() << __DEBUG_LOCATION__ << "sHash_Kp_init=" << sHash_Kp_init;        
-//         m_cHash_Kp = qkd::crypto::engine::create(sHash_Kp_init);
+
+        std::string sHash_Kv_init = "evhash-32:" + qkd::utility::memory::wrap(reinterpret_cast<unsigned char *>(&m_cQAuthInit.nKv), sizeof(m_cQAuthInit.nKv)).as_hex();
+        m_cHash_Kv = qkd::crypto::engine::create(qkd::crypto::scheme(sHash_Kv_init));
+        
+        std::string sHash_Kp_init = "evhash-32:" + qkd::utility::memory::wrap(reinterpret_cast<unsigned char *>(&m_cQAuthInit.nKp), sizeof(m_cQAuthInit.nKp)).as_hex();
+        m_cHash_Kp = qkd::crypto::engine::create(qkd::crypto::scheme(sHash_Kp_init));
     }
     
     
@@ -87,21 +86,23 @@ public:
      */
     void next() {
         
-//         qkd::utility::memory m;
-//         
-//         // v_n+1 = H_kv(v_n)
-//         m = qkd::utility::memory::wrap(reinterpret_cast<unsigned char *>(m_nValue), sizeof(m_nValue));
-//         m_cHash_Kv << m;
-//         m_cHash_Kv >> m;
-//         
-//         // p_n+1 = p_n + (1 + (H_kp(p_n) mod m))
-//         uint64_t p;
-//         m = qkd::utility::memory::wrap(reinterpret_cast<unsigned char *>(m_nValue), sizeof(m_nValue));
-//         m_cHash_Kp << m_nPosition;
-//         m_cHash_Kp >> p;
-//         m_nPosition = m_nPosition + (1 + (p % m_nModulus));
+        qkd::utility::memory cMemoryValue = qkd::utility::memory::wrap(reinterpret_cast<unsigned char *>(&m_cCurrent.nValue), sizeof(m_cCurrent.nValue));
+        qkd::utility::memory cMemoryPosition = qkd::utility::memory::wrap(reinterpret_cast<unsigned char *>(&m_cCurrent.nPosition), sizeof(m_cCurrent.nPosition));
+        
+        // v_n+1 = H_kv(v_n)
+        auto cHash_Kv = m_cHash_Kv->clone();
+        cHash_Kv << cMemoryValue;
+        cMemoryValue = cHash_Kv->state();
+        m_cCurrent.nValue = (bb84_base)((unsigned char)m_cCurrent.nValue & 0x03);
+        
+        // p_n+1 = p_n + (1 + (H_kp(p_n) mod m))
+        uint64_t nPositionOld = m_cCurrent.nPosition;
+        auto cHash_Kp = m_cHash_Kp->clone();
+        cHash_Kp << cMemoryPosition;
+        cMemoryPosition = cHash_Kp->state();
+        
+        m_cCurrent.nPosition = nPositionOld + (1 + (m_cCurrent.nPosition % m_cQAuthInit.nModulus));
     }
-    
     
     
     /**
@@ -123,12 +124,6 @@ public:
     
     
     /**
-     * the modules m
-     */
-    uint32_t m_nModulus;
-    
-    
-    /**
      * the init values
      */
     qauth_init m_cQAuthInit;
@@ -140,13 +135,33 @@ public:
 
 
 /**
+ * dump the qauth particle list to a stream
+ * 
+ * @param   cStream     the stream to dump to
+ * @param   sIndent     the indent on each line
+ * @param   cList       the qauth particle list
+ */
+void qauth_data_particles::dump(std::ostream & cStream, std::string const sIndent) const {
+    
+    std::stringstream ss;
+    bool bFirst = true;
+    for (auto iter = cbegin(); iter != cend(); ++iter) {
+        if (!bFirst) ss << ", ";
+        ss << "<" << (*iter).nPosition << ", " << (unsigned int)(*iter).nValue << ">";
+        bFirst = false;
+    }
+    
+    cStream << sIndent << ss.str();
+}
+
+
+/**
  * ctor
  * 
  * @param   cQAuthInit      init values of qauth
- * @param   nModulus        m
  */
-qauth::qauth(qauth_init const & cQAuthInit, uint32_t nModulus) {
-    d = std::shared_ptr<qauth::qauth_data>(new qauth::qauth_data(cQAuthInit, nModulus));
+qauth::qauth(qauth_init const & cQAuthInit) {
+    d = std::shared_ptr<qauth::qauth_data>(new qauth::qauth_data(cQAuthInit));
 }
 
 
@@ -154,6 +169,64 @@ qauth::qauth(qauth_init const & cQAuthInit, uint32_t nModulus) {
  * dtor
  */
 qauth::~qauth() {
+}
+
+
+/**
+ * create a series of data particles starting at position0
+ * 
+ * the amount of particles created will be such
+ * that the hightest position value will be within
+ * the set of elements of size nSize with the returned
+ * list of data paticles.
+ * 
+ * That is
+ * 
+ *      l = create_max(m) ==> l.last().position < nSize
+ * 
+ * @param   nSize           size of container with mixed data particles within
+ * @return  container with qauth data values
+ */
+qauth_data_particles qauth::create_max(uint64_t nSize) {
+    
+    qauth_data_particles res;
+    for (;;) {
+        
+        qauth_data_particle p = next();
+        if (p.nPosition > nSize) break;
+        res.push_back(p);
+    }
+
+    return res;
+}
+
+
+/**
+ * create a series of data particles starting at position0
+ * 
+ * the amount of particles created will be such
+ * that the hightest position value will be within
+ * the merged set of elements of size nSize with the returned
+ * list of data paticles.
+ * 
+ * That is
+ * 
+ *      l = create_min(nSize) ==> l.last().position < (nSize + l.size())
+ * 
+ * @param   nSize           size of container to mix data particles into
+ * @return  container with qauth data values
+ */
+qauth_data_particles qauth::create_min(uint64_t nSize) {
+    
+    qauth_data_particles res;
+    for (;;) {
+        
+        qauth_data_particle p = next();
+        if (p.nPosition > (res.size() + nSize)) break;
+        res.push_back(p);
+    }
+
+    return res;
 }
 
 
@@ -166,4 +239,40 @@ qauth_data_particle qauth::next() {
     qauth_data_particle res = d->m_cCurrent;
     d->next();
     return res;
+}
+
+
+/**
+ * stream into a memory
+ * 
+ * @param   lhs     left hand side
+ * @param   rhs     right hand side
+ * @return  memory object holding rhs
+ */
+qkd::utility::buffer & operator<<(qkd::utility::buffer & lhs, qauth_init const & rhs) {
+    lhs << rhs.nKv;
+    lhs << rhs.nKp;
+    lhs << rhs.nModulus;
+    lhs << (unsigned char)rhs.nValue0;
+    lhs << rhs.nPosition0;
+    return lhs;
+}
+
+
+/**
+ * stream out from memory
+ * 
+ * @param   lhs     left hand side
+ * @param   rhs     right hand side
+ * @return  memory object fromt which rhs has been retrieved
+ */
+qkd::utility::buffer & operator>>(qkd::utility::buffer & lhs, qauth_init & rhs) {
+    lhs >> rhs.nKv;
+    lhs >> rhs.nKp;
+    lhs >> rhs.nModulus;
+    unsigned char v;
+    lhs >> v;
+    rhs.nValue0 = (bb84_base)v;
+    lhs >> rhs.nPosition0;
+    return lhs;
 }

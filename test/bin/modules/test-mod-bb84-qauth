@@ -47,12 +47,11 @@ test_init "$(basename $0).d"
 
 rm -rf cat_keys.* &> /dev/null
 
-KEYS_TO_PROCESS="1000"
-${TEST_BASE}/bin/qkd-key-gen --silent --size 2048 --keys ${KEYS_TO_PROCESS} --quantum --rate 0.03 cat_keys
+KEYS_TO_PROCESS="10"
+${TEST_BASE}/bin/qkd-key-gen --silent --size 512 --keys ${KEYS_TO_PROCESS} --quantum --rate 0.03 cat_keys
 
 # prepare the log folder
 LOG_FOLDER="$(pwd)/log"
-echo ${LOG_FOLDER}
 mkdir -p ${LOG_FOLDER} &> /dev/null
 
 # remove any previous logs
@@ -87,10 +86,10 @@ ${TEST_BASE}/bin/qkd-pipeline --log "${LOG_FOLDER}" start ${TEST_BASE}/test/test
 #     exit 1
 # fi
 
-sleep 10
+sleep 3
 
-${TEST_BASE}/bin/qkd-pipeline --log "${LOG_FOLDER}" stop test/test-data/qauth/pipeline-alice.xml
-${TEST_BASE}/bin/qkd-pipeline --log "${LOG_FOLDER}" stop test/test-data/qauth/pipeline-bob.xml
+${TEST_BASE}/bin/qkd-pipeline --log "${LOG_FOLDER}" stop ${TEST_BASE}/test/test-data/qauth/pipeline-alice.xml
+${TEST_BASE}/bin/qkd-pipeline --log "${LOG_FOLDER}" stop ${TEST_BASE}/test/test-data/qauth/pipeline-bob.xml
 
 # give modules chance to wind down gracefully
 sleep 1

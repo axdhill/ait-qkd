@@ -65,28 +65,28 @@
 <pipeline name="default" autoconnect="true" pipein="ipc:///tmp/qkd/default.bob.in" pipeout="">
 
     <module path="@CMAKE_BINARY_DIR@/bin/modules/qkd-cat/qkd-cat">
-        <config path="@CMAKE_BINARY_DIR@/test/test-data/autoconnect/cat-pipeline.conf" />
+        <config path="@CMAKE_BINARY_DIR@/test/test-data/qauth/pipeline.conf" />
         <role value="bob" />
         <args value="--debug" />
         <log path="qkd-cat.bob.log" />
     </module>
 
     <module path="@CMAKE_BINARY_DIR@/bin/modules/qkd-sifting-bb84/qkd-sifting-bb84">
-        <config path="@CMAKE_BINARY_DIR@/test/test-data/autoconnect/cat-pipeline.conf" />
+        <config path="@CMAKE_BINARY_DIR@/test/test-data/qauth/pipeline.conf" />
         <role value="bob" />
         <args value="--debug" />
         <log path="qkd-sifting-bb84.bob.log" />
     </module>
 
     <module path="@CMAKE_BINARY_DIR@/bin/modules/qkd-cascade/qkd-cascade">
-        <config path="@CMAKE_BINARY_DIR@/test/test-data/autoconnect/cat-pipeline.conf" />
+        <config path="@CMAKE_BINARY_DIR@/test/test-data/qauth/pipeline.conf" />
         <role value="bob" />
         <args value="--debug" />
         <log path="qkd-cascade.bob.log" />
     </module>
 
     <module path="@CMAKE_BINARY_DIR@/bin/modules/qkd-confirmation/qkd-confirmation">
-        <config path="@CMAKE_BINARY_DIR@/test/test-data/autoconnect/cat-pipeline.conf" />
+        <config path="@CMAKE_BINARY_DIR@/test/test-data/qauth/pipeline.conf" />
         <role value="bob" />
         <args value="--debug" />
         <log path="qkd-confirmation.bob.log" />

@@ -37,7 +37,23 @@
 // ------------------------------------------------------------
 // incs
 
+#include <list>
 #include <memory>
+
+#include <qkd/utility/buffer.h>
+
+#include "bb84_base.h"
+
+
+// ------------------------------------------------------------
+// const
+
+
+/**
+ * qauth default modulus value
+ */
+static uint64_t const QAUTH_DEFAULT_MODULUS = 16;
+
 
 
 // ------------------------------------------------------------
@@ -45,24 +61,50 @@
 
 
 /**
- * a qauth data particle
+ * qauth init values
  */
-typedef struct {
-    
-    uint32_t nValue;            /**< the random base value */
-    uint64_t nPosition;         /**< the position to place the base */
-    
-} qauth_data_particle;
-
-
 typedef struct {
     
     uint32_t nKv;               /**< k_v */
     uint32_t nKp;               /**< k_p */
-    uint32_t nValue0;           /**< v_0 */
+    uint32_t nModulus;          /**< m */
     uint32_t nPosition0;        /**< p_0 */
+    bb84_base nValue0;          /**< v_0 */
     
 } qauth_init;
+
+
+/**
+ * a qauth data particle
+ */
+typedef struct {
+    
+    uint64_t nPosition;         /**< the position to place the base */
+    bb84_base nValue;           /**< the random base value as a bb84_base enum value */
+    
+} qauth_data_particle;
+
+
+/**
+ * a list of qauth particles
+ */
+class qauth_data_particles : public std::list<qauth_data_particle> {
+    
+    
+public:
+    
+    
+    /**
+     * dump the qauth particle list to a stream
+     * 
+     * @param   cStream     the stream to dump to
+     * @param   sIndent     the indent on each line
+     * @param   cList       the qauth particle list
+     */
+    void dump(std::ostream & cStream, std::string const sIndent = "") const;
+
+};
+
 
 /**
  * Implements the QAuth protocol parts for BB84
@@ -76,9 +118,8 @@ public:
      * ctor
      * 
      * @param   cQAuthInit      init values of qauth
-     * @param   nModulus        m
      */
-    qauth(qauth_init const & cQAuthInit, uint32_t nModulus);
+    qauth(qauth_init const & cQAuthInit);
 
 
     /**
@@ -88,14 +129,50 @@ public:
     
     
     /**
+     * create a series of data particles starting at position0
+     * 
+     * the amount of particles created will be such
+     * that the hightest position value will be within
+     * the set of elements of size nSize with the returned
+     * list of data paticles.
+     * 
+     * That is
+     * 
+     *      l = create_max(m) ==> l.last().position < nSize
+     * 
+     * @param   nSize           size of container with mixed data particles within
+     * @return  container with qauth data values
+     */
+    qauth_data_particles create_max(uint64_t nSize);
+
+    
+    /**
+     * create a series of data particles starting at position0
+     * 
+     * the amount of particles created will be such
+     * that the hightest position value will be within
+     * the merged set of elements of size nSize with the returned
+     * list of data paticles.
+     * 
+     * That is
+     * 
+     *      l = create_min(nSize) ==> l.last().position < (nSize + l.size())
+     * 
+     * @param   nSize           size of container to mix data particles into
+     * @return  container with qauth data values
+     */
+    qauth_data_particles create_min(uint64_t nSize);
+
+    
+private:
+    
+    
+    /**
      * return the next qauth_data_particle
      * 
      * @return  the next in qauth data values in the series
      */
     qauth_data_particle next();
-
-    
-private:
     
     
     // pimpl
@@ -109,6 +186,26 @@ private:
  * a managed pointer to a qauth instance
  */
 typedef std::shared_ptr<qauth> qauth_ptr;
+
+
+/**
+ * stream into a memory
+ * 
+ * @param   lhs     left hand side
+ * @param   rhs     right hand side
+ * @return  memory object holding rhs
+ */
+qkd::utility::buffer & operator<<(qkd::utility::buffer & lhs, qauth_init const & rhs);
+
+
+/**
+ * stream out from memory
+ * 
+ * @param   lhs     left hand side
+ * @param   rhs     right hand side
+ * @return  memory object fromt which rhs has been retrieved
+ */
+qkd::utility::buffer & operator>>(qkd::utility::buffer & lhs, qauth_init & rhs);
 
 
 #endif

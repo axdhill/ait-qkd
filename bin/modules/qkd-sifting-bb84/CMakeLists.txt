@@ -36,6 +36,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 # sources
 set(QKD_SIFTING_BB84_SRC
+    bb84_base.cpp
     main.cpp
     qauth.cpp
     qkd-sifting-bb84.cpp

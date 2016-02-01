@@ -38,7 +38,7 @@
 #include <qkd/utility/memory.h>
 #include <qkd/utility/syslog.h>
 
-#include "qauth.h"
+#include "bb84_base.h"
 #include "qkd-sifting-bb84.h"
 #include "qkd_sifting_bb84_dbus.h"
 
@@ -52,18 +52,6 @@
 
 // ------------------------------------------------------------
 // decl
-
-
-/**
- * an event measurement
- */
-enum class bb84_base : uint8_t {
-    
-    BB84_BASE_INVALID = 0,          /**< irregular base measument */
-    BB84_BASE_DIAGONAL,             /**< diagonal measument */
-    BB84_BASE_RECTILINEAR           /**< rectilinear measument */
-};
-
 
 
 /**
@@ -81,29 +69,27 @@ public:
         cAvgBaseRatio = qkd::utility::average_technique::create("value", 10);        
     };
     
-    std::recursive_mutex cPropertyMutex;    /**< property mutex */
+    std::recursive_mutex cPropertyMutex;        /**< property mutex */
     
-    qkd::utility::average cAvgBaseRatio;    /**< the average base ratio */
-    uint64_t nRawKeyLength;                 /**< minimum length of raw key generated in bytes */
+    qkd::utility::average cAvgBaseRatio;        /**< the average base ratio */
+    uint64_t nRawKeyLength;                     /**< minimum length of raw key generated in bytes */
     
-    qkd::key::key_id nKeyId;                /**< current key id we work on */
-    qkd::utility::bigint cBits;             /**< the generated key bits so far */
-    uint64_t nCurrentPosition;              /**< current bit position to write */
+    qkd::key::key_id nKeyId;                    /**< current key id we work on */
+    qkd::utility::bigint cBits;                 /**< the generated key bits so far */
+    uint64_t nCurrentPosition;                  /**< current bit position to write */
     
-    bool bQAuthEnabled;                     /**< true if qauth algorithm is enabled */
+    bool bQAuthEnabled;                         /**< true if qauth algorithm is enabled */
+    
+    qauth_data_particles cQAuthValuesLocal;     /**< local qauth data values */
+    qauth_data_particles cQAuthValuesPeer;      /**< remote qauth data values */
 };
 
 
 // fwd 
-
 static bool base_to_bit(bool & bBit, bb84_base eBase, unsigned char nQuantumEvent);
-
 static void bases_to_bits(qkd::utility::bigint & cBits, uint64_t & nPosition, double & nBaseRatio, bool bAlice, qkd::utility::memory const & cBases, qkd::utility::memory const & cQuantumTable);
-
-static bb84_base get_measurement(unsigned char nEvent);
-
-static qkd::utility::memory quantum_table_to_base_table(qkd::utility::memory const & cQuantumTable, qauth_ptr cQAuth = qauth_ptr(nullptr));
-
+// static bb84_base get_measurement(unsigned char nEvent);
+// static qkd::utility::memory quantum_table_to_base_table(qkd::utility::memory const & cQuantumTable, qauth_ptr cQAuth = qauth_ptr(nullptr));
 static bool parse_bool(std::string const & s);
 
 
@@ -218,6 +204,53 @@ double qkd_sifting_bb84::base_ratio() const {
 
 
 /**
+ * create the base table
+ * 
+ * @param   cKey            the key
+ * @param   cQAuthInit      the qauth init (if needed)
+ * @return  the base tabel memory
+ */
+qkd::utility::memory qkd_sifting_bb84::create_base_table(qkd::key::key const & cKey, qauth_init const & cQAuthInit) const {
+    
+    qkd::utility::memory cBases = quantum_table_to_base_table(extract_quantum_table(cKey.data()));
+    d->cQAuthValuesLocal.clear();
+    
+    if (qauth()) {
+        qauth_ptr cQAuth = qauth_ptr(new ::qauth(cQAuthInit));
+        d->cQAuthValuesLocal = cQAuth->create_min(cBases.size());
+        cBases = merge_qauth_values(cBases, d->cQAuthValuesLocal);
+    }
+    
+    return cBases;
+}
+
+
+/**
+ * creates a new QAuth init structure
+ * 
+ * @return  a new QAuth init struct
+ */
+qauth_init qkd_sifting_bb84::create_qauth_init() {
+    
+    if (!qauth()) return qauth_init();
+
+    uint32_t nKv;
+    uint32_t nKp;
+    uint32_t nModulus = QAUTH_DEFAULT_MODULUS;
+    uint32_t nPosition0;
+    uint32_t nValue0;
+    
+    random() >> nKv;
+    random() >> nKp;
+    random() >> nPosition0;
+    random() >> nValue0;
+    nPosition0 = nPosition0 % nModulus;
+    
+    return qauth_init{ nKv, nKp, nModulus, nPosition0, (bb84_base)nValue0 };
+}
+
+
+/**
  * get the current key id we are sifting
  * 
  * @return  the current key id we are sifting
@@ -240,6 +273,96 @@ qulonglong qkd_sifting_bb84::current_length() const {
 
 
 /**
+ * exchange the bases with the peer
+ * 
+ * @param   cBasesPeer          will receive peer bases
+ * @param   cBasesLocal         out local bases
+ * @param   cIncomingContext    incoming crypto context
+ * @param   cOutgoingContext    outgoing crypto context
+ * @return  true, if exchange has been successful
+ */
+bool qkd_sifting_bb84::exchange_bases(qkd::utility::memory & cBasesPeer, 
+        qkd::utility::memory const & cBasesLocal, 
+        qkd::crypto::crypto_context & cIncomingContext, 
+        qkd::crypto::crypto_context & cOutgoingContext) {
+    
+    if (is_alice()) {
+        if (!send_bases(cBasesLocal, cOutgoingContext)) return false;
+        if (!recv_bases(cBasesPeer, cIncomingContext)) return false;
+    }
+    else {
+        if (!recv_bases(cBasesPeer, cIncomingContext)) return false;
+        if (!send_bases(cBasesLocal, cOutgoingContext)) return false;
+    }
+    
+    return true;
+}
+
+
+/**
+ * exchange the qauth base
+ * 
+ * NOTE: this should be done out-of-band elsewhere
+ * 
+ * @param   cBasesPeer          will receive peer bases
+ * @param   cBasesLocal         out local bases
+ * @param   cIncomingContext    incoming crypto context
+ * @param   cOutgoingContext    outgoing crypto context
+ * @return  true, if exchange has been successful
+ */
+bool qkd_sifting_bb84::exchange_qauth_init(qauth_init & cQAuthInitPeer, 
+            qauth_init const & cQAuthInitLocal, 
+        qkd::crypto::crypto_context & cIncomingContext, 
+        qkd::crypto::crypto_context & cOutgoingContext) {
+    
+    if (!qauth()) return true;
+    
+    if (is_alice()) {
+        if (!send_qauth_init(cQAuthInitLocal, cOutgoingContext)) return false;
+        if (!recv_qauth_init(cQAuthInitPeer, cIncomingContext)) return false;
+    }
+    else {
+        if (!recv_qauth_init(cQAuthInitPeer, cIncomingContext)) return false;
+        if (!send_qauth_init(cQAuthInitLocal, cOutgoingContext)) return false;
+    }
+    
+    return true;
+}
+
+
+/**
+ * convert a dense quantum table into a sparse one with each event direct accessible
+ * 
+ * a dense quantum table has stored a single event into 4 bits. each bit
+ * corresponds to a single detector. therefore there are 2 events per byte
+ * in the dense table.
+ * 
+ * the sparse quantum table holds now just 1 single event per byte and is thus
+ * easier to access.
+ * 
+ * @param   cQuantumTable       a dense quantum table
+ * @return  a sparse quantum table
+ */
+qkd::utility::memory qkd_sifting_bb84::extract_quantum_table(qkd::utility::memory const & cQuantumTable) const {
+    
+    qkd::utility::memory res(cQuantumTable.size() * 2);
+    unsigned char * d = res.get();
+    unsigned char const * s = cQuantumTable.get();
+    
+    for (uint64_t i = 0; i < cQuantumTable.size(); ++i) {
+        
+        (*d) = (*s) & 0x0F;
+        ++d;
+        (*d) = (*s) & 0xF0 >> 4;
+        ++d;
+        ++s;
+    }
+
+    return res;    
+}
+
+
+/**
  * return the key id pattern as string
  * 
  * the key id pattern is a string consisting of
@@ -256,6 +379,107 @@ QString qkd_sifting_bb84::key_id_pattern() const {
 
 
 /**
+ * compare the bases and check qauth (if enabled)
+ * 
+ * @param   cBases              will receive the final base values
+ * @param   cBasesLocal         local bases we have
+ * @param   cBasesPeer          bases of the peer
+ * @param   cQAuthInitLocal     local QAuth init values
+ * @param   cQAuthInitPeer      peer's QAuth init values
+ * @return  true for success
+ */
+bool qkd_sifting_bb84::match_bases(qkd::utility::memory & cBases,
+    qkd::utility::memory const & cBasesLocal, 
+    qkd::utility::memory const & cBasesPeer, 
+    qauth_init const & cQAuthInitLocal,
+    qauth_init const & cQAuthInitPeer) {
+    
+/*    
+    qauth_data_particles cQAuthValuesLocal;
+    qauth_data_particles cQAuthValuesPeer;
+    if (qauth()) {
+        cQAuthValuesLocal = qauth_ptr(new ::qauth(cQAuthInitLocal)).create
+        
+    }
+
+    
+    // set up the qauth data streams
+    qauth_ptr cQAuthLocal = qauth_ptr(nullptr);
+    qauth_data_particle cQAuthValueLocal;
+    qauth_ptr cQAuthPeer = qauth_ptr(nullptr);
+    qauth_data_particle cQAuthValuePeer;
+    if (qauth()) {
+        cQAuthLocal = qauth_ptr(new ::qauth(cQAuthInitLocal));
+        cQAuthValueLocal = cQAuthLocal->next();
+        cQAuthPeer = qauth_ptr(new ::qauth(cQAuthInitPeer));
+        cQAuthValuePeer = cQAuthPeer->next();
+    }
+    
+    uint64_t nBaseIndexLocal = 0;
+    uint64_t nBaseIndexPeer = 0;
+    uint64_t nPositionLocal = 0;
+    uint64_t nPositionPeer = 0;
+    uint64_t nPosition = 0;
+    
+    while ((nBaseIndexLocal < cBasesLocal.size()) && (nBaseIndexPeer < cBasesPeer.size())) {
+        
+        unsigned char bLocal = cBasesLocal.get()[nBaseIndexLocal];
+        
+        for (unsigned int i = 0; i < 4; ++i) {
+            
+            unsigned char bLocal = cBasesLocal.get()
+            
+            
+            
+        }
+        
+        if (nBaseIndexLocal < cBasesLocal.size()) ++nBaseIndexLocal;
+        if (nBaseIndexPeer < cBasesPeer.size()) ++nBaseIndexPeer;
+    }
+*/    
+}
+    
+    
+/**
+ * merge bases and qauth values
+ * 
+ * @param   cBases          the genuine bases
+ * @param   cQAuthValues    the qauth values
+ * @return  megred bases values
+ */
+qkd::utility::memory qkd_sifting_bb84::merge_qauth_values(qkd::utility::memory const & cBases, qauth_data_particles const & cQAuthValues) const {
+    
+    qkd::utility::buffer res;
+    
+    uint64_t nPosition = 0;
+    uint64_t nBaseIndex = 0;
+    auto const iter = cQAuthValues.begin();
+    unsigned char nBasesPtr = cBases.get();
+    
+    while (nBaseIndex < cBases.size()) {
+        
+        if ((iter != cQAuthValues.end()) && (nPosition == (*iter).nPosition)) {
+            res << (unsigned char)(*iter).nValue;
+            ++iter;
+        }
+        else {
+            res << *nBasesPtr;
+            ++nBasesPtr;
+            ++nBaseIndex;
+        }
+        
+        ++nPosition;
+    }
+    
+    std::stringstream ss;
+    cQAuthValues.dump(ss);
+    qkd::utility::debug() << "QAuth data merged: " << ss.str();
+    
+    return res;
+}
+    
+    
+/**
  * module work
  * 
  * @param   cKey                    the raw key with quantum events encoded
@@ -267,44 +491,28 @@ bool qkd_sifting_bb84::process(qkd::key::key & cKey,
         qkd::crypto::crypto_context & cIncomingContext, 
         qkd::crypto::crypto_context & cOutgoingContext) {
 
-    if (is_alice()) return process_alice(cKey, cIncomingContext, cOutgoingContext);
-    if (is_bob()) return process_bob(cKey, cIncomingContext, cOutgoingContext);
+    if (!sync_key_data(cKey, cIncomingContext, cOutgoingContext)) return false;
     
-    // should not happen to reach this line, but 
-    // we return true: pass on the key to the next module
+    qauth_init cQAuthInit = create_qauth_init();
+    qkd::utility::memory cBasesLocal = create_base_table(cKey, cQAuthInit);
+    
+    qkd::utility::memory cBasesPeer;
+    if (!exchange_bases(cBasesPeer, cBasesLocal, cIncomingContext, cOutgoingContext)) return false;
+    
+    qauth_init cQAuthInitPeer;
+    if (!exchange_qauth_init(cQAuthInitPeer, cQAuthInit, cIncomingContext, cOutgoingContext)) return false;
+    
+    qkd::utility::memory cBasesFinal;
+    if (!match_bases(cBasesFinal, cBasesLocal, cBasesPeer, cQAuthInitLocal, cQAuthInitPeer)) return false;
+    
+
     return true;
-}
 
 
-/**
- * module work as alice
- * 
- * @param   cKey                    the raw key with quantum events encoded
- * @param   cIncomingContext        incoming crypto context
- * @param   cOutgoingContext        outgoing crypto context
- * @return  always true
- */
-bool qkd_sifting_bb84::process_alice(qkd::key::key & cKey, 
-        qkd::crypto::crypto_context & cIncomingContext, 
-        qkd::crypto::crypto_context & cOutgoingContext) {
-    
+/*    
     bool bForwardKey = false;
     
-    qkd::module::message cMessage;
     
-    // first some header to ensure we are talking about the same key
-    cMessage.data() << cKey.id();
-    cMessage.data() << cKey.size();
-    cMessage.data() << (uint64_t)rawkey_length();
-
-    try {
-        send(cMessage, cOutgoingContext);
-    }
-    catch (std::runtime_error const & cRuntimeError) {
-        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
-                << "failed to send message: " << cRuntimeError.what();
-        return false;
-    }
     
     qkd::utility::memory cBases = quantum_table_to_base_table(cKey.data());
 
@@ -319,6 +527,26 @@ bool qkd_sifting_bb84::process_alice(qkd::key::key & cKey,
     }
     qkd::utility::memory cBasesPeer;
     cMessage.data() >> cBasesPeer;
+    
+    qauth_ptr cQAuthPeer = qauth_ptr(nullptr);
+    if (qauth()) {
+        
+        cMessage = qkd::module::message();
+        try {
+            if (!recv(cMessage, cIncomingContext)) return false;
+        }
+        catch (std::runtime_error const & cRuntimeError) {
+            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
+                    << "failed to receive message: " << cRuntimeError.what();
+            return false;
+        }
+
+        qauth_init cQAuthInit;
+        cMessage.data() >> cQAuthInit;
+        
+        cQAuthPeer = qauth_ptr(new ::qauth(cQAuthInit));
+    }
+    
     
     if (cBases.size() != cBasesPeer.size()) {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
@@ -379,6 +607,9 @@ bool qkd_sifting_bb84::process_alice(qkd::key::key & cKey,
     }
     
     return bForwardKey;
+*/    
+
+    return true;
 }
 
 
@@ -390,60 +621,33 @@ bool qkd_sifting_bb84::process_alice(qkd::key::key & cKey,
  * @param   cOutgoingContext        outgoing crypto context
  * @return  always true
  */
+/*
 bool qkd_sifting_bb84::process_bob(qkd::key::key & cKey, 
         qkd::crypto::crypto_context & cIncomingContext, 
         qkd::crypto::crypto_context & cOutgoingContext) {
+
+    if (!sync_key_data(cKey, cIncomingContext, cOutgoingContext)) return false;
+    
+    qauth_init cQAuthInitLocal = create_qauth_init();
+    qkd::utility::memory cBasesLocal = create_base_table(cKey, cQAuthInit);
+    
+    qkd::utility::memory cBasesPeer;
+    if (!exchange_bases(cBasesPeer, cBasesLocal, cIncomingContext, cOutgoingContext)) return false;
+    
+    qauth_init cQAuthInitPeer;
+    if (!exchange_qauth_init(cQAuthInitPeer, cQAuthInitLocal, cIncomingContext, cOutgoingContext)) return false;
+
+    qkd::utility::memory cBasesFinal;
+    if (!match_bases(cBasesFinal, cBasesLocal, cBasesPeer, cQAuthInitLocal, cQAuthInitPeer)) return false;
+    
     
     bool bForwardKey = false;
     
-    qkd::module::message cMessage;
-
-    try {
-        if (!recv(cMessage, cIncomingContext)) return false;
-    }
-    catch (std::runtime_error const & cRuntimeError) {
-        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
-                << "failed to receive message: " << cRuntimeError.what();
-        return false;
-    }
-
-    qkd::key::key_id nPeerKeyId = 0;
-    uint64_t nPeerSize = 0;
-    uint64_t nLength = 0;
-    cMessage.data() >> nPeerKeyId;
-    cMessage.data() >> nPeerSize;
-    cMessage.data() >> nLength;
+    qauth_init cQAuthInit = create_qauth_init();
+    qkd::utility::memory cBasesLocal = create_base_table(cKey, cQAuthInit);
     
-    // check if we both have the same input
-    if ((nPeerKeyId != cKey.id()) || (nPeerSize != cKey.size())) {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " 
-                << "alice has different input data than me - this must not happen";
-        terminate();
-        return false;
-    }
-
-    set_rawkey_length(nLength);
     
-    qauth_ptr cQAuth = qauth_ptr(nullptr);
-    if (qauth()) {
-        
-        uint32_t nKv;
-        uint32_t nKp;
-        uint32_t nModulus = 1024;
-        uint32_t nValue0;
-        uint32_t nPosition0;
-        
-        random() >> nKv;
-        random() >> nKp;
-        random() >> nValue0;
-        random() >> nPosition0;
-        nPosition0 = nPosition0 % nModulus;
-        
-        qauth_init cQAuthInit = { nKv, nKp, nValue0, nPosition0 };
-        cQAuth = qauth_ptr(new ::qauth(cQAuthInit, nModulus));
-    }
-    
-    qkd::utility::memory cBases = quantum_table_to_base_table(cKey.data(), cQAuth);
+//    qkd::utility::memory cBases = quantum_table_to_base_table(cKey.data(), cQAuth);
     cMessage = qkd::module::message();
     cMessage.data() << cBases;
     try {
@@ -497,6 +701,47 @@ bool qkd_sifting_bb84::process_bob(qkd::key::key & cKey,
     }
         
     return bForwardKey;
+*/    
+
+    return true;
+}
+
+
+/**
+ * convert a spare quantum table to base table
+ * 
+ * a spare quantum table is created via extract_quantum_table
+ * 
+ * @param   cQuantumTable           the spare quantum table
+ * @return  the base table
+ */
+qkd::utility::memory qkd_sifting_bb84::quantum_table_to_base_table(qkd::utility::memory const & cQuantumTable) const {
+    
+    qkd::utility::memory res(cQuantumTable.size());
+    unsigned char * d = res.get();
+    unsigned char const * s = cQuantumTable.get();
+    for (uint64_t i = 0; i < cQuantumTable.size(); ++i) {
+        
+        (*d) = (unsigned char)bb84_base::BB84_BASE_INVALID;
+
+        bool bBaseDiag = (*s) & 0x03;    // either event == 0x01, 0x02, or 0x03
+        bool bBaseRect = (*s) & 0x0C;    // either event == 0x04, 0x08, or 0x0C
+
+        // clicks in both bases --> eliminate event [N. Luetkenhaus, priv.communic.]
+        if (bBaseRect ^ bBaseDiag) {
+            if (bBaseRect) {
+                (*d) = (unsigned char)bb84_base::BB84_BASE_RECTILINEAR;
+            }
+            else {
+                (*d) = (unsigned char)bb84_base::BB84_BASE_DIAGONAL;
+            }
+        }
+        
+        ++s;
+        ++d;
+    }
+    
+    return res;
 }
 
 
@@ -521,6 +766,104 @@ qulonglong qkd_sifting_bb84::rawkey_length() const {
 bool qkd_sifting_bb84::qauth() const {
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     return d->bQAuthEnabled;
+}
+
+
+/**
+ * receive bases from the peer
+ * 
+ * @param   cBases                  the bases to receive
+ * @param   cIncomingContext        incoming crypto context
+ * @return  true, for success
+ */
+bool qkd_sifting_bb84::recv_bases(qkd::utility::memory & cBases, qkd::crypto::crypto_context & cIncomingContext) {
+    
+    qkd::module::message cMessage;
+    try {
+        if (!recv(cMessage, cIncomingContext)) return false;
+    }
+    catch (std::runtime_error const & cRuntimeError) {
+        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
+                << "failed to receive message: " << cRuntimeError.what();
+        return false;
+    }
+    cMessage.data() >> cBases;
+    
+    return true;
+}
+
+
+/**
+ * receive qauth_init from the peer
+ * 
+ * NOTE: this should be done out-of-band elsewhere
+ * 
+ * @param   cQAuthInit              qauth init to receive 
+ * @param   cIncomingContext        incoming crypto context
+ * @return  true, for success
+ */
+bool qkd_sifting_bb84::recv_qauth_init(qauth_init & cQAuthInit, qkd::crypto::crypto_context & cIncomingContext) {
+    
+    qkd::module::message cMessage;
+    try {
+        if (!recv(cMessage, cIncomingContext)) return false;
+    }
+    catch (std::runtime_error const & cRuntimeError) {
+        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
+                << "failed to receive message: " << cRuntimeError.what();
+        return false;
+    }
+    cMessage.data() >> cQAuthInit;
+    
+    return true;
+}
+
+
+/**
+ * send bases to the peer
+ * 
+ * @param   cBases                  the bases to send
+ * @param   cOutgoingContext        outgoing crypto context
+ * @return  true, for success
+ */
+bool qkd_sifting_bb84::send_bases(qkd::utility::memory const & cBases, qkd::crypto::crypto_context & cOutgoingContext) {
+    
+    qkd::module::message cMessage;
+    cMessage.data() << cBases;
+    try {
+        send(cMessage, cOutgoingContext);
+    }
+    catch (std::runtime_error const & cRuntimeError) {
+        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
+                << "failed to send message: " << cRuntimeError.what();
+        return false;
+    }
+    
+    return true;
+}
+
+
+/**
+ * send qauth_init to the peer
+ * 
+ * @param   cQAuthInit              the qauth_init to send
+ * @param   cOutgoingContext        outgoing crypto context
+ * @return  true, for success
+ */
+bool qkd_sifting_bb84::send_qauth_init(qauth_init const & cQAuthInit, qkd::crypto::crypto_context & cOutgoingContext) {
+    
+    qkd::module::message cMessage;
+    cMessage.data() << cQAuthInit;
+    try {
+        send(cMessage, cOutgoingContext);
+    }
+    catch (std::runtime_error const & cRuntimeError) {
+        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
+                << "failed to send message: " << cRuntimeError.what();
+        return false;
+    }
+    
+    return true;
 }
 
 
@@ -585,6 +928,72 @@ void qkd_sifting_bb84::set_rawkey_length(qulonglong nLength) {
 
     d->nRawKeyLength = nLength;
     d->cBits.resize(d->nRawKeyLength * 8);
+}
+
+
+/**
+ * synchronize on our key data with the peer
+ * 
+ * @param   cKey                    the raw key with quantum events encoded
+ * @param   cIncomingContext        incoming crypto context
+ * @param   cOutgoingContext        outgoing crypto context
+ * @return  true, if we sync'ed key meta data
+ */
+bool qkd_sifting_bb84::sync_key_data(qkd::key::key & cKey,
+        qkd::crypto::crypto_context & cIncomingContext, 
+        qkd::crypto::crypto_context & cOutgoingContext) {
+    
+    qkd::module::message cMessage;
+    
+    if (is_alice()) {
+        
+        // alice sends her key meta dat
+    
+        cMessage.data() << cKey.id();
+        cMessage.data() << cKey.size();
+        cMessage.data() << (uint64_t)rawkey_length();
+
+        try {
+            send(cMessage, cOutgoingContext);
+        }
+        catch (std::runtime_error const & cRuntimeError) {
+            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
+                    << "failed to send message: " << cRuntimeError.what();
+            return false;
+        }
+    }
+    else {
+        
+        // bob accept's alice key meta data
+        
+        try {
+            if (!recv(cMessage, cIncomingContext)) return false;
+        }
+        catch (std::runtime_error const & cRuntimeError) {
+            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
+                    << "failed to receive message: " << cRuntimeError.what();
+            return false;
+        }
+
+        qkd::key::key_id nPeerKeyId = 0;
+        uint64_t nPeerSize = 0;
+        uint64_t nLength = 0;
+        cMessage.data() >> nPeerKeyId;
+        cMessage.data() >> nPeerSize;
+        cMessage.data() >> nLength;
+        
+        // check if we both have the same input
+        if ((nPeerKeyId != cKey.id()) || (nPeerSize != cKey.size())) {
+            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " 
+                    << "alice has different input data than me - this must not happen";
+            terminate();
+            return false;
+        }
+        
+        set_rawkey_length(nLength);
+    }
+    
+    return true;
 }
 
 
@@ -692,19 +1101,19 @@ void bases_to_bits(qkd::utility::bigint & cBits,
  * @param   nEvent          the event
  * @return  a bb84 measurement
  */
-bb84_base get_measurement(unsigned char nEvent) {
-
-    if (nEvent == 0x00) return bb84_base::BB84_BASE_INVALID;
-
-    bool bBaseDiag = (nEvent & 0x03);    // either e==0x01, 0x02, or 0x03
-    bool bBaseRect = (nEvent & 0x0C);    // either e==0x04, 0x08, or 0x0C
-
-    // clicks in both bases --> eliminate event [N. Luetkenhaus, priv.communic.]
-    if (bBaseRect & bBaseDiag) return bb84_base::BB84_BASE_INVALID;    
-
-    if (bBaseRect) return bb84_base::BB84_BASE_RECTILINEAR;
-    return bb84_base::BB84_BASE_DIAGONAL;
-}
+// bb84_base get_measurement(unsigned char nEvent) {
+// 
+//     if (nEvent == 0x00) return bb84_base::BB84_BASE_INVALID;
+// 
+//     bool bBaseDiag = (nEvent & 0x03);    // either e==0x01, 0x02, or 0x03
+//     bool bBaseRect = (nEvent & 0x0C);    // either e==0x04, 0x08, or 0x0C
+// 
+//     // clicks in both bases --> eliminate event [N. Luetkenhaus, priv.communic.]
+//     if (bBaseRect & bBaseDiag) return bb84_base::BB84_BASE_INVALID;    
+// 
+//     if (bBaseRect) return bb84_base::BB84_BASE_RECTILINEAR;
+//     return bb84_base::BB84_BASE_DIAGONAL;
+// }
 
 
 /**
@@ -718,40 +1127,57 @@ bb84_base get_measurement(unsigned char nEvent) {
  * @param   cQuantumTable       as received
  * @return  bases table
  */
-qkd::utility::memory quantum_table_to_base_table(qkd::utility::memory const & cQuantumTable, qauth_ptr cQAuth) {
-    
-    // we have 4 detector bits for a base
-    // a base is 00, 01, 10 or 11
-    qkd::utility::memory cBases((cQuantumTable.size() + 1) / 2);
-    
-    unsigned char const * cQuantumEvent = cQuantumTable.get();
-    for (uint64_t i = 0; i < cBases.size(); i++) {
-
-        unsigned char b0 = (unsigned char)get_measurement((cQuantumEvent[i * 2 + 0] & 0xF0) >> 4);
-        unsigned char b1 = (unsigned char)get_measurement(cQuantumEvent[i * 2 + 0] & 0x0F);
-        unsigned char b2 = (unsigned char)get_measurement((cQuantumEvent[i * 2 + 1] & 0xF0) >> 4);
-        unsigned char b3 = (unsigned char)get_measurement(cQuantumEvent[i * 2 + 1] & 0x0F);
-        
-        cBases.get()[i] = (b0 << 6) | (b1 << 4) | (b2 << 2) | b3;
-    }
-    
-    // mix qauth random bases into the base table
-    if (cQAuth) {
-        
-        // collext list of random values and positions
-        std::list<qauth_data_particle> cQAuthValues;
-        qauth_data_particle cQAuthData = cQAuth->next();
-        while (cQAuthData.nPosition < (cBases.size() + cQAuthValues.size())) {
-            cQAuthValues.push_back(cQAuthData);
-            cQAuthData = cQAuth->next();
-        }
-        
-qkd::utility::debug() << __DEBUG_LOCATION__ << "cBases.size()=" << cBases.size() << ", cQAuthValues.size()=" << cQAuthValues.size();        
-
-    }
-
-    return cBases;
-}
+// qkd::utility::memory quantum_table_to_base_table(qkd::utility::memory const & cQuantumTable, qauth_ptr cQAuth) {
+//     
+//     qauth_data_particle cQAuthValue = { 0, 0 };
+//     if (cQAuth) cQAuthValue = cQAuth->next();
+//     
+//     unsigned char const * cQuantumEvent = cQuantumTable.get();
+//     qkd::utility::buffer cBases;
+//     
+//     std::stringstream ssQAuthValues;
+//     
+//     // we have 4 detector bits for a base
+//     // a base is 00, 01, 10 or 11
+//     uint64_t nBaseIndex = 0;
+//     uint64_t nPosition = 0;
+//     while (nBaseIndex < (cQuantumTable.size() + 1) / 2) {
+//         
+//         unsigned char nBase[4];
+//         for (unsigned int i = 0; i < 4; ++i) {
+//             
+//             if (cQAuth && (nPosition == cQAuthValue.nPosition)) {
+//                 
+//                 // insert QAuth value instead of real basis
+//                 nBase[i] = (unsigned char)((cQAuthValue.nValue % 0x00000001) ? bb84_base::BB84_BASE_RECTILINEAR : bb84_base::BB84_BASE_DIAGONAL);
+//                 ssQAuthValues << nPosition << " -> " << ((nBase[i] == (unsigned char)bb84_base::BB84_BASE_RECTILINEAR) ? "+" : "x") << "\n";
+//                 cQAuthValue = cQAuth->next();
+//             }
+//             else {
+//                 
+//                 // insert quantum base
+//                 if (nBaseIndex & 0x01) {
+//                     nBase[i] = (unsigned char)get_measurement(*cQuantumEvent & 0x0F);
+//                 }
+//                 else {
+//                     nBase[i] = (unsigned char)get_measurement((*cQuantumEvent & 0xF0) >> 4);
+//                 }
+//                 
+//                 ++nBaseIndex;
+//                 if (!(nBaseIndex & 0x01)) ++cQuantumEvent;
+//             }
+//             
+//             ++nPosition;
+//         }
+//         
+//         unsigned char nBasesValue = (nBase[0] << 6) | (nBase[1] << 4) | (nBase[2] << 2) | nBase[3];
+//         cBases << nBasesValue;
+//     }
+//     
+// qkd::utility::debug() << __DEBUG_LOCATION__ << "QAuth values: " << ssQAuthValues.str();
+//     
+//     return cBases;
+// }
 
 
 /**
