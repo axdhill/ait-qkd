@@ -154,6 +154,33 @@ public:
 
 
 /**
+ * dump values hr-readable into a stream
+ * 
+ * @param   cStream     the stream to dump to
+ */
+void qauth_init::dump(std::ostream & cStream) const {
+    cStream << "qauth_init({" \
+            << "nKv = " << nKv << ", " \
+            << "nKp = " << nKp << ", " \
+            << "nModulus = " << nModulus << ", " \
+            << "nPosition0 = " << nPosition0 << ", " \
+            << "nValue0 = " << nValue0 << "})";
+}
+
+
+/**
+ * dump to a string
+ * 
+ * @return  a string containing the values
+ */
+std::string qauth_init::str() const {
+    std::stringstream ss;
+    dump(ss);
+    return ss.str();
+}
+
+
+/**
  * dump value hr-readable into a stream
  * 
  * @param   cStream     the stream to dump to

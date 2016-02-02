@@ -216,11 +216,11 @@ private:
     /**
      * create the base table
      * 
-     * @param   cKey            the key
+     * @param   cQuantumTable   the quantum table
      * @param   cQAuthInit      the qauth init (if needed)
      * @return  the base tabel memory
      */
-    qkd::utility::memory create_base_table(qkd::key::key const & cKey, qauth_init const & cQAuthInit) const;
+    qkd::utility::memory create_base_table(qkd::utility::memory const & cQuantumTable, qauth_init const & cQAuthInit) const;
     
     
     /**
@@ -282,7 +282,8 @@ private:
     /**
      * compare the bases and check qauth (if enabled)
      * 
-     * @param   cBases              will receive the final base values
+     * @param   cBases              will receive the final base values (including invalids)
+     * @param   nMatches            number of matches
      * @param   cBasesLocal         local bases we have
      * @param   cBasesPeer          bases of the peer
      * @param   cQAuthValuesLocal   local QAuth init values
@@ -290,10 +291,11 @@ private:
      * @return  true for success
      */
     bool match_bases(qkd::utility::memory & cBases, 
-        qkd::utility::memory const & cBasesLocal, 
-        qkd::utility::memory const & cBasesPeer, 
-        qauth_values const & cQAuthValuesLocal,
-        qauth_values const & cQAuthValuesPeer);
+            uint64_t nMatches, 
+            qkd::utility::memory const & cBasesLocal, 
+            qkd::utility::memory const & cBasesPeer, 
+            qauth_values const & cQAuthValuesLocal,
+            qauth_values const & cQAuthValuesPeer);
     
     
     /**

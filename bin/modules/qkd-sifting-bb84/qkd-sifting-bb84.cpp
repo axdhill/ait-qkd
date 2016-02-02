@@ -87,7 +87,14 @@ public:
 
 // fwd 
 //static bool base_to_bit(bool & bBit, bb84_base eBase, unsigned char nQuantumEvent);
-//static void bases_to_bits(qkd::utility::bigint & cBits, uint64_t & nPosition, double & nBaseRatio, bool bAlice, qkd::utility::memory const & cBases, qkd::utility::memory const & cQuantumTable);
+
+static void bases_to_bits(qkd::utility::bigint & cBits, 
+        uint64_t & nPosition, 
+        double & nBaseRatio, 
+        bool bAlice, 
+        qkd::utility::memory const & cBases, 
+        qkd::utility::memory const & cQuantumTable);
+
 // static bb84_base get_measurement(unsigned char nEvent);
 // static qkd::utility::memory quantum_table_to_base_table(qkd::utility::memory const & cQuantumTable, qauth_ptr cQAuth = qauth_ptr(nullptr));
 static bool parse_bool(std::string const & s);
@@ -206,13 +213,13 @@ double qkd_sifting_bb84::base_ratio() const {
 /**
  * create the base table
  * 
- * @param   cKey            the key
+ * @param   cQuantumTable   the quantum table
  * @param   cQAuthInit      the qauth init (if needed)
  * @return  the base tabel memory
  */
-qkd::utility::memory qkd_sifting_bb84::create_base_table(qkd::key::key const & cKey, qauth_init const & cQAuthInit) const {
+qkd::utility::memory qkd_sifting_bb84::create_base_table(qkd::utility::memory const & cQuantumTable, qauth_init const & cQAuthInit) const {
     
-    qkd::utility::memory cBases = quantum_table_to_base_table(extract_quantum_table(cKey.data()));
+    qkd::utility::memory cBases = quantum_table_to_base_table(cQuantumTable);
     d->cQAuthValuesLocal.clear();
     
     if (qauth()) {
@@ -325,6 +332,9 @@ bool qkd_sifting_bb84::exchange_qauth_init(qauth_init & cQAuthInitPeer,
         if (!send_qauth_init(cQAuthInitLocal, cOutgoingContext)) return false;
     }
     
+    qkd::utility::debug() << "local qauth_init values: " << cQAuthInitLocal.str();
+    qkd::utility::debug() << " peer qauth_init values: " << cQAuthInitPeer.str();
+    
     return true;
 }
 
@@ -380,26 +390,31 @@ QString qkd_sifting_bb84::key_id_pattern() const {
 /**
  * compare the bases and check qauth (if enabled)
  * 
- * @param   cBases              will receive the final base values
+ * @param   cBases              will receive the final base values (including invalids)
+ * @param   nMatches            number of matches
  * @param   cBasesLocal         local bases we have
  * @param   cBasesPeer          bases of the peer
  * @param   cQAuthValuesLocal   local QAuth init values
  * @param   cQAuthValuesPeer    peer's QAuth init values
  * @return  true for success
  */
-bool qkd_sifting_bb84::match_bases(UNUSED qkd::utility::memory & cBases,
-    qkd::utility::memory const & cBasesLocal, 
-    qkd::utility::memory const & cBasesPeer, 
-    qauth_values const & cQAuthValuesLocal,
-    qauth_values const & cQAuthValuesPeer) {
+bool qkd_sifting_bb84::match_bases(qkd::utility::memory & cBases,
+        uint64_t nMatches,
+        qkd::utility::memory const & cBasesLocal, 
+        qkd::utility::memory const & cBasesPeer, 
+        qauth_values const & cQAuthValuesLocal,
+        qauth_values const & cQAuthValuesPeer) {
 
-
+    qkd::utility::buffer res;
+    
+    // extract local stuff
     qkd::utility::memory cBasesLocalPure;
     if (!split_bases(cBasesLocalPure, cBasesLocal, cQAuthValuesLocal)) {
         qkd::utility::syslog::crit() << "failed to check authentcity of local bases (this is a bug!)";
         return false;
     }
     
+    // extract peer stuff
     qkd::utility::memory cBasesPeerPure;
     if (!split_bases(cBasesPeerPure, cBasesPeer, cQAuthValuesPeer)) {
         qkd::utility::syslog::crit() << "failed to check authentcity of peer bases";
@@ -409,52 +424,31 @@ bool qkd_sifting_bb84::match_bases(UNUSED qkd::utility::memory & cBases,
     if (qauth()) {
         qkd::utility::debug() << "base exchange is authentic according to QAuth";
     }
-
-    return false;
-    
-/*    
-    qauth_values cQAuthValuesLocal;
-    qauth_values cQAuthValuesPeer;
-    if (qauth()) {
-        cQAuthValuesLocal = qauth_ptr(new ::qauth(cQAuthInitLocal)).create
-        
-    }
-
-    
-    // set up the qauth data streams
-    qauth_ptr cQAuthLocal = qauth_ptr(nullptr);
-    qauth_value cQAuthValuesLocal;
-    qauth_ptr cQAuthPeer = qauth_ptr(nullptr);
-    qauth_value cQAuthValuesPeer;
-    if (qauth()) {
-        cQAuthLocal = qauth_ptr(new ::qauth(cQAuthInitLocal));
-        cQAuthValuesLocal = cQAuthLocal->next();
-        cQAuthPeer = qauth_ptr(new ::qauth(cQAuthInitPeer));
-        cQAuthValuesPeer = cQAuthPeer->next();
+    if (cBasesLocalPure.size() != cBasesPeerPure.size()) {
+        qkd::utility::syslog::crit() << "after qauth extraction sizes of local and peer bases differ";
+        return false;
     }
     
-    uint64_t nBaseIndexLocal = 0;
-    uint64_t nBaseIndexPeer = 0;
-    uint64_t nPositionLocal = 0;
-    uint64_t nPositionPeer = 0;
-    uint64_t nPosition = 0;
-    
-    while ((nBaseIndexLocal < cBasesLocal.size()) && (nBaseIndexPeer < cBasesPeer.size())) {
+    // collect the matches
+    unsigned char const * cBasesLocalPtr = cBasesLocalPure.get();
+    unsigned char const * cBasesPeerPtr = cBasesPeerPure.get();
+    nMatches = 0;
+    for (uint64_t i = 0; i < cBasesLocalPure.size(); ++i, ++cBasesLocalPtr, ++cBasesPeerPtr) {
         
-        unsigned char bLocal = cBasesLocal.get()[nBaseIndexLocal];
-        
-        for (unsigned int i = 0; i < 4; ++i) {
-            
-            unsigned char bLocal = cBasesLocal.get()
-            
-            
-            
+        unsigned char nBase = (unsigned char)bb84_base::BB84_BASE_INVALID;
+        if ((*cBasesLocalPtr) == (*cBasesPeerPtr)) {
+            nBase = *cBasesLocalPtr;
+            if (nBase != (unsigned char)bb84_base::BB84_BASE_INVALID) {
+                ++nMatches;
+            }
         }
         
-        if (nBaseIndexLocal < cBasesLocal.size()) ++nBaseIndexLocal;
-        if (nBaseIndexPeer < cBasesPeer.size()) ++nBaseIndexPeer;
+        res << nBase;
     }
-*/    
+    
+    cBases = res;
+    
+    return true;
 }
     
     
@@ -505,8 +499,6 @@ qkd::utility::memory qkd_sifting_bb84::merge_qauth_values(qkd::utility::memory c
         ++iter;
     }
     
-    qkd::utility::debug() << "qauth data merged: " << cQAuthValues.str();
-    
     return res;
 }
     
@@ -525,8 +517,10 @@ bool qkd_sifting_bb84::process(qkd::key::key & cKey,
 
     if (!sync_key_data(cKey, cIncomingContext, cOutgoingContext)) return false;
     
+    qkd::utility::memory cQuantumTable = extract_quantum_table(cKey.data());
+    
     qauth_init cQAuthInitLocal = create_qauth_init();
-    qkd::utility::memory cBasesLocal = create_base_table(cKey, cQAuthInitLocal);
+    qkd::utility::memory cBasesLocal = create_base_table(cQuantumTable, cQAuthInitLocal);
     
     qkd::utility::memory cBasesPeer;
     if (!exchange_bases(cBasesPeer, cBasesLocal, cIncomingContext, cOutgoingContext)) return false;
@@ -536,98 +530,30 @@ bool qkd_sifting_bb84::process(qkd::key::key & cKey,
     if (qauth()) {
         d->cQAuthValuesPeer = ::qauth(cQAuthInitPeer).create_max(cBasesPeer.size());
     }
-    
+
+    uint64_t nMatches = 0;
     qkd::utility::memory cBasesFinal;
-    if (!match_bases(cBasesFinal, cBasesLocal, cBasesPeer, d->cQAuthValuesLocal, d->cQAuthValuesPeer)) return false;
-    
-    
-    // TODO
-
-    return true;
-
-
-/*    
-    bool bForwardKey = false;
-    
-    
-    
-    qkd::utility::memory cBases = quantum_table_to_base_table(cKey.data());
-
-    cMessage = qkd::module::message();
-    try {
-        if (!recv(cMessage, cIncomingContext)) return false;
-    }
-    catch (std::runtime_error const & cRuntimeError) {
-        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
-                << "failed to receive message: " << cRuntimeError.what();
-        return false;
-    }
-    qkd::utility::memory cBasesPeer;
-    cMessage.data() >> cBasesPeer;
-    
-    qauth_ptr cQAuthPeer = qauth_ptr(nullptr);
-    if (qauth()) {
-        
-        cMessage = qkd::module::message();
-        try {
-            if (!recv(cMessage, cIncomingContext)) return false;
-        }
-        catch (std::runtime_error const & cRuntimeError) {
-            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
-                    << "failed to receive message: " << cRuntimeError.what();
-            return false;
-        }
-
-        qauth_init cQAuthInit;
-        cMessage.data() >> cQAuthInit;
-        
-        cQAuthPeer = qauth_ptr(new ::qauth(cQAuthInit));
-    }
-    
-    
-    if (cBases.size() != cBasesPeer.size()) {
-        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
-                << "base tables differ - this must not happen";
-        terminate();
-        return false;
-    }
-
-    for (unsigned int i = 0; i < cBases.size(); i++) {
-        
-        // different bases? --> Alice sets here resp. basis to invalid
-        if ((cBasesPeer.get()[i] & 0xC0) != (cBases.get()[i] & 0xC0)) cBases.get()[i] &= 0x3F;
-        if ((cBasesPeer.get()[i] & 0x30) != (cBases.get()[i] & 0x30)) cBases.get()[i] &= 0xCF;
-        if ((cBasesPeer.get()[i] & 0x0C) != (cBases.get()[i] & 0x0C)) cBases.get()[i] &= 0xF3;
-        if ((cBasesPeer.get()[i] & 0x03) != (cBases.get()[i] & 0x03)) cBases.get()[i] &= 0xFC;
-    }
-    
-    cMessage = qkd::module::message();
-    cMessage.data() << cBases;
-    try {
-        send(cMessage, cOutgoingContext);
-    }
-    catch (std::runtime_error const & cRuntimeError) {
-        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
-                << "failed to send message: " << cRuntimeError.what();
-        return false;
-    }
+    if (!match_bases(cBasesFinal, nMatches, cBasesLocal, cBasesPeer, d->cQAuthValuesLocal, d->cQAuthValuesPeer)) return false;
     
     // convert the bases to bits
     double nBaseRatio = 1.0;
-    bases_to_bits(d->cBits, d->nCurrentPosition, nBaseRatio, true, cBases, cKey.data());
+    bases_to_bits(d->cBits, d->nCurrentPosition, nBaseRatio, is_alice(), cBasesFinal, cQuantumTable);
     {
         std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
         d->cAvgBaseRatio << nBaseRatio;
     }
     
     if (qkd::utility::debug::enabled()) {
-        qkd::utility::debug() << "sifted bases: " << cBases.size() * 4 
+        qkd::utility::debug() << "sifted bases: " << cBasesFinal.size() 
                 << " used ratio: " << nBaseRatio 
                 << " total sifted bits for next key: " << d->nCurrentPosition 
                 << " (min. " << rawkey_length() * 8 << ")";
     }
+    
+qkd::utility::debug() << __DEBUG_LOCATION__ << "current key: " << d->cBits.as_dual();    
 
     // check if we have a key to forward
+    bool bForwardKey = false;
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     if (d->nCurrentPosition >= rawkey_length() * 8) {
         
@@ -644,9 +570,6 @@ bool qkd_sifting_bb84::process(qkd::key::key & cKey,
     }
     
     return bForwardKey;
-*/    
-
-    return true;
 }
 
 
@@ -1136,63 +1059,64 @@ bool base_to_bit(bool & bBit, bb84_base eBase, unsigned char nQuantumEvent) {
  * @param   nBaseRatio      the ratio of good bases vs. all bases
  * @param   bAlice          act as alice
  * @param   cBases          the bases
- * @param   cQuantumTable   the quantum event table
+ * @param   cQuantumTable   the sparse quantum event table
  */
-/*
 void bases_to_bits(qkd::utility::bigint & cBits, 
         uint64_t & nPosition, 
         double & nBaseRatio, 
-        bool bAlice, qkd::utility::memory const & cBases, 
+        UNUSED bool bAlice, 
+        qkd::utility::memory const & cBases, 
         qkd::utility::memory const & cQuantumTable) {
-    
-    // we have 4 bases in each byte encoded
-    uint64_t nBases = cBases.size() * 4;
 
-    if ((nPosition + nBases) > cBits.bits()) cBits.resize(nPosition + nBases);
+
+    if (cBases.size() != cQuantumTable.size()) {
+        throw std::runtime_error("bases size differs from quantum table size");
+    }
+    
+    if (cBases.size() == 0) {
+        nBaseRatio = 0.0;
+        return;
+    }
+    
+    if ((nPosition + cBases.size()) > cBits.bits()) cBits.resize(nPosition + cBases.size());
     
     uint64_t nErrors = 0;
-    for (uint64_t i = 0; i < cBases.size(); i++) {
+    unsigned char const * nBasePtr = cBases.get();
+    unsigned char const * nQuantumPtr = cQuantumTable.get();
+    for (uint64_t i = 0; i < cBases.size(); ++i) {
         
-        bb84_base b0 = static_cast<bb84_base>((cBases[i] & 0xC0) >> 6);
-        bb84_base b1 = static_cast<bb84_base>((cBases[i] & 0x30) >> 4);
-        bb84_base b2 = static_cast<bb84_base>((cBases[i] & 0x0C) >> 2);
-        bb84_base b3 = static_cast<bb84_base>(cBases[i] & 0x03);
+        if (((*nBasePtr) != (unsigned char)bb84_base::BB84_BASE_DIAGONAL) && ((*nBasePtr) != (unsigned char)bb84_base::BB84_BASE_RECTILINEAR)) {
+            ++nErrors;
+            ++nBasePtr;
+            ++nQuantumPtr;
+            continue;
+        }
         
         bool bBit = false;
         
-        // base 0
-        if (base_to_bit(bBit, b0, (cQuantumTable[i * 2 + 0] & 0xF0) >> 4)) {
-            if (!bAlice) bBit = !bBit;
-            cBits.set(nPosition++, bBit);
+        // check if we have more than 1 click (that is: if we have an odd number of clicks though)
+        if (g_nParity[*nQuantumPtr]) {
+            bBit = (((*nQuantumPtr) & 0x05) != 0);
         }
-        else nErrors++;
+        else {
+            // role a dice
+            double nRandom = 0.0;
+            qkd::utility::random_source::source() >> nRandom;
+            bBit = (nRandom >= 0.5);
+        }
         
-        // base 1
-        if (base_to_bit(bBit, b1, cQuantumTable[i * 2 + 0] & 0x0F)) {
-            if (!bAlice) bBit = !bBit;
-            cBits.set(nPosition++, bBit);
+        if (!bAlice) {
+            bBit = !bBit;
         }
-        else nErrors++;
+        cBits.set(nPosition, bBit);
         
-        // base 2
-        if (base_to_bit(bBit, b2, (cQuantumTable[i * 2 + 1] & 0xF0) >> 4)) {
-            if (!bAlice) bBit = !bBit;
-            cBits.set(nPosition++, bBit);
-        }
-        else nErrors++;
-
-        // base 3
-        if (base_to_bit(bBit, b3, cQuantumTable[i * 2 + 1] & 0x0F)) {
-            if (!bAlice) bBit = !bBit;
-            cBits.set(nPosition++, bBit);
-        }
-        else nErrors++;
+        ++nPosition;
+        ++nBasePtr;
+        ++nQuantumPtr;
     }
     
-    if (!nBases) nBaseRatio = 0.0;
-    else nBaseRatio = (nBases - nErrors) / (double)nBases;
+    nBaseRatio = (cBases.size() - nErrors) / (double)cBases.size();
 }
-*/
 
 
 /**
@@ -1214,70 +1138,6 @@ void bases_to_bits(qkd::utility::bigint & cBits,
 // 
 //     if (bBaseRect) return bb84_base::BB84_BASE_RECTILINEAR;
 //     return bb84_base::BB84_BASE_DIAGONAL;
-// }
-
-
-/**
- * turn the quantum table (detector clicks) into a table of bases
- * 
- * The basis table tells which measurement has been done at which position
- * in the quantum table 
- * 
- * a base table is memory block holding 4 bb84_base values in each byte
- *
- * @param   cQuantumTable       as received
- * @return  bases table
- */
-// qkd::utility::memory quantum_table_to_base_table(qkd::utility::memory const & cQuantumTable, qauth_ptr cQAuth) {
-//     
-//     qauth_value cQAuthValue = { 0, 0 };
-//     if (cQAuth) cQAuthValue = cQAuth->next();
-//     
-//     unsigned char const * cQuantumEvent = cQuantumTable.get();
-//     qkd::utility::buffer cBases;
-//     
-//     std::stringstream ssQAuthValues;
-//     
-//     // we have 4 detector bits for a base
-//     // a base is 00, 01, 10 or 11
-//     uint64_t nBaseIndex = 0;
-//     uint64_t nPosition = 0;
-//     while (nBaseIndex < (cQuantumTable.size() + 1) / 2) {
-//         
-//         unsigned char nBase[4];
-//         for (unsigned int i = 0; i < 4; ++i) {
-//             
-//             if (cQAuth && (nPosition == cQAuthValue.nPosition)) {
-//                 
-//                 // insert QAuth value instead of real basis
-//                 nBase[i] = (unsigned char)((cQAuthValue.nValue % 0x00000001) ? bb84_base::BB84_BASE_RECTILINEAR : bb84_base::BB84_BASE_DIAGONAL);
-//                 ssQAuthValues << nPosition << " -> " << ((nBase[i] == (unsigned char)bb84_base::BB84_BASE_RECTILINEAR) ? "+" : "x") << "\n";
-//                 cQAuthValue = cQAuth->next();
-//             }
-//             else {
-//                 
-//                 // insert quantum base
-//                 if (nBaseIndex & 0x01) {
-//                     nBase[i] = (unsigned char)get_measurement(*cQuantumEvent & 0x0F);
-//                 }
-//                 else {
-//                     nBase[i] = (unsigned char)get_measurement((*cQuantumEvent & 0xF0) >> 4);
-//                 }
-//                 
-//                 ++nBaseIndex;
-//                 if (!(nBaseIndex & 0x01)) ++cQuantumEvent;
-//             }
-//             
-//             ++nPosition;
-//         }
-//         
-//         unsigned char nBasesValue = (nBase[0] << 6) | (nBase[1] << 4) | (nBase[2] << 2) | nBase[3];
-//         cBases << nBasesValue;
-//     }
-//     
-// qkd::utility::debug() << __DEBUG_LOCATION__ << "QAuth values: " << ssQAuthValues.str();
-//     
-//     return cBases;
 // }
 
 

@@ -75,6 +75,21 @@ typedef struct {
     uint32_t nPosition0;        /**< p_0 */
     uint32_t nValue0;           /**< v_0 */
     
+    /**
+     * dump values hr-readable into a stream
+     * 
+     * @param   cStream     the stream to dump to
+     */
+    void dump(std::ostream & cStream) const;
+    
+    
+    /**
+     * dump to a string
+     * 
+     * @return  a string containing the values
+     */
+    std::string str() const;
+    
 } qauth_init;
 
 
