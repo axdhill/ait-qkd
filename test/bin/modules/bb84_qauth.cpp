@@ -55,31 +55,26 @@
 
 int test() {
     
-    qauth_init cQAuthInit1 = qauth_init{ 1, 2, 16, 4, (bb84_base)bb84_base::BB84_BASE_DIAGONAL };
-    qauth_ptr cQAuthAPtr;
-    qauth_ptr cQAuthBPtr;
     qauth_data_particles cQAuthA;
     qauth_data_particles cQAuthB;
+    
+    qauth_init cQAuthInit1 = qauth_init{ 1, 2, 16, 4, (uint32_t)bb84_base::BB84_BASE_DIAGONAL };
 
-    cQAuthAPtr = qauth_ptr(new qauth(cQAuthInit1));
-    cQAuthA = cQAuthAPtr->create_min(128);
+    cQAuthA = qauth(cQAuthInit1).create_min(128);
     cQAuthA.dump(std::cerr, "cQAuthA: ");
     std::cerr << std::endl;
     
-    cQAuthBPtr = qauth_ptr(new qauth(cQAuthInit1));
-    cQAuthB = cQAuthBPtr->create_max(128 + 11);
+    cQAuthB = qauth(cQAuthInit1).create_max(128 + 15);
     cQAuthB.dump(std::cerr, "cQAuthB: ");
     std::cerr << std::endl;
 
-    qauth_init cQAuthInit2 = qauth_init{ 1234, 287, 16, 0, (bb84_base)bb84_base::BB84_BASE_RECTILINEAR };
+    qauth_init cQAuthInit2 = qauth_init{ 1234, 287, 16, 0, (uint32_t)bb84_base::BB84_BASE_RECTILINEAR };
 
-    cQAuthAPtr = qauth_ptr(new qauth(cQAuthInit2));
-    cQAuthA = cQAuthAPtr->create_min(128);
+    cQAuthA = qauth(cQAuthInit2).create_min(128);
     cQAuthA.dump(std::cerr, "cQAuthA: ");
     std::cerr << std::endl;
     
-    cQAuthBPtr = qauth_ptr(new qauth(cQAuthInit2));
-    cQAuthB = cQAuthBPtr->create_max(128 + 11);
+    cQAuthB = qauth(cQAuthInit2).create_max(128 + 15);
     cQAuthB.dump(std::cerr, "cQAuthB: ");
     std::cerr << std::endl;
 
@@ -87,5 +82,8 @@ int test() {
 }
 
 int main(UNUSED int argc, UNUSED char** argv) {
+    
+    qkd::utility::debug::enabled() = true;
+    
     return test();
 }

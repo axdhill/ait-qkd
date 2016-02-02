@@ -370,6 +370,20 @@ private:
      * @return  true, for success
      */
     bool send_qauth_init(qauth_init const & cQAuthInit, qkd::crypto::crypto_context & cOutgoingContext);
+    
+    
+    /**
+     * split a mixed base table into pure and qauth values and check authentcity
+     * 
+     * "authentic" means the extracted qauth values from cBasesMixed to match
+     * exactly the given cQAuthValues.
+     * 
+     * @param   cBasesPure          the pure base values without qauth values
+     * @param   cBasesMixed         the base values intermixed with qauth values
+     * @param   cQAuthValues        the "should be" qauth values
+     * @return  true, for success (and authentic)
+     */
+    bool split_bases(qkd::utility::memory & cBasesPure, qkd::utility::memory const & cBasesMixed, qauth_data_particles const & cQAuthValues) const;
 
     
     /**

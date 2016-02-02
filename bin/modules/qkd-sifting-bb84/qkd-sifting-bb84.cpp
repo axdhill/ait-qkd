@@ -216,8 +216,7 @@ qkd::utility::memory qkd_sifting_bb84::create_base_table(qkd::key::key const & c
     d->cQAuthValuesLocal.clear();
     
     if (qauth()) {
-        qauth_ptr cQAuth = qauth_ptr(new ::qauth(cQAuthInit));
-        d->cQAuthValuesLocal = cQAuth->create_min(cBases.size());
+        d->cQAuthValuesLocal = ::qauth(cQAuthInit).create_min(cBases.size());
         cBases = merge_qauth_values(cBases, d->cQAuthValuesLocal);
     }
     
@@ -246,7 +245,7 @@ qauth_init qkd_sifting_bb84::create_qauth_init() {
     random() >> nValue0;
     nPosition0 = nPosition0 % nModulus;
     
-    return qauth_init{ nKv, nKp, nModulus, nPosition0, (bb84_base)nValue0 };
+    return qauth_init{ nKv, nKp, nModulus, nPosition0, nValue0 };
 }
 
 
@@ -394,6 +393,32 @@ bool qkd_sifting_bb84::match_bases(qkd::utility::memory & cBases,
     qauth_init const & cQAuthInitLocal,
     qauth_init const & cQAuthInitPeer) {
     
+    if (quath()) {
+        
+        // we assume d->cQAuthValuesLocal is already filled
+        d->cQAuthValuesPeer = ::qauth(cQAuthInitPeer).create_max(cBasesPeer.size());
+        
+        std::stringsream ssLocalValues;
+        d->cQAuthValueLocal.dump(ssLocalValues);
+        qkd::utility::debug() << "local qauth values: " << ssLocalValues.str();
+        
+        std::stringsream ssPeerValues;
+        d->cQAuthValuePeer.dump(ssPeerValues);
+        qkd::utility::debug() << "peer qauth values: " << ssPeerValues.str();
+    }
+    
+    qkd::utility::memory cBasesLocalPure;
+    if (!split_bases(cBasesLocalPure, cBasesLocal, d->cQAuthValuesLocal)) {
+        std::utility::syslog::critical() << "failed to check authentcity of local bases (this is a bug!)";
+        return false;
+    }
+    
+    qkd::utility::memory cBasesPeerPure;
+    if (!split_bases(cBasesPeerPure, cBasesPeer, d->cQAuthValuesPeer)) {
+        std::utility::syslog::critical() << "failed to check authentcity of peer bases";
+        return false;
+    }
+    
 /*    
     qauth_data_particles cQAuthValuesLocal;
     qauth_data_particles cQAuthValuesPeer;
@@ -453,13 +478,18 @@ qkd::utility::memory qkd_sifting_bb84::merge_qauth_values(qkd::utility::memory c
     
     uint64_t nPosition = 0;
     uint64_t nBaseIndex = 0;
-    auto const iter = cQAuthValues.begin();
-    unsigned char nBasesPtr = cBases.get();
+    auto iter = cQAuthValues.cbegin();
+    unsigned char const * nBasesPtr = cBases.get();
     
     while (nBaseIndex < cBases.size()) {
         
         if ((iter != cQAuthValues.end()) && (nPosition == (*iter).nPosition)) {
-            res << (unsigned char)(*iter).nValue;
+            if ((*iter).nValue % 2) {
+                res << (unsigned char)bb84_base::BB84_BASE_DIAGONAL;
+            }
+            else {
+                res << (unsigned char)bb84_base::BB84_BASE_RECTILINEAR;
+            }
             ++iter;
         }
         else {
@@ -701,10 +731,10 @@ bool qkd_sifting_bb84::process_bob(qkd::key::key & cKey,
     }
         
     return bForwardKey;
-*/    
 
     return true;
 }
+*/    
 
 
 /**
@@ -928,6 +958,56 @@ void qkd_sifting_bb84::set_rawkey_length(qulonglong nLength) {
 
     d->nRawKeyLength = nLength;
     d->cBits.resize(d->nRawKeyLength * 8);
+}
+
+
+/**
+ * split a mixed base table into pure and qauth values and check authentcity
+ * 
+ * "authentic" means the extracted qauth values from cBasesMixed to match
+ * exactly the given cQAuthValues.
+ * 
+ * @param   cBasesPure          the pure base values without qauth values
+ * @param   cBasesMixed         the base values intermixed with qauth values
+ * @param   cQAuthValues        the "should be" qauth values
+ * @return  true, for success (and authentic)
+ */
+bool qkd_sifting_bb84::split_bases(qkd::utility::memory & cBasesPure, qkd::utility::memory const & cBasesMixed, qauth_data_particles const & cQAuthValues) const {
+    
+    if (!qauth()) {
+        cBasesPure = cBasesMixed;
+        return true;
+    }
+    
+    if (cQAuthValues.size() && (cBasesMixed.size() < cQAuthValues.last().nPosition)) {
+        // the highest position of the qauth values already exceeds the mixed bases --> this is futile!
+        return false;
+    }
+    
+    qkd::utility::buffer b;
+    uint64_t nPosition = 0;
+    unsigned char const * c = cBasesMixed.get();
+    qauth_data_particles cQAuthExtracted;
+    auto iter = cQAuthValues.cbegin();
+    
+    while (nPosition < cBasesMixed.size()) {
+        
+        if ((iter != cQAuthValues.end()) && (nPosition == (*iter).nPosition)) {
+            cQAuthExtracted.push_back({nPosition, *c});
+        }
+        else {
+            b << (*c);
+        }
+        
+        ++c;
+        ++nPosition;
+    }
+    
+    // TODO: check cQAuthExtracted vs. cQAuthValues
+    
+    cBasesPure = b;
+    
+    return true;
 }
 
 

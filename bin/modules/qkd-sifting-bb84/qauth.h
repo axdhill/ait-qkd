@@ -69,7 +69,7 @@ typedef struct {
     uint32_t nKp;               /**< k_p */
     uint32_t nModulus;          /**< m */
     uint32_t nPosition0;        /**< p_0 */
-    bb84_base nValue0;          /**< v_0 */
+    uint32_t nValue0;           /**< v_0 */
     
 } qauth_init;
 
@@ -80,8 +80,15 @@ typedef struct {
 typedef struct {
     
     uint64_t nPosition;         /**< the position to place the base */
-    bb84_base nValue;           /**< the random base value as a bb84_base enum value */
+    uint32_t nValue;            /**< the random value */
     
+    /**
+     * dump into a stream
+     * 
+     * @param   cStream     the stream to dump to
+     */
+    void dump(std::ostream & cStream) const;
+
 } qauth_data_particle;
 
 
@@ -185,7 +192,7 @@ private:
 /**
  * a managed pointer to a qauth instance
  */
-typedef std::shared_ptr<qauth> qauth_ptr;
+//typedef std::shared_ptr<qauth> qauth_ptr;
 
 
 /**

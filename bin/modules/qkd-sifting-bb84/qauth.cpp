@@ -82,26 +82,45 @@ public:
     
     
     /**
+     * perform a h_kp hash
+     * 
+     * @param   p       the value to hash
+     * @return  h_kp(p)
+     */
+    uint64_t hash_kp(uint64_t p) {
+        
+        m_cHash_Kp << qkd::utility::memory::wrap(reinterpret_cast<unsigned char *>(&p), sizeof(p));
+        qkd::utility::memory m = m_cHash_Kp->tag();
+        
+        return *(reinterpret_cast<uint64_t *>(m.get()));
+    }
+    
+    
+    /**
+     * perform a h_kv hash
+     * 
+     * @param   v       the value to hash
+     * @return  h_kv(v)
+     */
+    uint32_t hash_kv(uint32_t v) {
+        
+        m_cHash_Kp << qkd::utility::memory::wrap(reinterpret_cast<unsigned char *>(&v), sizeof(v));
+        qkd::utility::memory m = m_cHash_Kp->tag();
+        
+        return *(reinterpret_cast<uint32_t *>(m.get()));
+    }
+    
+    
+    /**
      * make an iteration
      */
     void next() {
         
-        qkd::utility::memory cMemoryValue = qkd::utility::memory::wrap(reinterpret_cast<unsigned char *>(&m_cCurrent.nValue), sizeof(m_cCurrent.nValue));
-        qkd::utility::memory cMemoryPosition = qkd::utility::memory::wrap(reinterpret_cast<unsigned char *>(&m_cCurrent.nPosition), sizeof(m_cCurrent.nPosition));
-        
         // v_n+1 = H_kv(v_n)
-        auto cHash_Kv = m_cHash_Kv->clone();
-        cHash_Kv << cMemoryValue;
-        cMemoryValue = cHash_Kv->state();
-        m_cCurrent.nValue = (bb84_base)((unsigned char)m_cCurrent.nValue & 0x03);
+        m_cCurrent.nValue = hash_kv(m_cCurrent.nValue);
         
         // p_n+1 = p_n + (1 + (H_kp(p_n) mod m))
-        uint64_t nPositionOld = m_cCurrent.nPosition;
-        auto cHash_Kp = m_cHash_Kp->clone();
-        cHash_Kp << cMemoryPosition;
-        cMemoryPosition = cHash_Kp->state();
-        
-        m_cCurrent.nPosition = nPositionOld + (1 + (m_cCurrent.nPosition % m_cQAuthInit.nModulus));
+        m_cCurrent.nPosition = m_cCurrent.nPosition + (1 + (hash_kp(m_cCurrent.nPosition) % m_cQAuthInit.nModulus));
     }
     
     
@@ -135,6 +154,16 @@ public:
 
 
 /**
+ * dump into a stream
+ * 
+ * @param   cStream     the stream to dump to
+ */
+void qauth_data_particle::dump(std::ostream & cStream) const {
+    cStream << "<" << nPosition << ", " << nValue << ">";
+}
+
+
+/**
  * dump the qauth particle list to a stream
  * 
  * @param   cStream     the stream to dump to
@@ -143,15 +172,18 @@ public:
  */
 void qauth_data_particles::dump(std::ostream & cStream, std::string const sIndent) const {
     
-    std::stringstream ss;
     bool bFirst = true;
     for (auto iter = cbegin(); iter != cend(); ++iter) {
-        if (!bFirst) ss << ", ";
-        ss << "<" << (*iter).nPosition << ", " << (unsigned int)(*iter).nValue << ">";
-        bFirst = false;
+        
+        if (!bFirst) {
+            cStream << ", ";
+        }
+        else {
+            cStream << sIndent;
+            bFirst = false;
+        }
+        (*iter).dump(cStream);
     }
-    
-    cStream << sIndent << ss.str();
 }
 
 
@@ -194,6 +226,7 @@ qauth_data_particles qauth::create_max(uint64_t nSize) {
         
         qauth_data_particle p = next();
         if (p.nPosition > nSize) break;
+        p.nValue = (p.nValue % 2) ? (uint32_t)bb84_base::BB84_BASE_DIAGONAL : (uint32_t)bb84_base::BB84_BASE_RECTILINEAR;
         res.push_back(p);
     }
 
@@ -223,6 +256,7 @@ qauth_data_particles qauth::create_min(uint64_t nSize) {
         
         qauth_data_particle p = next();
         if (p.nPosition > (res.size() + nSize)) break;
+        p.nValue = (p.nValue % 2) ? (uint32_t)bb84_base::BB84_BASE_DIAGONAL : (uint32_t)bb84_base::BB84_BASE_RECTILINEAR;
         res.push_back(p);
     }
 
@@ -253,7 +287,7 @@ qkd::utility::buffer & operator<<(qkd::utility::buffer & lhs, qauth_init const &
     lhs << rhs.nKv;
     lhs << rhs.nKp;
     lhs << rhs.nModulus;
-    lhs << (unsigned char)rhs.nValue0;
+    lhs << rhs.nValue0;
     lhs << rhs.nPosition0;
     return lhs;
 }
@@ -270,9 +304,7 @@ qkd::utility::buffer & operator>>(qkd::utility::buffer & lhs, qauth_init & rhs) 
     lhs >> rhs.nKv;
     lhs >> rhs.nKp;
     lhs >> rhs.nModulus;
-    unsigned char v;
-    lhs >> v;
-    rhs.nValue0 = (bb84_base)v;
+    lhs >> rhs.nValue0;
     lhs >> rhs.nPosition0;
     return lhs;
 }
