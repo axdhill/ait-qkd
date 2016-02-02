@@ -31,9 +31,41 @@
 // ------------------------------------------------------------
 // inc
 
+#include <sstream>
+
 #include "bb84_base.h"
 
 
 // ------------------------------------------------------------
 // code
 
+/**
+ * dump a (sparse) base table
+ * 
+ * @param   cStream     the stream to dump to
+ * @param   cBases      the base table to dump
+ * @param   sIndent     the indent
+ */
+void dump_bb84(std::ostream & cStream, qkd::utility::memory const & cBase, std::string sIndent) {
+    
+    static char const sBB84[4] = { '?', 'x', '+', '?' };
+    
+    cStream << sIndent;
+    unsigned char const * nEvent = cBase.get();    
+    for (uint64_t i = 0; i < cBase.size(); ++i, ++nEvent) {
+        cStream << sBB84[(*nEvent) & 0x03];
+    }
+}
+
+
+/**
+ * dump a (sparse) base table
+ * 
+ * @param   cBases      the base table to dump
+ * @return  a string containing the bases as depicted in cBases
+ */
+std::string dump_bb84_str(qkd::utility::memory const & cBase) {
+    std::stringstream ss;
+    dump_bb84(ss, cBase);
+    return ss.str();
+}

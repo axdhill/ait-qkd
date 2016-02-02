@@ -33,6 +33,15 @@
 
 
 // ------------------------------------------------------------
+// inc
+
+#include <ostream>
+#include <string>
+
+#include <qkd/utility/memory.h>
+
+
+// ------------------------------------------------------------
 // decl
 
 
@@ -46,6 +55,24 @@ enum class bb84_base : unsigned char {
     BB84_BASE_RECTILINEAR           /**< rectilinear measument */
 };
 
+
+/**
+ * dump a (sparse) base table
+ * 
+ * @param   cStream     the stream to dump to
+ * @param   cBases      the base table to dump
+ * @param   sIndent     the indent
+ */
+void dump_bb84(std::ostream & cStream, qkd::utility::memory const & cBase, std::string sIndent = "");
+
+
+/**
+ * dump a (sparse) base table
+ * 
+ * @param   cBases      the base table to dump
+ * @return  a string containing the bases as depicted in cBases
+ */
+std::string dump_bb84_str(qkd::utility::memory const & cBase);
 
 
 #endif

@@ -285,15 +285,15 @@ private:
      * @param   cBases              will receive the final base values
      * @param   cBasesLocal         local bases we have
      * @param   cBasesPeer          bases of the peer
-     * @param   cQAuthInitLocal     local QAuth init values
-     * @param   cQAuthInitPeer      peer's QAuth init values
+     * @param   cQAuthValuesLocal   local QAuth init values
+     * @param   cQAuthValuesPeer    peer's QAuth init values
      * @return  true for success
      */
     bool match_bases(qkd::utility::memory & cBases, 
         qkd::utility::memory const & cBasesLocal, 
         qkd::utility::memory const & cBasesPeer, 
-        qauth_init const & cQAuthInitLocal,
-        qauth_init const & cQAuthInitPeer);
+        qauth_values const & cQAuthValuesLocal,
+        qauth_values const & cQAuthValuesPeer);
     
     
     /**
@@ -303,7 +303,7 @@ private:
      * @param   cQAuthValues    the qauth values
      * @return  megred bases values
      */
-    qkd::utility::memory merge_qauth_values(qkd::utility::memory const & cBases, qauth_data_particles const & cQAuthValues) const;
+    qkd::utility::memory merge_qauth_values(qkd::utility::memory const & cBases, qauth_values const & cQAuthValues) const;
         
         
     /**
@@ -320,11 +320,11 @@ private:
 
     
     /**
-     * convert a spare quantum table to base table
+     * convert a sparse quantum table to base table
      * 
-     * a spare quantum table is created via extract_quantum_table
+     * a sparse quantum table is created via extract_quantum_table
      * 
-     * @param   cQuantumTable           the spare quantum table
+     * @param   cQuantumTable           the sparse quantum table
      * @return  the base table
      */
     qkd::utility::memory quantum_table_to_base_table(qkd::utility::memory const & cQuantumTable) const;
@@ -383,7 +383,7 @@ private:
      * @param   cQAuthValues        the "should be" qauth values
      * @return  true, for success (and authentic)
      */
-    bool split_bases(qkd::utility::memory & cBasesPure, qkd::utility::memory const & cBasesMixed, qauth_data_particles const & cQAuthValues) const;
+    bool split_bases(qkd::utility::memory & cBasesPure, qkd::utility::memory const & cBasesMixed, qauth_values const & cQAuthValues) const;
 
     
     /**

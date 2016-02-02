@@ -33,10 +33,10 @@
 // ------------------------------------------------------------
 // incs
 
+#include <sstream>
+
 #include <qkd/crypto/context.h>
 #include <qkd/crypto/engine.h>
-
-    #include <qkd/utility/debug.h>
 
 #include <qkd/utility/memory.h>
 
@@ -125,9 +125,9 @@ public:
     
     
     /**
-     * current qauth values
+     * current qauth value
      */
-    qauth_data_particle m_cCurrent;
+    qauth_value m_cCurrent;
     
     
     /**
@@ -154,12 +154,47 @@ public:
 
 
 /**
- * dump into a stream
+ * dump value hr-readable into a stream
  * 
  * @param   cStream     the stream to dump to
  */
-void qauth_data_particle::dump(std::ostream & cStream) const {
+void qauth_value::dump(std::ostream & cStream) const {
     cStream << "<" << nPosition << ", " << nValue << ">";
+}
+
+
+/**
+ * dump to a string
+ * 
+ * @return  a string containing the values
+ */
+std::string qauth_value::str() const {
+    std::stringstream ss;
+    dump(ss);
+    return ss.str();
+}
+
+
+/**
+ * == equality operator
+ * 
+ * deep check for each element of the values
+ * 
+ * @param   rhs         right hand side
+ * @return  true, if each element of this is matched in rhs in the correct order
+ */
+bool qauth_values::operator==(qauth_values const & rhs) const {
+    
+    if (size() != rhs.size()) return false;
+    auto li = cbegin();
+    auto ri = rhs.cbegin();
+    for (; li != cend(); ++li, ++ri) {
+        if (((*li).nPosition != (*ri).nPosition) || ((*li).nValue != (*ri).nValue)) {
+            return false;
+        }
+    }
+    
+    return true;
 }
 
 
@@ -170,7 +205,7 @@ void qauth_data_particle::dump(std::ostream & cStream) const {
  * @param   sIndent     the indent on each line
  * @param   cList       the qauth particle list
  */
-void qauth_data_particles::dump(std::ostream & cStream, std::string const sIndent) const {
+void qauth_values::dump(std::ostream & cStream, std::string const sIndent) const {
     
     bool bFirst = true;
     for (auto iter = cbegin(); iter != cend(); ++iter) {
@@ -184,6 +219,19 @@ void qauth_data_particles::dump(std::ostream & cStream, std::string const sInden
         }
         (*iter).dump(cStream);
     }
+}
+
+
+/**
+ * dump to a string
+ * 
+ * @param   sIndent     the indent on each line
+ * @return  a string containing the values
+ */
+std::string qauth_values::str(std::string const sIndent) const {
+    std::stringstream ss;
+    dump(ss, sIndent);
+    return ss.str();
 }
 
 
@@ -219,12 +267,12 @@ qauth::~qauth() {
  * @param   nSize           size of container with mixed data particles within
  * @return  container with qauth data values
  */
-qauth_data_particles qauth::create_max(uint64_t nSize) {
+qauth_values qauth::create_max(uint64_t nSize) {
     
-    qauth_data_particles res;
+    qauth_values res;
     for (;;) {
         
-        qauth_data_particle p = next();
+        qauth_value p = next();
         if (p.nPosition > nSize) break;
         p.nValue = (p.nValue % 2) ? (uint32_t)bb84_base::BB84_BASE_DIAGONAL : (uint32_t)bb84_base::BB84_BASE_RECTILINEAR;
         res.push_back(p);
@@ -249,12 +297,12 @@ qauth_data_particles qauth::create_max(uint64_t nSize) {
  * @param   nSize           size of container to mix data particles into
  * @return  container with qauth data values
  */
-qauth_data_particles qauth::create_min(uint64_t nSize) {
+qauth_values qauth::create_min(uint64_t nSize) {
     
-    qauth_data_particles res;
+    qauth_values res;
     for (;;) {
         
-        qauth_data_particle p = next();
+        qauth_value p = next();
         if (p.nPosition > (res.size() + nSize)) break;
         p.nValue = (p.nValue % 2) ? (uint32_t)bb84_base::BB84_BASE_DIAGONAL : (uint32_t)bb84_base::BB84_BASE_RECTILINEAR;
         res.push_back(p);
@@ -269,8 +317,8 @@ qauth_data_particles qauth::create_min(uint64_t nSize) {
  * 
  * @return  the next in qauth data in the series
  */
-qauth_data_particle qauth::next() {
-    qauth_data_particle res = d->m_cCurrent;
+qauth_value qauth::next() {
+    qauth_value res = d->m_cCurrent;
     d->next();
     return res;
 }

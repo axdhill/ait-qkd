@@ -55,31 +55,28 @@
 
 int test() {
     
-    qauth_data_particles cQAuthA;
-    qauth_data_particles cQAuthB;
+    qauth_values cQAuthA;
+    qauth_values cQAuthB;
     
     qauth_init cQAuthInit1 = qauth_init{ 1, 2, 16, 4, (uint32_t)bb84_base::BB84_BASE_DIAGONAL };
 
     cQAuthA = qauth(cQAuthInit1).create_min(128);
-    cQAuthA.dump(std::cerr, "cQAuthA: ");
-    std::cerr << std::endl;
+    std::cerr << cQAuthA.str("cQAuthA: ") << std::endl;
     
     cQAuthB = qauth(cQAuthInit1).create_max(128 + 15);
-    cQAuthB.dump(std::cerr, "cQAuthB: ");
-    std::cerr << std::endl;
+    std::cerr << cQAuthB.str("cQAuthB: ") << std::endl;
 
     qauth_init cQAuthInit2 = qauth_init{ 1234, 287, 16, 0, (uint32_t)bb84_base::BB84_BASE_RECTILINEAR };
 
     cQAuthA = qauth(cQAuthInit2).create_min(128);
-    cQAuthA.dump(std::cerr, "cQAuthA: ");
-    std::cerr << std::endl;
+    std::cerr << cQAuthA.str("cQAuthA: ") << std::endl;
     
     cQAuthB = qauth(cQAuthInit2).create_max(128 + 15);
-    cQAuthB.dump(std::cerr, "cQAuthB: ");
-    std::cerr << std::endl;
+    std::cerr << cQAuthB.str("cQAuthB: ") << std::endl;
 
     return true;
 }
+
 
 int main(UNUSED int argc, UNUSED char** argv) {
     
