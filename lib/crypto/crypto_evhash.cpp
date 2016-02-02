@@ -271,3 +271,13 @@ qkd::utility::memory crypto_evhash::state_internal() const {
     return d->m_cEvhash->state();
 }
 
+
+/**
+ * return the current calculated tag of the crypto context (if any)
+ * 
+ * @return  a memory BLOB defining the current tag
+ */
+qkd::utility::memory crypto_evhash::tag_internal() const { 
+    return d->m_cEvhash->tag();
+}
+

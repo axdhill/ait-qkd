@@ -171,3 +171,15 @@ qkd::utility::memory crypto_xor::state_internal() const {
     return cNullState;
 }
 
+/**
+ * return the current calculated tag of the crypto context (if any)
+ * 
+ * @return  a memory BLOB defining the current tag
+ */
+qkd::utility::memory crypto_xor::tag_internal() const {
+    
+    // without final key we do not have a "tag"
+    static qkd::utility::memory cNullTag;
+    return cNullTag;
+}
+

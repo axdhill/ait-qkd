@@ -230,6 +230,14 @@ private:
     
     
     /**
+     * return the current calculated tag of the crypto context (if any)
+     * 
+     * @return  a memory BLOB defining the current tag
+     */
+    qkd::utility::memory tag_internal() const;
+    
+    
+    /**
      * data to encrypt so far
      */
     qkd::utility::memory m_cData;

@@ -354,6 +354,14 @@ public:
     inline qkd::utility::memory state() const { return state_internal(); }
     
     
+    /**
+     * return the current calculated tag of the crypto context (if any)
+     * 
+     * @return  a memory BLOB defining the current tag
+     */
+    inline qkd::utility::memory tag() const { return tag_internal(); }
+    
+    
 protected:
     
     
@@ -511,6 +519,14 @@ private:
      * @return  a memory BLOB defining the current state
      */
     virtual qkd::utility::memory state_internal() const = 0;
+    
+    
+    /**
+     * return the current calculated tag of the crypto context (if any)
+     * 
+     * @return  a memory BLOB defining the current tag
+     */
+    virtual qkd::utility::memory tag_internal() const = 0;
     
     
     /**
