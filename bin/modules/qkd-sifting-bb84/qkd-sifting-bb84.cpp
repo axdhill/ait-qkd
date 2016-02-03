@@ -1078,6 +1078,7 @@ void bases_to_bits(qkd::utility::bigint & cBits,
         return;
     }
     
+    // cBases sure has some invalid bits, but better be safe than sorry
     if ((nPosition + cBases.size()) > cBits.bits()) cBits.resize(nPosition + cBases.size());
     
     uint64_t nErrors = 0;
@@ -1115,6 +1116,8 @@ void bases_to_bits(qkd::utility::bigint & cBits,
         ++nQuantumPtr;
     }
     
+    // since we've dropped some bits, we've been overzealous in requesting to much space earlier
+    cBits.resize(nPosition);
     nBaseRatio = (cBases.size() - nErrors) / (double)cBases.size();
 }
 
