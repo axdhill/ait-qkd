@@ -5,7 +5,10 @@ This file holds the changes of the AIT QKD R10 throughout the versions
 Changes from 9.9999.6 to 9.9999.7
 ---------------------------------
 
+* new tool: qkd-key-compare
 
+    The new command line tool qkd-key-compare compares two key
+    streams and writes the result to stdout.
 
 
 Changes from 9.9999.5 to 9.9999.6
