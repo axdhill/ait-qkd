@@ -67,6 +67,8 @@ configure_file(test-parallel-cat-tee            ${CMAKE_CURRENT_BINARY_DIR}/test
 configure_file(test-demux                       ${CMAKE_CURRENT_BINARY_DIR}/test-demux                      @ONLY)
 configure_file(test-simulator-pipeline          ${CMAKE_CURRENT_BINARY_DIR}/test-simulator-pipeline         @ONLY)
 
+configure_file(test-bb84-cascade                ${CMAKE_CURRENT_BINARY_DIR}/test-bb84-cascade               @ONLY)
+
 
 # ------------------------------------------------------------
 # tests
@@ -105,9 +107,11 @@ add_test(full-disruptive                        ${CMAKE_CURRENT_BINARY_DIR}/test
 add_test(parallel-cat-tee                       ${CMAKE_CURRENT_BINARY_DIR}/test-parallel-cat-tee)
 add_test(demux                                  ${CMAKE_CURRENT_BINARY_DIR}/test-demux)
 
+# some small additional tests
+add_test(bb84-cascade                           ${CMAKE_CURRENT_BINARY_DIR}/test-bb84-cascade)
+
 
 # ------------------------------------------------------------
 # convenient scripts
 
 configure_file(test-testing-pipeline            ${CMAKE_CURRENT_BINARY_DIR}/test-testing-pipeline   @ONLY)
-
