@@ -78,6 +78,12 @@
         <log path="qkd-sifting-bb84.bob.log" />
     </module>
 
+    <module path="@CMAKE_BINARY_DIR@/bin/modules/qkd-tee/qkd-tee" >
+        <config path="@CMAKE_BINARY_DIR@/test/test-data/bb84-cascade/pipeline.conf" />
+        <role value="bob" />
+        <args value="--file">sifted-keys.bob</args>
+    </module>
+    
     <module path="@CMAKE_BINARY_DIR@/bin/modules/qkd-cascade/qkd-cascade">
         <config path="@CMAKE_BINARY_DIR@/test/test-data/bb84-cascade/pipeline.conf" />
         <role value="bob" />
@@ -85,6 +91,12 @@
         <log path="qkd-cascade.bob.log" />
     </module>
 
+    <module path="@CMAKE_BINARY_DIR@/bin/modules/qkd-tee/qkd-tee" >
+        <config path="@CMAKE_BINARY_DIR@/test/test-data/bb84-cascade/pipeline.conf" />
+        <role value="bob" />
+        <args value="--file">corrected-keys.bob</args>
+    </module>
+    
     <module path="@CMAKE_BINARY_DIR@/bin/modules/qkd-confirmation/qkd-confirmation">
         <config path="@CMAKE_BINARY_DIR@/test/test-data/bb84-cascade/pipeline.conf" />
         <role value="bob" />
@@ -92,4 +104,10 @@
         <log path="qkd-confirmation.bob.log" />
     </module>
 
+    <module path="@CMAKE_BINARY_DIR@/bin/modules/qkd-tee/qkd-tee" >
+        <config path="@CMAKE_BINARY_DIR@/test/test-data/bb84-cascade/pipeline.conf" />
+        <role value="bob" />
+        <args value="--file">confirmed-keys.bob</args>
+    </module>
+    
 </pipeline>

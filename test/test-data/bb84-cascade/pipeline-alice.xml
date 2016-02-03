@@ -71,6 +71,12 @@
         <log path="qkd-sifting-bb84.alice.log" />
     </module>
 
+    <module path="@CMAKE_BINARY_DIR@/bin/modules/qkd-tee/qkd-tee" >
+        <config path="@CMAKE_BINARY_DIR@/test/test-data/bb84-cascade/pipeline.conf" />
+        <role value="alice" />
+        <args value="--file">sifted-keys.alice</args>
+    </module>
+    
     <module path="@CMAKE_BINARY_DIR@/bin/modules/qkd-cascade/qkd-cascade">
         <config path="@CMAKE_BINARY_DIR@/test/test-data/bb84-cascade/pipeline.conf" />
         <role value="alice" />
@@ -78,6 +84,12 @@
         <log path="qkd-cascade.alice.log" />
     </module>
 
+    <module path="@CMAKE_BINARY_DIR@/bin/modules/qkd-tee/qkd-tee" >
+        <config path="@CMAKE_BINARY_DIR@/test/test-data/bb84-cascade/pipeline.conf" />
+        <role value="alice" />
+        <args value="--file">corrected-keys.alice</args>
+    </module>
+    
     <module path="@CMAKE_BINARY_DIR@/bin/modules/qkd-confirmation/qkd-confirmation">
         <config path="@CMAKE_BINARY_DIR@/test/test-data/bb84-cascade/pipeline.conf" />
         <role value="alice" />
@@ -85,4 +97,10 @@
         <log path="qkd-confirmation.alice.log" />
     </module>
 
+    <module path="@CMAKE_BINARY_DIR@/bin/modules/qkd-tee/qkd-tee" >
+        <config path="@CMAKE_BINARY_DIR@/test/test-data/bb84-cascade/pipeline.conf" />
+        <role value="alice" />
+        <args value="--file">confirmed-keys.alice</args>
+    </module>
+    
 </pipeline>
