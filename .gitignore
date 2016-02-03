@@ -6,3 +6,4 @@ build/*
 
 # ignores IntelliJ-based IDE project files
 .idea
+
