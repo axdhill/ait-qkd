@@ -223,7 +223,7 @@ private:
     
     
     /**
-     * time tags managenement
+     * time tags management
      */
     struct {
         

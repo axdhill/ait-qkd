@@ -115,7 +115,7 @@ void ttm::add_timetag(event const & cEvent) {
  */
 void ttm::delete_files() {
     
-    // enfore deleting of output files
+    // enforce deleting of output files
     unlink(get_filename_alice().c_str());
     unlink(get_filename_bob().c_str());
 }

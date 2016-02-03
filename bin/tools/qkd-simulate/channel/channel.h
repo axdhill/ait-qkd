@@ -213,9 +213,9 @@ public:
     
     
     /**
-     * check if teh simulatioj is looping
+     * check if the simulation is looping
      * 
-     * @return  true if the simultion is run infinite
+     * @return  true if the simulation is run infinite
      */
     bool is_looping() const { return m_bLoop; };
     
@@ -231,7 +231,7 @@ public:
     /**
      * check if we do have a running simulation
      * 
-     * @return  true, if a simulation is currently onging
+     * @return  true, if a simulation is currently ongoing
      */
     bool is_simulation_running() const { return m_bDetectorThreadRun; };
     
@@ -245,7 +245,7 @@ public:
     /**
      * perform a measurement
      * 
-     * @return  the measurment
+     * @return  the measurement
      */
     measurement measure();
     
@@ -275,9 +275,9 @@ public:
     
     
     /**
-     * set inifinit simulation loop
+     * set infinite simulation loop
      * 
-     * @param   bLoop       new inifinite simulation loop flag
+     * @param   bLoop       new infinite simulation loop flag
      */
     void set_looping(bool bLoop) { m_bLoop = bLoop; };
     
@@ -451,7 +451,7 @@ private:
      * perform a measurement 
      * to be overwritten by derived classes
      * 
-     * @return  the measurment
+     * @return  the measurement
      */
     virtual measurement measure_internal() = 0;
     

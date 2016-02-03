@@ -1,7 +1,7 @@
 /*
  * qkd-error-estimation.h
  * 
- * The qkd-error-estimation disloses a portion of bits for error estimation
+ * The qkd-error-estimation discloses a portion of bits for error estimation
  * 
  * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
@@ -44,10 +44,10 @@
 
 
 /**
- * The qkd-error-estimation disloses a small portion of bits for error estimation
+ * The qkd-error-estimation discloses a small portion of bits for error estimation
  * 
- * The error estimation disloses a number of bits of the key bypassing. The dislosed keybits
- * are discarded and the error bits in the are set accoridngly.
+ * The error estimation discloses a number of bits of the key bypassing. The disclosed keybits
+ * are discarded and the error bits in the are set accordingly.
  * 
  * E.g.
  * 
@@ -82,7 +82,7 @@ class qkd_error_estimation : public qkd::module::module {
     Q_CLASSINFO("D-Bus Interface", "at.ac.ait.qkd.errorestimation")
 
     Q_PROPERTY(double average_error READ average_error)                         /**< current average of estimation  */
-    Q_PROPERTY(double disclose READ disclose WRITE set_disclose)                /**< get/set ratio of dislosed bits */
+    Q_PROPERTY(double disclose READ disclose WRITE set_disclose)                /**< get/set ratio of disclosed bits */
     Q_PROPERTY(double last_error READ last_error)                               /**< last error estimation  */
     
 
@@ -112,17 +112,17 @@ public:
 
     
     /**
-     * return the ratio of dislosed bits
+     * return the ratio of disclosed bits
      * 
-     * @return  the ratio of dislosed bits
+     * @return  the ratio of disclosed bits
      */
     double disclose() const;
 
     
     /**
-     * sets the ratio of dislosed bits
+     * sets the ratio of disclosed bits
      * 
-     * @param   nRatio      the new ratio of dislosed bits
+     * @param   nRatio      the new ratio of disclosed bits
      */
     void set_disclose(double nRatio);
     

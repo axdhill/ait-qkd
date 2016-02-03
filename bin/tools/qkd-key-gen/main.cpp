@@ -144,7 +144,7 @@ qkd::key::key create(qkd::key::key_id nKeyId, config const & cConfig) {
  * @param   cKey            the input key
  * @param   cConfig         the config values (relevant: rate and exact)
  * @param   nErrorBits      [out] will receive the number of error bits
- * @return  a distrubed key
+ * @return  a disturbed key
  */
 qkd::key::key disturb(qkd::key::key const & cKey, config const & cConfig, uint64_t & nErrorBits) {
     
@@ -156,7 +156,7 @@ qkd::key::key disturb(qkd::key::key const & cKey, config const & cConfig, uint64
     // normal keys or quantum tables
     if (!cConfig.bQuantumTables) {
     
-        // exctract a bigint
+        // extract a bigint
         qkd::utility::bigint cBI = qkd::utility::bigint(cKey.data());
 
         // walk over all bits
@@ -253,13 +253,13 @@ qkd::key::key disturb(qkd::key::key const & cKey, config const & cConfig, uint64
  * @param   cKey            the input key
  * @param   cConfig         the config values (relevant: rate and exact)
  * @param   nErrorBits      [out] will receive the number of error bits
- * @return  a distrubed key
+ * @return  a disturbed key
  */
 qkd::key::key disturb_exact(qkd::key::key const & cKey, config const & cConfig, uint64_t & nErrorBits) {
     
     qkd::key::key cResultKey;
     
-    // exctract a bigint
+    // extract a bigint
     qkd::utility::bigint cBI = qkd::utility::bigint(cKey.data());
     if (cConfig.bQuantumTables) {
         cBI = qkd::utility::bigint(cKey.size() * 2);
@@ -296,7 +296,7 @@ qkd::key::key disturb_exact(qkd::key::key const & cKey, config const & cConfig, 
     //  - we have a set of bits to be flipped
     //  - and we have a list of bits not yet touched
     //  from the list of not-yet-touched bits (possible bits)
-    //  we ranomly pick one and add it to the set of bits to
+    //  we randomly pick one and add it to the set of bits to
     //  flip.
     //
     //  advantage: picking exact bits is quite easy
@@ -434,7 +434,7 @@ int generate(config const & cConfig) {
         // bob's key is a disturbed version of alice's key
         qkd::key::key cKeyBob = disturb(cKeyAlice, cConfig, nErrorBits);
         
-        // in quantum table mode we have to artifically introduce about 50% error 
+        // in quantum table mode we have to artificially introduce about 50% error
         // as this is expected due to wrong basis
         if (cConfig.bQuantumTables) {
             
@@ -481,7 +481,7 @@ int generate(config const & cConfig) {
             cKeyBob.meta().nErrorRate = (double)nErrorBits / (double)(cKeyBob.data().size() * 8);
         }
         
-        // set dislosed bits
+        // set disclosed bits
         double nDisclosedRate = cConfig.nDisclosedRate;
         if (nDisclosedRate < 0.0) nDisclosedRate = 0.0;
         if (nDisclosedRate > 1.0) nDisclosedRate = 1.0;

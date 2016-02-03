@@ -77,7 +77,7 @@ private:
      * perform a measurement 
      * to be overwritten by derived classes
      * 
-     * @return  the measurment
+     * @return  the measurement
      */
     measurement measure_internal();
     

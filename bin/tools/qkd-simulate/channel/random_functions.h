@@ -58,9 +58,9 @@ public:
     
     
     /**
-     * return a random number which is exponentional distributed
+     * return a random number which is exponentially distributed
      * 
-     * @param   nMu         exponentional distribution param (mean value of random number)
+     * @param   nMu         exponential distribution param (mean value of random number)
      */
     static double random_exponential(double nMu);
 

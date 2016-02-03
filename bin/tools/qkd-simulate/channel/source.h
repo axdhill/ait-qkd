@@ -51,7 +51,7 @@ namespace simulate {
 
 
 /**
- * an quantum source, it procuces photons
+ * an quantum source, it produces photons
  */
 class source : public channel_event_handler {
 

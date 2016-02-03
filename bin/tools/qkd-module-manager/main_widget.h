@@ -60,7 +60,7 @@ namespace module_manager {
 
 
 /**
- * This class represenst the main widget of QKD Simulate
+ * This class represents the main widget of QKD Simulate
  */
 class main_widget : public QFrame, private Ui::main_widget {
 
@@ -200,7 +200,7 @@ private:
     
     
     /**
-     * hash of DBus Address -> Moduel Widgets
+     * hash of DBus Address -> Module Widgets
      */
     std::map<std::string, qkd::widget::module_frame *> m_cModuleFrame;
     

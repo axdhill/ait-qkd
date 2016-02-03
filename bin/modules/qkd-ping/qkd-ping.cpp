@@ -194,7 +194,7 @@ void qkd_ping::process_bob() {
 
 
 /**
- * returns the number of current rounndtrips
+ * returns the number of current roundtrips
  * 
  * @return  the number of current roundtrips
  */

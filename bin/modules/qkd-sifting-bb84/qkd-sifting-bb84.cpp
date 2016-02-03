@@ -58,9 +58,9 @@
  */
 enum class bb84_base : uint8_t {
     
-    BB84_BASE_INVALID = 0,          /**< irregular base measument */
-    BB84_BASE_DIAGONAL,             /**< diagonal measument */
-    BB84_BASE_RECTILINEAR           /**< rectilinear measument */
+    BB84_BASE_INVALID = 0,          /**< irregular base measurement */
+    BB84_BASE_DIAGONAL,             /**< diagonal measurement */
+    BB84_BASE_RECTILINEAR           /**< rectilinear measurement */
 };
 
 
@@ -530,7 +530,7 @@ void qkd_sifting_bb84::set_rawkey_length(qulonglong nLength) {
  * @param   bBit            the bit to calculate
  * @param   eBase           the base
  * @param   nQuantumEvent   the quantum event
- * @return  true, if successfully deteced
+ * @return  true, if successfully detected
  */
 bool base_to_bit(bool & bBit, bb84_base eBase, unsigned char nQuantumEvent) {
     
@@ -623,7 +623,7 @@ void bases_to_bits(qkd::utility::bigint & cBits,
 
 /**
  * tests a single event of the Quantum table
- * implents "squashing", Ref. arXiv:0804.3082 and following work by Luetgenhaus
+ * implements "squashing", Ref. arXiv:0804.3082 and following work by Luetgenhaus
  *
  * @param   nEvent          the event
  * @return  a bb84 measurement

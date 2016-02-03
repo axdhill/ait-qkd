@@ -175,7 +175,7 @@ static int parse_module(QDomElement const & cModuleElement);
 
 
 /**
- * read childs PID from file
+ * read child's PID from file
  *
  * @param   cPath       the file to read
  * @return  child's pid (as string number)
@@ -697,7 +697,7 @@ int parse_module(QDomElement const & cModuleElement) {
 
 
 /**
- * read childs PID from file
+ * read child's PID from file
  *
  * @param   cPath       the file to read
  * @return  child's pid (as string number)
@@ -835,7 +835,7 @@ int start() {
             
             // this is within a new child
             // now daemon() does another fork
-            // so we have to get a holdon to 
+            // so we have to get a hold on
             // the child's child PID --> we write it into a file
             // since stdin and stdout are lost now
 

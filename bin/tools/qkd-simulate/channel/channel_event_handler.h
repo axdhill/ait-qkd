@@ -102,7 +102,7 @@ public:
     /**
      * function that initializes the channel event handler. 
      * 
-     * This function can be overrided by derived classes 
+     * This function can be overridden by derived classes
      * to do their simulation initialization, however, they should also call
      * the parent instance
      * 

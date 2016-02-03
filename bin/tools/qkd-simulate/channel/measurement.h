@@ -58,8 +58,8 @@ typedef boost::shared_ptr<measurement_base> measurement;
 /**
  * an abstract quantum channel measurement
  * 
- * a measurment object holds the results from a single
- * measurment step. each measurement creates a pair of
+ * a measurement object holds the results from a single
+ * measurement step. each measurement creates a pair of
  * keys: one for alice and one for bob.
  */
 class measurement_base {
@@ -91,9 +91,9 @@ public:
     
     
     /**
-     * state if this measurment has been made with free running detectros
+     * state if this measurement has been made with free running detectors
      * 
-     * @return  true, if this measurement has been done with free running detetcors
+     * @return  true, if this measurement has been done with free running detectors
      */
     virtual bool free_running() const = 0;
 

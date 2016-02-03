@@ -74,12 +74,12 @@ public:
      * dtor
      */
     virtual ~fiber() {};
-    
-    
+
+
     /**
      * get fiber absorption coefficient in [0 - 10 dB/km]
      *
-     * @return  the fiber absorbtion coefficient
+     * @return  the fiber absorption coefficient
      */
     double absorption_coefficient() const { return m_nAbsorptionCoefficient; };
     

@@ -69,7 +69,7 @@ void delay_line::handle(event const & cEvent) {
             cEventNew.nTime = manager()->get_time() + static_cast<int64_t>((1e-9 * m_nDelayTime) / ttm::RESOLUTION);
             cEventNew.cData.m_nPhotonPairId = cEvent.cData.m_nPhotonPairId;
             
-            // foward photon event after delay time
+            // forward photon event after delay time
             manager()->add_event(cEventNew); 
         }
         break;

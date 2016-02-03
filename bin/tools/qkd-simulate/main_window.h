@@ -53,9 +53,9 @@ class main_widget;
 
     
 /**
- * This class represenst the main window of QKD Simulate
+ * This class represents the main window of QKD Simulate
  * 
- * It just encapsualtes the main widget, which in turn holds all visual logic.
+ * It just encapsulates the main widget, which in turn holds all visual logic.
  * Therefore it acts merely as the visual face for the QKD gui.
  */
 class main_window : public QMainWindow {

@@ -226,7 +226,7 @@ bool qkd_auth::authenticate(qkd::key::key & cKey,
     if (!cOutgoingContext->null() && (cTagOutgoingAlice.size() == 0)) return false;
     if (!cOutgoingContext->null() && (cTagOutgoingBob.size() == 0)) return false;
     
-    // send our tags to the peer and reqeust hers
+    // send our tags to the peer and request hers
     qkd::module::message cMessage;
     cMessage.data() << cKey.id();
     if (is_alice()) {
@@ -477,7 +477,7 @@ bool qkd_auth::process(qkd::key::key & cKey,
             //
             //              S E C U R I T Y    H A Z A R D
             //
-            //                  Failed Authenticaion
+            //                  Failed Authentication
             //
             // ############################################################
             
@@ -858,7 +858,7 @@ bool verify_scheme(qkd::crypto::scheme const & cScheme) {
         return false;
     }
     
-    // warn to use inproper schemes
+    // warn to use improper schemes
     if ((cScheme.name() != "evhash") && (cScheme.name() != "null")) {
         qkd::utility::syslog::warning() << __FILENAME__ 
                 << '@' 

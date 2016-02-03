@@ -57,7 +57,7 @@ int dump(std::istream & cIn, std::ostream & cOut);
  * 
  * @param   cIn         input stream
  * @param   cOut        output stream
- * @return  0 = sucess, else failure
+ * @return  0 = success, else failure
  */
 int dump(std::istream & cIn, std::ostream & cOut) {
 
@@ -104,7 +104,7 @@ int dump(std::istream & cIn, std::ostream & cOut) {
  * 
  * @param   cIn         input stream
  * @param   cOut        output stream
- * @return  0 = sucess, else failure
+ * @return  0 = success, else failure
  */
 int dump_short(std::istream & cIn, std::ostream & cOut) {
 

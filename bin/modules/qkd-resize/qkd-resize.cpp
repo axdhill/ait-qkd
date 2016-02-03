@@ -194,7 +194,7 @@ void qkd_resize::pick_exact_keys(qkd::module::workload & cWorkload) {
         while ((nCurrentKeySize + (*it).cKey.data().size()) >= nExactKeySize) {
             
             // we assume the disclosed bits and the error rate is
-            // equaly distributed in the key
+            // equally distributed in the key
             
             uint64_t nCut = nExactKeySize - nCurrentKeySize;
             double nPart = (double)nCut / (double)(*it).cKey.data().size();

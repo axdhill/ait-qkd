@@ -113,7 +113,7 @@ void channel_event_manager::dispatch(channel * cChannel) {
         event cEvent = m_cEvents.top();
         m_cEvents.pop();
         
-        // safety net: ensure montonic event time and target existance
+        // safety net: ensure monotonic event time and target existence
         assert(m_nTime <= cEvent.nTime);
         assert(cEvent.cDestination != nullptr);
         

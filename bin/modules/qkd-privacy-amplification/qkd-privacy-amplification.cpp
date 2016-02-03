@@ -230,12 +230,12 @@ bool qkd_privacy_amplification::process(qkd::key::key & cKey, UNUSED qkd::crypto
 /**
  * get the reduction rate of the key
  * 
- * the size of the key is shrinked by this rate value
+ * the size of the key is shrunk by this rate value
  * 
  * rate: 0.0 ==> no final key
  *       1.0 ==> no reduction
  *
- * @return  the reducation rate
+ * @return  the reduction rate
  */
 double qkd_privacy_amplification::reduction_rate() const {
     
@@ -266,7 +266,7 @@ qulonglong qkd_privacy_amplification::security_bits() const {
  * rate: 0.0 ==> no final key
  *       1.0 ==> no reduction
  *
- * @param   nRate       the new reducation rate of the key
+ * @param   nRate       the new reduction rate of the key
  */
 void qkd_privacy_amplification::set_reduction_rate(double nRate) {
     

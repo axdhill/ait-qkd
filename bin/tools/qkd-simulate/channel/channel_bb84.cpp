@@ -52,7 +52,7 @@ using namespace qkd::simulate;
 /**
  * perform a measurement
  * 
- * @return  the measurment
+ * @return  the measurement
  */
 measurement channel_bb84::measure_internal() {
     
@@ -78,7 +78,7 @@ measurement channel_bb84::measure_internal() {
     //   |   Det4: |M> (135) |                        |   Det4: |M> (135) |
     //
     
-    // create the measurment
+    // create the measurement
     measurement cMeasurement = measurement(new qkd::simulate::measurement_bb84());
     measurement_bb84 * cMeasurementBB84 = dynamic_cast<qkd::simulate::measurement_bb84 *>(cMeasurement.get());
     

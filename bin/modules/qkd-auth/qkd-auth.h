@@ -45,9 +45,9 @@
 
 
 /**
- * The qkd-auth starts a authentication by provding keys
- * with a crypo context. If keys do have a crypto context
- * it ensures authencity by running an authentication of the
+ * The qkd-auth starts a authentication by providing keys
+ * with a crypto context. If keys do have a crypto context
+ * it ensures authenticity by running an authentication of the
  * based on the bypassing crypto contexts
  * 
  * This module saves up to twice the threshold of key material
@@ -236,7 +236,7 @@ signals:
      * we are in need of key material
      * 
      * this signal is emitted whenever our internal key
-     * storage runs short of aurthentication keys
+     * storage runs short of authentication keys
      * 
      * that is: the amount of the internal keys DB for
      * incoming and/or outgoing is below the threshold

@@ -278,7 +278,7 @@ bool qkd_error_estimation::process_alice(qkd::key::key & cKey, qkd::crypto::cryp
     // tell user
     qkd::utility::debug() << "key #" << cKey.id() << ", disclosed bits = " << cPositionsDisclosed.size() << ", errors detected = " << nErrorsDetected << ", error rate = " << cKey.meta().nErrorRate;
     
-    // modify key: extrat discarded keybits
+    // modify key: extract discarded keybits
     qkd::utility::bigint cNewKeyBigint(nBits - cPositionsDisclosed.size());
     std::list<uint64_t>::iterator iter = cPositionsDisclosed.begin();
     for (uint64_t i = 0, j = 0; i < nBits; i++) {
@@ -381,7 +381,7 @@ bool qkd_error_estimation::process_bob(qkd::key::key & cKey, qkd::crypto::crypto
     // tell user
     qkd::utility::debug() << "key #" << cKey.id() << ", disclosed bits = " << cPositionsDisclosed.size() << ", errors detected = " << nErrorsDetected << ", error rate = " << cKey.meta().nErrorRate;
     
-    // modify key: extrat discarded keybits
+    // modify key: extract discarded keybits
     qkd::utility::bigint cNewKeyBigint(nBits - cPositionsDisclosed.size());
     std::list<uint64_t>::iterator iter = cPositionsDisclosed.begin();
     for (uint64_t i = 0, j = 0; i < nBits; i++) {

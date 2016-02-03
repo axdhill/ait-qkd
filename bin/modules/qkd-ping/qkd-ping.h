@@ -54,9 +54,9 @@
  * 
  *      -name-                  -read/write-    -description-
  *
- *      max_roundtrip               R/W         maximum number of rountrips
+ *      max_roundtrip               R/W         maximum number of roundtrips
  *      payload_size                R/W         amount of bytes to send/receive
- *      roundtrips                  R           number of roundntrips so far
+ *      roundtrips                  R           number of roundtrips so far
  *      sleep_time                  R/W         sleep time between two consecutive calls
  */
 class qkd_ping : public qkd::module::module {
@@ -65,10 +65,10 @@ class qkd_ping : public qkd::module::module {
     Q_OBJECT
     Q_CLASSINFO("D-Bus Interface", "at.ac.ait.qkd.ping")
 
-    Q_PROPERTY(qulonglong max_roundtrip READ max_roundtrip WRITE set_max_roundtrip)     /**< the maximum number of roundntrips */
+    Q_PROPERTY(qulonglong max_roundtrip READ max_roundtrip WRITE set_max_roundtrip)     /**< the maximum number of roundtrips */
     Q_PROPERTY(qulonglong payload_size READ payload_size WRITE set_payload_size)        /**< get/set the size of the package sent */
     Q_PROPERTY(qulonglong roundtrips READ roundtrips)                                   /**< the number of roundtrips so far */
-    Q_PROPERTY(qulonglong sleep_time READ sleep_time WRITE set_sleep_time)              /**< get/set number of milliseconds to wait between two consecutive roundntrips */
+    Q_PROPERTY(qulonglong sleep_time READ sleep_time WRITE set_sleep_time)              /**< get/set number of milliseconds to wait between two consecutive roundtrips */
     
     
 public:
@@ -97,7 +97,7 @@ public:
     
     
     /**
-     * returns the number of current rounndtrips
+     * returns the number of current roundtrips
      * 
      * @return  the number of current roundtrips
      */

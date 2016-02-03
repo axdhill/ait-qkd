@@ -53,7 +53,7 @@ class main_widget;
 
     
 /**
- * This class represenst the main window of QKD Module Manager
+ * This class represents the main window of QKD Module Manager
  */
 class main_window : public QMainWindow {
     

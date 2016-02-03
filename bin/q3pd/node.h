@@ -71,7 +71,7 @@ namespace q3p {
  * 
  *          at.ac.ait.q3p.node-ID
  * 
- *           (with ID substiuted)
+ *           (with ID substituted)
  * 
  * On this session DBus it offers properties and methods under "/Node"
  * 
@@ -275,11 +275,11 @@ public slots:
      *      PID ............ The process ID of the module
      *      STATE .......... The current state of the module
      *      NODE ........... The id of this node been asked
-     *      PIPELINE ....... The id of the pipeline the modue 
+     *      PIPELINE ....... The id of the pipeline the module
      *                       is currently in
      *      HINT ........... Any user supplied information to 
      *                       the module
-     *      URL_LISTEN ..... The public availbale listen URL of 
+     *      URL_LISTEN ..... The public available listen URL of
      *                       the module
      *      URL_PEER ....... The peer URL the module is connected to
      *      URL_PIPE_IN .... The pipe IN URL
