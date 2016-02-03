@@ -67,7 +67,7 @@ public:
      * The idea is to have a neat function to turn a DBus reply in a quick
      * access key-value container.
      * 
-     * @param   cMessage        the DBus messge (presumable a reply)
+     * @param   cMessage        the DBus message (presumable a reply)
      * @return  the arguments found as key-value map
      */
     static QMap<QString, QVariant> map(QDBusMessage const & cMessage);
@@ -85,7 +85,7 @@ public:
      * check the given name if it can be used as a DBus service name particle
      * 
      * A DBus service name is the name under which a service
-     * registeres itself on the DBus, like "at.ac.ait.q3p.node-alice".
+     * registers itself on the DBus, like "at.ac.ait.q3p.node-alice".
      * There are certain restrictions to these names. Especially the
      * name particles ("at", "ac", ... "node-alice") may not contain
      * some reserved literals. This function checks this in advance.

@@ -122,7 +122,7 @@ public slots:
     /**
      * refresh the last values
      * 
-     * this places the recet properties into the UI
+     * this places the reset properties into the UI
      */
     void refresh_ui();
     

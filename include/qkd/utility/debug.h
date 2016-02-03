@@ -1,7 +1,7 @@
 /*
  * debug.h
  * 
- * The debug flag singelton
+ * The debug flag singleton
  *
  * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *

@@ -67,8 +67,8 @@ namespace utility {
  * The idea of this class is to have a nice send/recv buffer management at hand
  * with respects byte ordering.
  * 
- * Also the buffer grows more agressively by 1K blocks to avoid
- * memory defragmentation on consecuting pushes. 
+ * Also the buffer grows more aggressively by 1K blocks to avoid
+ * memory defragmentation on consecutive pushes.
  * 
  * with the position() and set_position() calls you may change the read/write position
  * freely.
@@ -422,14 +422,14 @@ public:
      * reset read/write position
      *
      * this does not discard, free or delete any memory already 
-     * hold within the buffer. it justs repositionate the read/write
-     * headert to the beginning of the buffer
+     * held within the buffer. it just repositions the read/write
+     * header to the beginning of the buffer
      */
     inline void reset() { set_position(0); }
 
 
     /**
-     * set the read/write postion
+     * set the read/write position
      * 
      * @param   nPosition       the new read/write position
      */
@@ -447,9 +447,9 @@ private:
      * if necessary
      * 
      * The idea is to enforce the internal size of 
-     * the memory class to be up to 1K larger then as necessary
-     * with a overzelous resize() call. then resizing again will
-     * leaver the size value correct, wheras internally we reserved
+     * the memory class to be up to 1K larger than necessary
+     * with an overzealous resize() call. then resizing again will
+     * leave the size value correct, whereas internally we reserved
      * more bytes as needed
      * 
      * @param   nSize       amount of needed free size within the memory managed
@@ -920,7 +920,7 @@ inline buffer & operator>>(buffer & lhs, std::string & rhs) {
 /**
  * stream out
  * 
- * Get some data from thebuffer
+ * Get some data from the buffer
  * 
  * @param   lhs     the buffer object
  * @param   rhs     the data to get
@@ -941,7 +941,7 @@ template<typename T> buffer & operator>>(buffer & lhs, std::list<T> & rhs) {
 /**
  * stream out
  * 
- * Get some data from thebuffer
+ * Get some data from the buffer
  * 
  * @param   lhs     the buffer object
  * @param   rhs     the data to get
@@ -962,7 +962,7 @@ template<typename T> buffer & operator>>(buffer & lhs, std::set<T> & rhs) {
 /**
  * stream out
  * 
- * Get some data from thebuffer
+ * Get some data from the buffer
  * 
  * @param   lhs     the buffer object
  * @param   rhs     the data to get

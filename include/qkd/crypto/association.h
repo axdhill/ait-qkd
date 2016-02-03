@@ -69,12 +69,12 @@ public:
     /**
      * an association description is the stringified template for an association
      * 
-     * These are 4 scheme strings which fully qualifiy a 
-     * connection in incoiming, outgoing, encryption and
+     * These are 4 scheme strings which fully qualify a
+     * connection in incoming, outgoing, encryption and
      * authentication.
      * 
      * The given scheme strings can be given to qkd::crypto::engine::create()
-     * to instantiate a concrete crpyto context.
+     * to instantiate a concrete crypto context.
      */
     struct association_definition {
         
@@ -86,7 +86,7 @@ public:
     
     
     /**
-     * an association_io is a pair of Incoming and Outgoing crypto contexts ... a crpyto "duplex"
+     * an association_io is a pair of Incoming and Outgoing crypto contexts ... a crypto "duplex"
      * 
      * This is the combination of a single
      */

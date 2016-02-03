@@ -158,11 +158,11 @@ public:
      * 
      * this returns "stdin://" and "stdout://" for these schemes.
      * 
-     * on "ipc:// it checks for ambiguity and for the existance and 
+     * on "ipc:// it checks for ambiguity and for the existence and
      * access to the ipc socket file.
      * 
      * on "tcp://" it also checks for ambiguity and tries to deduce
-     * the IP adress for a given hostname.
+     * the IP address for a given hostname.
      * 
      * @param   sURL        an url
      * @return  a good, real, usable url (or empty() in case of failure)

@@ -81,7 +81,7 @@ typedef boost::shared_ptr<db> key_db;
  * 
  *      SCHEME://[USER:PASSWORD@HOST:PORT]/PATH
  * 
- * Currently the only supportes shemes are
+ * Currently the only supported schemes are
  * 
  *      file:///PATH            create or open flat files as key-DB
  *      ram://                  create a RAM only DB
@@ -121,7 +121,7 @@ typedef boost::shared_ptr<db> key_db;
  * 
  *      quantum             R           The fixed size of a single key in bytes managed by this KeyStore
  * 
- *      url                 R           URL which creted this DB instance
+ *      url                 R           URL which created this DB instance
  */
 class db : public QObject {
     
@@ -276,7 +276,7 @@ public:
     
     
     /**
-     * return a list of coninuous key ids which cover at least nBytes of key material
+     * return a list of continuous key ids which cover at least nBytes of key material
      * 
      * all these keys are valid and do have a count of 0
      * 
@@ -287,7 +287,7 @@ public:
      * 
      * @param   nBytes      number of bytes
      * @param   nCount      applies nCount on the keys if nCount != 0
-     * @return  a list of coninuous key ids (list may be empty in case of failure)
+     * @return  a list of continuous key ids (list may be empty in case of failure)
      */
     inline qkd::key::key_vector find_continuous(uint64_t nBytes, uint32_t nCount = 0) { 
         std::lock_guard<std::recursive_mutex> cLock(m_cMTX); 
@@ -394,7 +394,7 @@ public:
     /**
      * return a key counter associated with the key
      * 
-     * any key count != 0 delcares the key as "reserved" (for some purpose).
+     * any key count != 0 declares the key as "reserved" (for some purpose).
      * 
      * @param   nKeyId      the ID of the key
      * @return  count of the key
@@ -695,7 +695,7 @@ private:
     
 
     /**
-     * return a list of coninuous key ids which cover at least nBytes of key material
+     * return a list of continuous key ids which cover at least nBytes of key material
      * 
      * all these keys are valid and do have a count of 0
      * 
@@ -706,7 +706,7 @@ private:
      * 
      * @param   nBytes      number of bytes
      * @param   nCount      applies nCount on the keys if nCount != 0
-     * @return  a list of coninuous key ids (list may be empty in case of failure)
+     * @return  a list of continuous key ids (list may be empty in case of failure)
      */
     virtual qkd::key::key_vector find_continuous_internal(uint64_t nBytes, uint32_t nCount) = 0;
     

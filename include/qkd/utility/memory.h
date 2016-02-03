@@ -58,7 +58,7 @@ namespace utility {
  * (free resource when last reference is deleted).
  * 
  * The least significant bit is stored at index 0. Hex string representations
- * are expected to have the byte at index postion 0 at the very first two
+ * are expected to have the byte at index position 0 at the very first two
  * chars.
  * 
  * It also has the ability to act in shallow or deep copy manner.
@@ -255,7 +255,7 @@ public:
 
 
     /**
-     * check if this memory hold the same data as the givem argument
+     * check if this memory hold the same data as the given argument
      *
      * @param   cMemory     the memory to compare to this
      * @return  true, if the memory areas are equal
@@ -369,7 +369,7 @@ public:
     /**
      * modifies deep copy behavior
      * 
-     * If shallow is turned off then modifing actions
+     * If shallow is turned off then modifying actions
      * copy the memory block.
      * 
      * @param   bShallow        new shallow copy behavior
@@ -394,7 +394,7 @@ public:
     
     
     /**
-     * creates a memory object by wraping a memory area
+     * creates a memory object by wrapping a memory area
      * this DOES NOT take ownership of the memory.
      * 
      * @param   cData       memory to be wrapped

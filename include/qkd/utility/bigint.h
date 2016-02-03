@@ -29,7 +29,7 @@
 
 
 /*
- * TODO: find a way to incoporate a neat index operator like:
+ * TODO: find a way to incorporate a neat index operator like:
  *              bool & bigint::operator[](unsigned long index)
  *       currently only get and set yield something reasonable
  */
@@ -107,7 +107,7 @@ namespace utility {
  *      >> ... shift left n bits
  *      << ... shift right n bits
  * 
- * However, one can improve performance by using assignement operators. So instead of
+ * However, one can improve performance by using assignment operators. So instead of
  * 
  *      bigint A = ...
  *      bigint B = ...
@@ -127,7 +127,7 @@ namespace utility {
  *      readable output.
  * 
  *      A bigint can be created by a memory block object (see qkd::utility::memory)
- *      and the later can be created by a hex string (see: qkd::utiliy::memory::from_hex).
+ *      and the later can be created by a hex string (see: qkd::utility::memory::from_hex).
  * 
  * Finally sub() extracts a subset of the bigint. 
  *      But beware: this is a deep copy thus sub() is expensive.
@@ -156,7 +156,7 @@ public:
     /**
      * ctor
      * 
-     * Construct from memory. This is a deep copy. Expenisve.
+     * Construct from memory. This is a deep copy. Expensive.
      *
      * @param   cMemory         import a memory blob as bigint
      */
@@ -167,7 +167,7 @@ public:
      * copy ctor
      * 
      * Beware: this is a shallow copy! 
-     * If you want a full copy use the clone() metod.
+     * If you want a full copy use the clone() method.
      * 
      * @param   rhs             right hand side
      */
@@ -282,11 +282,11 @@ public:
      * create a bitmask
      * 
      * The size of the bitmask is nSize with all bits set to 0, except for
-     * nWidth bits starting at posiiton nStartPos.
+     * nWidth bits starting at position nStartPos.
      * 
-     * @param   nSize           size of the bigtin returned
+     * @param   nSize           size of the bigint returned
      * @param   nWidth          width of the bitmask
-     * @param   nStartPos       tsrating posiiton of the bitpattern within the mask
+     * @param   nStartPos       starting position of the bitpattern within the mask
      * @return  a bitmask
      */
     static qkd::utility::bigint mask(uint64_t nSize, uint64_t nWidth, uint64_t nStartPos);
@@ -515,7 +515,7 @@ inline qkd::utility::bigint operator&(qkd::utility::bigint const & lhs, qkd::uti
 
 
 /**
- * &= - operator (binary and) and assignement
+ * &= - operator (binary and) and assignment
  * 
  * @param   lhs     left hand side
  * @param   rhs     right hand side
@@ -544,7 +544,7 @@ inline qkd::utility::bigint operator|(qkd::utility::bigint const & lhs, qkd::uti
 
 
 /**
- * |= - operator (binary or) and assignement
+ * |= - operator (binary or) and assignment
  * 
  * @param   lhs     left hand side
  * @param   rhs     right hand side
@@ -564,7 +564,7 @@ inline qkd::utility::bigint operator^(qkd::utility::bigint const & lhs, qkd::uti
 
 
 /**
- * ^= - operator (binary xor) and assignement
+ * ^= - operator (binary xor) and assignment
  * 
  * @param   lhs     left hand side
  * @param   rhs     right hand side
@@ -584,7 +584,7 @@ inline qkd::utility::bigint operator<<(qkd::utility::bigint const & lhs, uint64_
 
 
 /**
- * <<= - shift left assignement
+ * <<= - shift left assignment
  * 
  * @param   lhs     left hand side
  * @param   rhs     right hand side
@@ -604,7 +604,7 @@ inline qkd::utility::bigint operator>>(qkd::utility::bigint const & lhs, uint64_
 
 
 /**
- * >>= - shift right assignement
+ * >>= - shift right assignment
  * 
  * @param   lhs     left hand side
  * @param   rhs     right hand side

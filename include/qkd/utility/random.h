@@ -308,17 +308,17 @@ public:
 
 
     /**
-     * sets the main random singelton source
+     * sets the main random singleton source
      *
-     * @param   cRandom     the new random singelton source
+     * @param   cRandom     the new random singleton source
      */
     static void set_source(random & cRandom);
 
 
     /**
-     * returns the main random singelton source
+     * returns the main random singleton source
      *
-     * @return  the main random singelton
+     * @return  the main random singleton
      */
     static random & source();
 

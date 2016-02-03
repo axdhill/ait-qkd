@@ -113,7 +113,7 @@ public:
     
     
     /**
-     * the meassage header 
+     * the message header
      * 
      * all data here is stored in big endian (network byte order)
      */
@@ -402,7 +402,7 @@ public:
     /**
      * return a small string describing the header, a bit payload and the tag
      * 
-     * usefull for debuging
+     * useful for debugging
      * 
      * @return  a string describing the message
      */

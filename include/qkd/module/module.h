@@ -92,7 +92,7 @@ class module_thread;
  *    (module-to-module) communication fails.
  * 
  * 2. This settings are also a hint for the module process
- *    implementation to evalute to start the communication or
+ *    implementation to evaluate to start the communication or
  *    to wait for an incoming call.
  * 
  *    Depending on the module nature, some modules may
@@ -182,7 +182,7 @@ enum module_state : uint8_t {
  * 
  * However, no module or pipeline is forced to respect this
  * settings. This property serves as a administrative hint
- * when setting up pipleines or inspecting modules at runtime.
+ * when setting up pipelines or inspecting modules at runtime.
  */
 enum class module_type : uint8_t {
     
@@ -241,7 +241,7 @@ enum class module_type : uint8_t {
  *              in the same pipeline. E.g. you may run 5 CASCADE modules
  *              in parallel. You may then identify each of them by
  *              adding a hint-string to each on, like "1", "2", "a", 
- *              "b", ... or fulle names like "blue", "red", ...
+ *              "b", ... or full names like "blue", "red", ...
  * 
  *      4. Process-Id
  *              As every module is ought to be run in a process, they
@@ -255,8 +255,8 @@ enum class module_type : uint8_t {
  * 
  * 
  *      5. Crypto-Schemes
- *              The module opertates on an incoming and an outgoing
- *              crypto context. A crypyto scheme now identifies a) the
+ *              The module operates on an incoming and an outgoing
+ *              crypto context. A crypto scheme now identifies a) the
  *              Crypto-Algorithm used, b) the Crypto-Algorithm variant
  *              and c) the init key (if any).
  * 
@@ -327,19 +327,19 @@ enum class module_type : uint8_t {
  * When using "tcp://..." you MUST specify a port. Also we *highly* recommend to
  * exactly specify a concrete IP address. Since currently we do not guess on every
  * IP address a "tcp:// *:PORT" [omit the space!] my have. Well, we could. But it's 
- * errornous and painful to guess it right. And there is simply no real excuse in 
+ * erroneous and painful to guess it right. And there is simply no real excuse in
  * setting a real IP address here when it is a piece of cake from the user perspective.
  * 
  * Either way: when you connect (that is on alice's side to the peer and from the
  * previous module to the next: pipe-out) you MUST specify a valid address when using
- * tcp:// transport. Depeding on the underlaying network library, an asterisk "*" may
+ * tcp:// transport. Depending on the underlying network library, an asterisk "*" may
  * fail.
  * 
  * Only modules with an url_listen set to anything but "" will be listed on a node query
- * for modules (check node.h in bin/q3pd). Here the "hint" field is usefull, since it
+ * for modules (check node.h in bin/q3pd). Here the "hint" field is useful, since it
  * allows you to add arbitrary information to a module which is propagated across the net.
- * This hint maybe usefull if you start a series of the very same module participating
- * on the very samy pipeline.
+ * This hint maybe useful if you start a series of the very same module participating
+ * on the very same pipeline.
  * 
  * To check all present modules on the current system use a investigation object.
  * 
@@ -552,8 +552,8 @@ public:
         uint64_t nKeysOutgoing;                             /**< number of keys outgoing  */
         uint64_t nKeyBitsIncoming;                          /**< number of keys bits incoming */
         uint64_t nKeyBitsOutgoing;                          /**< number of keys bits outgoing */
-        uint64_t nDisclosedBitsIncoming;                    /**< total amount of dislosed bits published by previous modules */
-        uint64_t nDisclosedBitsOutgoing;                    /**< total amount of dislosed bits published by previous modules AND the current one */
+        uint64_t nDisclosedBitsIncoming;                    /**< total amount of disclosed bits published by previous modules */
+        uint64_t nDisclosedBitsOutgoing;                    /**< total amount of disclosed bits published by previous modules AND the current one */
         
         qkd::utility::average cKeysIncomingRate;            /**< calculate gain of keys incoming of the last second */
         qkd::utility::average cKeysOutgoingRate;            /**< calculate gain of keys outgoing of the last second */
@@ -614,7 +614,7 @@ public:
     /**
      * get a easy communicator object
      *
-     * returns a facade object to module's inernal send/recv methods
+     * returns a facade object to module's internal send/recv methods
      * to be used anywhere
      *
      * @param   cIncomingContext        the incoming auth context
@@ -666,7 +666,7 @@ public:
      * The given file URL is parsed and the found configuration
      * is handed out to apply_config()
      *
-     * Oppossed to the D-Bus method slot of the same name
+     * Opposed to the D-Bus method slot of the same name
      * this method calls exit(1) if the configuration URL
      * failed to load.
      * 
@@ -784,7 +784,7 @@ public:
     /**
      * this methods interrupts the worker thread
      * 
-     * this is usefull if you find the worker thread been
+     * this is useful if you find the worker thread been
      * blocked by some I/O operation (e.g. send/recv) and
      * want to abort that action or need other steps to be
      * undertaken.
@@ -851,7 +851,7 @@ public:
     /**
      * test if this module does currently process keys
      * 
-     * @return  true if we intenisve working on keys
+     * @return  true if we are intensively working on keys
      */
     inline bool is_running() const { 
         return (get_state() == module_state::STATE_RUNNING); 
@@ -1173,7 +1173,7 @@ public:
      * set the number of keys left before terminating (0 --> do not terminate) 
      *
      * The idea is to have a per module counter which decreases
-     * when processing a key (no matter if successfull or not).
+     * when processing a key (no matter if successful or not).
      * This comes handy when testing a pipeline and one wants the
      * pipeline after some amount of keys done and terminated.
      *
@@ -1320,7 +1320,7 @@ public:
      * number of keys left before terminating (0 --> do not terminate) 
      *
      * The idea is to have a per module counter which decreases
-     * when processing a key (no matter if successfull or not).
+     * when processing a key (no matter if successful or not).
      * This comes handy when testing a pipeline and one wants the
      * pipeline after some amount of keys done and terminated.
      *
@@ -1452,7 +1452,7 @@ public slots:
     /**
      * stops the module
      * 
-     * This is a gracefull shutdown
+     * This is a graceful shutdown
      */
     Q_NOREPLY void terminate();
     
@@ -1540,10 +1540,10 @@ protected:
      * 
      * this call is blocking
      * 
-     * The given message object will be deleted with delet before assigning new values.
+     * The given message object will be deleted with delete before assigning new values.
      * Therefore if message receive has been successful the message is not NULL
      * 
-     * This call waits explcitly for the next message been of type eType. If this
+     * This call waits explicitly for the next message been of type eType. If this
      * is NOT the case a exception is thrown.
      * 
      * Internally the recv_internal method is called and the actual receive
@@ -1566,7 +1566,7 @@ protected:
      * the service as /Module on the DBus
      * 
      * overwrite this method for a different DBus
-     * registration technqiue
+     * registration technique
      */
     virtual void register_dbus();
 
@@ -1631,7 +1631,7 @@ signals:
     
     
     /**
-     * the modul has been paused
+     * the module has been paused
      * 
      * the module has been running a while (run() and/or resume()) and
      * a pause() command has been issued recently.
@@ -1644,7 +1644,7 @@ signals:
     
     
     /**
-     * the modul is ready to process keys
+     * the module is ready to process keys
      * 
      * beware: this may be called from within the module's worker thread
      */
@@ -1652,7 +1652,7 @@ signals:
     
     
     /**
-     * the modul starts key processing
+     * the module starts key processing
      * 
      * this signal is emitted whenever the module resumes
      * key processing either be it as first start next to
@@ -1664,8 +1664,8 @@ signals:
     
     
     /**
-     * the modul has finished execution
-     * 
+     * the module has finished execution
+     *
      * beware: this may be called from within the module's worker thread
      */
     void terminated();
@@ -1744,10 +1744,10 @@ private:
      * 
      * this call is blocking
      * 
-     * The given message object will be deleted with delet before assigning new values.
+     * The given message object will be deleted with delete before assigning new values.
      * Therefore if message receive has been successful the message is not NULL
      * 
-     * This call waits explcitly for the next message been of type eType. If this
+     * This call waits explicitly for the next message been of type eType. If this
      * is NOT the case a exception is thrown.
      * 
      * @param   cMessage            this will receive the message
@@ -1776,7 +1776,7 @@ private:
      * 5) write key (if process return true)
      * 6) return to 1
      * 
-     * You may overwritte this method. But this changes module operation
+     * You may overwrite this method. But this changes module operation
      * dramatically.
      * 
      * There will be dragons. You've been warned.

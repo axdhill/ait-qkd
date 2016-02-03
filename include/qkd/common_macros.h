@@ -1,7 +1,7 @@
 /*
  * common_macros.h
  *
- * commenly used macros
+ * commonly used macros
  *
  * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *

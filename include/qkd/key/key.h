@@ -74,7 +74,7 @@ typedef std::vector<key_id> key_vector;
  * 
  *      RAW --> SIFTED --> CORRECTED --> CONFIRMED --> AMPLIFIED --> AUTHENTICATED
  * 
- * However, every now and then other states may occure due to 
+ * However, every now and then other states may occur due to
  * algorithm and/or processing details.
  */
 enum class key_state : uint8_t {
@@ -109,7 +109,7 @@ enum class key_state : uint8_t {
  *  - incoming crypto scheme
  *  - outgoing crypto scheme
  *  - absolute number of disclosed bits
- *  - timestamp of aquaintance (when this key has been read/created in the local process)
+ *  - timestamp of acquaintance (when this key has been read/created in the local process)
  * 
  * A QKD Key is read by a QKD Module, processed upon and then written to 
  * the next QKD Module in the QKD Post Processing Pipeline.
@@ -183,7 +183,7 @@ public:
      * 
      * The shift number corresponds to the maximum number
      * of parallel modules (2^shift) in a pipeline at certain 
-     * stage. The add number is used to distibguish between
+     * stage. The add number is used to distinguish between
      * the parallel lines.
      */
     class key_id_counter {
@@ -288,10 +288,10 @@ public:
         
         key_state eKeyState;                        /**< current key state */
         
-        std::string sCryptoSchemeIncoming;          /**< crypto context scheme string for this key for incoming communictaion during key distiallation */
-        std::string sCryptoSchemeOutgoing;          /**< crypto context scheme string for this key for outgoing communictaion during key distiallation */
+        std::string sCryptoSchemeIncoming;          /**< crypto context scheme string for this key for incoming communication during key distillation */
+        std::string sCryptoSchemeOutgoing;          /**< crypto context scheme string for this key for outgoing communication during key distillation */
         
-        uint64_t nDisclosedBits;                    /**< number of dislosed bits during key distillation  */
+        uint64_t nDisclosedBits;                    /**< number of disclosed bits during key distillation  */
         double nErrorRate;                          /**< error rate  */
         
         std::chrono::high_resolution_clock::time_point cTimestampRead;     /**< timestamp when this key has come into the current process via a read action - this is *NOT* saved */
@@ -660,7 +660,7 @@ private:
 
 
 /**
- * substract one key_vector from the other
+ * subtract one key_vector from the other
  * 
  * HENCE: lhs and rhs are meant to contain __sorted__ keys
  * 
@@ -794,7 +794,7 @@ inline qkd::utility::buffer & operator>>(qkd::utility::buffer & lhs, qkd::key::k
 
 
 /**
- * substract one key_vector from the other
+ * subtract one key_vector from the other
  * 
  * HENCE: lhs and rhs are meant to contain __sorted__ keys
  * 
