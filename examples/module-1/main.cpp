@@ -3,9 +3,9 @@
  * 
  * This is a sample AIT QKD Module
  * 
- * This module just simply pust "Hello World!" as key to 
+ * This module just simply puts "Hello World!" as key to
  * stdout and quits. This is totally nonsense but gives a hint
- * to very, very low requirments in building a module.
+ * to very, very low requirements in building a module.
  * 
  * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *

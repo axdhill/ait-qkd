@@ -103,12 +103,12 @@ namespace protocol {
  *      a number of buffer keys to this.
  * 
  *  B.  The slave moves the keys from the common store to the buffers and
- *      respondes with the list of successfull moved keys.
+ *      responds with the list of successfully moved keys.
  * 
  *  C.  On reception of the master moves the keys from the common store
  *      to the buffers.
  * 
- * Hence, this is not a full disussion of the protocol. Look for accompanying
+ * Hence, this is not a full discussion of the protocol. Look for accompanying
  * documents about Q3P.
  */
 class load : public key_move {

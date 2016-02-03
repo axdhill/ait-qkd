@@ -92,7 +92,7 @@ void average_time::trim() const {
         double nAgeInMilliSec = std::chrono::duration_cast<std::chrono::milliseconds>(cData->age()).count();
         if (nAgeInMilliSec <= window()) break;
         
-        // substract first entry: it is not longer within the window
+        // subtract first entry: it is not longer within the window
         m_nSum -= cData->value();
         cDataList.pop_front();
     }

@@ -55,7 +55,7 @@ using namespace qkd::q3p;
  */
 message::message(bool bAuthentic, bool bEncrypted) : qkd::utility::buffer() {
     
-    // positionate already at the payload data
+    // position already at the payload data
     resize(header_size());
     memset(get(), 0, header_size());
     
@@ -128,8 +128,8 @@ void message::set_zipped(bool bZipped) {
 /**
  * return a small string describing the header, a bit payload and the tag
  * 
- * usefull for debuging
- * 
+ * useful for debugging
+ *
  * @return  a string describing the message
  */
 std::string message::str() const {

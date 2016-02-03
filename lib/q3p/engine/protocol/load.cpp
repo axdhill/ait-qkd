@@ -87,7 +87,7 @@ public:
      */
     qkd::q3p::message cMessage;
     
-    qkd::key::key_vector cCommonStoreKeysForIncoming;          /**< keys to move from the CS to Inoming */
+    qkd::key::key_vector cCommonStoreKeysForIncoming;          /**< keys to move from the CS to Incoming */
     qkd::key::key_vector cCommonStoreKeysForApplication;       /**< keys to move from the CS to Application */
     
     qkd::key::key_vector cIncomingBufferKeys;                       /**< new keys in incoming */
@@ -326,7 +326,7 @@ protocol_error load::recv_LOAD_ACK(qkd::q3p::message & cMessage) {
         return protocol_error::PROTOCOL_ERROR_SOCKET; 
     }
     
-    // look up orginal message
+    // look up original message
     if (d->cSent.find(nMessageId) == d->cSent.end()) {
         
         // huh? received an acknowledgement for message we didn't sent?
@@ -445,7 +445,7 @@ void load::run_internal() {
     key_db & cOutgoingBuffer = engine()->outgoing_buffer();
     key_db & cApplicationBuffer = engine()->application_buffer();
     
-    // calculate the number of bytes to be transfered from the
+    // calculate the number of bytes to be transferred from the
     // common store to the buffers.
     //
     // as this is the LOAD protocol we transfer key material from
@@ -488,7 +488,7 @@ void load::run_internal() {
     nKeysIncoming -= (nKeysIncoming % (cCommonStore->quantum() / cIncomingBuffer->quantum()));
     nKeysApplication -= (nKeysApplication % (cCommonStore->quantum() / cApplicationBuffer->quantum()));
     
-    // dont proceed if no keys to fetch at all
+    // don't proceed if no keys to fetch at all
     if ((nKeysIncoming == 0) && (nKeysApplication == 0)) return;
     
     // setup the message to send

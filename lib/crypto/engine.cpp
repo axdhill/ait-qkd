@@ -54,7 +54,7 @@ using namespace qkd::crypto;
  * 
  * currently supported:
  * 
- *      "null"          The empty NULL instance (does not do any crpto stuff)
+ *      "null"          The empty NULL instance (does not do any crypto stuff)
  *      "evhash"        evaluation hash
  *      "xor"           binary xor encryption (init key is ignored)
  * 
@@ -142,7 +142,7 @@ crypto_context engine::create(std::string sAlgorithm, qkd::key::key const & cKey
  * 
  * this instantiates an crypto context based on a crypto scheme string
  * 
- * A crytp scheme string has this syntax:
+ * A crypt scheme string has this syntax:
  * 
  *          "ALGORITHM[-VARIANT][:INITKEY[:STATE]]"
  * 

@@ -1,5 +1,5 @@
 /*
- * NetlinkDeleteSADMEssage.h
+ * NetlinkDeleteSADMessage.h
  *
  * This class represents a message to delete an IPsec SAD entry;
  * it takes its input and has to be delivered by a NetlinkManager.

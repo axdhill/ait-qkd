@@ -518,7 +518,7 @@ std::string module_frame::dbus() const {
 /**
  * refresh the last values
  * 
- * this places the recet properties into the UI
+ * this places the reset properties into the UI
  */
 void module_frame::refresh_ui() {
     

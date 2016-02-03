@@ -40,7 +40,7 @@
 
 
 /**
- * caluclate the binary entropy
+ * calculate the binary entropy
  * 
  * .. formerly known as "Shannon Limit"
  *
@@ -117,7 +117,7 @@ double qkd::utility::relative_inefficiency(uint64_t nBits, uint64_t nDisclosedBi
 
 
 /**
- * caluclate the error correction efficiency
+ * calculate the error correction efficiency
  *
  * @param   nErrorRate          error rate detected
  * @param   nDisclosedRate      bits disclosed compared to all bits to get there

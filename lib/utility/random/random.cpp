@@ -52,7 +52,7 @@ namespace qkd {
 namespace utility {
 
 /**
- * this class constructs the main random singelton source
+ * this class constructs the main random singleton source
  */
 class random_singelton {
     
@@ -67,17 +67,17 @@ public:
     
     
     /**
-     * return the main random singelton
+     * return the main random singleton
      * 
-     * @return  the main random singelton
+     * @return  the main random singleton
      */
     qkd::utility::random & get() { return m_cRandom; };
     
     
     /**
-     * sets the main random singelton
+     * sets the main random singleton
      * 
-     * @param   cRandom     the new main random singelton
+     * @param   cRandom     the new main random singleton
      */
     void set(qkd::utility::random & cRandom) { m_cRandom = cRandom; };
 
@@ -86,7 +86,7 @@ private:
     
     
     /**
-     * the main random singelton
+     * the main random singleton
      */
     qkd::utility::random m_cRandom;
     
@@ -102,7 +102,7 @@ private:
 
 
 /**
- * the main random singelton
+ * the main random singleton
  */
 static random_singelton g_cRandomSingelton;
 
@@ -146,9 +146,9 @@ qkd::utility::random random_source::create(std::string sURL) {
 
 
 /**
- * sets the main random singelton source
+ * sets the main random singleton source
  *
- * @param   cRandom     the new random singelton source
+ * @param   cRandom     the new random singleton source
  */
 void random_source::set_source(qkd::utility::random & cRandom) {
     g_cRandomSingelton.set(cRandom);
@@ -156,9 +156,9 @@ void random_source::set_source(qkd::utility::random & cRandom) {
 
 
 /**
- * returns the main random singelton source
+ * returns the main random singleton source
  *
- * @return  the main random singelton
+ * @return  the main random singleton
  */
 qkd::utility::random & random_source::source() {
     return g_cRandomSingelton.get();

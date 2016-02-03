@@ -152,7 +152,7 @@ public:
      * 
      * this also increases the number of calculated blocks by nRounds
      * 
-     * @param   nRounds     number of rounds to mulitiply 
+     * @param   nRounds     number of rounds to multiply
      */
     virtual void times(uint64_t nRounds) = 0;
     
@@ -162,7 +162,7 @@ public:
      *
      * This transforms the tag stored in this object
      * 
-     * This is the working horse method of evalutaion hash.
+     * This is the working horse method of evaluation hash.
      * Here the actual tag is calculated.
      *
      * @param   cMemory         memory block to be added

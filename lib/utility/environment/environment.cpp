@@ -54,7 +54,7 @@ using namespace qkd::utility;
 /**
  * create a set of all subfolders of the given folder
  * 
- * avoids duplicate entries, all entries as absolut paths
+ * avoids duplicate entries, all entries as absolute paths
  * 
  * @param   cDirectoryMap       map of folders -> position
  * @param   cDirectory          the folder
@@ -103,7 +103,7 @@ boost::filesystem::path environment::config_path() {
 #ifdef __linux__    
 
     // ------------------------------------------------------------
-    // LINUX implemententation
+    // LINUX implementation
 
     cPath = "/etc";
         
@@ -112,7 +112,7 @@ boost::filesystem::path environment::config_path() {
 #ifdef __WIN32__
 
     // ------------------------------------------------------------
-    // WINDOWS implemententation
+    // WINDOWS implementation
 
     // get the full path to the current binary
     // IS the data path
@@ -153,7 +153,7 @@ boost::filesystem::path environment::data_path(std::string const & sApplication)
 #ifdef __linux__    
 
     // ------------------------------------------------------------
-    // LINUX implemententation
+    // LINUX implementation
 
     // get the prefix and add a "share"
     cPath = prefix_path();
@@ -165,7 +165,7 @@ boost::filesystem::path environment::data_path(std::string const & sApplication)
 #ifdef __WIN32__
 
     // ------------------------------------------------------------
-    // WINDOWS implemententation
+    // WINDOWS implementation
 
     // get the full path to the current binary
     // IS the data path
@@ -190,7 +190,7 @@ qkd::utility::nic environment::default_gateway() {
 #ifdef __linux__    
 
     // ------------------------------------------------------------
-    // LINUX implemententation
+    // LINUX implementation
 
     // look at the /proc/net/route "file"
     std::ifstream cRouteFile("/proc/net/route");
@@ -239,7 +239,7 @@ qkd::utility::nic environment::default_gateway() {
 #ifdef __WIN32__
 
     // ------------------------------------------------------------
-    // WINDOWS implemententation
+    // WINDOWS implementation
     
 #error "Windows port not implemented yet"
 
@@ -258,7 +258,7 @@ qkd::utility::nic environment::default_gateway() {
  * does on the command line based on the
  * PATH environment variable
  * 
- * the found file must be executbale
+ * the found file must be executable
  *
  * @param   sFile               a file name
  * @return  path found executable (or empty of not found)
@@ -282,7 +282,7 @@ boost::filesystem::path environment::find_executable(std::string const & sFile) 
  * this will search files like
  *      $ which 
  * does on the command line based on the
- * PATH envirnoment variable
+ * PATH environment variable
  * 
  * additional paths are prepended to the PATH variable
  * 
@@ -292,16 +292,16 @@ boost::filesystem::path environment::find_executable(std::string const & sFile) 
  * @param   sFile               a file name
  * @param   cPaths              additional search paths to PATH
  * @param   bDeep               walk through all subfolder
- * @param   bUsePATH            add the system's PATH envirnoment variable to the search path
- * @param   bExecutable         file must be an executbale (is ignored on Windows)
- * @param   bAll                try to find all occurences, or exit at the first (if set to false)
+ * @param   bUsePATH            add the system's PATH environment variable to the search path
+ * @param   bExecutable         file must be an executable (is ignored on Windows)
+ * @param   bAll                try to find all occurrences, or exit at the first (if set to false)
  * @return  paths found (or empty of not found)
  */
 std::list<boost::filesystem::path> environment::find_files(std::string const & sFile, std::list<boost::filesystem::path> const & cPaths, bool bDeep, bool bUsePATH, bool bExecutable, bool bAll) {
 
     std::list<boost::filesystem::path> cFound;
     
-    // allready full path and only first hit and existing?
+    // already full path and only first hit and existing?
     boost::filesystem::path cFile(sFile);
     if (boost::filesystem::exists(cFile) && !bAll) {
         
@@ -333,7 +333,7 @@ std::list<boost::filesystem::path> environment::find_files(std::string const & s
     boost::tokenizer<boost::char_separator<char>> cTokenizer(sPathEnvironment, boost::char_separator<char>(g_sPathSeperator.c_str()));
     for (auto sToken : cTokenizer) {
         
-        // replace any occurence of '~' with home folder
+        // replace any occurrence of '~' with home folder
         auto nHomeTokenPos = sToken.find('~');
         while (nHomeTokenPos != std::string::npos) {
             sToken.replace(nHomeTokenPos, 1, cHomePath.string());
@@ -453,7 +453,7 @@ std::set<std::string> environment::host_lookup(std::string sHost, bool bIPv4, bo
 #ifdef __linux__    
 
     // ------------------------------------------------------------
-    // LINUX implemententation
+    // LINUX implementation
 
     // call getaddrinfo()
     addrinfo cHint;
@@ -511,7 +511,7 @@ std::set<std::string> environment::host_lookup(std::string sHost, bool bIPv4, bo
 #ifdef __WIN32__
 
     // ------------------------------------------------------------
-    // WINDOWS implemententation
+    // WINDOWS implementation
 
 #error "Windows port not implemented yet"
 
@@ -526,7 +526,7 @@ std::set<std::string> environment::host_lookup(std::string sHost, bool bIPv4, bo
 /**
  * get the list of network interfaces of the system
  * 
- * @return  all available network interface of the sytem
+ * @return  all available network interface of the system
  */
 std::map<std::string, qkd::utility::nic> environment::nics() {
     
@@ -569,7 +569,7 @@ std::map<std::string, qkd::utility::nic> environment::nics() {
             // place info in the database
             cNics[sNicName].sName = sNicName;
             
-            // place the adresses
+            // place the addresses
             if (nFamiliy == AF_INET) cNics[sNicName].sIPv4 = std::string(sAddress);
             if (nFamiliy == AF_INET6) cNics[sNicName].sIPv6 = std::string(sAddress);
         }
@@ -583,7 +583,7 @@ std::map<std::string, qkd::utility::nic> environment::nics() {
 #ifdef __WIN32__
 
         // ------------------------------------------------------------
-        // WINDOWS implemententation
+        // WINDOWS implementation
 
 #error "Windows port not implemented yet"
 
@@ -609,7 +609,7 @@ boost::filesystem::path const & environment::prefix_path() {
 #ifdef __linux__    
 
         // ------------------------------------------------------------
-        // LINUX implemententation
+        // LINUX implementation
 
         // the prefix is the path to the process image, minus the "bin/PROCESS-NAME" part
         cPath = cFullBinaryPath.parent_path().parent_path();
@@ -619,7 +619,7 @@ boost::filesystem::path const & environment::prefix_path() {
 #ifdef __WIN32__
 
         // ------------------------------------------------------------
-        // WINDOWS implemententation
+        // WINDOWS implementation
 
         // the prefix on windows IS the path to the process image
         // minus the image
@@ -662,7 +662,7 @@ boost::filesystem::path const & environment::process_image_path() {
 #ifdef __linux__    
 
         // ------------------------------------------------------------
-        // LINUX implemententation
+        // LINUX implementation
 
         // get the full path to the current binary
         // by checking to what /proc/self/exe is pointing to
@@ -676,7 +676,7 @@ boost::filesystem::path const & environment::process_image_path() {
 #ifdef __WIN32__
 
         // ------------------------------------------------------------
-        // WINDOWS implemententation
+        // WINDOWS implementation
 
         // get the full path to the current binary
         // by checking the GetModuleName() function
@@ -711,7 +711,7 @@ std::string environment::open_mime() {
 #ifdef __linux__    
 
         // ------------------------------------------------------------
-        // LINUX implemententation
+        // LINUX implementation
 
         return "xdg-open";
 #endif    
@@ -719,7 +719,7 @@ std::string environment::open_mime() {
 #ifdef __WIN32__
 
         // ------------------------------------------------------------
-        // WINDOWS implemententation
+        // WINDOWS implementation
 
         return "start";
 #endif    
@@ -778,7 +778,7 @@ boost::filesystem::path environment::temp_path() {
 /**
  * create a set of all subfolders of the given folder
  * 
- * avoids duplicate entries, all entries as absolut paths
+ * avoids duplicate entries, all entries as absolute paths
  * 
  * @param   cDirectoryMap       map of folders -> position
  * @param   cDirectory          the folder
@@ -795,7 +795,7 @@ void build_folder_tree(std::map<boost::filesystem::path, uint64_t> & cDirectoryM
         // not a folder
         if (!boost::filesystem::is_directory((*iter).path())) continue;
         
-        // directory allready in the set: next!
+        // directory already in the set: next!
         if (cDirectoryMap.find((*iter).path()) != cDirectoryMap.end()) continue;
         
         // insert and recursive call

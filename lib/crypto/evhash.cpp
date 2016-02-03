@@ -61,9 +61,9 @@
  * this class represents a Galois Field 2
  *
  * The class creates a Galois Field 2^x with x been the number of bits managed.
- * For beeing useful we need a irreducible polynom this GF2 is based on. This
+ * For being useful we need an irreducible polynom this GF2 is based on. This
  * polynom is given as a simple unsigned int value representing the coefficients of
- * the polynom. Note that the modulus omits the most signficant bit, since this is 
+ * the polynom. Note that the modulus omits the most significant bit, since this is
  * always set.
  *
  * E.g. 
@@ -462,7 +462,7 @@ protected:
         }
         else {
 
-            // recursion is possible, but only necesary for
+            // recursion is possible, but only necessary for
             // bits that are > twice the field size, which we
             // never encounter in multiplication 
             throw std::length_error("bit number in bit reduction exceeds allowed size.");
@@ -980,15 +980,15 @@ public:
 
     /**
      * multiply the existing tag with the init key nRounds times
-     * 
+     *
      * this creates t_n = t_n-1 * k^nRounds
-     * 
+     *
      * this also increases the number of calculated blocks by nRounds
-     * 
-     * @param   nRounds     number of rounds to mulitiply 
+     *
+     * @param   nRounds     number of rounds to multiply
      */
     void times(uint64_t nRounds) {
-        m_cGF2->times_alpha_pow(m_cTag, m_cTag, nRounds);        
+        m_cGF2->times_alpha_pow(m_cTag, m_cTag, nRounds);
         m_nBlocks += nRounds;
     }
     
@@ -998,7 +998,7 @@ public:
      *
      * This transforms the tag stored in this object
      * 
-     * This is the working horse method of evalutaion hash.
+     * This is the working horse method of evaluation hash.
      * Here the actual tag is calculated.
      *
      * @param   cMemory         memory block to be added
@@ -1013,7 +1013,7 @@ public:
         char * data = (char *)cMemory.get();
         int64_t nLeft = cMemory.size();
         
-        // maybe the given memory + remainding bytes are less than block_size()
+        // maybe the given memory + remaining bytes are less than block_size()
         // so we store the data for next turn
         if (m_nRemainderBytes + nLeft < block_size()) {
             memcpy(m_cRemainder + m_nRemainderBytes, cMemory.get(), nLeft);
@@ -1092,13 +1092,13 @@ private:
 
 
     /**
-     * remainder of last add (modulu blob size) 
+     * remainder of last add (modulo blob size)
      */
     char * m_cRemainder;
 
 
     /**
-     * remainder of last add (modulu blob size) in bytes
+     * remainder of last add (modulo blob size) in bytes
      */
     unsigned int m_nRemainderBytes;
 

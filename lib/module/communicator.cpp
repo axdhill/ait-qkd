@@ -49,17 +49,17 @@ using namespace qkd::module;
  *
  * this is a facade wrap to module's recv method
  * 
- * this call is blocking (with respect to timout)
+ * this call is blocking (with respect to timeout)
  * 
- * The given message object will be deleted with delet before assigning new values.
+ * The given message object will be deleted with delete before assigning new values.
  * Therefore if message receive has been successful the message is not NULL
  * 
- * This call waits explcitly for the next message been of type eType. If this
+ * This call waits explicitly for the next message been of type eType. If this
  * is NOT the case a exception is thrown.
  * 
  * @param   cMessage            this will receive the message
  * @param   eType               message type to receive
- * @return  true, if we have receuived a message
+ * @return  true, if we have received a message
  */
 bool communicator::recv(qkd::module::message & cMessage, qkd::module::message_type eType) { 
     return m_cModule->recv(cMessage, m_cIncomingContext, eType);

@@ -188,7 +188,7 @@ private:
     
 
     /**
-     * return a list of coninuous key ids which cover at least nBytes of key material
+     * return a list of continuous key ids which cover at least nBytes of key material
      * 
      * all these keys are valid and do have a count of 0
      * 
@@ -199,7 +199,7 @@ private:
      * 
      * @param   nBytes      number of bytes
      * @param   nCount      applies nCount on the keys if nCount != 0
-     * @return  a list of coninuous key ids (list may be empty in case of failure)
+     * @return  a list of continuous key ids (list may be empty in case of failure)
      */
     qkd::key::key_vector find_continuous_internal(uint64_t nBytes, uint32_t nCount);
     

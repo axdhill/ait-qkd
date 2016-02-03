@@ -120,7 +120,7 @@ void crypto_evhash::add_internal(qkd::crypto::crypto_context const & cContext) {
         throw std::invalid_argument("can't add evaluation hash of different keys");
     }
 
-    // finalize us first (to add any remainding stuff)
+    // finalize us first (to add any remaining stuff)
     d->m_cEvhash->finalize();
         
     // this must be a right crypto_evhash context yet
@@ -174,7 +174,7 @@ qkd::utility::memory crypto_evhash::finalize_internal(qkd::key::key const & cKey
 /**
  * get the size of the final key in bytes
  * 
- * @return  the size of the final key or 0 if inapprobiate
+ * @return  the size of the final key or 0 if inappropriate
  */
 uint64_t crypto_evhash::final_key_size_internal() const {
     return d->m_cEvhash->block_size();
@@ -184,7 +184,7 @@ uint64_t crypto_evhash::final_key_size_internal() const {
 /**
  * get the size of the init key
  * 
- * @return  the size of the init key or 0 if inapprobiate
+ * @return  the size of the init key or 0 if inappropriate
  */
 uint64_t crypto_evhash::init_key_size_internal() const {
     return d->m_cEvhash->block_size();

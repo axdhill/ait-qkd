@@ -39,7 +39,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-// this is currentl Linux only code
+// this is currently Linux only code
 // TODO: find a way to make this portable.
 //       there is TUN/TAP support on other operating
 //       systems like Mac OSX ...
@@ -51,7 +51,7 @@
 
 #else
 
-#   error "Currently no other operating system than Linux supported. Sorry. Vist: http://sqt.ait.ac.at/software or mail oliver.maurhart@ait.ac.at for support on this."
+#   error "Currently no other operating system than Linux supported. Sorry. Visit: http://sqt.ait.ac.at/software or mail oliver.maurhart@ait.ac.at for support on this."
 
 #endif
 
@@ -171,7 +171,7 @@ void nic_instance::init_tun() {
     d->bRun = true;
     d->cReaderThread = std::thread([this]{ reader(); });
     
-    // tell environemnt
+    // tell environment
     emit device_ready(QString::fromStdString(m_sName));
     qkd::utility::syslog::info() << "created TUN device: " << m_sName;
 }

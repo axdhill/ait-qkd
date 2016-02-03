@@ -1,7 +1,7 @@
 /*
  * db_null.cpp
  * 
- * Implementation of the empty, ivalid keystore DB
+ * Implementation of the empty, invalid keystore DB
  *
  * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *

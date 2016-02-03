@@ -142,7 +142,7 @@ bool db_ram::eventual_sync_internal(qkd::key::key_id nKeyId) const {
 
 
 /**
- * return a list of coninuous key ids which cover at least nBytes of key material
+ * return a list of continuous key ids which cover at least nBytes of key material
  * 
  * all these keys are valid and do have a count of 0
  * 
@@ -153,7 +153,7 @@ bool db_ram::eventual_sync_internal(qkd::key::key_id nKeyId) const {
  * 
  * @param   nBytes      number of bytes
  * @param   nCount      applies nCount on the keys if nCount != 0
- * @return  a list of coninuous key ids (list may be empty in case of failure)
+ * @return  a list of continuous key ids (list may be empty in case of failure)
  */
 qkd::key::key_vector db_ram::find_continuous_internal(uint64_t nBytes, uint32_t nCount) {
     
@@ -224,7 +224,7 @@ qkd::key::key_vector db_ram::find_spare_internal(uint64_t nBytes, uint32_t nCoun
             // apply count
             if (nCount) set_key_count(nKeyPick, nCount);
             
-            // hit: unvalid key is spare key
+            // hit: invalid key is spare key
             cKeyIds.push_back(nKeyPick);
             nBytes -= quantum();
         }
@@ -269,7 +269,7 @@ qkd::key::key_vector db_ram::find_valid_internal(uint64_t nBytes, uint32_t nCoun
             // apply count
             if (nCount) set_key_count(nKeyPick, nCount);
             
-            // hit: unvalid key is spare key
+            // hit: invalid key is spare key
             cKeyIds.push_back(nKeyPick);
             nBytes -= quantum();
         }
@@ -294,7 +294,7 @@ qkd::key::key_vector db_ram::find_valid_internal(uint64_t nBytes, uint32_t nCoun
  */
 qkd::key::key db_ram::get_internal(qkd::key::key_id nKeyId) const {
     
-    // check for existance
+    // check for existence
     if (!valid(nKeyId)) return qkd::key::key::null();
     
     // pick the key data

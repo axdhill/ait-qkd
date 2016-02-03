@@ -139,7 +139,7 @@ public:
     QByteArray m_cRecvBuffer;                       /**< the data received so far but not yet managed */
     
     bool m_bReconnect;                              /**< flag to reconnect */
-    QHostAddress m_cPeerAddress;                    /**< peer address we connetecd to */
+    QHostAddress m_cPeerAddress;                    /**< peer address we connected to */
     uint32_t m_nPeerPort;                           /**< peer port we are connected to */
 
     /**
@@ -156,7 +156,7 @@ public:
     } m_cProtocol;
     
     qkd::q3p::mq m_cMQ;                             /**< the message queue */
-    qkd::q3p::nic m_cNIC;                           /**< network interace "card" */
+    qkd::q3p::nic m_cNIC;                           /**< network interface "card" */
     
     // TODO: Stefan
     //qkd::q3p::ipsec m_cIPSec;                       /**< IPSec implementation */
@@ -284,24 +284,24 @@ bool engine_instance::accept(qkd::key::key const & cKey) const {
 /**
  * request keys from the application buffer
  * 
- * the given key material is extraced from the application buffers
+ * the given key material is extracted from the application buffers
  * on both sides based on the given application identifier and size.
  * 
- * The method returns successfull if the requested key material has
+ * The method returns successfully if the requested key material has
  * been placed into the cKeys object on both sides (local and remote).
  * 
  * the number of bytes requested must be a multiple of the application
  * buffer key quantum (usually 32 bits == 4 bytes).
  * 
- * the method failes:
- *  - if we lack a peer and/or if we have insufficiant key material left in the application buffer
+ * the method fails:
+ *  - if we lack a peer and/or if we have insufficient key material left in the application buffer
  *  - if the peer didn't acquire keys within the timeout
  * 
  * @param   cKeys           this will receive the key material (any previous content will be zapped)
  * @param   nAppId          the application id: this identifies the request on both sides
  * @param   nBytes          number of bytes requested
  * @param   nTimeout        timeout in millisecond to wait for peer to acquire as well
- * @return  true, if successfull
+ * @return  true, if successful
  */
 bool engine_instance::acquire_keys(UNUSED qkd::key::key_ring & cKeys, UNUSED uint64_t nAppId, UNUSED uint64_t nBytes, UNUSED std::chrono::milliseconds nTimeout) {
 
@@ -344,7 +344,7 @@ QString engine_instance::authentication_scheme_incoming() const {
 /**
  * the current (next) authentication scheme for outgoing messages
  * 
- * @return  the current (next) authentication scheme for outoing messages
+ * @return  the current (next) authentication scheme for outgoing messages
  */
 QString engine_instance::authentication_scheme_outgoing() const {
     return QString::fromStdString(d->m_cAssociationDefinition.sAuthenticationOutgoing);
@@ -1115,7 +1115,7 @@ void engine_instance::inject(QByteArray cSecretBits) {
 
 
 /**
- * insert a key identifed by an URL into the DB (without peer interaction!)
+ * insert a key identified by an URL into the DB (without peer interaction!)
  * 
  * @param   sURL            the URL to insert
  */
@@ -1385,7 +1385,7 @@ QString engine_instance::nic() const {
  * open (or create) the key store DB on the specified URL
  * 
  * @param   sURL        url defining the key-DB
- * @return  true, if successfull
+ * @return  true, if successful
  */
 void engine_instance::open_db(QString sURL) {
     
@@ -1554,11 +1554,11 @@ void engine_instance::register_dbus() {
  *      STATE .......... The current state of the module
  *      NODE ........... The id of this node been asked
  *      LINK ........... The id of this link been asked
- *      PIPELINE ....... The id of the pipeline the modue 
+ *      PIPELINE ....... The id of the pipeline the module
  *                       is currently in
  *      HINT ........... Any user supplied information to 
  *                       the module
- *      URL_LISTEN ..... The public availbale listen URL of 
+ *      URL_LISTEN ..... The public available listen URL of
  *                       the module
  * @return  a list of running modules
  */

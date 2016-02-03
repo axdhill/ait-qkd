@@ -45,7 +45,7 @@
  * version check for 9.9999 (pre R10)
  * 
  * any compiler and linker may link against the qkd library
- * requesting this funtcion to ensure availablity
+ * requesting this function to ensure availability
  * 
  * @return  value, representing the version
  */
@@ -58,7 +58,7 @@ uint32_t qkd_version_9_9999() {
  * version check for 9.9999.1 (R10 Developer Snapshot)
  * 
  * any compiler and linker may link against the qkd library
- * requesting this funtcion to ensure availablity
+ * requesting this function to ensure availability
  * 
  * @return  value, representing the version
  */
@@ -71,7 +71,7 @@ uint32_t qkd_version_9_9999_1() {
  * version check for 9.9999.2 
  * 
  * any compiler and linker may link against the qkd library
- * requesting this funtcion to ensure availablity
+ * requesting this function to ensure availability
  * 
  * @return  value, representing the version
  */
@@ -84,7 +84,7 @@ uint32_t qkd_version_9_9999_2() {
  * version check for 9.9999.3 
  * 
  * any compiler and linker may link against the qkd library
- * requesting this funtcion to ensure availablity
+ * requesting this function to ensure availability
  * 
  * @return  value, representing the version
  */
@@ -97,7 +97,7 @@ uint32_t qkd_version_9_9999_3() {
  * version check for 9.9999.4 
  * 
  * any compiler and linker may link against the qkd library
- * requesting this funtcion to ensure availablity
+ * requesting this function to ensure availability
  * 
  * @return  value, representing the version
  */
@@ -110,7 +110,7 @@ uint32_t qkd_version_9_9999_4() {
  * version check for 9.9999.5 
  * 
  * any compiler and linker may link against the qkd library
- * requesting this funtcion to ensure availablity
+ * requesting this function to ensure availability
  * 
  * @return  value, representing the version
  */
@@ -123,7 +123,7 @@ uint32_t qkd_version_9_9999_5() {
  * version check for 9.9999.6 
  * 
  * any compiler and linker may link against the qkd library
- * requesting this funtcion to ensure availablity
+ * requesting this function to ensure availability
  * 
  * @return  value, representing the version
  */
@@ -136,7 +136,7 @@ uint32_t qkd_version_9_9999_6() {
  * version check for 9.9999.7 
  * 
  * any compiler and linker may link against the qkd library
- * requesting this funtcion to ensure availablity
+ * requesting this function to ensure availability
  * 
  * @return  value, representing the version
  */

@@ -132,7 +132,7 @@ std::string const & protocol::protocol_id_name(uint8_t nProtocolId) {
 /**
  * parse data from the peer
  * 
- * the read buffer is examined if it containes
+ * the read buffer is examined if it contains
  * a Q3P message. If so, the message is removed and parsed
  * 
  * @param   cBuffer         read buffer which may contain a Q3P message
@@ -152,7 +152,7 @@ protocol_error protocol::recv(QByteArray & cBuffer, qkd::q3p::message & cMessage
     // don't proceed if we ain't got enough to work on
     if ((uint32_t)cBuffer.size() < nPacketSize) return protocol_error::PROTOCOL_ERROR_PENDING;
     
-    // cut off the first packet and leave the remaining piece intakt
+    // cut off the first packet and leave the remaining piece intact
     QByteArray cPacket = cBuffer.left(nPacketSize);
     cBuffer = cBuffer.right(cBuffer.size() - nPacketSize);
     
