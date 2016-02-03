@@ -32,6 +32,7 @@
 # test scripts
 
 # tools test
+configure_file(test-qkd-key-compare             ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-key-compare            @ONLY)
 configure_file(test-qkd-pipeline                ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-pipeline               @ONLY)
 configure_file(test-qkd-pipeline-autoconnect    ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-pipeline-autoconnect   @ONLY)
 configure_file(test-qkd-statistics-average      ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-statistics-average     @ONLY)
