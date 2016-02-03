@@ -111,7 +111,7 @@ int main(int argc, char ** argv) {
 
     // we need a name
     if (cVariableMap.count("ID") != 1) {
-        std::cerr << "need excactly one ID argument" << "\ntype '--help' for help" << std::endl;
+        std::cerr << "need exactly one ID argument" << "\ntype '--help' for help" << std::endl;
         return 1;
     }
     
