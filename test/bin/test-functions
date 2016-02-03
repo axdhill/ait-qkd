@@ -134,6 +134,7 @@ function test_init() {
         
         ln -f -s tools/q3p-keystore-dump/q3p-keystore-dump;
         ln -f -s tools/q3p-mq-reader/q3p-mq-reader;
+        ln -f -s tools/qkd-key-compare/qkd-key-compare;
         ln -f -s tools/qkd-key-dump/qkd-key-dump;
         ln -f -s tools/qkd-key-gen/qkd-key-gen;
         ln -f -s tools/qkd-pipeline/qkd-pipeline;
