@@ -3,3 +3,6 @@ build/*
 
 # do not checkin vim temporary files
 *.swp
+
+# ignores IntelliJ-based IDE project files
+.idea
