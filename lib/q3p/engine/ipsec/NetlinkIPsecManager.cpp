@@ -74,13 +74,13 @@ NetlinkIPsecManager::NetlinkIPsecManager(IPAddress source_add, IPAddress destina
 	netlinkSocket=socket(AF_NETLINK ,SOCK_RAW , NETLINK_XFRM );
 
 	/* source address */
-	memset(&s_nladdr, 0 ,sizeof(s_nladdr)); //Initalize, includes to fill padding with zeroes
+	memset(&s_nladdr, 0 ,sizeof(s_nladdr)); //Initialize, includes to fill padding with zeroes
 	s_nladdr.nl_family= AF_NETLINK ;
 	s_nladdr.nl_pid = pthread_self() << 16 | getpid();  //from this actual thread in this program
 	bind(netlinkSocket, (struct sockaddr*)&s_nladdr, sizeof(s_nladdr));
 
 	/* destination address */
-	memset(&d_nladdr, 0 ,sizeof(d_nladdr)); //Initalize, includes to fill padding with zeroes
+	memset(&d_nladdr, 0 ,sizeof(d_nladdr)); //Initialize, includes to fill padding with zeroes
 	d_nladdr.nl_family= AF_NETLINK ;
 	d_nladdr.nl_pid = 0; // destined to kernel
 

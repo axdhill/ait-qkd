@@ -62,7 +62,7 @@ class channel_event_handler;
  * 
  * the channel event manager runs a series of events on 
  * registered event handlers. this is done on a per
- * measurment basis
+ * measurement basis
  */
 class channel_event_manager {
 

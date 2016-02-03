@@ -100,7 +100,7 @@ void dump(QString sURL) {
     std::cout << "keys in db: " << cDB->count() << std::endl;
     
     // space needed for the key-bits:
-    // we have quantum() key bytes: each byte neads 2 space
+    // we have quantum() key bytes: each byte needs 2 space
     // plus the space in between for every 8th byte
     unsigned int nFill = cDB->quantum() * 2 + cDB->quantum() / 8;
     

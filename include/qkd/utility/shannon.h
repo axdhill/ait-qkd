@@ -53,7 +53,7 @@ namespace utility {
 
 
 /**
- * caluclate the binary entropy
+ * calculate the binary entropy
  * 
  * .. formerly known as "Shannon Limit"
  *
@@ -63,7 +63,7 @@ namespace utility {
  * The resulted value is the lowest possible value:
  *      The Shannon Limit
  * 
- * @param   nErrorRate          error rate (or propability p(0))
+ * @param   nErrorRate          error rate (or probability p(0))
  * @return  the binary entropy or std::numeric_limits< double >::quiet_NaN() for error
  * */
 double binary_entropy(double nErrorRate);
@@ -113,16 +113,16 @@ double relative_inefficiency(uint64_t nBits, uint64_t nDisclosedBits, double nEr
 
 
 /**
- * get the shannon limit on a binary symetric channel
+ * get the shannon limit on a binary symmetric channel
  * 
- * @param   nErrorRate      error rate of the binary symetric channel
+ * @param   nErrorRate      error rate of the binary symmetric channel
  * @return  actually binary_entropy
  */
 inline double shannon_limit_bsc(double nErrorRate) { return binary_entropy(nErrorRate); }
 
 
 /**
- * caluclate the error correction efficiency
+ * calculate the error correction efficiency
  *
  * @param   nErrorRate          error rate detected
  * @param   nDisclosedRate      bits disclosed compared to all bits to get there

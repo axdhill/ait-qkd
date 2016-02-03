@@ -85,7 +85,7 @@ connection::~connection() {
  */
 bool connection::add(std::string sURL, int nHighWaterMark, std::string sIPCPrefix, std::string sIPCSuffix) {
     
-    // try to work on an allready added instance
+    // try to work on an already added instance
     path_ptr cPath;
     auto cFound = std::find_if(m_cPaths.begin(), m_cPaths.end(), [&](path_ptr & p) { return (p->url() == sURL); });
     if (cFound != m_cPaths.end()) {
@@ -268,10 +268,10 @@ bool connection::read_key(qkd::module::path & cPath, qkd::key::key & cKey) {
  *
  * this call is blocking
  * 
- * The given message object will be deleted with delet before assigning new values.
+ * The given message object will be deleted with delete before assigning new values.
  * Therefore if message receive has been successful the message is not NULL
  * 
- * This call waits explcitly for the next message been of type eType. If this
+ * This call waits explicitly for the next message been of type eType. If this
  * is NOT the case a exception is thrown.
  * 
  * @param   cMessage            this will receive the message
@@ -476,10 +476,10 @@ bool connection::send_message(qkd::module::path & cPath, qkd::module::message & 
 
 
 /**
- * splt a list of urls sperarated by semicolon into a list
+ * split a list of urls separated by semicolon into a list
  * of url string
  * 
- * @param   sURLs       a string holding many URLs, spearated by ';'
+ * @param   sURLs       a string holding many URLs, separated by ';'
  * @return  the URLs as given in the sURLs
  */
 std::list<std::string> connection::split_urls(std::string sURLs) {

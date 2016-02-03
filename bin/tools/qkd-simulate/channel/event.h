@@ -174,9 +174,9 @@ public:
 
         
     /**
-     * create a priority value by shifting the time value and binary OR of the priroty
+     * create a priority value by shifting the time value and binary OR of the priority
      * 
-     * @return  a priority value for comparision of events
+     * @return  a priority value for comparison of events
      */
     int64_t priority_value() const { return ((nTime << 3) | (ePriority & 0x07)); };
     
@@ -187,7 +187,7 @@ public:
      * if true than this event has to be handled prior
      *
      * @param   rhs     right hand side
-     * @return  true if this event is earlier or at the same time but with higher periority
+     * @return  true if this event is earlier or at the same time but with higher priority
      */
     bool operator>(event const & rhs) const { return (priority_value() < rhs.priority_value()); };
     
@@ -198,7 +198,7 @@ public:
      * if true then this event has to be handled after rhs
      *
      * @param   rhs     right hand side
-     * @return  true if this event is earlier or at the same time but with higher periority
+     * @return  true if this event is earlier or at the same time but with higher priority
      */
     bool operator<(event const & rhs) const { return (priority_value() > rhs.priority_value()); };
     
@@ -223,7 +223,7 @@ public:
 
 
 /**
- * a queue of priorized events
+ * a queue of prioritized events
  */
 class event_queue : public std::priority_queue<event, std::vector<event>, event_less> {
     

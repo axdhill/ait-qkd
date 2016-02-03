@@ -2,7 +2,7 @@
  * NetlinkMessage.cpp
  *
  * This class is a virtual representation of an XFRM message;
- * it has to be instanciated with a concrete message.
+ * it has to be instantiated with a concrete message.
  * The NetlinkManager uses this class and its subclasses to manage
  * the IPsec databases (SAD and SPD) via Netlink
  *

@@ -156,7 +156,7 @@ protocol_error load_request::recv_internal(UNUSED qkd::q3p::message & cMessage) 
         return protocol_error::PROTOCOL_ERROR_ENGINE;
     }
     
-    // extact the very first string
+    // extract the very first string
     std::string sText;
     try {
         cMessage >> sText;
@@ -327,7 +327,7 @@ protocol_error load_request::recv_LOAD_ACK(qkd::q3p::message & cMessage) {
         return protocol_error::PROTOCOL_ERROR_SOCKET;
     }
     
-    // look up orginal message
+    // look up original message
     if (d->cSent.find(nMessageId) == d->cSent.end()) {
         
         // huh? received an acknowledgement for message we didn't sent?
@@ -492,7 +492,7 @@ protocol_error load_request::recv_LOAD_REQ(UNUSED qkd::q3p::message & cMessage) 
     nKeysOutgoing -= (nKeysOutgoing % (cCommonStore->quantum() / cOutgoingBuffer->quantum()));
     nKeysApplication -= (nKeysApplication % (cCommonStore->quantum() / cApplicationBuffer->quantum()));
     
-    // dont proceed if no keys to fetch at all
+    // don't proceed if no keys to fetch at all
     if ((nKeysOutgoing == 0) && (nKeysApplication == 0)) return protocol_error::PROTOCOL_ERROR_NO_ERROR;
     
     // setup the message to send
@@ -630,7 +630,7 @@ void load_request::run_internal() {
     // setup the message to send
     load_message cLoadReqMessage = boost::shared_ptr<load_message_instance>(new load_message_instance);
     
-    // do not proceed if we aint any keys to move
+    // do not proceed if there aren't any keys to move
     if ((cCommonStore->count() / 3) == 0) return;
 
     // how many keys do we need in the buffers?

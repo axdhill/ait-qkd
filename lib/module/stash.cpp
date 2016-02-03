@@ -129,7 +129,7 @@ qkd::key::key stash::choose() const {
 
 
 /**
- * pick a key which occures first in both lists and remove it
+ * pick a key which occurs first in both lists and remove it
  * 
  * If not such key exits, a key with is_null() == true is returned
  * 
@@ -142,7 +142,7 @@ qkd::key::key stash::pick() {
     
 
 /**
- * pick a key as alice which occures first in both lists and remove it
+ * pick a key as alice which occurs first in both lists and remove it
  * 
  * If not such key exits, a key with is_null() == true is returned
  * 
@@ -213,7 +213,7 @@ qkd::key::key stash::pick_alice() {
     
 
 /**
- * pick a key as bob which occures first in both lists and remove it
+ * pick a key as bob which occurs first in both lists and remove it
  * 
  * If not such key exits, a key with is_null() == true is returned
  * 

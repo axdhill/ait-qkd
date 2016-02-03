@@ -116,7 +116,7 @@ channel::~channel() {
  */
 void channel::delete_files() {
     
-    // enfore deleting of output files
+    // enforce deleting of output files
     unlink(get_file_alice().c_str());
     unlink(get_file_bob().c_str());
 }
@@ -130,7 +130,7 @@ void channel::detector_thread() {
     m_nRound = 0;
     do {
         
-        // do a measurment
+        // do a measurement
         measurement cMeasurement = measure();
         measurement_bb84 * cMeasurementBB84 = dynamic_cast<qkd::simulate::measurement_bb84 *>(cMeasurement.get());
         if (!cMeasurementBB84->free_running()) flush_measurment(cMeasurement);
@@ -373,7 +373,7 @@ void channel::launch_detector_thread() {
 /**
  * perform a measurement
  * 
- * @return  the measurment
+ * @return  the measurement
  */
 measurement channel::measure() {
     

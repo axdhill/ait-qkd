@@ -128,7 +128,7 @@ private:
     /**
      * check if this context allows to reuse the final key
      * 
-     * @return  true, if the final key can be resued
+     * @return  true, if the final key can be reused
      */
     bool final_key_reusable_internal() const { return false; };
     
@@ -136,7 +136,7 @@ private:
     /**
      * get the size of the final key in bytes
      * 
-     * @return  the size of the final key or 0 if inapprobiate
+     * @return  the size of the final key or 0 if inappropriate
      */
     uint64_t final_key_size_internal() const { return 0; };
     
@@ -154,13 +154,13 @@ private:
     /**
      * check if this context allows to reuse the init key
      * 
-     * @return  true, if the init key can be resued
+     * @return  true, if the init key can be reused
      */
     bool init_key_reusable_internal() const { return false; };
     
 
     /**
-     * NULL is clonable
+     * NULL is cloneable
      * 
      * @return  true
      */
@@ -186,7 +186,7 @@ private:
     /**
      * get the size of the init key
      * 
-     * @return  the size of the init key or 0 if inapprobiate
+     * @return  the size of the init key or 0 if inappropriate
      */
     uint64_t init_key_size_internal() const { return 0; };
     
@@ -207,7 +207,7 @@ private:
     /**
      * return the scheme string (at the current state) of this context
      * 
-     * @return  the scheme identifiying this context
+     * @return  the scheme identifying this context
      */
     qkd::crypto::scheme scheme_internal() const;
     

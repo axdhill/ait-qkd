@@ -163,7 +163,7 @@ private:
     static uint32_t m_nLastId;
     
     
-    // push tight memory aligment
+    // push tight memory alignment
 #if defined(__GNUC__) || defined(__GNUCPP__)
 #   pragma pack(push, 1)
 #else
@@ -182,7 +182,7 @@ private:
     } m_cHeader;
 
     
-    // pop old memory aligment
+    // pop old memory alignment
 #if defined(__GNUC__) || defined(__GNUCPP__)
 #   pragma pack(pop)
 #else

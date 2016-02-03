@@ -81,14 +81,14 @@ typedef boost::shared_ptr<average_technique> average;
  * 
  * If the name is "time" then the WINDOW-SIZE is the number of millisecs
  * in the past starting with NOW() for which the average is calculated. The
- * calcuation is then the sum of all items within WINDOW-SIZE divided by the
+ * calculation is then the sum of all items within WINDOW-SIZE divided by the
  * age of the oldest entry in seconds.
  * 
  * Having an average object, one now adds values to it via add() or << stream.
  * 
  * The average value as sum of all single values within WINDOW-SIZE can be 
- * retrived via sum(). The average value as average of all single values within
- * WINDOW-SIZE can be retrived via avg().
+ * retrieved via sum(). The average value as average of all single values within
+ * WINDOW-SIZE can be retrieved via avg().
  * 
  * Example:
  * 
@@ -250,7 +250,7 @@ protected:
      * 
      * Design artfice:
      * 
-     * Hence, although this function is "const" it returns the modifyable internal data set.
+     * Hence, although this function is "const" it returns the modifiable internal data set.
      * This is intended, since the avg() and sum() calls are meant be "const" and the other side, 
      * this avg() and sum() calls are also the ideal place to get rid of unneeded average values, 
      * which drop out of the window via trim().

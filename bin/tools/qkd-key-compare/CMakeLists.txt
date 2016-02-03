@@ -1,11 +1,11 @@
 # ------------------------------------------------------------
 # CMakeLists.txt 
 # 
-# make: qkd/bin/tools
+# make: qkd/bin/tools/qkd-key-compare
 #
 # Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
-# Copyright (C) 2012-2016 AIT Austrian Institute of Technology
+# Copyright (C) 2016 AIT Austrian Institute of Technology
 # AIT Austrian Institute of Technology GmbH
 # Donau-City-Strasse 1 | 1220 Vienna | Austria
 # http://www.ait.ac.at
@@ -29,16 +29,19 @@
 
 
 # ------------------------------------------------------------
-# go through the subs
+# tools/qkd-key-compare
 
-add_subdirectory(q3p-keystore-dump)
-add_subdirectory(q3p-mq-reader)
-add_subdirectory(qkd-blob-keystream)
-add_subdirectory(qkd-key-compare)
-add_subdirectory(qkd-key-dump)
-add_subdirectory(qkd-key-gen)
-add_subdirectory(qkd-pipeline)
-add_subdirectory(qkd-module-manager)
-add_subdirectory(qkd-statistics-average)
-add_subdirectory(qkd-simulate)
-add_subdirectory(qkd-view)
+# sources
+set(QKD_KEY_COMPARE_SRC
+    main.cpp
+)
+
+# bin definition
+add_executable(qkd-key-compare ${QKD_KEY_COMPARE_SRC})
+
+# linkage
+target_link_libraries(qkd-key-compare ${CMAKE_REQUIRED_LIBRARIES})
+
+# install
+install(TARGETS qkd-key-compare RUNTIME DESTINATION bin COMPONENT tools)
+

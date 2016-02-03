@@ -69,8 +69,8 @@ public:
     
     std::recursive_mutex cPropertyMutex;            /**< property mutex */
     
-    double nMaxBitsPerSecond;                       /**< maximum bits per seond */
-    double nMaxKeysPerSecond;                       /**< maximum keys per seond */
+    double nMaxBitsPerSecond;                       /**< maximum bits per second */
+    double nMaxKeysPerSecond;                       /**< maximum keys per second */
     
     qkd::utility::average m_cBitsPerSecond;         /**< current bits per second */
     qkd::utility::average m_cKeysPerSecond;         /**< current keys per second */

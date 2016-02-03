@@ -1,7 +1,7 @@
 /*
  * my_module.cpp
  * 
- * This is the implmentation file for a sample QKD module
+ * This is the implementation file for a sample QKD module
  * 
  * This module counts the bits set in the bypassing keys
  * 

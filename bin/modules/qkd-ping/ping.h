@@ -48,7 +48,7 @@
  *
  * @param   cModuleComm         the module communicator
  * @param   nPackageSize        size of packet to send
- * @return  true, if succefully pinged
+ * @return  true, if successfully pinged
  */
 bool ping_alice(qkd::module::communicator & cModuleComm, uint64_t nPackageSize);
 
@@ -58,7 +58,7 @@ bool ping_alice(qkd::module::communicator & cModuleComm, uint64_t nPackageSize);
  *
  * @param   cModuleComm         the module communicator
  * @param   nPackageSize        size of packet to send
- * @return  true, if succefully pinged
+ * @return  true, if successfully pinged
  */
 bool ping_bob(qkd::module::communicator & cModuleComm, uint64_t nPackageSize);
 

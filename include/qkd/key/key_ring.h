@@ -62,7 +62,7 @@ namespace key {
  * This behaves most likely as a std::vector
  * 
  * BUT: 
- *      - no add to the begining allowed, 
+ *      - no add to the beginning allowed,
  *      - no arbitrary insert
  *      - all keys are added to the end
  *      - the last key will be slowly filled
@@ -115,7 +115,7 @@ namespace key {
  *      data:   |<--- key_2---->|<--- key_3 -
  *              --->|    
  * 
- * This is usefull for constructing a series of same length keys
+ * This is useful for constructing a series of same length keys
  * from a random number of different keys with arbitrary length.
  */
 class key_ring : private std::vector<qkd::key::key> {
@@ -248,7 +248,7 @@ public:
      * add a key to the key ring
      * 
      * depending on the key_ring's key size the given
-     * key will be splitted into enough keys to
+     * key will be split into enough keys to
      * match the key_ring's specs.
      * 
      * Any key added will contain a new key id.

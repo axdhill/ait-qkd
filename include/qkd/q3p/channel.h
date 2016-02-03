@@ -65,7 +65,7 @@ enum class channel_error : uint8_t {
     CHANNEL_ERROR_MESSAGE,                      /**< the message object is malformed */
     CHANNEL_ERROR_KEYS,                         /**< not enough keys in the buffers to perform action or invalid */
     CHANNEL_ERROR_AUTH,                         /**< authentication failed NOTE: THIS IS CRITICAL! THIS IS AN ATTACK! */
-    CHANNEL_ERROR_CONTEXT                       /**< crpyto operation failed internally */
+    CHANNEL_ERROR_CONTEXT                       /**< crypto operation failed internally */
 };
 
    
@@ -174,7 +174,7 @@ public:
      * the maximum size of an uncompressed message payload
      * 
      * a message holding anything bigger than that will be compressed
-     * to save bandwitdth
+     * to save bandwidth
      * 
      * encrypted messages are always compressed to save key material
      * 

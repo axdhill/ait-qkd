@@ -1023,7 +1023,7 @@ bool qkd_sifting_bb84::sync_key_data(qkd::key::key & cKey,
  * @param   bBit            the bit to calculate
  * @param   eBase           the base
  * @param   nQuantumEvent   the quantum event
- * @return  true, if successfully deteced
+ * @return  true, if successfully detected
  */
 /*
 bool base_to_bit(bool & bBit, bb84_base eBase, unsigned char nQuantumEvent) {
@@ -1124,7 +1124,7 @@ void bases_to_bits(qkd::utility::bigint & cBits,
 
 /**
  * tests a single event of the Quantum table
- * implents "squashing", Ref. arXiv:0804.3082 and following work by Luetgenhaus
+ * implements "squashing", Ref. arXiv:0804.3082 and following work by Luetgenhaus
  *
  * @param   nEvent          the event
  * @return  a bb84 measurement

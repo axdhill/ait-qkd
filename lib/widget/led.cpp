@@ -116,7 +116,7 @@ void led::blink() {
     // check how many blinks we've passed
     uint64_t nBlinks = nSinceLast / nBlinkIntervall;
     
-    // set new "now" (but with proper timespan, not now + intervall)
+    // set new "now" (but with proper timespan, not now + interval)
     m_cBlinkingLast = m_cBlinkingLast + std::chrono::milliseconds(nBlinks * nBlinkIntervall);
     
     // an even number of blinks is ... no blink at all
@@ -129,7 +129,7 @@ void led::blink() {
 
 
 /**
- * enusre the pixmaps are loaded
+ * ensure the pixmaps are loaded
  */
 void led::load_pixmaps() const {
     
@@ -191,7 +191,7 @@ QSize led::sizeHint() const {
     QPixmap cPixmapScaled = g_cPixmaps[state()].scaledToHeight(cFontSize.height());
     QMargins cMargins = contentsMargins();
 
-    // here + 4 is added to the width, since the font width does to produce errornous results
+    // here + 4 is added to the width, since the font width does to produce erroneous results
     // same for height
     return QSize(cMargins.left() + cPixmapScaled.width() + 4 + cFontSize.width() + cMargins.right() + 4, cMargins.top() + std::max(cPixmapScaled.height(), cFontSize.height()) + cMargins.bottom() + 4);
 }

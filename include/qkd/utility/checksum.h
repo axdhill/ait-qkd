@@ -63,7 +63,7 @@ typedef boost::shared_ptr<checksum_algorithm> checksum;
  * 
  * This is actually a factory class. Concrete checksum instances are created by
  * invoking the checksum_algorithm::create function providing the a checksum name.
- * Currenly we support:
+ * Currently we support:
  * 
  *  - "crc32"
  *  - "md5"

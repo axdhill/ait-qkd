@@ -1,7 +1,7 @@
 /*
  * channel.cpp
  * 
- * implment the Q3P channel
+ * implement the Q3P channel
  *
  * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
@@ -173,7 +173,7 @@ qkd::q3p::channel_error channel::authentication_verify(qkd::q3p::message & cMess
     // the message MUST have at least the header + tag
     if (cMessage.size() < cMessage.header_size() + cCryptoContext->result_size() / 8) {
         
-        // so a message has been taged as authentic but can't hold a auth-tag at all!
+        // so a message has been tagged as authentic but can't hold a auth-tag at all!
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to verify authentication tag: message #" << cMessage.id() << " message length too short to hold header and tag.";
         return channel_error::CHANNEL_ERROR_AUTH;
     }
@@ -566,7 +566,7 @@ qkd::q3p::channel_error channel::encode(qkd::q3p::message & cMessage) {
     cMessage.set_channel_id(id());
     cMessage.set_id(message_id());
     
-    // TODO: currenly bugs: encode here, decode there does not result in same message
+    // TODO: currently bugs: encode here, decode there does not result in same message
 
     // // check if we need to compress the message
     // if ((cMessage.size() >= max_uncompressed_payload()) || (cMessage.encrypted())) nError = compress(cMessage);

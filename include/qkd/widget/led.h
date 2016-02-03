@@ -132,7 +132,7 @@ public:
     /**
      * set rate of blinking [1-10Hz]
      * 
-     * @param   nBlinkingHertz      the new ferquency to blink
+     * @param   nBlinkingHertz      the new frequency to blink
      */
     void set_blinking_hertz(uint64_t nBlinkingHertz) { 
         if ((nBlinkingHertz >= 1) && (nBlinkingHertz <= 10)) m_nBlinkingHertz = nBlinkingHertz; 
@@ -240,13 +240,13 @@ private:
     
     
     /**
-     * enusre the pixmaps are loaded
+     * ensure the pixmaps are loaded
      */
     void load_pixmaps() const;
     
     
     /**
-     * blinkg enabled or not
+     * blink enabled or not
      */
     bool m_bBlinking;
     

@@ -59,7 +59,7 @@ namespace simulate {
 
 
 /**
- * This class represenst the main widget of QKD Simulate
+ * This class represents the main widget of QKD Simulate
  */
 class main_widget : public QFrame, private Ui::main_widget {
 
@@ -160,7 +160,7 @@ public slots:
     
 
     /**
-     * update simualtion view: simulation progress ...
+     * update simulation view: simulation progress ...
      */
     void update_simulation_view();
     
@@ -181,7 +181,7 @@ signals:
     
     
     /**
-     * an update message event occured
+     * an update message event occurred
      */
     void update_message(QString sMessage);
     

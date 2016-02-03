@@ -138,7 +138,7 @@ void random_hmac_sha::init() {
         break;
 
     default:
-        // unkown key size ==> unknown hmac-sha algorithm
+        // unknown key size ==> unknown hmac-sha algorithm
         throw random_init_error();
     }
 }

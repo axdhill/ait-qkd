@@ -57,7 +57,7 @@ void * g_cZMQContext;
 
 
 /**
- * 0MQ initializer (singelton)
+ * 0MQ initializer (singleton)
  */
 class zmq_init {
     
@@ -114,7 +114,7 @@ path::~path() {
 boost::filesystem::path path::create_ipc_socket(std::string sIPCSocketFileName) {
     
     // create some /tmp/qkd/id-pid.in file
-    // TODO: this should reside soemwhere in the /run folder: FHS!
+    // TODO: this should reside somewhere in the /run folder: FHS!
     boost::filesystem::path cIPCPath = boost::filesystem::temp_directory_path() / "qkd";
     if (!boost::filesystem::exists(cIPCPath)) {
         if (!boost::filesystem::create_directory(cIPCPath)) {
@@ -140,11 +140,11 @@ boost::filesystem::path path::create_ipc_socket(std::string sIPCSocketFileName) 
  * 
  * this returns "stdin://" and "stdout://" for these schemes.
  * 
- * on "ipc:// it checks for ambiguity and for the existance and 
+ * on "ipc:// it checks for ambiguity and for the existence and
  * access to the ipc socket file.
  * 
  * on "tcp://" it also checks for ambiguity and tries to deduce
- * the IP adress for a given hostname.
+ * the IP address for a given hostname.
  * 
  * @param   sURL        an url
  * @return  a good, real, usable url (or empty() in case of failure)
@@ -208,7 +208,7 @@ std::string path::fix_url_ipc(std::string const & sURL) {
  */
 std::string path::fix_url_tcp(std::string const & sURL) {
 
-    // decuce proper IP of host
+    // deduce proper IP of host
     QUrl cURL(QString::fromStdString(sURL));
     QString sAddress = cURL.host();
     if (sAddress.isEmpty() || sAddress == "*") {

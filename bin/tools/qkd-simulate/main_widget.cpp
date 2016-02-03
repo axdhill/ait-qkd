@@ -223,7 +223,7 @@ void main_widget::check_ui() {
             m_cChannel->bob()->set_detection_mode(detection_mode::FREE_RUNNING); 
         }
         
-        // set inifinte looping
+        // set infinite looping
         m_cChannel->set_looping(cCkLoopSimulation->isChecked());
         
     }
@@ -1334,7 +1334,7 @@ void main_widget::update_output() {
 
 
 /**
- * update simualtion view: simulation progress ...
+ * update simulation view: simulation progress ...
  */
 void main_widget::update_simulation_view() {
     
@@ -1398,7 +1398,7 @@ void main_widget::update_values() {
             throw std::invalid_argument("simulation end time");
         }
         
-        // udpate the parts
+        // update the parts
         update_source();
         update_fiber();
         update_detector_alice();

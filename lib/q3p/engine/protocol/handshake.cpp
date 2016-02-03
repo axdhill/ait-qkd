@@ -150,7 +150,7 @@ bool handshake::choose_role(bool bPeerMaster, bool bPeerSlave, unsigned int nPee
     }
     else if (!bLocalDecided && bPeerDecided) {
         
-        // the peer had a decsion we had not: apply peer's one here
+        // the peer had a decision we had not: apply peer's one here
         engine()->set_master(!bPeerMaster);
         engine()->set_slave(!bPeerSlave);
         

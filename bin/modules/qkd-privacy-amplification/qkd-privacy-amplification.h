@@ -81,12 +81,12 @@ public:
     /**
      * get the reduction rate of the key
      * 
-     * the size of the key is shrinked by this rate value
+     * the size of the key is shrunk by this rate value
      * 
      * rate: 0.0 ==> no final key
      *       1.0 ==> no reduction
      *
-     * @return  the reducation rate
+     * @return  the reduction rate
      */
     double reduction_rate() const;
     
@@ -102,12 +102,12 @@ public:
     /**
      * set the reduction rate of the key
      * 
-     * the size of the key is shrinked by this rate value
+     * the size of the key is shrunk by this rate value
      * 
      * rate: 0.0 ==> no final key
      *       1.0 ==> no reduction
      *
-     * @param   nRate       the new reducation rate of the key
+     * @param   nRate       the new reduction rate of the key
      */
     void set_reduction_rate(double nRate);
     

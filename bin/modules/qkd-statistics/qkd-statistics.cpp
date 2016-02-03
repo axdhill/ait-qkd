@@ -79,7 +79,7 @@ public:
         cKeyBitsOutgoingRate = qkd::utility::average_technique::create("time", 1000);
     };
     
-    qkd_statistics * cParentModule;                     /**< the encapsuling parent module */
+    qkd_statistics * cParentModule;                     /**< the encapsulating parent module */
 
     std::recursive_mutex cPropertyMutex;                /**< property mutex */
     std::string sFileURL;                               /**< file URL */

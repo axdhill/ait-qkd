@@ -547,7 +547,7 @@ void module::init() {
 /**
  * this methods interrupts the worker thread
  * 
- * this is usefull if you find the worker thread been
+ * this is useful if you find the worker thread been
  * blocked by some I/O operation (e.g. send/recv) and
  * want to abort that action or need other steps to be
  * undertaken.
@@ -746,10 +746,10 @@ bool module::read(qkd::key::key & cKey) {
  * 
  * this call is blocking
  * 
- * The given message object will be deleted with delet before assigning new values.
+ * The given message object will be deleted with delete before assigning new values.
  * Therefore if message receive has been successful the message is not NULL
  * 
- * This call waits explcitly for the next message been of type eType. If this
+ * This call waits explicitly for the next message been of type eType. If this
  * is NOT the case a exception is thrown.
  *
  * Internally the recv_internal method is called and the actual receive
@@ -798,10 +798,10 @@ bool module::recv(qkd::module::message & cMessage,
  * 
  * this call is blocking
  * 
- * The given message object will be deleted with delet before assigning new values.
+ * The given message object will be deleted with delete before assigning new values.
  * Therefore if message receive has been successful the message is not NULL
  * 
- * This call waits explcitly for the next message been of type eType. If this
+ * This call waits explicitly for the next message been of type eType. If this
  * is NOT the case a exception is thrown.
  * 
  * @param   cMessage            this will receive the message
@@ -1091,7 +1091,7 @@ void module::set_synchronize_ttl(qulonglong nTTL) {
  * set the number of keys left before terminating (0 --> do not terminate) 
  *
  * The idea is to have a per module counter which decreases
- * when processing a key (no matter if successfull or not).
+ * when processing a key (no matter if successful or not).
  * This comes handy when testing a pipeline and one wants the
  * pipeline after some amount of keys done and terminated.
  *
@@ -1305,7 +1305,7 @@ qulonglong module::synchronize_ttl() const {
 /**
  * stops the module
  * 
- * This is a gracefull shutdown
+ * This is a graceful shutdown
  */
 void module::terminate() {
 
@@ -1349,7 +1349,7 @@ void module::thread() {
  * number of keys left before terminating (0 --> do not terminate) 
  *
  * The idea is to have a per module counter which decreases
- * when processing a key (no matter if successfull or not).
+ * when processing a key (no matter if successful or not).
  * This comes handy when testing a pipeline and one wants the
  * pipeline after some amount of keys done and terminated.
  *
@@ -1468,7 +1468,7 @@ module_state module::wait_for_state_change(module_state eWorkingState) const {
  * 5) write key (if process return true)
  * 6) return to 1
  * 
- * You may overwritte this method. But this changes module operation
+ * You may overwrite this method. But this changes module operation
  * dramatically.
  */
 void module::work() {
@@ -1521,7 +1521,7 @@ void module::work() {
         
         d->bProcessing = true;
         
-        // create crypto context for retieved key
+        // create crypto context for retrieved key
         qkd::crypto::crypto_context cIncomingContext = qkd::crypto::context::null_context();
         qkd::crypto::crypto_context cOutgoingContext = qkd::crypto::context::null_context();
         try {
@@ -1554,7 +1554,7 @@ void module::work() {
         while (eState == qkd::module::module_state::STATE_READY) eState = wait_for_state_change(eState);
         if (eState != qkd::module::module_state::STATE_RUNNING) break;
         
-        // foward all keys processed
+        // forward all keys processed
         for (auto & w : cWorkload) {
             if (w.bForward) {
                 

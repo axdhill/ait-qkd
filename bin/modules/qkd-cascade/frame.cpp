@@ -1,7 +1,7 @@
 /*
  * frame.cpp
  * 
- * Implementation of additinal cascade key 
+ * Implementation of additional cascade key
  * frame methods
  * 
  * Author: Philipp Grabenweger
@@ -81,7 +81,7 @@ void frame::flip_bit(uint64_t pos) {
 
     set_bit(pos, !get_bit(pos)); 
 
-    // we fliped the bit as bob, assuming 
+    // we flipped the bit as bob, assuming
     // now having a correct bit here
     m_cCorrectedBits.insert(pos);
 } 

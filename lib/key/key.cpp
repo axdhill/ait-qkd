@@ -289,7 +289,7 @@ void qkd::key::key::write(std::ostream & cStream) const {
 
 
 /**
- * substract one key_vector from the other
+ * subtract one key_vector from the other
  * 
  * HENCE: lhs and rhs are meant to contain __sorted__ keys
  * 

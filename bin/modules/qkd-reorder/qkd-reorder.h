@@ -48,7 +48,7 @@
  * 
  * This is achieved by having a reorder buffer of a specific size. Whenever
  * a key is pulled from the previous module the module places the key in this
- * buffer. Next the module choses randomly a buffered key to be forwarded.
+ * buffer. Next the module randomly chooses a buffered key to be forwarded.
  * 
  * Yes, this might be an empty key, which is then discarded.
  * 

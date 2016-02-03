@@ -335,7 +335,7 @@ void show_list(mq_list const & cList) {
     std::cout << "found nodes, links and message queues:" << std::endl;
     for (auto & iter : cList) {
         
-        // formater
+        // formatter
         boost::format cFormater = boost::format("node: %|-30| link: %|-30| mq: %|-30|");
         std::cout << cFormater % iter.sNode.toStdString() % iter.sLink.toStdString() % iter.sMQ.toStdString() << std::endl;
     }

@@ -7,7 +7,7 @@
  *
  *
  *       -----------------------------------------------------
- *       Please subsitute the MY_MODULE_* placements as needed
+ *       Please substitute the MY_MODULE_* placements as needed
  *       -----------------------------------------------------
  *
  *
@@ -111,7 +111,7 @@ private:
      * 
      * @param   cKey                the current new key to work on
      * @param   cIncomingContext    incoming authentication context used for receiving data from peer module
-     * @param   cOutgoingContext    outgoinf authentication context used when sending data to peer module
+     * @param   cOutgoingContext    outgoing authentication context used when sending data to peer module
      * @return  true, if key should be forwarded to next module
      */
     bool process(qkd::key::key & cKey, qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext);

@@ -7,7 +7,7 @@
  *
  *
  *       -----------------------------------------------------
- *       Please subsitute the MY_MODULE_* placements as needed
+ *       Please substitute the MY_MODULE_* placements as needed
  *       -----------------------------------------------------
  *
  *

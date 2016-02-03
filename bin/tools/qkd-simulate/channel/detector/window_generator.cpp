@@ -130,7 +130,7 @@ void window_generator::handle(event const & cEvent) {
                 cEventNew.cSource = this;
                 cEventNew.nTime = manager()->get_time();
                 
-                // foward bad sync pulse event
+                // forward bad sync pulse event
                 manager()->add_event(cEventNew); 
             }
         }

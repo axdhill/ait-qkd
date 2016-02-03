@@ -153,7 +153,7 @@ void main_widget::load_settings(QSettings const & cSettings) {
     QList<int> l;
     cStream >> l;
     
-    // itertae through list
+    // iterate through list
     for (int i = 0; i < l.size(); ++i) {
         if (i < cTvModules->columnCount()) cTvModules->setColumnWidth(i, l.at(i));
     }
@@ -366,7 +366,7 @@ void main_widget::timeout() {
         update_module_widget(cModule);
     }
     
-    // walk over update cylce and collect those not updated
+    // walk over update cycle and collect those not updated
     // --> they are not part of the system
     std::list<std::string> cModulesToDelete;
     for (auto const & cCycleData : m_cModuleUpdateCycle) {

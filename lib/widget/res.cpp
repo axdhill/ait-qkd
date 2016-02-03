@@ -181,7 +181,7 @@ void load_pixmaps() {
 
 
 /**
- * replaces a widget in the hierachy
+ * replaces a widget in the hierarchy
  * 
  * the old widget is deleted
  * 

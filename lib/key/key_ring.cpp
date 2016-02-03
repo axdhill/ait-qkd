@@ -46,7 +46,7 @@ using namespace qkd::key;
  * add a key to the key ring
  * 
  * depending on the key_ring's key size the given
- * key will be splitted into enough keys to
+ * key will be split into enough keys to
  * match the key_ring's specs.
  * 
  * Any key added will contain a new key id.

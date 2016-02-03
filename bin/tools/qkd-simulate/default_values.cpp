@@ -1,7 +1,7 @@
 /*
  * default_values.cpp
  * 
- * implement the dafault values
+ * implement the default values
  * 
  * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *         Philipp Grabenweger

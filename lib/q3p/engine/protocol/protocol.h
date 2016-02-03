@@ -90,11 +90,11 @@ enum class protocol_error : uint8_t {
     PROTOCOL_ERROR_ENGINE,                      /**< no Q3P engine present to handle protocol data */
     PROTOCOL_ERROR_SOCKET,                      /**< inappropriate socket instance */
     PROTOCOL_ERROR_CONNECTION_LOST,             /**< connection lost */
-    PROTOCOL_ERROR_TIMEOUT,                     /**< opertion did not finish within time constraint */
+    PROTOCOL_ERROR_TIMEOUT,                     /**< operation did not finish within time constraint */
     PROTOCOL_ERROR_ANSWER,                      /**< an unexpected protocol answer was received */
     PROTOCOL_ERROR_PACKET_SIZE,                 /**< packet too big */
     PROTOCOL_ERROR_CONFIG,                      /**< local and peer have inappropriate configs */
-    PROTOCOL_ERROR_CHANNEL,                     /**< channel was unable to peform work */
+    PROTOCOL_ERROR_CHANNEL,                     /**< channel was unable to perform work */
     PROTOCOL_ERROR_ROLE,                        /**< wrong role (master/slave) to handle data */
     PROTOCOL_ERROR_NOT_IMPLEMENTED              /**< not implemented yet */
 };
@@ -209,7 +209,7 @@ public:
     /**
      * parse data from the peer
      * 
-     * the read buffer is examined if it containes
+     * the read buffer is examined if it contains
      * a Q3P message. If so, the message is removed and parsed
      * 
      * @param   cBuffer         read buffer which may contain a Q3P message
@@ -293,7 +293,7 @@ signals:
      * 
      * the reason is a protocol::protocol_error value
      * 
-     * @param   nReason     the reson why the protocol failed
+     * @param   nReason     the reason why the protocol failed
      */
     void failed(uint8_t nReason);
     

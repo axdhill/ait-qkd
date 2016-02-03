@@ -50,7 +50,7 @@
  * constructor
  *
  * the constructor already calls the parity block exchange for the
- * very first comparision of the whole frame. from this comparision
+ * very first comparison of the whole frame. from this comparison
  * the odd parity blocks (== parity block peer mismatch) are collected
  * the first time. the number of blocks checked in this first round
  * depend on the block size stored within the given category value.
@@ -88,8 +88,8 @@ parity_checker::parity_checker(
 
     // create the set of parity blocks to check
     // this is done according to the categories.
-    // categories devide the whole range of bits
-    // into different segements of parity blocks
+    // categories divide the whole range of bits
+    // into different segments of parity blocks
     // to check
 
     uint64_t nCategoryOffset = 0;
@@ -113,8 +113,8 @@ parity_checker::parity_checker(
         }
 
         // calculate parities and compare with peer
-        // this triggers the very first parity comparision on the
-        // round this parity checker is repsonible for
+        // this triggers the very first parity comparison on the
+        // round this parity checker is responsible for
         calculate_block_diffparities(cCalcBlocks, cCategory.diffparity_must_be_even);
 
     	// add to parity_blocks and odd_parity_blocks
@@ -122,7 +122,7 @@ parity_checker::parity_checker(
             m_cParityBlocks.insert(m_cParityBlocks.end(), cParityBlock);
             if (cParityBlock.diffparity) {
 
-                // comparision in the calculation method found a parity mismatch
+                // comparison in the calculation method found a parity mismatch
                 // this block is subject to further investigation
                 m_cOddParityBlocks.insert(m_cOddParityBlocks.end(), cParityBlock);
             }
@@ -146,7 +146,7 @@ parity_checker::parity_checker(
  *  3. else we verify for each remaining block in cCalcBlocks the parity with the peer
  *  4. this sets the parity blocks diffparity value to either true/false
  *  5. if after this step the parity block diffparity is false, the block is treated as correct
- *  6. any parity block with diffparity value set to true is subject to further comparisions
+ *  6. any parity block with diffparity value set to true is subject to further comparisons
  *
  * @param   cCalcBlocks                     set containing the parity blocks for which their parity shall be calculated
  * @param   bTotalDiffParityMustBeEven      states whether the total differential parity sum of all blocks must be even 
@@ -345,7 +345,7 @@ void parity_checker::correct_blocks(std::set<parity_block, compare_odd_parity_bl
         parity_block cParityBlock1;
         parity_block cParityBlock2;
 
-	    // optimiziation: detect sub-blocks where we know already the parity and single bit blocks
+	    // optimization: detect sub-blocks where we know already the parity and single bit blocks
         for (auto iti = cCorrBlocksIterators.begin(); iti != cCorrBlocksIterators.end(); ) {
 
             // subblock is larger than 1 bit...
@@ -382,7 +382,7 @@ void parity_checker::correct_blocks(std::set<parity_block, compare_odd_parity_bl
                     m_cFrame.notify_bit_change_remote(inv_perm[nCorrectBitOffset]);
                 }
                 else {
-                    // bob actually flips the bit realy
+                    // bob actually flips the bit really
                     m_cFrame.flip_bit(inv_perm[nCorrectBitOffset]);
                 }
                

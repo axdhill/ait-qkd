@@ -125,7 +125,7 @@ bigint::bigint(uint64_t nBitCount) {
 /**
  * ctor
  * 
- * Construct from memory. This is a deep copy. Expenisve.
+ * Construct from memory. This is a deep copy. Expensive.
  *
  * @param   cMemory         import a memory blob as bigint
  */
@@ -139,7 +139,7 @@ bigint::bigint(qkd::utility::memory const & cMemory) {
  * copy ctor
  * 
  * Beware: this is a shallow copy! 
- * If you want a full copy use the clone() metod.
+ * If you want a full copy use the clone() method.
  */
 bigint::bigint(bigint const & rhs) {
     d = rhs.d;
@@ -282,7 +282,7 @@ int64_t bigint::compare(bigint const & rhs) const {
  * this sets all bits to 1
  */
 void bigint::fill() {
-    // TODO: find a better performant way
+    // TODO: find a better performing way
     for (uint64_t i = 0; i < bits(); i++) set_bit(i, true);
 }
 
@@ -304,11 +304,11 @@ bool bigint::get_bit(uint64_t nPosition) const {
  * create a bitmask
  * 
  * The size of the bitmask is nSize with all bits set to 0, except for
- * nWidth bits starting at posiiton nStartPos.
+ * nWidth bits starting at position nStartPos.
  * 
- * @param   nSize           size of the bigtin returned
+ * @param   nSize           size of the bigint returned
  * @param   nWidth          width of the bitmask
- * @param   nStartPos       tsrating posiiton of the bitpattern within the mask
+ * @param   nStartPos       starting position of the bitpattern within the mask
  * @return  a bitmask
  */
 qkd::utility::bigint bigint::mask(uint64_t nSize, uint64_t nWidth, uint64_t nStartPos) {

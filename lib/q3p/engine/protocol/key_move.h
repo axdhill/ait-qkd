@@ -94,7 +94,7 @@ protected:
      * @param   cCommonStoreKeys        list of common store keys
      * @param   cBufferKeys             list of buffer keys
      * @param   cBuffer                 the buffer to copy to
-     * @return  keys ids sucessfully copied
+     * @return  keys ids successfully copied
      */
     qkd::key::key_vector copy_buffer(qkd::key::key_vector const & cCommonStoreKeys, qkd::key::key_vector const & cBufferKeys, qkd::q3p::key_db & cBuffer);
     
@@ -106,7 +106,7 @@ protected:
      * 
      * @param   cCommonStoreKeys        list of common store keys
      * @param   cBufferKeys             list of buffer keys
-     * @return  keys ids sucessfully copied
+     * @return  keys ids successfully copied
      */
     qkd::key::key_vector copy_application(qkd::key::key_vector const & cCommonStoreKeys, qkd::key::key_vector const & cBufferKeys);
     
@@ -118,7 +118,7 @@ protected:
      * 
      * @param   cCommonStoreKeys        list of common store keys
      * @param   cBufferKeys             list of buffer keys
-     * @return  keys ids sucessfully copied
+     * @return  keys ids successfully copied
      */
     qkd::key::key_vector copy_incoming(qkd::key::key_vector const & cCommonStoreKeys, qkd::key::key_vector const & cBufferKeys);
     
@@ -130,7 +130,7 @@ protected:
      * 
      * @param   cCommonStoreKeys        list of common store keys
      * @param   cBufferKeys             list of buffer keys
-     * @return  keys ids sucessfully copied
+     * @return  keys ids successfully copied
      */
     qkd::key::key_vector copy_outgoing(qkd::key::key_vector const & cCommonStoreKeys, qkd::key::key_vector const & cBufferKeys);
 
@@ -145,7 +145,7 @@ protected:
      * @param   cCommonStoreKeys        list of common store keys
      * @param   cBufferKeys             list of buffer keys
      * @param   cBuffer                 the buffer to move to
-     * @return  keys ids sucessfully moved
+     * @return  keys ids successfully moved
      */
     qkd::key::key_vector move_buffer(qkd::key::key_vector const & cCommonStoreKeys, qkd::key::key_vector const & cBufferKeys, qkd::q3p::key_db & cBuffer);
     
@@ -157,7 +157,7 @@ protected:
      * 
      * @param   cCommonStoreKeys        list of common store keys
      * @param   cBufferKeys             list of buffer keys
-     * @return  keys ids sucessfully moved
+     * @return  keys ids successfully moved
      */
     qkd::key::key_vector move_application(qkd::key::key_vector const & cCommonStoreKeys, qkd::key::key_vector const & cBufferKeys);
     
@@ -169,7 +169,7 @@ protected:
      * 
      * @param   cCommonStoreKeys        list of common store keys
      * @param   cBufferKeys             list of buffer keys
-     * @return  keys ids sucessfully moved
+     * @return  keys ids successfully moved
      */
     qkd::key::key_vector move_incoming(qkd::key::key_vector const & cCommonStoreKeys, qkd::key::key_vector const & cBufferKeys);
     
@@ -181,7 +181,7 @@ protected:
      * 
      * @param   cCommonStoreKeys        list of common store keys
      * @param   cBufferKeys             list of buffer keys
-     * @return  keys ids sucessfully moved
+     * @return  keys ids successfully moved
      */
     qkd::key::key_vector move_outgoing(qkd::key::key_vector const & cCommonStoreKeys, qkd::key::key_vector const & cBufferKeys);
 

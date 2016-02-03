@@ -77,9 +77,9 @@ namespace crypto {
  * this class represents a Galois Field 2
  *
  * The class creates a Galois Field 2^x with x been the number of bits managed.
- * For beeing useful we need a irreducible polynom this GF2 is based on. This
+ * For being useful we need an irreducible polynom this GF2 is based on. This
  * polynom is given as a simple unsigned int value representing the coefficients of
- * the polynom. Note that the modulus omits the most signficant bit, since this is 
+ * the polynom. Note that the modulus omits the most significant bit, since this is
  * always set.
  *
  * E.g. 
@@ -331,9 +331,9 @@ protected:
     /**
      * shift a blob to the left for an amount of bits
      *
-     * @param   res             num << bits plus oveflow
+     * @param   res             num << bits plus overflow
      * @param   num             the number to shift
-     * @param   overflow        will contain the oveflow
+     * @param   overflow        will contain the overflow
      * @param   bits            amount of bits to shift
      */
     inline void blob_shift_left(blob_t & res, blob_t const & num, blob_t & overflow, unsigned int bits) const {
@@ -472,7 +472,7 @@ protected:
         }
         else {
 
-            // recursion is possible, but only necesary for
+            // recursion is possible, but only necessary for
             // bits that are > twice the field size, which we
             // never encounter in multiplication 
             assert(NULL) ;

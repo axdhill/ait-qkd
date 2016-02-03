@@ -50,9 +50,9 @@
  */
 enum class bb84_base : unsigned char {
     
-    BB84_BASE_INVALID = 0,          /**< irregular base measument */
-    BB84_BASE_DIAGONAL,             /**< diagonal measument */
-    BB84_BASE_RECTILINEAR           /**< rectilinear measument */
+    BB84_BASE_INVALID = 0,          /**< irregular base measurement */
+    BB84_BASE_DIAGONAL,             /**< diagonal measurement */
+    BB84_BASE_RECTILINEAR           /**< rectilinear measurement */
 };
 
 

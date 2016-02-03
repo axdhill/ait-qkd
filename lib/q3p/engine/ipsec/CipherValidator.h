@@ -23,8 +23,8 @@ private:
 	int key_length;
 };
 
-} /* namepsace QuaKE */
+} /* namespace QuaKE */
 
-} /* namepace qkd */
+} /* namespace qkd */
 
 #endif /* CIPHERVALIDATOR_H_ */

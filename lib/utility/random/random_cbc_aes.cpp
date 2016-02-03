@@ -74,7 +74,7 @@ void random_cbc_aes::get(char * cBuffer, uint64_t nSize) {
     if (!cBuffer) return;
     if (nSize == 0) return;
     
-    // create enough "plaintext": concentate the increasing counter with pid and current time stamp in ms
+    // create enough "plaintext": concentrate the increasing counter with pid and current time stamp in ms
     qkd::utility::buffer cPlaintext;
     cPlaintext << m_nCounter++;
     cPlaintext << qkd::utility::environment::process_id();
@@ -133,7 +133,7 @@ void random_cbc_aes::init() {
         break;
 
     default:
-        // unkown key size ==> unknown cbc-aes algorithm
+        // unknown key size ==> unknown cbc-aes algorithm
         throw random_init_error();
     }
 }

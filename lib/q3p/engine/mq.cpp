@@ -142,7 +142,7 @@ mq_instance::mq_instance(qkd::q3p::engine_instance * cEngine) : QObject(), m_cEn
     d->nMaxKey = std::min(d->nMaxKey, (uint64_t)MAX_KEYS_IN_QUEUE);
     d->nMaxKeySize = std::min(d->nMaxKeySize, (uint64_t)MAX_KEYSIZE_IN_QUEUE);
     
-    // key size must be a multible of application_buffer()->quantum()
+    // key size must be a multiple of application_buffer()->quantum()
     d->nMaxKeySize -= (d->nMaxKeySize % engine()->application_buffer()->quantum());
     
     // define the mq properties

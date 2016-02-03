@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-qkd-key-compare
+# 
+# This is a test file.
+#
+# TEST: test the qkd-key-compare tool
+#
+# Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2013-2016 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+# ------------------------------------------------------------
+
+# init test environment
+test_init "$(basename $0).d"
+
+rm -rf cat_keys.* &> /dev/null
+KEYS_TO_PROCESS="100"
+${TEST_BASE}/bin/qkd-key-gen --silent --size 2048 --keys ${KEYS_TO_PROCESS} --rate 0.03 cat_keys
+
+${TEST_BASE}/bin/qkd-key-compare cat_keys.alice cat_keys.bob
+
+echo "=== TEST SUCCESS ==="
+

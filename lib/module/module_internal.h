@@ -78,7 +78,7 @@ public:
     std::string sOrganisation;                  /**< the organisation/creator of the module */
     std::string sPipeline;                      /**< the pipeline id this module is assigned */
     std::string sHint;                          /**< the module's hint */
-    qkd::utility::random cRandom;               /**< random number generaror */
+    qkd::utility::random cRandom;               /**< random number generator */
     std::string sRandomUrl;                     /**< random number source URL */
     module_role eRole;                          /**< role of the module */
     unsigned long nStartTimeStamp;              /**< init UNIX epoch: time of birth */

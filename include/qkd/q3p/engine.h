@@ -84,7 +84,7 @@ typedef std::map<QString, qkd::q3p::engine> engine_map;
  */
 enum class engine_state : uint8_t {
     
-    ENGINE_INIT = 0,                /**< initital state */
+    ENGINE_INIT = 0,                /**< initial state */
     ENGINE_OPEN = 1,                /**< engine has opened the database */
     ENGINE_CONNECTING = 2,          /**< engine is currently connecting to its peer */
     ENGINE_HANDSHAKE = 3,           /**< engine is currently in the handshake phase with its peer */
@@ -96,7 +96,7 @@ enum class engine_state : uint8_t {
  * This is the Q3P Engine - aka "Q3P KeyStore" - aka "Q3P Link" all synonyms.
  * 
  * A Q3P Engine / Q3P KeyStore / Q3P Link IS A special QKD module which 
- * terminates a QKD pipline.
+ * terminates a QKD pipeline.
  * 
  * A Q3P engine (or "link") does all the Q3P work:
  * 
@@ -126,7 +126,7 @@ enum class engine_state : uint8_t {
  * 
  *      connected           R           flag for been connected with a peer instance
  * 
- *      db_opened           R           flag if the underlaying key-DB has been opened
+ *      db_opened           R           flag if the underlying key-DB has been opened
  * 
  *      link_id             R           ID of the engine/link instance
  * 
@@ -157,7 +157,7 @@ enum class engine_state : uint8_t {
  *                                  this can be done if the key DB has been opened and there
  *                                  is at some key therein
  *                              
- *                                  further: an initial secret is needed, sufficiant enough
+ *                                  further: an initial secret is needed, sufficient enough
  *                                  for the first authentications
  * 
  *      disconnect()                wind down a living connection
@@ -168,7 +168,7 @@ enum class engine_state : uint8_t {
  *                                              ONLY to provide shared secrets. If you this 
  *                                              on both sides, you'll go out-of-sync.
  *                                              Works only on opened key DB and without connection.
- *                                  HENCE 2:    The key insert MUST be a multible of quantum(). 
+ *                                  HENCE 2:    The key insert MUST be a multiple of quantum().
  *                                              Overflow will be discarded!
  * 
  *      inject_url()                this works as inject() but takes an resource identified by 
@@ -203,7 +203,7 @@ class engine_instance : public qkd::module::module {
     Q_PROPERTY(bool db_opened READ db_opened)                   /**< DB opened flag */
     Q_PROPERTY(QString link_id READ link_id)                    /**< the ID of this engine instance (aka Link) */
     Q_PROPERTY(QString link_local READ link_local)              /**< the local hostaddress to serve */
-    Q_PROPERTY(QString link_peer READ link_peer)                /**< peer host addres */
+    Q_PROPERTY(QString link_peer READ link_peer)                /**< peer host address */
     Q_PROPERTY(unsigned int link_state READ link_state)         /**< the current engine's state */
     Q_PROPERTY(bool master READ master WRITE set_master)        /**< master role flag */
     Q_PROPERTY(QString mq READ mq)                              /**< message queue name */
@@ -247,24 +247,24 @@ public:
     /**
      * request keys from the application buffer
      * 
-     * the given key material is extraced from the application buffers
+     * the given key material is extracted from the application buffers
      * on both sides based on the given application identifier and size.
      * 
-     * The method returns successfull if the requested key material has
+     * The method returns successfully if the requested key material has
      * been placed into the cKeys object on both sides (local and remote).
      * 
      * the number of bytes requested must be a multiple of the application
      * buffer key quantum (usually 32 bits == 4 bytes).
      * 
-     * the method failes:
-     *  - if we lack a peer and/or if we have insufficiant key material left in the application buffer
+     * the method fails:
+     *  - if we lack a peer and/or if we have insufficient key material left in the application buffer
      *  - if the peer didn't acquire keys within the timeout
      * 
      * @param   cKeys           this will receive the key material (any previous content will be zapped)
      * @param   nAppId          the application id: this identifies the request on both sides
      * @param   nBytes          number of bytes requested
      * @param   nTimeout        timeout in millisecond to wait for peer to acquire as well
-     * @return  true, if successfull
+     * @return  true, if successful
      */
     bool acquire_keys(qkd::key::key_ring & cKeys, uint64_t nAppId, uint64_t nBytes, std::chrono::milliseconds nTimeout);
     
@@ -296,7 +296,7 @@ public:
     /**
      * the current (next) authentication scheme for outgoing messages
      * 
-     * @return  the current (next) authentication scheme for outoing messages
+     * @return  the current (next) authentication scheme for outgoing messages
      */
     QString authentication_scheme_outgoing() const;
     
@@ -652,7 +652,7 @@ public slots:
     
     
     /**
-     * insert a key identifed by an URL into the DB (without peer interaction!)
+     * insert a key identified by an URL into the DB (without peer interaction!)
      * 
      * @param   sURL            the URL to insert
      */
@@ -690,10 +690,10 @@ public slots:
      * open (or create) the key store DB on the specified URL
      * 
      * Hence: this method triggers some actions and may take longer.
-     *        Check with db_opened later if the opening was successfull
+     *        Check with db_opened later if the opening was successful
      * 
      * @param   sURL        url defining the key-DB
-     * @return  true, if successfull
+     * @return  true, if successful
      */
     Q_NOREPLY void open_db(QString sURL);
     
@@ -729,11 +729,11 @@ public slots:
      *      STATE .......... The current state of the module
      *      NODE ........... The id of this node been asked
      *      LINK ........... The id of this link been asked
-     *      PIPELINE ....... The id of the pipeline the modue 
+     *      PIPELINE ....... The id of the pipeline the module
      *                       is currently in
      *      HINT ........... Any user supplied information to 
      *                       the module
-     *      URL_LISTEN ..... The public availbale listen URL of 
+     *      URL_LISTEN ..... The public available listen URL of
      *                       the module
      * @return  a list of running modules
      */

@@ -332,7 +332,7 @@ public:
     /**
      * return the scheme string (at the current state) of this context
      * 
-     * @return  the scheme identifiying this context
+     * @return  the scheme identifying this context
      */
     inline qkd::crypto::scheme scheme() const { return scheme_internal(); }
     

@@ -649,7 +649,7 @@ void detector::set_time_slot_width(double nTimeSlotWidth) throw(std::out_of_rang
 
 
 /**
- * update the dark count rate on each detetcor element
+ * update the dark count rate on each detector element
  */
 void detector::update_dark_count_rate() {
     if (m_bDarkCounts) {

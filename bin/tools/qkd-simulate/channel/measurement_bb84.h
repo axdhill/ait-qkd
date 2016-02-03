@@ -51,8 +51,8 @@ namespace simulate {
 /**
  * an abstract quantum channel measurement
  * 
- * a measurment object holds the results from a single
- * measurment step. each measurement creates a pair of
+ * a measurement object holds the results from a single
+ * measurement step. each measurement creates a pair of
  * keys: one for alice and one for bob.
  */
 class measurement_bb84 : public measurement_base {
@@ -84,9 +84,9 @@ public:
 
 
     /**
-     * state if this measurment has been made with free running detectros
+     * state if this measurement has been made with free running detectors
      * 
-     * @return  true, if this measurement has been done with free running detetcors
+     * @return  true, if this measurement has been done with free running detectors
      */
     bool free_running() const { return m_bFreeRunning; };
 
@@ -132,9 +132,9 @@ public:
     
     
     /**
-     * change the free running detetcor flag
+     * change the free running detector flag
      * 
-     * @param   bFreeRunning        new free running detetcor flags
+     * @param   bFreeRunning        new free running detector flags
      */
     void set_free_running(bool bFreeRunning) { m_bFreeRunning = bFreeRunning; };
 

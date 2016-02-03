@@ -2,7 +2,7 @@
  * qkd-cascade.cpp
  * 
  * This is the implementation of the cascade 
- * error correction protocoll
+ * error correction protocol
  * 
  * Author: Philipp Grabenweger
  *         Christoph Pacher, <christoph.pacher@ait.ac.at>
@@ -76,7 +76,7 @@ public:
      * generate the identity permutation. 
      *
      * @param   perm        permutation
-     * @param   inv_perm    inverse permuation
+     * @param   inv_perm    inverse permutation
      * @param   n           size of permutations
      */
     void generate_identity_permutation(std::vector<uint64_t> & perm, std::vector<uint64_t> & inv_perm, uint64_t n);
@@ -86,16 +86,16 @@ public:
      * generate a random permutation. 
      *
      * @param   perm        permutation
-     * @param   inv_perm    inverse permuation
+     * @param   inv_perm    inverse permutation
      * @param   n           size of permutations
      */
     void generate_random_permutation(std::vector<uint64_t> & perm, std::vector<uint64_t> & inv_perm, uint64_t n);
 
 
     /**
-     * return a ranodm bit
+     * return a random bit
      *
-     * @param   p       bit set propability
+     * @param   p       bit set probability
      * @return  random bit
      */
     inline bool rand_bit(double p) {
@@ -129,7 +129,7 @@ public:
 
     qkd::utility::average cAvgError;        /**< the error rate averaged over the last samples */
     uint64_t nPasses;                       /**< number of passes */
-    std::default_random_engine cRandom;     /**< random enigne used */
+    std::default_random_engine cRandom;     /**< random engine used */
 };
 
 
@@ -141,7 +141,7 @@ public:
  * generate the identity permutation. 
  *
  * @param   perm        permutation
- * @param   inv_perm    inverse permuation
+ * @param   inv_perm    inverse permutation
  * @param   n           size of permutations
  */
 void qkd_cascade::qkd_cascade_data::generate_identity_permutation(std::vector<uint64_t> & perm, std::vector<uint64_t> & inv_perm, uint64_t n) {
@@ -160,7 +160,7 @@ void qkd_cascade::qkd_cascade_data::generate_identity_permutation(std::vector<ui
  * generate a random permutation. 
  *
  * @param   perm        permutation
- * @param   inv_perm    inverse permuation
+ * @param   inv_perm    inverse permutation
  * @param   n           size of permutations
  */
 void qkd_cascade::qkd_cascade_data::generate_random_permutation(std::vector<uint64_t> & perm, std::vector<uint64_t> & inv_perm, uint64_t n) {
@@ -375,7 +375,7 @@ bool qkd_cascade::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cI
 	    // correct all blocks with different parity in first step
         if (step == 1) {
 
-            // enforce the correction of all odd (partity differs) block in the first step
+            // enforce the correction of all odd (parity differs) block in the first step
             try {
                 cFrame.checkers()[0]->correct_blocks(cFrame.checkers()[0]->get_odd_parity_blocks()); 
             }

@@ -1,6 +1,6 @@
 #include "baseinc.h"
 
-// this is currentl Linux only code
+// this is currently Linux only code
 //       there is TUN/TAP support on other operating
 //       systems like Mac OSX ...
 
@@ -136,7 +136,7 @@ rerror(errno);
     // we are up
     m_sName = cIFReq.ifr_name;
     
-    // tell environemnt
+    // tell environment
     emit device_ready(QString::fromStdString(m_sName));
     qkd::utility::syslog::info() << "created TUN device: " << m_sName;
     

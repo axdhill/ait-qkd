@@ -248,7 +248,7 @@ void memory::enlarge(uint64_t nSize) {
 
 
 /**
- * check if this memory hold the same data as the givem argument
+ * check if this memory holds the same data as the given argument
  *
  * @param   cMemory     the memory to compare to this
  * @return  true, if the memory areas are equal
@@ -284,7 +284,7 @@ void memory::fill(value_t nValue) {
 qkd::utility::memory memory::from_hex(std::string const & sHex) {
     
     // tried to use mpir functions. However, they
-    // yield errornous results if the string has an odd
+    // yield erroneous results if the string has an odd
     // number of chars and is meant to be read from left
     // to right
     
@@ -301,7 +301,7 @@ qkd::utility::memory memory::from_hex(std::string const & sHex) {
     value_t nValue = 0;
     for (auto & c : sLower) {
 
-        // char comparision
+        // char comparison
         if ((c >= '0') && (c <= '9')) {
             nValue |= ((i % 2) ? c - '0'  : (c - '0') << 4);
         }
@@ -363,7 +363,7 @@ void memory::reserve(uint64_t nSize) {
 
 
 /**
- * creates a memory object by wraping a memory area
+ * creates a memory object by wrapping a memory area
  * this DOES NOT take ownership of the memory.
  * 
  * @param   cData       memory to be wrapped

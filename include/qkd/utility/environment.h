@@ -76,7 +76,7 @@ struct nic {
     
 
 /**
- * this class holds some operating system environment specifc items
+ * this class holds some operating system environment specific items
  */
 class environment {
 
@@ -126,9 +126,9 @@ public:
      * this will search an executable like
      *      $ which 
      * does on the command line based on the
-     * PATH envirnoment variable
+     * PATH environment variable
      * 
-     * the found file must be executbale
+     * the found file must be executable
      *
      * @param   sFile               a file name
      * @return  path found executable (or empty of not found)
@@ -142,7 +142,7 @@ public:
      * this will search files like
      *      $ which 
      * does on the command line based on the
-     * PATH envirnoment variable
+     * PATH environment variable
      * 
      * additional paths are prepended to the PATH variable
      * 
@@ -152,9 +152,9 @@ public:
      * @param   sFile               a file name
      * @param   cPaths              additional search paths to PATH
      * @param   bDeep               walk through all subfolder
-     * @param   bUsePATH            add the system's PATH envirnoment variable to the search path
-     * @param   bExecutable         file must be an executbale (is ignored on Windows)
-     * @param   bAll                try to find all occurences, or exit at the first (if set to false)
+     * @param   bUsePATH            add the system's PATH environment variable to the search path
+     * @param   bExecutable         file must be an executable (is ignored on Windows)
+     * @param   bAll                try to find all occurrences, or exit at the first (if set to false)
      * @return  paths found (or empty of not found)
      */
     static std::list<boost::filesystem::path> find_files(std::string const & sFile, 
@@ -203,7 +203,7 @@ public:
     /**
      * get the list of network interfaces of the system
      * 
-     * @return  all available network interface of the sytem
+     * @return  all available network interface of the system
      */
     static std::map<std::string, qkd::utility::nic> nics();
 

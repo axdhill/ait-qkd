@@ -63,12 +63,12 @@
  *          base_ratio = 0.18  ==>  18 % of the last base comparisons 
  *                                  share equal, valid basis
  * 
- * A base drop may occure:
+ * A base drop may occur:
  * 
  *  - naturally caused by the BB84 protocol (a base_ratio about 0.5 is very good)
  *  - detector quirks (no clicks, or double, triple clicks)
- *  - an evasdropper
- * 
+ *  - an eavesdropper
+ *
  * 
  * BB84 creates new keys. Key Ids are assigned according to a pattern of shift- and add- values
  * 

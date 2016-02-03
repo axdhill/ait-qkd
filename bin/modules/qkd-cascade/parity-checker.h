@@ -108,7 +108,7 @@ public:
      * constructor
      *
      * the constructor already calls the parity block exchange for the
-     * very first comparision of the whole frame. from this comparision
+     * very first comparison of the whole frame. from this comparison
      * the odd parity blocks (== parity block peer mismatch) are collected
      * the first time. the number of blocks checked in this first round
      * depend on the block size stored within the given category value.
@@ -186,7 +186,7 @@ private:
      *  3. else we verify for each remaining block in cCalcBlocks the parity with the peer
      *  4. this sets the parity blocks diffparity value to either true/false
      *  5. if after this step the parity block diffparity is false, the block is treated as correct
-     *  6. any parity block with diffparity value set to true is subject to further comparisions
+     *  6. any parity block with diffparity value set to true is subject to further comparisons
       *
      * @param   cCalcBlocks                     set containing the parity blocks for which their parity shall be calculated
      * @param   bTotalDiffParityMustBeEven      states whether the total differential parity sum of all blocks must be even 

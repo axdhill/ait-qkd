@@ -67,7 +67,7 @@ key_move::key_move(QAbstractSocket * cSocket, qkd::q3p::engine_instance * cEngin
  * @param   cCommonStoreKeys        list of common store keys
  * @param   cBufferKeys             list of buffer keys
  * @param   cBuffer                 the buffer to copy to
- * @return  keys ids sucessfully copied
+ * @return  keys ids successfully copied
  */
 qkd::key::key_vector key_move::copy_buffer(qkd::key::key_vector const & cCommonStoreKeys, qkd::key::key_vector const & cBufferKeys, qkd::q3p::key_db & cBuffer) {
     
@@ -126,7 +126,7 @@ qkd::key::key_vector key_move::copy_buffer(qkd::key::key_vector const & cCommonS
  * 
  * @param   cCommonStoreKeys        list of common store keys
  * @param   cBufferKeys             list of buffer keys
- * @return  keys ids sucessfully copied
+ * @return  keys ids successfully copied
  */
 qkd::key::key_vector key_move::copy_application(qkd::key::key_vector const & cCommonStoreKeys, qkd::key::key_vector const & cBufferKeys) {
     return copy_buffer(cCommonStoreKeys, cBufferKeys, engine()->application_buffer());
@@ -140,7 +140,7 @@ qkd::key::key_vector key_move::copy_application(qkd::key::key_vector const & cCo
  * 
  * @param   cCommonStoreKeys        list of common store keys
  * @param   cBufferKeys             list of buffer keys
- * @return  keys ids sucessfully copied
+ * @return  keys ids successfully copied
  */
 qkd::key::key_vector key_move::copy_incoming(qkd::key::key_vector const & cCommonStoreKeys, qkd::key::key_vector const & cBufferKeys) {
     return copy_buffer(cCommonStoreKeys, cBufferKeys, engine()->incoming_buffer());
@@ -154,7 +154,7 @@ qkd::key::key_vector key_move::copy_incoming(qkd::key::key_vector const & cCommo
  * 
  * @param   cCommonStoreKeys        list of common store keys
  * @param   cBufferKeys             list of buffer keys
- * @return  keys ids sucessfully copied
+ * @return  keys ids successfully copied
  */
 qkd::key::key_vector key_move::copy_outgoing(qkd::key::key_vector const & cCommonStoreKeys, qkd::key::key_vector const & cBufferKeys) {
     return copy_buffer(cCommonStoreKeys, cBufferKeys, engine()->outgoing_buffer());
@@ -171,7 +171,7 @@ qkd::key::key_vector key_move::copy_outgoing(qkd::key::key_vector const & cCommo
  * @param   cCommonStoreKeys        list of common store keys
  * @param   cBufferKeys             list of buffer keys
  * @param   cBuffer                 the buffer to move to
- * @return  keys ids sucessfully moved
+ * @return  keys ids successfully moved
  */
 qkd::key::key_vector key_move::move_buffer(qkd::key::key_vector const & cCommonStoreKeys, qkd::key::key_vector const & cBufferKeys, qkd::q3p::key_db & cBuffer) {
     
@@ -241,7 +241,7 @@ qkd::key::key_vector key_move::move_buffer(qkd::key::key_vector const & cCommonS
  * move a number of keys from the common store to the application buffer
  * 
  * @param   cKeyMap         key ids to move
- * @return  keys ids sucessfully moved
+ * @return  keys ids successfully moved
  */
 qkd::key::key_vector key_move::move_application(qkd::key::key_vector const & cCommonStoreKeys, qkd::key::key_vector const & cBufferKeys) {
     return move_buffer(cCommonStoreKeys, cBufferKeys, engine()->application_buffer());
@@ -252,7 +252,7 @@ qkd::key::key_vector key_move::move_application(qkd::key::key_vector const & cCo
  * move a number of keys from the common store to the incoming buffer
  * 
 * @param   cKeyMap         key ids to move
- * @return  keys ids sucessfully moved
+ * @return  keys ids successfully moved
  */
 qkd::key::key_vector key_move::move_incoming(qkd::key::key_vector const & cCommonStoreKeys, qkd::key::key_vector const & cBufferKeys) {
     return move_buffer(cCommonStoreKeys, cBufferKeys, engine()->incoming_buffer());
@@ -263,7 +263,7 @@ qkd::key::key_vector key_move::move_incoming(qkd::key::key_vector const & cCommo
  * move a number of keys from the common store to the outgoing buffer
  * 
 * @param   cKeyMap         key ids to move
- * @return  keys ids sucessfully moved
+ * @return  keys ids successfully moved
  */
 qkd::key::key_vector key_move::move_outgoing(qkd::key::key_vector const & cCommonStoreKeys, qkd::key::key_vector const & cBufferKeys) {
     return move_buffer(cCommonStoreKeys, cBufferKeys, engine()->outgoing_buffer());

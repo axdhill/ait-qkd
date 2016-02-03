@@ -68,7 +68,7 @@ class channel;
 
 
 /**
- * an abstract quantum channel detetcor: detect photons
+ * an abstract quantum channel detector: detect photons
  */
 class detector : public channel_event_handler {
     
@@ -88,7 +88,7 @@ public:
     /** 
      * copy ctor
      * 
-     * @param   rhs         rigth hand side
+     * @param   rhs         right hand side
      */
     detector(detector const & rhs) = delete;
 
@@ -225,7 +225,7 @@ public:
      
      
     /**
-     * return the name of this detecteor
+     * return the name of this detector
      * 
      * @return  the name of this detector
      */
@@ -371,7 +371,7 @@ public:
     
     
     /**
-     * setup the pipe-put (this should be run within the detetcor thread)
+     * setup the pipe-put (this should be run within the detector thread)
      */
     void setup_pipe_out();
     

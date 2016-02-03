@@ -167,10 +167,10 @@ public:
      *
      * this call is blocking
      * 
-     * The given message object will be deleted with delet before assigning new values.
+     * The given message object will be deleted with delete before assigning new values.
      * Therefore if message receive has been successful the message is not NULL
      * 
-     * This call waits explcitly for the next message been of type eType. If this
+     * This call waits explicitly for the next message been of type eType. If this
      * is NOT the case a exception is thrown.
      * 
      * @param   cMessage            this will receive the message
@@ -208,10 +208,10 @@ public:
         
         
     /**
-     * splt a list of urls sperarated by semicolon into a list
+     * split a list of urls separated by semicolon into a list
      * of url string
      * 
-     * @param   sURLs       a string holding many URLs, spearated by ';'
+     * @param   sURLs       a string holding many URLs, separated by ';'
      * @return  the URLs as given in the sURLs
      */
     static std::list<std::string> split_urls(std::string sURLs);
