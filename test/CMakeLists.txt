@@ -30,11 +30,15 @@
 # ------------------------------------------------------------
 # test-data preparations
 
-# copy test files to build folder
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/bin/test-functions ${CMAKE_CURRENT_BINARY_DIR}/bin/test-functions @ONLY)
 
 # copy the test data
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test-data DESTINATION ${CMAKE_CURRENT_BINARY_DIR} USE_SOURCE_PERMISSIONS)
+
+# copy test files to build folder
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/bin/test-functions ${CMAKE_CURRENT_BINARY_DIR}/bin/test-functions @ONLY)
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test-data/bb84-cascade/pipeline-alice.xml ${CMAKE_CURRENT_BINARY_DIR}/test-data/bb84-cascade/pipeline-alice.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test-data/bb84-cascade/pipeline-bob.xml ${CMAKE_CURRENT_BINARY_DIR}/test-data/bb84-cascade/pipeline-bob.xml @ONLY)
 
 # copy the test configs
 configure_file(q3p/alice.conf ${CMAKE_CURRENT_BINARY_DIR}/q3p/alice.conf @ONLY)

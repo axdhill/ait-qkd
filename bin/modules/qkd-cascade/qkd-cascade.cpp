@@ -429,7 +429,9 @@ bool qkd_cascade::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cI
     if (qkd::utility::debug::enabled()) {
         double nDisclosedRate = (double)cKey.meta().nDisclosedBits / ((double)cKey.size() * 8);
         qkd::utility::debug() 
-            << "cascade done: error rate = " << cKey.meta().nErrorRate 
+            << "cascade done: " 
+            << "errors = " << cFrame.corrected_bits().size() << "/" << cKey.size() * 8
+            << ", error rate = " << cKey.meta().nErrorRate 
             << ", disclosed = " << cKey.meta().nDisclosedBits << "/" << cKey.size() * 8 
             << ", efficiency = " << qkd::utility::shannon_efficiency(cKey.meta().nErrorRate, nDisclosedRate);
     }
