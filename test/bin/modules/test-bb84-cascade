@@ -1,0 +1,80 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-bbb84-cascade
+# 
+# This is a test file.
+#
+# TEST: test a small bb84-cascade pipeline
+#
+# Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2016 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+# ------------------------------------------------------------
+
+test_init "$(basename $0).d"
+
+rm -rf cat_keys.* &> /dev/null
+KEYS_TO_PROCESS="1000"
+${TEST_BASE}/bin/qkd-key-gen --silent --size 2048 --keys ${KEYS_TO_PROCESS} --quantum --rate 0.03 cat_keys
+
+LOG_FOLDER="$(pwd)/log"
+mkdir -p ${LOG_FOLDER} &> /dev/null
+( cd "${LOG_FOLDER}" && rm -f * &> /dev/null )
+
+${TEST_BASE}/bin/qkd-pipeline --log "${LOG_FOLDER}" restart ${TEST_BASE}/test/test-data/bb84-cascade/pipeline-alice.xml
+${TEST_BASE}/bin/qkd-pipeline --log "${LOG_FOLDER}" restart ${TEST_BASE}/test/test-data/bb84-cascade/pipeline-bob.xml
+
+while :; do
+
+    CURRENT_KEYS_OUT=$(
+        ${TEST_BASE}/bin/qkd-view --short | grep "^module: *confirmation" | while read LINE; do
+            echo "${LINE}" | awk '{ print $5; }'
+        done 
+    )
+
+    CURRENT_KEYS_OUT=$(echo "${CURRENT_KEYS_OUT}" | sed 's/ /\n/g' | awk '$0>x {x=$0} END {print x}')
+    echo "keys processed: ${CURRENT_KEYS_OUT}"
+    if [ "${CURRENT_KEYS_OUT}" ]; then
+        if [ "${CURRENT_KEYS_OUT}" -gt "100" ]; then
+            break;
+        fi
+    fi
+    sleep 1
+    
+done
+
+
+${TEST_BASE}/bin/qkd-pipeline stop ${TEST_BASE}/test/test-data/bb84-cascade/pipeline-alice.xml
+${TEST_BASE}/bin/qkd-pipeline stop ${TEST_BASE}/test/test-data/bb84-cascade/pipeline-bob.xml
+
+sleep 1
+
+test_cleanup
+    
+echo "=== TEST SUCCESS ==="
+
