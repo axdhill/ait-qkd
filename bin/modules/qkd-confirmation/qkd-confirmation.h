@@ -131,7 +131,7 @@ protected:
      * @param   cKey            the key to check
      * @return  true, if the key should be processed by this module
      */
-    bool accept(UNUSED qkd::key::key const & cKey) const { return true; };
+    bool accept(UNUSED qkd::key::key const & cKey) const { return true; }
     
     
     /**

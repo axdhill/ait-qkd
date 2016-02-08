@@ -178,12 +178,6 @@ void qkd_resize::pick_exact_keys(qkd::module::workload & cWorkload) {
     uint64_t nCurrentKeySize = 0;
     for (auto it = d->cWorkReceived.begin(); it != d->cWorkReceived.end(); ) {
         
-        // for splitting we ignore disclosed keys here
-        if ((*it).cKey.meta().eKeyState == qkd::key::key_state::KEY_STATE_DISCLOSED) {
-            ++it;
-            continue;
-        }
-        
         if ((nCurrentKeySize + (*it).cKey.data().size()) < nExactKeySize) {
             nCurrentKeySize += (*it).cKey.data().size();
             ++it;
@@ -238,42 +232,39 @@ void qkd_resize::pick_exact_keys(qkd::module::workload & cWorkload) {
         nTotalBits += (*it).cKey.data().size() * 8;
         nErrorBits += (*it).cKey.meta().nErrorRate * ((*it).cKey.data().size() * 8);
 
-        if ((*it).cKey.meta().eKeyState != qkd::key::key_state::KEY_STATE_DISCLOSED) {            
+        if (cForwardWork.is_null()) {
+            cForwardWork = (*it);
+        }
+        else {
+            cForwardWork.cKey.data().add((*it).cKey.data());
+            cForwardWork.cIncomingContext << (*it).cIncomingContext;
+            cForwardWork.cOutgoingContext << (*it).cOutgoingContext;
+        }
+        
+        nDisclosedBits += (*it).cKey.meta().nDisclosedBits;
+        
+        // new key --> place into forward and prepare next
+        if (cForwardWork.cKey.data().size() == nExactKeySize) {
             
-            if (cForwardWork.is_null()) {
-                cForwardWork = (*it);
-            }
-            else {
-                cForwardWork.cKey.data().add((*it).cKey.data());
-                cForwardWork.cIncomingContext << (*it).cIncomingContext;
-                cForwardWork.cOutgoingContext << (*it).cOutgoingContext;
-            }
+            d->cKeyIdCounter.inc();
+            cForwardWork.cKey.set_id(d->cKeyIdCounter.count());
+            cForwardWork.cKey.meta().nErrorRate = nErrorBits / nTotalBits;
+            cForwardWork.cKey.meta().nDisclosedBits = nDisclosedBits;
+            cForwardWork.bForward = true;
+            cWorkload.push_back(cForwardWork);
             
-            nDisclosedBits += (*it).cKey.meta().nDisclosedBits;
-            
-            // new key --> place into forward and prepare next
-            if (cForwardWork.cKey.data().size() == nExactKeySize) {
-                
-                d->cKeyIdCounter.inc();
-                cForwardWork.cKey.set_id(d->cKeyIdCounter.count());
-                cForwardWork.cKey.meta().nErrorRate = nErrorBits / nTotalBits;
-                cForwardWork.cKey.meta().nDisclosedBits = nDisclosedBits;
-                cForwardWork.bForward = true;
-                cWorkload.push_back(cForwardWork);
-                
-                // mark all keys in between to be deleted
-                while (it_last != it) {
-                    (*it_last).bForward = true;
-                    ++it_last;
-                }
+            // mark all keys in between to be deleted
+            while (it_last != it) {
                 (*it_last).bForward = true;
-                
-                nErrorBits = 0;
-                nTotalBits = 0;
-                nDisclosedBits = 0;
-                d->nCurrentSize -= nExactKeySize;
-                cForwardWork = qkd::module::work();
+                ++it_last;
             }
+            (*it_last).bForward = true;
+            
+            nErrorBits = 0;
+            nTotalBits = 0;
+            nDisclosedBits = 0;
+            d->nCurrentSize -= nExactKeySize;
+            cForwardWork = qkd::module::work();
         }
     }
 
@@ -312,20 +303,17 @@ void qkd_resize::pick_minimum_key(qkd::module::workload & cWorkload) {
         nTotalBits += w.cKey.data().size() * 8;
         nErrorBits += w.cKey.meta().nErrorRate * (w.cKey.data().size() * 8);
         
-        if (w.cKey.meta().eKeyState != qkd::key::key_state::KEY_STATE_DISCLOSED) {            
-            
-            if (cForwardWork.is_null()) {
-                cForwardWork = w;
-            }
-            else {
-                cForwardWork.cKey.data().add(w.cKey.data());
-                cForwardWork.cIncomingContext << w.cIncomingContext;
-                cForwardWork.cOutgoingContext << w.cOutgoingContext;
-            }
-            
-            nDisclosedBits += w.cKey.meta().nDisclosedBits;
-            d->nCurrentSize -= w.cKey.data().size();
+        if (cForwardWork.is_null()) {
+            cForwardWork = w;
         }
+        else {
+            cForwardWork.cKey.data().add(w.cKey.data());
+            cForwardWork.cIncomingContext << w.cIncomingContext;
+            cForwardWork.cOutgoingContext << w.cOutgoingContext;
+        }
+        
+        nDisclosedBits += w.cKey.meta().nDisclosedBits;
+        d->nCurrentSize -= w.cKey.data().size();
         
         w.bForward = true;
     }
@@ -393,9 +381,7 @@ void qkd_resize::process(qkd::module::workload & cWorkload) {
     for (auto & w : cWorkload) {
         
         d->cWorkReceived.push_back(w);
-        if (w.cKey.meta().eKeyState != qkd::key::key_state::KEY_STATE_DISCLOSED) {
-            d->nCurrentSize += w.cKey.data().size();
-        }
+        d->nCurrentSize += w.cKey.data().size();
         
         pick_exact_keys(cForwardWorkload);
         pick_minimum_key(cForwardWorkload);
