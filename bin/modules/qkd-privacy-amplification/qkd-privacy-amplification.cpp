@@ -261,7 +261,7 @@ qulonglong qkd_privacy_amplification::security_bits() const {
 /**
  * set the reduction rate of the key
  * 
- * the size of the key is shrinked by this rate value
+ * the size of the key is shrunk by this rate value
  * 
  * rate: 0.0 ==> no final key
  *       1.0 ==> no reduction

@@ -336,7 +336,7 @@ void qkd_resize::pick_minimum_key(qkd::module::workload & cWorkload) {
     // and d->nCurrentSize *must* be 0 now
     // and for minimum we consume all keys
     if (cForwardWork.is_null()) {
-        throw std::logic_error("minimum key: no key to foward as expected");
+        throw std::logic_error("minimum key: no key to forward as expected");
     }
     if (d->nCurrentSize != 0) {
         throw std::logic_error("current size of buffered keys is not 0 as expected");
@@ -369,7 +369,7 @@ void qkd_resize::process(qkd::module::workload & cWorkload) {
     // ensure we are talking about the same stuff with the peer
     if (!is_synchronizing()) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " 
-                << "you deliberately turned off key synchonrizing in resizing - but this is essential fot this module: dropping key";
+                << "you deliberately turned off key synchronizing in resizing - but this is essential for this module: dropping key";
         cWorkload = { qkd::module::work() };
         return;
     }

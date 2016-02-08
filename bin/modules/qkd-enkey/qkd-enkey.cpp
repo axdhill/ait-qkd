@@ -258,7 +258,7 @@ bool qkd_enkey::process(qkd::key::key & cKey, UNUSED qkd::crypto::crypto_context
             if (!d->bLoop) {
             
                 // no loop -> bye!
-                qkd::utility::syslog::info() << "insufficiant key material (" << nRead << " of " << d->nKeySize << ") and not looping - aborting";
+                qkd::utility::syslog::info() << "insufficient key material (" << nRead << " of " << d->nKeySize << ") and not looping - aborting";
                 pause();
                 return false;
             }

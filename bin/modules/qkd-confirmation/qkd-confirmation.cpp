@@ -2,7 +2,7 @@
  * qkd-confirmation.cpp
  * 
  * This is the implementation of the QKD postprocessing
- * confirmationentication facilities
+ * confirmation facilities
  * 
  * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *

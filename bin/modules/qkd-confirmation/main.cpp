@@ -54,7 +54,7 @@ int main(int argc, char ** argv) {
     
     QCoreApplication cApp(argc, argv);
     
-    std::string sApplication = std::string("qkd-confirmation - AIT QKD Module 'Confirmationentication' V") + VERSION;
+    std::string sApplication = std::string("qkd-confirmation - AIT QKD Module 'Confirmation' V") + VERSION;
     std::string sDescription = std::string("\nThis is an AIT QKD module.\n\nThis module runs the confirmation phase after error correction.\n\nCopyright 2012-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS]";
     

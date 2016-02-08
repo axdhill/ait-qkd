@@ -183,7 +183,7 @@ void qkd_ping::process_bob() {
         }
     }
  
-    // try (and test) the module_communicater facade instance
+    // try (and test) the module_communicator facade instance
     qkd::crypto::crypto_context cIncomingContext = qkd::crypto::context::null_context();
     qkd::crypto::crypto_context cOutgoingConetxt = qkd::crypto::context::null_context();
     qkd::module::communicator cModuleComm = comm(cIncomingContext, cOutgoingConetxt);
