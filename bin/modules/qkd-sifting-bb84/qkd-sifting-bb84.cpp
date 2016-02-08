@@ -550,8 +550,6 @@ bool qkd_sifting_bb84::process(qkd::key::key & cKey,
                 << " (min. " << rawkey_length() * 8 << ")";
     }
     
-qkd::utility::debug() << __DEBUG_LOCATION__ << "current key: " << d->cBits.as_dual();    
-
     // check if we have a key to forward
     bool bForwardKey = false;
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
@@ -571,100 +569,6 @@ qkd::utility::debug() << __DEBUG_LOCATION__ << "current key: " << d->cBits.as_du
     
     return bForwardKey;
 }
-
-
-/**
- * module work as bob
- * 
- * @param   cKey                    the raw key with quantum events encoded
- * @param   cIncomingContext        incoming crypto context
- * @param   cOutgoingContext        outgoing crypto context
- * @return  always true
- */
-/*
-bool qkd_sifting_bb84::process_bob(qkd::key::key & cKey, 
-        qkd::crypto::crypto_context & cIncomingContext, 
-        qkd::crypto::crypto_context & cOutgoingContext) {
-
-    if (!sync_key_data(cKey, cIncomingContext, cOutgoingContext)) return false;
-    
-    qauth_init cQAuthInitLocal = create_qauth_init();
-    qkd::utility::memory cBasesLocal = create_base_table(cKey, cQAuthInit);
-    
-    qkd::utility::memory cBasesPeer;
-    if (!exchange_bases(cBasesPeer, cBasesLocal, cIncomingContext, cOutgoingContext)) return false;
-    
-    qauth_init cQAuthInitPeer;
-    if (!exchange_qauth_init(cQAuthInitPeer, cQAuthInitLocal, cIncomingContext, cOutgoingContext)) return false;
-
-    qkd::utility::memory cBasesFinal;
-    if (!match_bases(cBasesFinal, cBasesLocal, cBasesPeer, cQAuthInitLocal, cQAuthInitPeer)) return false;
-    
-    
-    bool bForwardKey = false;
-    
-    qauth_init cQAuthInit = create_qauth_init();
-    qkd::utility::memory cBasesLocal = create_base_table(cKey, cQAuthInit);
-    
-    
-//    qkd::utility::memory cBases = quantum_table_to_base_table(cKey.data(), cQAuth);
-    cMessage = qkd::module::message();
-    cMessage.data() << cBases;
-    try {
-        send(cMessage, cOutgoingContext);
-    }
-    catch (std::runtime_error const & cRuntimeError) {
-        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
-                << "failed to send message: " << cRuntimeError.what();
-        return false;
-    }
-    
-    try {
-        if (!recv(cMessage, cIncomingContext)) return false;
-    }
-    catch (std::runtime_error const & cRuntimeError) {
-        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
-                << "failed to receive message: " << cRuntimeError.what();
-        return false;
-    }
-    cMessage.data() >> cBases;
-
-    // convert the bases to bits
-    double nBaseRatio = 1.0;
-    bases_to_bits(d->cBits, d->nCurrentPosition, nBaseRatio, false, cBases, cKey.data());
-    {
-        std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
-        d->cAvgBaseRatio << nBaseRatio;
-    }
-    
-    if (qkd::utility::debug::enabled()) {
-        qkd::utility::debug() << "sifted bases: " << cBases.size() * 4 
-                << " used ratio: " << nBaseRatio 
-                << " total sifted bits for next key: " << d->nCurrentPosition 
-                << " (min. " << rawkey_length() * 8 << ")";
-    }
-
-    // check if we have a key to forward
-    std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
-    if (d->nCurrentPosition >= rawkey_length() * 8) {
-        
-        // create a new key: we cut the keybits at byte boundaries so max. 7 bits a lost
-        qkd::utility::memory cKeyBits = d->cBits.memory();
-        cKeyBits.resize(d->nCurrentPosition / 8);
-        cKey = qkd::key::key(d->nKeyId, cKeyBits);
-        
-        cKey.meta().eKeyState = qkd::key::key_state::KEY_STATE_SIFTED;
-        d->nKeyId = qkd::key::key::counter().inc();
-        d->cBits = qkd::utility::bigint(d->nRawKeyLength);
-        d->nCurrentPosition = 0;
-        bForwardKey = true;
-    }
-        
-    return bForwardKey;
-
-    return true;
-}
-*/    
 
 
 /**
@@ -1018,35 +922,6 @@ bool qkd_sifting_bb84::sync_key_data(qkd::key::key & cKey,
 
 
 /**
- * convert a single base to a bit
- * 
- * @param   bBit            the bit to calculate
- * @param   eBase           the base
- * @param   nQuantumEvent   the quantum event
- * @return  true, if successfully detected
- */
-/*
-bool base_to_bit(bool & bBit, bb84_base eBase, unsigned char nQuantumEvent) {
-    
-    if ((eBase != bb84_base::BB84_BASE_DIAGONAL) && (eBase != bb84_base::BB84_BASE_RECTILINEAR)) return false;
-
-    // check if we have more than 1 click (that is: if we have an odd number of clicks though)
-    if (g_nParity[nQuantumEvent]) {
-        bBit = ((nQuantumEvent & 0x55) != 0);
-    }
-    else {
-        // role a dice
-        double nRandom = 0.0;
-        qkd::utility::random_source::source() >> nRandom;
-        bBit = (nRandom >= 0.5);
-    }
-    
-    return true;
-}
-*/
-
-    
-/**
  * convert the bases to key bits
  * 
  * the given basetable will be appended to the
@@ -1120,28 +995,6 @@ void bases_to_bits(qkd::utility::bigint & cBits,
     cBits.resize(nPosition);
     nBaseRatio = (cBases.size() - nErrors) / (double)cBases.size();
 }
-
-
-/**
- * tests a single event of the Quantum table
- * implements "squashing", Ref. arXiv:0804.3082 and following work by Luetgenhaus
- *
- * @param   nEvent          the event
- * @return  a bb84 measurement
- */
-// bb84_base get_measurement(unsigned char nEvent) {
-// 
-//     if (nEvent == 0x00) return bb84_base::BB84_BASE_INVALID;
-// 
-//     bool bBaseDiag = (nEvent & 0x03);    // either e==0x01, 0x02, or 0x03
-//     bool bBaseRect = (nEvent & 0x0C);    // either e==0x04, 0x08, or 0x0C
-// 
-//     // clicks in both bases --> eliminate event [N. Luetkenhaus, priv.communic.]
-//     if (bBaseRect & bBaseDiag) return bb84_base::BB84_BASE_INVALID;    
-// 
-//     if (bBaseRect) return bb84_base::BB84_BASE_RECTILINEAR;
-//     return bb84_base::BB84_BASE_DIAGONAL;
-// }
 
 
 /**
