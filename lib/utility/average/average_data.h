@@ -62,13 +62,13 @@ public:
     /**
      * ctor
      */
-    average_data(double nValue) : m_nValue(nValue) { m_cTimeStamp = std::chrono::high_resolution_clock::now(); };
+    average_data(double nValue) : m_nValue(nValue) { m_cTimeStamp = std::chrono::high_resolution_clock::now(); }
     
     
     /**
      * copy ctor
      */
-    average_data(average_data const & rhs) : m_nValue(rhs.m_nValue), m_cTimeStamp(rhs.m_cTimeStamp) {};
+    average_data(average_data const & rhs) : m_nValue(rhs.m_nValue), m_cTimeStamp(rhs.m_cTimeStamp) {}
     
     
     /**
@@ -76,7 +76,7 @@ public:
      * 
      * @return  the age of the value in milliseconds
      */
-    std::chrono::high_resolution_clock::duration age() const { return std::chrono::high_resolution_clock::now() - m_cTimeStamp; };
+    std::chrono::high_resolution_clock::duration age() const { return std::chrono::high_resolution_clock::now() - m_cTimeStamp; }
     
 
     /**
@@ -84,7 +84,7 @@ public:
      * 
      * @return  the value
      */
-    double value() const { return m_nValue; };
+    double value() const { return m_nValue; }
     
 
 private:
