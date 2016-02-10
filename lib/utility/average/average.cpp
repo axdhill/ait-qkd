@@ -27,7 +27,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
- 
+
 // ------------------------------------------------------------
 // incs
 
@@ -55,7 +55,7 @@ using namespace qkd::utility;
  * @throws  average_technique_unknown
  */
 average average_technique::create(std::string sTechnique, uint64_t nWindowSize) {
-    
+
     // treat different techniques
     if (sTechnique == "time") return boost::shared_ptr<average_technique>(new average_time(nWindowSize));
     if (sTechnique == "value") return boost::shared_ptr<average_technique>(new average_value(nWindowSize));
@@ -86,7 +86,28 @@ double average_technique::youngest_internal() const {
     return 0.0;
 }
 
+/**
+ * Gets the lowest recorded value within the window size.
+ *
+ * @return the lowest value
+ */
+double average_technique::lowest_internal() const {
+    return d.size()
+           ? (* std::min_element(d.begin(), d.end(), [](const average_data_ptr& i, const average_data_ptr& j) {
+                return i->value() < j->value();
+            }))->value()
+           : 0;
+}
 
-
-
-
+/**
+ * Gets the highest recorded value within the window size.
+ *
+ * @return the highest value
+ */
+double average_technique::highest_internal() const {
+    return d.size()
+           ? (* std::max_element(d.begin(), d.end(), [](const average_data_ptr& i, const average_data_ptr& j) {
+                return i->value() < j->value();
+            }))->value()
+           : 0;
+}
