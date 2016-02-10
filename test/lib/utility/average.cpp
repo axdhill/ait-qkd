@@ -49,7 +49,16 @@
 // ------------------------------------------------------------
 // code
 
-int test() {
+/**
+ * Sometimes being approximately equal is enough. Plus, trying to avoid false errors due to the approximative nature
+ * of float arithmetic.
+ * @return true iff the difference between both numbers is below 0.001; false otherwise.
+ */
+bool approximately_equal(double a, double b) {
+    return std::abs(a - b) < 0.001;
+}
+
+void test() {
     
     double nAverage = 0.0;
 
@@ -151,12 +160,45 @@ int test() {
         assert("unknown average algorithm");
     }
     catch (qkd::utility::average_technique::average_technique_unknown & cException) {}
-    
-    
-    return 0;
+}
+
+void test_high_and_low() {
+    qkd::utility::average cAverage;
+    double series[] = { 3.14, 15.9, 26.53, 5.89, 7.93, 2.3, 84.6, 2.6, .433, 8.3 };
+
+    // TEST WITH TIME-BASED AVERAGES, WINDOW SIZE 250ms, SLEEP 150ms PER ITERATION
+    double expected_highs_t[] = { 3.14, 15.9, 26.53, 26.53, 7.93, 7.93, 84.6, 84.6, 2.6, 8.3 };
+    double expected_lows_t [] = { 3.14, 3.14, 15.9, 5.89, 5.89, 2.3, 2.3, 2.6, .433, .433 };
+    cAverage = qkd::utility::average_technique::create("time", 250);
+
+    assert(cAverage->lowest() == 0.0);
+    assert(cAverage->highest() == 0.0);
+
+    for (int i = 0; i < 10; i++) {
+        cAverage << series[i];
+        assert(approximately_equal(cAverage->highest(), expected_highs_t[i]));
+        assert(approximately_equal(cAverage->lowest(), expected_lows_t  [i]));
+        usleep(150 * 1000);
+    }
+
+    // TEST WITH VALUE-BASED AVERAGES, WINDOW SIZE 3 VALUES
+    double expected_highs_v3[] = { 3.14, 15.9, 26.53, 26.53, 26.53, 7.93, 84.6, 84.6, 84.6, 8.3 };
+    double expected_lows_v3 [] = { 3.14, 3.14, 3.14, 5.89, 5.89, 2.3, 2.3, 2.3, .433, .433 };
+    cAverage = qkd::utility::average_technique::create("value", 3);
+
+    assert(cAverage->lowest() == 0.0);
+    assert(cAverage->highest() == 0.0);
+
+    for (int i = 0; i < 10; i++) {
+        cAverage << series[i];
+        assert(approximately_equal(cAverage->highest(), expected_highs_v3[i]));
+        assert(approximately_equal(cAverage->lowest(), expected_lows_v3  [i]));
+    }
 }
 
 int main(UNUSED int argc, UNUSED char** argv) {
-    return test();
+    test();
+    test_high_and_low();
+    return 0;
 }
 
