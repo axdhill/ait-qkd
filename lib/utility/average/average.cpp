@@ -34,6 +34,8 @@
 // ait
 #include <qkd/utility/average.h>
 
+        #include <qkd/utility/debug.h>
+
 #include "average_data.h"
 #include "average_time.h"
 #include "average_value.h"
@@ -44,6 +46,33 @@ using namespace qkd::utility;
 
 // ------------------------------------------------------------
 // code
+
+
+/**
+ * get the average distance in time between two consecutive values within the window
+ * 
+ * @return  the average distance in time between two consecutive values
+ */
+std::chrono::high_resolution_clock::duration average_technique::avg_distance_internal() const {
+    
+    std::chrono::high_resolution_clock::duration res(0);
+    if (!d.size()) {
+        return res;
+    }
+    
+    std::list<std::chrono::high_resolution_clock::duration> cDistances;
+    auto cLastBirth = d.front()->birth();
+    std::for_each(++d.begin(), d.end(), [&](average_data_ptr const & i) { cDistances.push_back(i->birth() - cLastBirth); cLastBirth = i->birth(); });
+    
+    std::chrono::high_resolution_clock::duration cSumDistances(0);
+    std::for_each(cDistances.begin(), cDistances.end(), [&](std::chrono::high_resolution_clock::duration const & d) { cSumDistances += d; });
+    
+    if (cDistances.size()) {
+        res = cSumDistances / cDistances.size();
+    }
+
+    return res;
+}
 
 
 /**

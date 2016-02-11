@@ -80,6 +80,14 @@ public:
     
 
     /**
+     * give date and time of birth
+     * 
+     * @return  timestamp of data creation
+     */
+    std::chrono::high_resolution_clock::time_point birth() const { return m_cTimeStamp; }
+    
+    
+    /**
      * retrieves the value
      * 
      * @return  the value

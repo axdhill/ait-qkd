@@ -35,6 +35,7 @@
 // ------------------------------------------------------------
 // incs
 
+#include <chrono>
 #include <exception>
 #include <list>
 #include <string>
@@ -155,6 +156,14 @@ public:
      * @return  the current average value as average of all single values inside the window
      */
     inline double avg() const { trim(); return avg_internal(); }
+
+
+    /**
+     * get the average distance in time between two consecutive values within the window
+     * 
+     * @return  the average distance in time between two consecutive values
+     */
+    inline std::chrono::high_resolution_clock::duration avg_distance() const { trim(); return avg_distance_internal(); }
 
 
     /**
@@ -306,6 +315,14 @@ private:
     virtual double avg_internal() const = 0;
     
     
+    /**
+     * get the average distance in time between two consequtive values within the window
+     * 
+     * @return  the average distance in time between two consequtive values
+     */
+    std::chrono::high_resolution_clock::duration avg_distance_internal() const;
+
+
     /**
      * gets the highest recorded value within the window size
      *

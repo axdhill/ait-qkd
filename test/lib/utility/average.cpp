@@ -40,7 +40,9 @@
 // ------------------------------------------------------------
 // incs
 
+#include <chrono>
 #include <iostream>
+#include <thread>
 
 // include the all-in-one header
 #include <qkd/qkd.h>
@@ -202,8 +204,33 @@ void test_high_and_low() {
 }
 
 
+void test_average_distance() {
+
+    qkd::utility::average cAverage;
+    double nValues[] = { 3.14, 15.9, 26.53, 5.89, 7.93, 2.3, 84.6, 2.6, .433, 8.3 };
+    uint64_t nSleepTime[] = { 50, 150, 100, 50, 70, 120, 80, 80, 100, 120 };
+
+    uint64_t nExpectedDistances[] = {0, 50, 100, 125, 75, 73, 80, 100, 80, 90 };
+    cAverage = qkd::utility::average_technique::create("time", 250);
+
+    uint64_t nAverageDistanceMilliSeconds = std::chrono::duration_cast<std::chrono::milliseconds>(cAverage->avg_distance()).count();
+    assert(nAverageDistanceMilliSeconds == 0.0);
+
+    for (int i = 0; i < 10; ++i) {
+        cAverage << nValues[i];
+        uint64_t nAverageDistanceMilliSeconds = std::chrono::duration_cast<std::chrono::milliseconds>(cAverage->avg_distance()).count();
+        assert(nAverageDistanceMilliSeconds == nExpectedDistances[i]);
+        std::this_thread::sleep_for(std::chrono::milliseconds(nSleepTime[i]));
+    }
+    
+}
+
+
 int main(UNUSED int argc, UNUSED char** argv) {
+    
     test();
     test_high_and_low();
+    test_average_distance();
+    
     return 0;
 }
