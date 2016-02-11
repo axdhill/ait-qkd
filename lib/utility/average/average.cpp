@@ -64,6 +64,33 @@ average average_technique::create(std::string sTechnique, uint64_t nWindowSize) 
 }
 
 
+/**
+ * gets the highest recorded value within the window size
+ *
+ * @return the highest value
+ */
+double average_technique::max_internal() const {
+    return d.size()
+           ? (* std::max_element(d.begin(), d.end(), [](average_data_ptr const & i, average_data_ptr const & j) {
+                return i->value() < j->value();
+            }))->value()
+           : 0;
+}
+
+
+/**
+ * gets the lowest recorded value within the window size
+ *
+ * @return the lowest value
+ */
+double average_technique::min_internal() const {
+    return d.size()
+           ? (* std::min_element(d.begin(), d.end(), [](average_data_ptr const & i, average_data_ptr const & j) {
+                return i->value() < j->value();
+            }))->value()
+           : 0;
+}
+
 
 /**
  * get the oldest value
@@ -84,32 +111,4 @@ double average_technique::oldest_internal() const {
 double average_technique::youngest_internal() const {
     if (d.size()) return d.back()->value();
     return 0.0;
-}
-
-
-/**
- * gets the lowest recorded value within the window size
- *
- * @return the lowest value
- */
-double average_technique::lowest_internal() const {
-    return d.size()
-           ? (* std::min_element(d.begin(), d.end(), [](average_data_ptr const & i, average_data_ptr const & j) {
-                return i->value() < j->value();
-            }))->value()
-           : 0;
-}
-
-
-/**
- * gets the highest recorded value within the window size
- *
- * @return the highest value
- */
-double average_technique::highest_internal() const {
-    return d.size()
-           ? (* std::max_element(d.begin(), d.end(), [](average_data_ptr const & i, average_data_ptr const & j) {
-                return i->value() < j->value();
-            }))->value()
-           : 0;
 }

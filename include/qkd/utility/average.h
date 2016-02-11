@@ -186,6 +186,28 @@ public:
     
     
     /**
+     * gets the highest recorded value within the window size
+     *
+     * @return the highest value
+     */
+    inline double max() const {
+        trim();
+        return max_internal();
+    }
+
+
+    /**
+     * gets the lowest recorded value within the window size
+     *
+     * @return the lowest value
+     */
+    inline double min() const {
+        trim();
+        return min_internal();
+    }
+
+    
+    /**
      * get the oldest value
      * 
      * @return  the oldest value
@@ -231,28 +253,6 @@ public:
     inline double youngest() const { 
         trim(); 
         return youngest_internal(); 
-    }
-
-
-    /**
-     * gets the lowest recorded value within the window size
-     *
-     * @return the lowest value
-     */
-    inline double lowest() const {
-        trim();
-        return lowest_internal();
-    }
-
-    
-    /**
-     * gets the highest recorded value within the window size
-     *
-     * @return the highest value
-     */
-    inline double highest() const {
-        trim();
-        return highest_internal();
     }
 
 
@@ -307,6 +307,22 @@ private:
     
     
     /**
+     * gets the highest recorded value within the window size
+     *
+     * @return the highest value
+     */
+    double max_internal() const;
+
+    
+    /**
+     * gets the lowest recorded value within the window size
+     *
+     * @return the lowest value
+     */
+    double min_internal() const;
+    
+    
+    /**
      * get the oldest value
      * 
      * @return  the oldest value
@@ -335,22 +351,6 @@ private:
      */
     double youngest_internal() const;
 
-    
-    /**
-     * gets the highest recorded value within the window size
-     *
-     * @return the highest value
-     */
-    double highest_internal() const;
-
-    
-    /**
-     * gets the lowest recorded value within the window size
-     *
-     * @return the lowest value
-     */
-    double lowest_internal() const;
-    
     
     /**
      * the window size of the moving average
