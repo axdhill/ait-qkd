@@ -64,6 +64,6 @@ checksum checksum_algorithm::create(std::string sName) {
     // SHA1
     if (sName == "sha1") return std::shared_ptr<checksum_algorithm>(new checksum_algorithm_sha1());
 
-    throw checksum_algorithm_unknown();
+    throw std::invalid_argument("checksum algorithm unknown");
 }
 

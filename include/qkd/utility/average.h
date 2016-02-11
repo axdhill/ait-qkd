@@ -116,12 +116,6 @@ public:
 
 
     /**
-     * exception type thrown for unknown technique
-     */
-    struct average_technique_unknown : virtual std::exception, virtual boost::exception { };
-    
-
-    /**
      * dtor
      */
     virtual ~average_technique() {}

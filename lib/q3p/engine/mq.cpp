@@ -113,13 +113,12 @@ public:
  */
 mq_instance::mq_instance(qkd::q3p::engine_instance * cEngine) : QObject(), m_cEngine(cEngine), m_bPaused(true) {
     
-    // engine
-    if (!m_cEngine) throw qkd::q3p::mq_instance::mq_no_engine();
+    if (!m_cEngine) {
+        throw std::invalid_argument("mq instance with NULL engine");
+    }
     
-    // pimpl
     d = std::shared_ptr<qkd::q3p::mq_instance::mq_data>(new qkd::q3p::mq_instance::mq_data());    
     
-    // create the message queue object
     m_sName = "/" + engine()->link_id().toStdString();
     
     // get the maximum number of messages in the queue from the operating system
@@ -138,21 +137,17 @@ mq_instance::mq_instance(qkd::q3p::engine_instance * cEngine) : QObject(), m_cEn
         std::istringstream(sNumber) >> d->nMaxKeySize;
     }
     
-    // fix upper bounds on values
     d->nMaxKey = std::min(d->nMaxKey, (uint64_t)MAX_KEYS_IN_QUEUE);
     d->nMaxKeySize = std::min(d->nMaxKeySize, (uint64_t)MAX_KEYSIZE_IN_QUEUE);
     
-    // key size must be a multiple of application_buffer()->quantum()
     d->nMaxKeySize -= (d->nMaxKeySize % engine()->application_buffer()->quantum());
     
-    // define the mq properties
     struct mq_attr cAttr;
     memset(&cAttr, 0, sizeof(cAttr));
     cAttr.mq_flags = O_NONBLOCK;
     cAttr.mq_maxmsg = d->nMaxKey;
     cAttr.mq_msgsize = d->nMaxKeySize;
     
-    // open the MQ
     d->nMQDescriptor = mq_open(m_sName.c_str(), O_WRONLY | O_CREAT | O_NONBLOCK, 0666, &cAttr);
     if (d->nMQDescriptor == -1) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to init MQ '" << m_sName << "': " << strerror(errno);
@@ -186,7 +181,6 @@ void mq_instance::produce() {
     
     // TODO: sync ourselves with the peer based on roles and key-ids
 
-    // place them into the MQ
     uint64_t nKeysConsumed = 0;
     for (uint64_t i = 0; i < nKeysToProduce; i++) {
         
@@ -194,17 +188,14 @@ void mq_instance::produce() {
         // buffer and send them to the queue
         qkd::key::key_vector cKeys = engine()->application_buffer()->find_valid(d->nMaxKeySize, 1);
         
-        // if we didn't find any keys left: bail out
         if (cKeys.empty()) break;
         
-        // compile the keys from the buffer into a large key "message"
         qkd::key::key_ring cMQKeyRing(d->nMaxKeySize);
         for (auto & nKeyId : cKeys) {
             qkd::key::key cKey = engine()->application_buffer()->get(nKeyId);
             cMQKeyRing << cKey;
         }
 
-        // place in MQ
         int nError = mq_send(d->nMQDescriptor, (char const *)cMQKeyRing.at(0).data().get(), cMQKeyRing.at(0).size(), 0);
         if (nError) {
             
@@ -219,7 +210,6 @@ void mq_instance::produce() {
         }
     }
 
-    // tell environment
     if (nKeysConsumed) {
         engine()->application_buffer()->emit_charge_change(0, nKeysConsumed);
         if (qkd::utility::debug::enabled()) {
@@ -235,11 +225,9 @@ void mq_instance::produce() {
  */
 void mq_instance::purge() {
  
-    // temporary suspend production
     bool bOldPaused = paused();
     m_bPaused = true;
     
-    // reopen the MQ in read mode
     mqd_t nMQD = mq_open(m_sName.c_str(), O_RDONLY | O_NONBLOCK);
     if (nMQD == -1) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to purge message queue, while reopen the message queue I got:" << strerror(errno);
@@ -247,44 +235,34 @@ void mq_instance::purge() {
         return;
     }
     
-    // as long as there is a message ...
     struct mq_attr cAttr;
     do {
         
-        // read out from the MQ as long as we 
         memset(&cAttr, 0, sizeof(cAttr));
         mq_getattr(nMQD, &cAttr);
         
         if (cAttr.mq_curmsgs) {
     
-            // prepare space to dump the next message
             char * cMsg = new char[cAttr.mq_msgsize];
             
-            // maximum timespan to wait for a read: 1 sec
             struct timespec cTimespan;
             clock_gettime(CLOCK_MONOTONIC, &cTimespan);
             cTimespan.tv_sec++;
             
-            // extract message
             unsigned nMsgPriority = 0;
             if (mq_timedreceive(nMQD, cMsg, cAttr.mq_msgsize, &nMsgPriority, &cTimespan) == -1) {
                 qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to purge MQ '" << m_sName << "': " << strerror(errno);
                 break;
             }
 
-            // destroy ...
             delete [] cMsg;
         }
          
     } while (cAttr.mq_curmsgs);
     
-    // close the reading mq again
     mq_close(nMQD);
-    
-    // reactivate production again (if necessary)
     m_bPaused = bOldPaused;
     
-    // tell environment
     emit purged();
 }
 
@@ -297,4 +275,3 @@ void mq_instance::resume() {
     emit mode_changed(m_bPaused);
     produce();
 }
-

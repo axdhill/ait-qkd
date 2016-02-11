@@ -100,7 +100,9 @@ checksum_algorithm_md5::checksum_algorithm_md5() : d(new checksum_algorithm_md5:
  * @throws  checksum_algorithm_final, if the algorithm has finished and does not allow another addition
  */
 void checksum_algorithm_md5::add(memory const & cMemory) {
-    if (d->m_bFinalized) throw checksum_algorithm_final();
+    if (d->m_bFinalized) {
+        throw std::runtime_error("checksum algorithm instance already finalized");
+    }
     MD5_Update(&(d->m_cMD5Context), cMemory.get(), cMemory.size());
 }
 

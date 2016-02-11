@@ -35,8 +35,8 @@
 // ------------------------------------------------------------
 // incs
 
-#include <exception>
 #include <memory>
+#include <stdexcept>
 #include <string>
 
 #include <inttypes.h>
@@ -124,24 +124,6 @@ public:
 
 
     /**
-     * exception type thrown when something unexpected happened during init
-     */
-    struct context_init : virtual std::exception, virtual boost::exception { };
-    
-
-    /**
-     * exception type when we want to clone a non-cloneable context
-     */
-    struct context_not_clonable : virtual std::exception, virtual boost::exception { };
-    
-
-    /**
-     * exception type thrown when a wrong key is passed
-     */
-    struct context_wrong_key : virtual std::exception, virtual boost::exception { };
-    
-
-    /**
      * dtor
      */
     virtual ~context() {};
@@ -201,7 +183,7 @@ public:
      * @return  a new cloned context
      */
     crypto_context clone() const { 
-        if (!is_cloneable()) throw context_not_clonable(); 
+        if (!is_cloneable()) throw std::logic_error("crypto context not cloneable"); 
         return clone_internal(); 
     }
 

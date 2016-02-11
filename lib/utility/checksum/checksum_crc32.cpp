@@ -106,7 +106,9 @@ checksum_algorithm_crc32::checksum_algorithm_crc32() : d(new checksum_algorithm_
  * @throws  checksum_algorithm_final, if the algorithm has finished and does not allow another addition
  */
 void checksum_algorithm_crc32::add(memory const & cMemory) {
-    if (d->m_bFinalized) throw checksum_algorithm_final();
+    if (d->m_bFinalized) {
+        throw std::runtime_error("checksum algorithm instance already finalized");
+    }
     d->crc32().process_bytes(cMemory.get(), cMemory.size());
 }
 

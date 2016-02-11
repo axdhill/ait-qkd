@@ -164,7 +164,7 @@ void test() {
         cAverage = qkd::utility::average_technique::create("john_doe", 0);
         assert("unknown average algorithm");
     }
-    catch (qkd::utility::average_technique::average_technique_unknown & cException) {}
+    catch (std::exception & cException) {}
 }
 
 

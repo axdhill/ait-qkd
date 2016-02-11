@@ -139,12 +139,6 @@ public:
 
 
     /**
-     * exception type thrown for out of range when accessing bits within the bigint
-     */
-    struct bigint_bit_out_of_range : virtual std::exception, virtual boost::exception { };
-    
-    
-    /**
      * ctor
      *
      * @param   nBitCount       number of bits this bigint manages
@@ -263,7 +257,7 @@ public:
      * @throws  bigint_bit_out_of_range
      */
     inline bool get(uint64_t nPosition) const { 
-        if (!is_within_range(nPosition)) throw bigint_bit_out_of_range(); 
+        if (!is_within_range(nPosition)) throw std::out_of_range("bigint get with index out-of-range");
         return get_bit(nPosition); 
     }
 
@@ -384,7 +378,7 @@ public:
      * @throws  bigint_bit_out_of_range
      */
     inline void set(uint64_t nPosition, bool bValue) { 
-        if (!is_within_range(nPosition)) throw bigint_bit_out_of_range(); 
+        if (!is_within_range(nPosition)) throw std::out_of_range("bigint set with index out-of-range");
         set_bit(nPosition, bValue); 
     }
     

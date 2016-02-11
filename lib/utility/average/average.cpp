@@ -31,6 +31,8 @@
 // ------------------------------------------------------------
 // incs
 
+#include <algorithm>
+
 // ait
 #include <qkd/utility/average.h>
 
@@ -87,7 +89,7 @@ average average_technique::create(std::string sTechnique, uint64_t nWindowSize) 
     if (sTechnique == "time") return std::shared_ptr<average_technique>(new average_time(nWindowSize));
     if (sTechnique == "value") return std::shared_ptr<average_technique>(new average_value(nWindowSize));
 
-    throw average_technique_unknown();
+    throw std::invalid_argument("unknown average technique");
 }
 
 

@@ -90,18 +90,6 @@ public:
 
 
     /**
-     * exception type thrown for unknown algorithms
-     */
-    struct checksum_algorithm_unknown : virtual std::exception, virtual boost::exception { };
-
-
-    /**
-     * exception type thrown when algorithm has been finalized already
-     */
-    struct checksum_algorithm_final : virtual std::exception, virtual boost::exception { };
-
-
-    /**
      * dtor
      */
     virtual ~checksum_algorithm() {}

@@ -82,18 +82,6 @@ public:
 
 
     /**
-     * exception type thrown when accessing information out of range
-     */
-    struct memory_out_of_range : virtual std::exception, virtual boost::exception { };
-    
-
-    /**
-     * exception type thrown for using a wrong number base in string conversions
-     */
-    struct memory_string_base_unknown : virtual std::exception, virtual boost::exception { };
-
-
-    /**
      * ctor
      */
     memory() : m_bShallow(true) , m_cMemory(static_cast<value_t*>(nullptr)), m_nSize(0), m_nInitialSize(0) {}
@@ -138,7 +126,7 @@ public:
      * @throws  memory_out_of_range
      */
     inline value_t const & operator[](uint64_t i) const { 
-        if (i > size()) throw memory_out_of_range(); 
+        if (i > size()) throw std::out_of_range("memory indexer access out-of-range");
         return m_cMemory[i]; 
     }
 
@@ -151,7 +139,7 @@ public:
      * @throws  memory_out_of_range
      */
     inline value_t & operator[](uint64_t i) { 
-        if (i > size()) throw memory_out_of_range(); 
+        if (i > size()) throw std::out_of_range("memory indexer access out-of-range");
         if (!is_shallow()) detach(); 
         return m_cMemory[i]; 
     }

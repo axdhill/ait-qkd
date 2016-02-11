@@ -126,12 +126,6 @@ public:
     
     
     /**
-     * exception type thrown if we don't have an engine
-     */
-    struct protocol_no_engine : virtual std::exception, virtual boost::exception { };
-    
-    
-    /**
      * ctor
      * 
      * @param   cSocket     the socket we operate on

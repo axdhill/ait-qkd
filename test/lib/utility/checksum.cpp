@@ -81,7 +81,7 @@ int test() {
         cAlg << cMemory;
         assert("OVER-finalize!");
     }
-    catch (qkd::utility::checksum_algorithm::checksum_algorithm_final & cException) {}
+    catch (std::exception & cException) {}
     
     // --- SHA1 ---
 
@@ -104,7 +104,7 @@ int test() {
         cAlg << cMemory;
         assert("OVER-finalize!");
     }
-    catch (qkd::utility::checksum_algorithm::checksum_algorithm_final & cException) {}
+    catch (std::exception & cException) {}
     
     // --- MD5 ---
     
@@ -127,7 +127,7 @@ int test() {
         cAlg << cMemory;
         assert("OVER-finalize");
     }
-    catch (qkd::utility::checksum_algorithm::checksum_algorithm_final & cException) {}
+    catch (std::exception & cException) {}
 
     // --- <unknown> ---
     
@@ -136,7 +136,7 @@ int test() {
         cAlg = qkd::utility::checksum_algorithm::create("john_doe");
         assert("unknown algorithm");
     }
-    catch (qkd::utility::checksum_algorithm::checksum_algorithm_unknown & cException) {}
+    catch (std::exception & cException) {}
 
     return 0;
 }

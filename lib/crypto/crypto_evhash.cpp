@@ -92,11 +92,9 @@ public:
  * ctor
  * 
  * @param   cKey        the initial key
- * @throws  context_init
- * @throws  context_wrong_key
  */
 crypto_evhash::crypto_evhash(qkd::key::key const & cKey) : context(cKey) {
-    if (!is_valid_input_key(cKey)) throw qkd::crypto::context::context_wrong_key();
+    if (!is_valid_input_key(cKey)) throw std::invalid_argument("invalid init key for evhash");
     d = std::shared_ptr<qkd::crypto::crypto_evhash::evhash_data>(new qkd::crypto::crypto_evhash::evhash_data(cKey));
 }
 
@@ -155,7 +153,7 @@ void crypto_evhash::add_internal(qkd::utility::memory const & cMemory) {
 qkd::utility::memory crypto_evhash::finalize_internal(qkd::key::key const & cKey) {
     
     // check if the key suits our needs
-    if (!is_valid_final_key(cKey)) throw qkd::crypto::context::context_wrong_key();
+    if (!is_valid_final_key(cKey)) throw std::invalid_argument("invalid final key for evhash");
 
     // get the final tag
     qkd::utility::memory cHashTag;

@@ -384,7 +384,7 @@ int test() {
         qkd::crypto::crypto_context cXOR = qkd::crypto::engine::create("john_doe");
         assert("unknown algorithm");
     }
-    catch (qkd::crypto::engine::algorithm_unknown & cException) {}
+    catch (std::exception & cException) {}
     
 
     // --- crypto scheme string testing ---

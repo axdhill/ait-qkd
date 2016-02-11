@@ -679,13 +679,13 @@ engine engine_instance::create(QString const & sNode, QString const & sId) {
     
     // check name
     if (!qkd::utility::dbus::valid_service_name_particle(sId.toStdString())) {
-        throw qkd::q3p::engine_instance::engine_invalid_id();
+        throw std::invalid_argument("create engine with invalid id");
     }
     
     // try to register engine
     engine cEngine = std::shared_ptr<qkd::q3p::engine_instance>(new qkd::q3p::engine_instance(sNode, sId));
     if (!register_engine(cEngine)) {
-        throw qkd::q3p::engine_instance::engine_already_registered();
+        throw std::runtime_error("engine with this id already registered");
     }
     
     return cEngine;
@@ -1671,7 +1671,9 @@ void engine_instance::server_new() {
  * @throws  engine_invalid_scheme
  */
 void engine_instance::set_authentication_scheme_incoming(QString const & sScheme) {
-    if (!qkd::crypto::engine::valid_scheme(qkd::crypto::scheme(sScheme.toStdString()))) throw qkd::q3p::engine_instance::engine_invalid_scheme();
+    if (!qkd::crypto::engine::valid_scheme(qkd::crypto::scheme(sScheme.toStdString()))) {
+        throw std::invalid_argument("invalid authentication scheme for incoming data");
+    }
     d->m_cAssociationDefinition.sAuthenticationIncoming = sScheme.toStdString();
 }
 
@@ -1683,7 +1685,9 @@ void engine_instance::set_authentication_scheme_incoming(QString const & sScheme
  * @throws  engine_invalid_scheme
  */
 void engine_instance::set_authentication_scheme_outgoing(QString const & sScheme) {
-    if (!qkd::crypto::engine::valid_scheme(qkd::crypto::scheme(sScheme.toStdString()))) throw qkd::q3p::engine_instance::engine_invalid_scheme();
+    if (!qkd::crypto::engine::valid_scheme(qkd::crypto::scheme(sScheme.toStdString()))) {
+        throw std::invalid_argument("invalid authentication scheme for outgoing data");
+    }
     d->m_cAssociationDefinition.sAuthenticationOutgoing = sScheme.toStdString();
 }
 
@@ -1695,7 +1699,9 @@ void engine_instance::set_authentication_scheme_outgoing(QString const & sScheme
  * @throws  engine_invalid_scheme
  */
 void engine_instance::set_encryption_context_name_incoming(QString const & sScheme) {
-    if (!qkd::crypto::engine::valid_scheme(qkd::crypto::scheme(sScheme.toStdString()))) throw qkd::q3p::engine_instance::engine_invalid_scheme();
+    if (!qkd::crypto::engine::valid_scheme(qkd::crypto::scheme(sScheme.toStdString()))) {
+        throw std::invalid_argument("invalid encryption scheme for incoming data");
+    }
     d->m_cAssociationDefinition.sEncryptionIncoming = sScheme.toStdString();
 }
 
@@ -1707,7 +1713,9 @@ void engine_instance::set_encryption_context_name_incoming(QString const & sSche
  * @throws  engine_invalid_scheme
  */
 void engine_instance::set_encryption_context_name_outgoing(QString const & sScheme) {
-    if (!qkd::crypto::engine::valid_scheme(qkd::crypto::scheme(sScheme.toStdString()))) throw qkd::q3p::engine_instance::engine_invalid_scheme();
+    if (!qkd::crypto::engine::valid_scheme(qkd::crypto::scheme(sScheme.toStdString()))) {
+        throw std::invalid_argument("invalid encryption scheme for outgoing data");
+    }
     d->m_cAssociationDefinition.sEncryptionOutgoing = sScheme.toStdString();
 }
 

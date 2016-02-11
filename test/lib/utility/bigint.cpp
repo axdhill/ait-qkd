@@ -69,7 +69,7 @@ int test() {
         cBigintA.set(1000000, false);
         assert("out of range");
     }
-    catch (qkd::utility::bigint::bigint_bit_out_of_range & cException) {}
+    catch (std::exception & cException) {}
     
     // bigint from and to memory conversions
     // Mem-A --> Bigint A --> Mem-B --> Bigint B --> Mem C

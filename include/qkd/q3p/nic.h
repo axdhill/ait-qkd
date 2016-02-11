@@ -109,12 +109,6 @@ public:
     
     
     /**
-     * exception type thrown if we don't have an engine
-     */
-    struct nic_no_engine : virtual std::exception, virtual boost::exception { };
-    
-    
-    /**
      * ctor
      * 
      * @param   cEngine     the parent engine

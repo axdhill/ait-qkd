@@ -54,7 +54,9 @@ using namespace qkd::q3p::protocol;
  * @throws  protocol_no_engine
  */
 protocol::protocol(QAbstractSocket * cSocket, qkd::q3p::engine_instance * cEngine) : QObject(cSocket), m_cEngine(cEngine), m_cSocket(cSocket) {
-    if (!m_cEngine) throw qkd::q3p::protocol::protocol::protocol_no_engine();
+    if (!m_cEngine) {
+        throw std::invalid_argument("q3p protocol with NULL engine");
+    }
 }
 
 

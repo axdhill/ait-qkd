@@ -105,10 +105,10 @@ public:
  */
 nic_instance::nic_instance(qkd::q3p::engine_instance * cEngine) : QObject(), m_cEngine(cEngine) {
     
-    // engine
-    if (!m_cEngine) throw qkd::q3p::nic_instance::nic_no_engine();
+    if (!m_cEngine) {
+        throw std::invalid_argument("nic instance with NULL engine");
+    }
     
-    // pimpl
     d = std::shared_ptr<qkd::q3p::nic_instance::nic_data>(new qkd::q3p::nic_instance::nic_data());    
     d->nFD = 0;
     
@@ -122,16 +122,12 @@ nic_instance::nic_instance(qkd::q3p::engine_instance * cEngine) : QObject(), m_c
  */
 nic_instance::~nic_instance() {
 
-    // stop reader thread
     if (d->cReaderThread.get_id() != std::thread::id()) {
-    
-        // interrupt reader thread and join
         d->bRun = false;
         pthread_kill(d->cReaderThread.native_handle(), SIGCHLD);
         if (d->cReaderThread.joinable()) d->cReaderThread.join();
     }
     
-    // close the TUN/TAP device
     close(d->nFD);
 }
 
@@ -141,22 +137,17 @@ nic_instance::~nic_instance() {
  */
 void nic_instance::init_tun() {
     
-    // open /dev/net/tun
     d->nFD = ::open("/dev/net/tun", O_RDWR);
     if (d->nFD < 0) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "could not access /dev/net/tun: " << strerror(errno);
         return;
     }
     
-    // make an ioctl on the file descriptor with IFF_TUN set
     struct ifreq cIFReq;
     memset(&cIFReq, 0, sizeof(cIFReq));
     cIFReq.ifr_flags = IFF_TUN;
     
-    // prepare the name
     strncpy(cIFReq.ifr_name, "q3p%d", IFNAMSIZ);
-    
-    // create the device
     if (ioctl(d->nFD, TUNSETIFF, (void *)&cIFReq) == -1) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "could not create TUN device: " << strerror(errno);
         close(d->nFD);
@@ -164,14 +155,11 @@ void nic_instance::init_tun() {
         return;
     }
     
-    // we are up
     m_sName = cIFReq.ifr_name;
     
-    // create reader thread
     d->bRun = true;
     d->cReaderThread = std::thread([this]{ reader(); });
     
-    // tell environment
     emit device_ready(QString::fromStdString(m_sName));
     qkd::utility::syslog::info() << "created TUN device: " << m_sName;
 }
@@ -189,10 +177,8 @@ void nic_instance::reader() {
     uint64_t nSize;
     while (d->bRun && ((nSize = read(d->nFD, cBuffer, 1024 * 64)) > 0 )) {
 
-        // ignore errors
         if (nSize == (uint64_t)-1) continue;
         
-        // wrap data and send it
         qkd::utility::memory cPayload = qkd::utility::memory::wrap((qkd::utility::memory::value_t *)cBuffer, nSize);
         m_cEngine->send_data(cPayload);
     }
@@ -209,17 +195,13 @@ void nic_instance::reader() {
  */
 void nic_instance::write(qkd::utility::memory const & cData) {
 
-    // don't write if we ain't got an interface
     if (d->nFD <= 0) {
         if (qkd::utility::debug::enabled()) qkd::utility::debug() << "failed to write " << cData.size() << " bytes to TUN/TAP: no device present.";
         return;
     }
     
-    // pass data to the kernel
     uint64_t nSize = ::write(d->nFD, cData.get(), cData.size());
     if (nSize != cData.size()) {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "nic in trouble: failed to pass received data to the kernel";
     }
 }
-
-

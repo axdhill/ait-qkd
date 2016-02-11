@@ -36,9 +36,9 @@
 // incs
 
 #include <endian.h>
-#include <exception>
 #include <list>
 #include <set>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -82,12 +82,6 @@ public:
     using qkd::utility::memory::add;
     
 
-    /**
-     * exception type thrown when reading beyond space
-     */
-    struct buffer_out_of_bounds : virtual std::exception, virtual boost::exception {};
-    
-    
     /**
      * ctor
      */
@@ -136,7 +130,7 @@ public:
      * @param   nSize       size of data
      */
     inline void pick(void * cData, uint64_t nSize) { 
-        if ((m_nPosition + nSize) > size()) throw buffer_out_of_bounds(); 
+        if ((m_nPosition + nSize) > size()) throw std::out_of_range("buffer pick out-of-range");
         memcpy(cData, get() + m_nPosition, nSize); 
         m_nPosition += nSize; 
     }

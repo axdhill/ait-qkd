@@ -214,30 +214,6 @@ public:
 
     
     /**
-     * exception type thrown if we want to register an engine with an already registered id
-     */
-    struct engine_already_registered : virtual std::exception, virtual boost::exception { };
-    
-    
-    /**
-     * exception type thrown if we could not create a channel
-     */
-    struct engine_create_channel : virtual std::exception, virtual boost::exception { };
-
-    
-    /**
-     * exception type thrown if a wrong id is supplied
-     */
-    struct engine_invalid_id : virtual std::exception, virtual boost::exception { };
-    
-    
-    /**
-     * exception type thrown if an invalid authentication/encryption scheme has been passed
-     */
-    struct engine_invalid_scheme : virtual std::exception, virtual boost::exception { };
-    
-    
-    /**
      * dtor
      */
     virtual ~engine_instance();

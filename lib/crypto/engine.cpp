@@ -124,16 +124,16 @@ crypto_context engine::create(std::string sAlgorithm, qkd::key::key const & cKey
     }
     
     if (sAlgorithm == "evhash") {
-        if (!crypto_evhash::is_valid_input_key(cKey)) throw qkd::crypto::context::context_wrong_key();
+        if (!crypto_evhash::is_valid_input_key(cKey)) throw std::invalid_argument("invalid init key for evhash");
         return std::shared_ptr<context>(new crypto_evhash(cKey));
     }
    
     if (sAlgorithm == "xor") {
-        if (!crypto_xor::is_valid_input_key(cKey)) throw qkd::crypto::context::context_wrong_key();
+        if (!crypto_xor::is_valid_input_key(cKey)) throw std::invalid_argument("invalid init key for xor");
         return std::shared_ptr<context>(new crypto_xor(cKey));
     }
 
-    throw qkd::crypto::engine::algorithm_unknown();
+    throw std::invalid_argument("crypto algorithm unknown");
 }
 
 
@@ -163,7 +163,7 @@ crypto_context engine::create(std::string sAlgorithm, qkd::key::key const & cKey
  */
 crypto_context engine::create(qkd::crypto::scheme const & cScheme) {
     
-    if (!valid_scheme(cScheme)) throw qkd::crypto::engine::scheme_invalid();
+    if (!valid_scheme(cScheme)) throw std::invalid_argument("scheme invalid");
     
     // get the context based on the info we have now
     crypto_context cCryptoContext = create(cScheme.name(), cScheme.init_key());

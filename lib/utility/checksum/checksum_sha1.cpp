@@ -100,7 +100,9 @@ checksum_algorithm_sha1::checksum_algorithm_sha1() : d(new checksum_algorithm_sh
  * @throws  checksum_algorithm_final, if the algorithm has finished and does not allow another addition
  */
 void checksum_algorithm_sha1::add(memory const & cMemory) {
-    if (d->m_bFinalized) throw checksum_algorithm_final();
+    if (d->m_bFinalized) {
+        throw std::runtime_error("checksum algorithm instance already finalized");
+    }
     SHA1_Update(&(d->m_cSHAContext), cMemory.get(), cMemory.size());
 }
 

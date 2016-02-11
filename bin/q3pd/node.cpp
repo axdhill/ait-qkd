@@ -100,13 +100,10 @@ static node * g_cNode = nullptr;
  */
 node::node(QString const & sId, QString const & sConfigFileURL) : QObject(), m_sConfigFile(sConfigFileURL), m_sId(sId) {
     
-    // install the main node instance
     if (!g_cNode) g_cNode = this;
     
-    // install log callback 
     qkd::utility::debug::set_callback(log_callback);
     
-    // syslog
     qkd::utility::syslog::info() << "launching Q3P node \"" << sId.toStdString() << "\"";
     
     struct timeval cTV;
@@ -116,10 +113,8 @@ node::node(QString const & sId, QString const & sConfigFileURL) : QObject(), m_s
     m_nStartTimeStamp = cTV.tv_sec;
     m_cRandom = qkd::utility::random_source::create("");
     
-    // syslog
     qkd::utility::syslog::info() << "connecting to DBus:" << getenv("DBUS_SESSION_BUS_ADDRESS");
     
-    // register Service on DBus
     QDBusConnection cDBus = qkd::utility::dbus::qkd_dbus();
     QString sServiceName = QString("at.ac.ait.q3p.node-") + id();
     bool bSuccess = cDBus.registerService(sServiceName);
@@ -128,10 +123,8 @@ node::node(QString const & sId, QString const & sConfigFileURL) : QObject(), m_s
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << sMessage.toStdString();
     }
     
-    // syslog
     qkd::utility::syslog::info() << "connected to DBus:" << getenv("DBUS_SESSION_BUS_ADDRESS") << " as \"" << sServiceName.toStdString() << "\"";
 
-    // register Object on DBus
     new NodeAdaptor(this);
     bSuccess = cDBus.registerObject("/Node", this);
     if (!bSuccess) {
@@ -142,7 +135,6 @@ node::node(QString const & sId, QString const & sConfigFileURL) : QObject(), m_s
         qkd::utility::syslog::info() << "node registered on DBus as \"" << sServiceName.toStdString() << "\"";
     }
     
-    // the right next thing is to apply the config file (if any)
     QTimer::singleShot(0, this, SLOT(apply_config_file()));
 }
 
@@ -159,25 +151,19 @@ node::~node() {
  */
 void node::apply_config_file() {
     
-    // create a list of potential config files
     std::list<std::string> cConfigFileHints = config_file_hints();
     m_sConfigFile = "";
     
-    // this will take all options found
     qkd::utility::properties cConfig;
     
-    // find and load
     for (auto & sFileHint : cConfigFileHints) {
 
-        // open file
         std::ifstream cConfigFile(sFileHint);
         if (!cConfigFile.is_open()) continue;
         
-        // found a config file
         m_sConfigFile = QString::fromStdString(sFileHint);
         qkd::utility::syslog::info() << "found config file: " << sFileHint << ", taking values from there ...";
 
-        // read in the options
         std::set<std::string> cOptions;
         cOptions.insert("*");
         
@@ -185,20 +171,19 @@ void node::apply_config_file() {
             boost::program_options::detail::config_file_iterator cConfigIter(cConfigFile, cOptions);
             boost::program_options::detail::config_file_iterator cEOF;
             
-            // collect all found options
             for (; cConfigIter != cEOF; cConfigIter++) {
-                
-                // get the next option
                 boost::program_options::option cOption = *cConfigIter;
                 cConfig[cOption.string_key] = cOption.value[0];
             }
         }
         catch (boost::program_options::invalid_syntax const & cErrInvalidSyntax) {
-            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to parse config file: " << sFileHint << " invalid syntax at: '" << cErrInvalidSyntax.tokens() << "'";
+            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ 
+                    << ": " << "failed to parse config file: " << sFileHint << " invalid syntax at: '" << cErrInvalidSyntax.tokens() << "'";
             exit(1);
         }
         catch (std::exception const & cException) {
-            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to parse config file: " << sFileHint << " exception: " << cException.what();
+            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ 
+                    << ": " << "failed to parse config file: " << sFileHint << " exception: " << cException.what();
             exit(1);
         }
         
@@ -207,19 +192,19 @@ void node::apply_config_file() {
         break;
     }
     
-    // found anything?
     if (m_sConfigFile.isEmpty()) {
         qkd::utility::syslog::info() << "no config file found, starting with default/empty values";
         return;
     }
     
-    // check if we have anything at all
     if (cConfig.size() == 0) {
-        if (!m_sConfigFile.isEmpty()) qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "found config file: " << m_sConfigFile.toStdString() << " but didn't find any option - is this intended?";
+        if (!m_sConfigFile.isEmpty()) {
+            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                    << ": " << "found config file: " << m_sConfigFile.toStdString() << " but didn't find any option - is this intended?";
+        }
         return;
     }
 
-    // this will take all options found - per link
     std::map<std::string, qkd::utility::properties> cLinkConfig;
     for (auto & iter : cConfig) {
         
@@ -236,7 +221,6 @@ void node::apply_config_file() {
         // the key must be present
         if (sTokens[2].size() == 0) continue;
 
-        // reconstruct the key: all the rest key value with a '.' in between 
         std::stringstream ssKey;
         ssKey << sTokens[2];
         for (auto key_iter = sTokens.begin() + 3; key_iter != sTokens.end(); key_iter++) {
@@ -244,24 +228,23 @@ void node::apply_config_file() {
         }
         std::string sKey = ssKey.str();
         
-        // the key must be known
         const std::set<std::string> cValidKeyNames = { "db", "id", "listen.uri", "master", "peer.uri", "secret", "secret_file", "ipsec" };
         if (cValidKeyNames.find(sKey) == cValidKeyNames.end()) {
-            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "parsed config file: '" << m_sConfigFile.toStdString() << "', section [" << sTokens[0] << "." << sTokens[1] << "]: detected unknown key '" << sKey << "' - dropping";
+            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                    << ": " << "parsed config file: '" << m_sConfigFile.toStdString() 
+                    << "', section [" << sTokens[0] << "." << sTokens[1] << "]: detected unknown key '" << sKey << "' - dropping";
             continue;
         }
                 
-        // "link INI identifier" --> "key" = "value"
         cLinkConfig[sTokens[1]][sKey] = iter.second;
     }
     
-    // check if we do have a link config at all
     if (cLinkConfig.empty()) {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "no link configuration found - did you miss a [link.NAME] line?";
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                << ": " << "no link configuration found - did you miss a [link.NAME] line?";
     }
     else {
     
-        // debug out
         if (qkd::utility::debug::enabled()) {
             
             qkd::utility::debug() << "parsed config data:";        
@@ -277,7 +260,6 @@ void node::apply_config_file() {
             }
         }
 
-        // apply the values
         for (auto & link_iter : cLinkConfig) {
             apply_link_config(link_iter.first, link_iter.second);
         }
@@ -295,24 +277,22 @@ void node::apply_link_config(std::string const & sLinkIdentifier, qkd::utility::
     
     if (qkd::utility::debug::enabled()) qkd::utility::debug() << "applying values for config setting '" << sLinkIdentifier << "'";
     
-    // grab the id
     if (cConfig.find("id") == cConfig.end()) {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to setup link for '" << sLinkIdentifier << "': missing value for 'id'";
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                << ": " << "failed to setup link for '" << sLinkIdentifier << "': missing value for 'id'";
         return;
     }
     
-    // extract the id and create the link
     QString sId = QString::fromStdString(cConfig.at("id"));
     if (!create_link(sId)) return;
     
-    // get the link
     qkd::q3p::engine cEngine = qkd::q3p::engine_instance::get(sId);
     if (cEngine.get() == nullptr) {
-        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to setup link: engine created but unable to fetch unstance. this mus not happen. this is a bug.";
+        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ 
+                << ": " << "failed to setup link: engine created but unable to fetch unstance. this mus not happen. this is a bug.";
         return;
     }
     
-    // check for role
     if (cConfig.find("master") != cConfig.end()) {
         
         std::set<std::string> cTrueValues = { "1", "y", "yes", "true" };
@@ -328,41 +308,45 @@ void node::apply_link_config(std::string const & sLinkIdentifier, qkd::utility::
             cEngine->set_slave(true);
         }
         else {
-            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to parse value for '" << sLinkIdentifier << "': don't know how to interpret value of 'master': '" << cConfig.at("master") << "'";
+            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                    << ": " << "failed to parse value for '" << sLinkIdentifier << "': don't know how to interpret value of 'master': '" << cConfig.at("master") << "'";
         }
     }
     
-    // set up DB
-    if (cConfig.find("db") != cConfig.end()) cEngine->open_db(QString::fromStdString(cConfig.at("db")));
+    if (cConfig.find("db") != cConfig.end()) {
+        cEngine->open_db(QString::fromStdString(cConfig.at("db")));
+    }
     
-    // check the shared secret
     if ((cConfig.find("secret") != cConfig.end()) && (cConfig.find("secret_file") != cConfig.end())) {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "parsing config for '" << sLinkIdentifier << "': both 'secret' AND 'secret_file' given - 'secret' takes precedence.";
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                << ": " << "parsing config for '" << sLinkIdentifier << "': both 'secret' AND 'secret_file' given - 'secret' takes precedence.";
     }
 
-    // get the secret
     QByteArray cSharedSecret;
-    if (cConfig.find("secret") != cConfig.end()) cSharedSecret = QByteArray(cConfig.at("secret").data(), cConfig.at("secret").length());
+    if (cConfig.find("secret") != cConfig.end()) {
+        cSharedSecret = QByteArray(cConfig.at("secret").data(), cConfig.at("secret").length());
+    }
     else
     if (cConfig.find("secret_file") != cConfig.end()) {
         
-        // read in the shared secret from a file
         QFile cSecretFile(QString::fromStdString(cConfig.at("secret_file")));
-        if (!cSecretFile.open(QIODevice::ReadOnly)) qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to open shared secret_file: '" << cConfig.at("secret_file") << "'";
+        if (!cSecretFile.open(QIODevice::ReadOnly)) {
+            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ 
+                    << ": " << "failed to open shared secret_file: '" << cConfig.at("secret_file") << "'";
+        }
         else cSharedSecret = cSecretFile.readAll();
     }
     
-    // do we have a secret?
     if (cSharedSecret.size() == 0) {
-        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "config for '" << sLinkIdentifier << "': I don't have a shared secret to start with - unable to proceed.";
+        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ 
+                << ": " << "config for '" << sLinkIdentifier << "': I don't have a shared secret to start with - unable to proceed.";
         return;
     }
     
-    // set up IPSec
-    if (cConfig.find("ipsec") != cConfig.end()) cEngine->configure_ipsec(QString::fromStdString(cConfig.at("ipsec")));
+    if (cConfig.find("ipsec") != cConfig.end()) {
+        cEngine->configure_ipsec(QString::fromStdString(cConfig.at("ipsec")));
+    }
     
-
-    // start a listener?
     if (cConfig.find("listen.uri") != cConfig.end()) {
         cEngine->listen(QString::fromStdString(cConfig.at("listen.uri")), cSharedSecret);
     }
@@ -370,7 +354,6 @@ void node::apply_link_config(std::string const & sLinkIdentifier, qkd::utility::
         qkd::utility::syslog::info() << "config for '" << sLinkIdentifier << "': insufficient listener-config - not going to listen.";
     }
 
-    // connect?
     if (cConfig.find("peer.uri") != cConfig.end()) {
         cEngine->connect(QString::fromStdString(cConfig.at("peer.uri")), cSharedSecret);
     }
@@ -392,39 +375,32 @@ std::list<std::string> node::config_file_hints() const {
     std::string sNode = id().toStdString();
     QString sConfigFile = m_sConfigFile;
     
-    // add an already noted config file
     if (!sConfigFile.isEmpty()) {
         
-        // deduce proper settings
         QUrl cConfigFileUrl(sConfigFile);
         if (!cConfigFileUrl.scheme().isEmpty()) sConfigFile = cConfigFileUrl.toLocalFile();
 
-        // deal with a file ...
         boost::filesystem::path cConfigFilePath(sConfigFile.toStdString());
         if (!boost::filesystem::exists(cConfigFilePath)) {
             qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "cannot access given config file: '" << cConfigFilePath.string() << "'";
         }
         else {
             
-            // is this a file?
             if (!boost::filesystem::is_regular_file(cConfigFilePath)) {
-                qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "given config file: '" << cConfigFilePath.string() << "' seems not to be a regular file";
+                qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                        << ": " << "given config file: '" << cConfigFilePath.string() << "' seems not to be a regular file";
             }
             else {
-                
-                // a good file, make it absolute
                 cConfigFileHints.push_back(boost::filesystem::absolute(cConfigFilePath).string());
             }
         }
     }
     
-    // add default searches
     cConfigFileHints.push_back(qkd::utility::environment::process_image_path().string() + "/" + sNode + ".conf");
     cConfigFileHints.push_back(qkd::utility::environment::data_path("q3p").string() + "/" + sNode + ".conf");
     cConfigFileHints.push_back(qkd::utility::environment::prefix_path().string() + "/etc/q3p/" + sNode + ".conf");
     cConfigFileHints.push_back(qkd::utility::environment::config_path().string() + "/q3p/" + sNode + ".conf");
     
-    // debug out
     if (qkd::utility::debug::enabled()) {
         qkd::utility::debug() << "these are the config files I'll try to load ...";
         int nHint = 0;
@@ -450,14 +426,13 @@ bool node::create_link(QString const & sName) {
         emit link_created(sName);
         return true;
     }
-    catch (qkd::q3p::engine_instance::engine_already_registered & cException) {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to register new Q3P engine: \"" << sName.toStdString() << "\" - already registered";
-    }
-    catch (qkd::q3p::engine_instance::engine_invalid_id & cException) {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to register new Q3P engine: \"" << sName.toStdString() << "\" - invalid id name";
+    catch (std::exception const & cException) {
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                << ": " << "failed to register new Q3P engine: \"" << cException.what() << "\" - already registered";
     }
     catch (...) {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to register new Q3P engine: \"" << sName.toStdString() << "\" - unknown reason";
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                << ": " << "failed to register new Q3P engine: \"" << sName.toStdString() << "\" - unknown reason";
     }
 
     return false; 
@@ -473,7 +448,6 @@ QStringList node::links() {
     
     QStringList cList;
     
-    // walk over the known engines
     qkd::q3p::engine_map const & cEngines = qkd::q3p::engine_instance::engines();
     for (auto & iter : cEngines) {
         cList << iter.second->link_id();
@@ -547,14 +521,8 @@ QStringList node::modules() {
  * turn down the node
  */
 void node::quit() {
-    
-    // syslog
     qkd::utility::syslog::info() << "received quit signal. shutting down ...";
-
-    // close them all
     qkd::q3p::engine_instance::close_all();
-    
-    // end "application"
     qApp->quit();
 }
 
@@ -568,21 +536,17 @@ void node::set_random_url(QString sRandomUrl) {
     
     try {
         
-        // the next line may fail, when an invalid URL is specified
         qkd::utility::random r = qkd::utility::random_source::create(sRandomUrl.toStdString());
-        
-        // good. apply!
         m_cRandom = r;
         m_sRandomUrl = sRandomUrl;
         
-        // syslog
         qkd::utility::syslog::info() << "new random source: '" << sRandomUrl.toStdString() << "'";
         
         emit random_url_changed(sRandomUrl);
     }
     catch (...) {
-        // syslog
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to set new random source: '" << sRandomUrl.toStdString() << "'";
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
+                << ": " << "failed to set new random source: '" << sRandomUrl.toStdString() << "'";
     }
 }
 
@@ -621,4 +585,3 @@ void log_callback(std::string const & sLog) {
     if (!g_cNode) return;
     g_cNode->trigger_log(QString::fromStdString(sLog));
 }
-

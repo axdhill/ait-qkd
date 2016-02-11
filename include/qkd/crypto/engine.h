@@ -82,18 +82,6 @@ public:
 
 
     /**
-     * exception type thrown for unknown crypto algorithm
-     */
-    struct algorithm_unknown : virtual std::exception, virtual boost::exception { };
-    
-    
-    /**
-     * exception type thrown for an invalid scheme
-     */
-    struct scheme_invalid : virtual std::exception, virtual boost::exception { };
-    
-    
-    /**
      * factory method to create a crypto context
      * 
      * the given Algorithm identifies the algorithm used

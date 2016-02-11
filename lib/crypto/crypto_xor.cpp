@@ -93,7 +93,7 @@ void crypto_xor::add_internal(qkd::utility::memory const & cMemory) {
 qkd::utility::memory crypto_xor::finalize_internal(qkd::key::key const & cKey) {
     
     // check if the key suits our needs
-    if (!is_valid_final_key(cKey)) throw qkd::crypto::context::context_wrong_key();
+    if (!is_valid_final_key(cKey)) throw std::invalid_argument("invalid final key for xor");
 
     // prepare the result
     qkd::utility::memory cFinalTag(m_cData.size());

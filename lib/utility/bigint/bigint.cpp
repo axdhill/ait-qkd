@@ -314,7 +314,7 @@ bool bigint::get_bit(uint64_t nPosition) const {
 qkd::utility::bigint bigint::mask(uint64_t nSize, uint64_t nWidth, uint64_t nStartPos) {
     
     if (!nSize) return bigint(0);
-    if (nStartPos >= nSize) throw bigint_bit_out_of_range();
+    if (nStartPos >= nSize) throw std::out_of_range("bigint mask with start position out-of-range");
     
     bigint cMask(nSize); 
     cMask.clear();
