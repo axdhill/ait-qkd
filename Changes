@@ -5,6 +5,12 @@ This file holds the changes of the AIT QKD R10 throughout the versions
 Changes from 9.9999.6 to 9.9999.7
 ---------------------------------
 
+* drop of boost::shared_ptr and boost::exception
+
+    boost::shared_ptr and boost::exception have been dropped in favor
+    for the std:: counterparts. These are easier to understand
+    and reduce the dependency to boost (a little).
+
 * qkd-resize does now include all bits of disclosed keys
 
     In previous versions, qkd-resize did not include the key bits
