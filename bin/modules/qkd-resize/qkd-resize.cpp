@@ -85,7 +85,7 @@ public:
  * ctor
  */
 qkd_resize::qkd_resize() : qkd::module::module("resize", qkd::module::module_type::TYPE_OTHER, MODULE_DESCRIPTION, MODULE_ORGANISATION) {
-    d = boost::shared_ptr<qkd_resize::qkd_resize_data>(new qkd_resize::qkd_resize_data());
+    d = std::shared_ptr<qkd_resize::qkd_resize_data>(new qkd_resize::qkd_resize_data());
     new ResizeAdaptor(this);
 }
 

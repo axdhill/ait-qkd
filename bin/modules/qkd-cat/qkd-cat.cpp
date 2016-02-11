@@ -86,7 +86,7 @@ public:
  */
 qkd_cat::qkd_cat() : qkd::module::module("cat", qkd::module::module_type::TYPE_OTHER, MODULE_DESCRIPTION, MODULE_ORGANISATION) {
 
-    d = boost::shared_ptr<qkd_cat::qkd_cat_data>(new qkd_cat::qkd_cat_data());
+    d = std::shared_ptr<qkd_cat::qkd_cat_data>(new qkd_cat::qkd_cat_data());
     
     set_loop(false);
     set_url_pipe_in("");

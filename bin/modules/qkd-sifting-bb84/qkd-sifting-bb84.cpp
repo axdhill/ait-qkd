@@ -138,7 +138,7 @@ qkd_sifting_bb84::qkd_sifting_bb84() : qkd::module::module("bb84",
         MODULE_DESCRIPTION, 
         MODULE_ORGANISATION) {
 
-    d = boost::shared_ptr<qkd_sifting_bb84::qkd_sifting_bb84_data>(new qkd_sifting_bb84::qkd_sifting_bb84_data());
+    d = std::shared_ptr<qkd_sifting_bb84::qkd_sifting_bb84_data>(new qkd_sifting_bb84::qkd_sifting_bb84_data());
     
     set_key_id_pattern("0/0");
     set_rawkey_length(1024);

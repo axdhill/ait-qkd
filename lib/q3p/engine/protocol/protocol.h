@@ -37,8 +37,6 @@
 
 #include <inttypes.h>
 
-#include <boost/shared_ptr.hpp>
-
 // Qt
 #include <QtCore/QObject>
 #include <QtCore/QTimer>

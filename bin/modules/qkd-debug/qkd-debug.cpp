@@ -89,7 +89,7 @@ public:
  */
 qkd_debug::qkd_debug() : qkd::module::module("debug", qkd::module::module_type::TYPE_OTHER, MODULE_DESCRIPTION, MODULE_ORGANISATION) {
 
-    d = boost::shared_ptr<qkd_debug::qkd_debug_data>(new qkd_debug::qkd_debug_data());
+    d = std::shared_ptr<qkd_debug::qkd_debug_data>(new qkd_debug::qkd_debug_data());
     
     // enforce DBus registration
     new DebugAdaptor(this);

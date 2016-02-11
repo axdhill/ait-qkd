@@ -100,7 +100,7 @@ static bool verify_scheme(qkd::crypto::scheme const & cScheme);
  * ctor
  */
 qkd_auth::qkd_auth() : qkd::module::module("auth", qkd::module::module_type::TYPE_OTHER, MODULE_DESCRIPTION, MODULE_ORGANISATION) {
-    d = boost::shared_ptr<qkd_auth::qkd_auth_data>(new qkd_auth::qkd_auth_data());
+    d = std::shared_ptr<qkd_auth::qkd_auth_data>(new qkd_auth::qkd_auth_data());
     new AuthAdaptor(this);
 }
 

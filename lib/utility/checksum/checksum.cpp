@@ -56,13 +56,13 @@ using namespace qkd::utility;
 checksum checksum_algorithm::create(std::string sName) {
 
     // crc32
-    if (sName == "crc32") return boost::shared_ptr<checksum_algorithm>(new checksum_algorithm_crc32());
+    if (sName == "crc32") return std::shared_ptr<checksum_algorithm>(new checksum_algorithm_crc32());
 
     // MD5
-    if (sName == "md5") return boost::shared_ptr<checksum_algorithm>(new checksum_algorithm_md5());
+    if (sName == "md5") return std::shared_ptr<checksum_algorithm>(new checksum_algorithm_md5());
 
     // SHA1
-    if (sName == "sha1") return boost::shared_ptr<checksum_algorithm>(new checksum_algorithm_sha1());
+    if (sName == "sha1") return std::shared_ptr<checksum_algorithm>(new checksum_algorithm_sha1());
 
     throw checksum_algorithm_unknown();
 }

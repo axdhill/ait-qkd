@@ -147,7 +147,7 @@ private:
 
     // pimpl
     class qkd_tee_data;
-    boost::shared_ptr<qkd_tee_data> d;
+    std::shared_ptr<qkd_tee_data> d;
     
 };
 

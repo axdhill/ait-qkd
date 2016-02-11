@@ -120,17 +120,17 @@ crypto_context engine::create(std::string sAlgorithm, qkd::key::key const & cKey
     // treat different algorithms
     
     if (sAlgorithm == "null") {
-        return boost::shared_ptr<context>(new crypto_null(cKey));
+        return std::shared_ptr<context>(new crypto_null(cKey));
     }
     
     if (sAlgorithm == "evhash") {
         if (!crypto_evhash::is_valid_input_key(cKey)) throw qkd::crypto::context::context_wrong_key();
-        return boost::shared_ptr<context>(new crypto_evhash(cKey));
+        return std::shared_ptr<context>(new crypto_evhash(cKey));
     }
    
     if (sAlgorithm == "xor") {
         if (!crypto_xor::is_valid_input_key(cKey)) throw qkd::crypto::context::context_wrong_key();
-        return boost::shared_ptr<context>(new crypto_xor(cKey));
+        return std::shared_ptr<context>(new crypto_xor(cKey));
     }
 
     throw qkd::crypto::engine::algorithm_unknown();

@@ -231,7 +231,7 @@ private:
     
     // pimpl
     class qkd_sifting_bb84_data;
-    boost::shared_ptr<qkd_sifting_bb84_data> d;
+    std::shared_ptr<qkd_sifting_bb84_data> d;
     
 };
 

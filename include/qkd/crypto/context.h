@@ -36,11 +36,10 @@
 // incs
 
 #include <exception>
+#include <memory>
 #include <string>
 
 #include <inttypes.h>
-
-#include <boost/shared_ptr.hpp>
 
 // ait
 #include <qkd/crypto/scheme.h>
@@ -60,7 +59,7 @@ namespace crypto {
 // fwd
 class context;
 class engine;
-typedef boost::shared_ptr<context> crypto_context;
+typedef std::shared_ptr<context> crypto_context;
 
 
 /**

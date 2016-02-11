@@ -36,11 +36,10 @@
 // incs
 
 #include <exception>
+#include <memory>
 #include <string>
 
 #include <inttypes.h>
-
-#include <boost/shared_ptr.hpp>
 
 // Qt
 #include <QtCore/QObject>
@@ -59,7 +58,7 @@ namespace q3p {
 class engine_instance;
     
 class mq_instance;
-typedef boost::shared_ptr<mq_instance> mq;
+typedef std::shared_ptr<mq_instance> mq;
 
 
 /**
@@ -233,7 +232,7 @@ private:
 
     // pimpl
     class mq_data;
-    boost::shared_ptr<mq_data> d;
+    std::shared_ptr<mq_data> d;
 };
   
 

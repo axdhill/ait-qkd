@@ -35,9 +35,8 @@
 // ------------------------------------------------------------
 // incs
 
+#include <memory>
 #include <string>
-
-#include <boost/shared_ptr.hpp>
 
 // Qt
 #include <QtDBus/QDBusConnection>
@@ -226,7 +225,7 @@ private:
 
     // pimpl
     class module_frame_data;
-    boost::shared_ptr<module_frame_data> d;
+    std::shared_ptr<module_frame_data> d;
 };
 
 

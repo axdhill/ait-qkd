@@ -36,13 +36,12 @@
 // incs
 
 #include <chrono>
+#include <memory>
 #include <mutex>
 #include <stdexcept>
 #include <string>
 
 #include <inttypes.h>
-
-#include <boost/shared_ptr.hpp>
 
 // Qt
 #include <QtCore/QObject>
@@ -1786,7 +1785,7 @@ private:
     
     // pimpl
     class module_internal;
-    boost::shared_ptr<module_internal> d;
+    std::shared_ptr<module_internal> d;
 };
 
 

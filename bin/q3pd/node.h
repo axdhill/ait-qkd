@@ -37,7 +37,6 @@
 
 #include <exception>
 #include <string>
-#include <boost/shared_ptr.hpp>
 
 // Qt
 #include <QtCore/QObject>

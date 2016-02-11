@@ -36,9 +36,8 @@
 // incs
 
 #include <exception>
+#include <memory>
 #include <string>
-
-#include <boost/shared_ptr.hpp>
 
 // ait
 #include <qkd/utility/memory.h>
@@ -55,7 +54,7 @@ namespace utility {
 
 // fwd
 class checksum_algorithm;
-typedef boost::shared_ptr<checksum_algorithm> checksum;
+typedef std::shared_ptr<checksum_algorithm> checksum;
 
 
 /**

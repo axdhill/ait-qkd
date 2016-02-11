@@ -208,7 +208,7 @@ static engine_map g_cEngines;
  */
 engine_instance::engine_instance(QString const & sNode, QString const & sId) : qkd::module::module("keystore", qkd::module::module_type::TYPE_KEYSTORE, MODULE_DESCRIPTION, MODULE_ORGANISATION) {
     
-    d = boost::shared_ptr<qkd::q3p::engine_instance::engine_data>(new qkd::q3p::engine_instance::engine_data(qkd::utility::dbus::qkd_dbus()));
+    d = std::shared_ptr<qkd::q3p::engine_instance::engine_data>(new qkd::q3p::engine_instance::engine_data(qkd::utility::dbus::qkd_dbus()));
 
     d->m_sNode = sNode;
     d->m_sLinkId = sId;
@@ -511,7 +511,7 @@ void engine_instance::close_db() {
         
         QString sDBUrl = d->m_cCommonStoreDB->url();
         d->m_cCommonStoreDB->close();
-        d->m_cCommonStoreDB = boost::shared_ptr<db>();
+        d->m_cCommonStoreDB = std::shared_ptr<db>();
         qkd::utility::syslog::info() << "database " << sDBUrl.toStdString() << " closed";
         
         // unregister object from DBus
@@ -683,7 +683,7 @@ engine engine_instance::create(QString const & sNode, QString const & sId) {
     }
     
     // try to register engine
-    engine cEngine = boost::shared_ptr<qkd::q3p::engine_instance>(new qkd::q3p::engine_instance(sNode, sId));
+    engine cEngine = std::shared_ptr<qkd::q3p::engine_instance>(new qkd::q3p::engine_instance(sNode, sId));
     if (!register_engine(cEngine)) {
         throw qkd::q3p::engine_instance::engine_already_registered();
     }
@@ -1841,7 +1841,7 @@ void engine_instance::setup_mq() {
     
     qkd::utility::debug() << "setting up message queue...";
     
-    d->m_cMQ = boost::shared_ptr<qkd::q3p::mq_instance>(new qkd::q3p::mq_instance(this));
+    d->m_cMQ = std::shared_ptr<qkd::q3p::mq_instance>(new qkd::q3p::mq_instance(this));
     
     new MqAdaptor(d->m_cMQ.get());
     QString sMQObjectPath = d->m_sDBusObjectPath + "/MQ";
@@ -1859,7 +1859,7 @@ void engine_instance::setup_nic() {
     
     qkd::utility::debug() << "setting up virtual NIC...";
     
-    d->m_cNIC = boost::shared_ptr<qkd::q3p::nic_instance>(new qkd::q3p::nic_instance(this));
+    d->m_cNIC = std::shared_ptr<qkd::q3p::nic_instance>(new qkd::q3p::nic_instance(this));
     
     new NicAdaptor(d->m_cNIC.get());
     QString sNICObjectPath = d->m_sDBusObjectPath + "/NIC";
@@ -1912,7 +1912,7 @@ void engine_instance::shutdown_ipsec() {
  */
 void engine_instance::shutdown_mq() {
     qkd::utility::debug() << "shutting down message queue...";
-    d->m_cMQ = boost::shared_ptr<qkd::q3p::mq_instance>();
+    d->m_cMQ = std::shared_ptr<qkd::q3p::mq_instance>();
 }
     
     
@@ -1921,7 +1921,7 @@ void engine_instance::shutdown_mq() {
  */
 void engine_instance::shutdown_nic() {
     qkd::utility::debug() << "shutting down virtual NIC...";
-    d->m_cNIC = boost::shared_ptr<qkd::q3p::nic_instance>();
+    d->m_cNIC = std::shared_ptr<qkd::q3p::nic_instance>();
 }
     
     

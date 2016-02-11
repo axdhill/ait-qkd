@@ -36,8 +36,8 @@
 #include <inttypes.h>
 
 #include <exception>
+#include <memory>
 #include <string>
-#include <boost/shared_ptr.hpp>
 
 // Qt
 #include <QtCore/QObject>
@@ -59,7 +59,7 @@ namespace q3p {
 class engine_instance;
     
 class nic_instance;
-typedef boost::shared_ptr<nic_instance> nic;
+typedef std::shared_ptr<nic_instance> nic;
 
 
 /**
@@ -202,7 +202,7 @@ private:
 
     // pimpl
     class nic_data;
-    boost::shared_ptr<nic_data> d;
+    std::shared_ptr<nic_data> d;
 };
   
 

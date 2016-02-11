@@ -93,7 +93,7 @@ public:
  */
 qkd_enkey::qkd_enkey() : qkd::module::module("enkey", qkd::module::module_type::TYPE_OTHER, MODULE_DESCRIPTION, MODULE_ORGANISATION) {
 
-    d = boost::shared_ptr<qkd_enkey::qkd_enkey_data>(new qkd_enkey::qkd_enkey_data());
+    d = std::shared_ptr<qkd_enkey::qkd_enkey_data>(new qkd_enkey::qkd_enkey_data());
     
     // apply default values
     set_key_size(1024);

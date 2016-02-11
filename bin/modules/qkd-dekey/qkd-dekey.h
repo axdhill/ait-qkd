@@ -145,7 +145,7 @@ private:
     
     // pimpl
     class qkd_dekey_data;
-    boost::shared_ptr<qkd_dekey_data> d;
+    std::shared_ptr<qkd_dekey_data> d;
     
 };
 

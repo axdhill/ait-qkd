@@ -89,7 +89,7 @@ public:
  */
 qkd_ping::qkd_ping() : qkd::module::module("ping", qkd::module::module_type::TYPE_OTHER, MODULE_DESCRIPTION, MODULE_ORGANISATION) {
 
-    d = boost::shared_ptr<qkd_ping::qkd_ping_data>(new qkd_ping::qkd_ping_data());
+    d = std::shared_ptr<qkd_ping::qkd_ping_data>(new qkd_ping::qkd_ping_data());
     
     // apply default values
     set_max_roundtrip(100);

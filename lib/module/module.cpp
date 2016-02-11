@@ -86,7 +86,7 @@ using namespace qkd::module;
  */
 module::module(std::string sId, module_type eType, std::string sDescription, std::string sOrganisation) : QObject() {
     
-    d = boost::shared_ptr<qkd::module::module::module_internal>(new qkd::module::module::module_internal(this, sId));
+    d = std::shared_ptr<qkd::module::module::module_internal>(new qkd::module::module::module_internal(this, sId));
     
     struct timeval cTV;
     struct timezone cTZ;

@@ -181,7 +181,7 @@ private:
 
     // pimpl
     class qkd_cat_data;
-    boost::shared_ptr<qkd_cat_data> d;
+    std::shared_ptr<qkd_cat_data> d;
     
 };
 

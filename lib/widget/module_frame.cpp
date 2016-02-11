@@ -257,7 +257,7 @@ void test_and_set(QLineEdit * cEd, std::string sText);
  */
 module_frame::module_frame(QWidget * cParent, QDBusConnection cDBus) : QFrame(cParent) {
     
-    d = boost::shared_ptr<qkd::widget::module_frame::module_frame_data>(new qkd::widget::module_frame::module_frame_data());
+    d = std::shared_ptr<qkd::widget::module_frame::module_frame_data>(new qkd::widget::module_frame::module_frame_data());
     plot_data_clear(d->m_cPlotKeys);
     plot_data_clear(d->m_cPlotBits);
     plot_data_clear(d->m_cPlotQBER);

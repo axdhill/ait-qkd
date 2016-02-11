@@ -118,7 +118,7 @@ private:
  * @param   nBitCount       number of bits this bigint manages
  */
 bigint::bigint(uint64_t nBitCount) {
-    d = boost::shared_ptr<qkd::utility::bigint::bigint_data>(new qkd::utility::bigint::bigint_data(nBitCount));
+    d = std::shared_ptr<qkd::utility::bigint::bigint_data>(new qkd::utility::bigint::bigint_data(nBitCount));
 }
 
 
@@ -130,7 +130,7 @@ bigint::bigint(uint64_t nBitCount) {
  * @param   cMemory         import a memory blob as bigint
  */
 bigint::bigint(qkd::utility::memory const & cMemory) {
-    d = boost::shared_ptr<qkd::utility::bigint::bigint_data>(new qkd::utility::bigint::bigint_data(cMemory.size() * 8));
+    d = std::shared_ptr<qkd::utility::bigint::bigint_data>(new qkd::utility::bigint::bigint_data(cMemory.size() * 8));
     mpz_import(d->get_mpz(), cMemory.size(), -1, 1, -1, 0, cMemory.get());
 }
 

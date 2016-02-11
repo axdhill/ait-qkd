@@ -175,7 +175,7 @@ private:
     
     // pimpl
     class qkd_resize_data;
-    boost::shared_ptr<qkd_resize_data> d;
+    std::shared_ptr<qkd_resize_data> d;
     
 };
 

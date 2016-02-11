@@ -97,7 +97,7 @@ public:
  */
 crypto_evhash::crypto_evhash(qkd::key::key const & cKey) : context(cKey) {
     if (!is_valid_input_key(cKey)) throw qkd::crypto::context::context_wrong_key();
-    d = boost::shared_ptr<qkd::crypto::crypto_evhash::evhash_data>(new qkd::crypto::crypto_evhash::evhash_data(cKey));
+    d = std::shared_ptr<qkd::crypto::crypto_evhash::evhash_data>(new qkd::crypto::crypto_evhash::evhash_data(cKey));
 }
 
 

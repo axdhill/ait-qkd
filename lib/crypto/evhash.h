@@ -36,7 +36,7 @@
 // ------------------------------------------------------------
 // incs
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <qkd/key/key.h>
 #include <qkd/utility/buffer.h>
@@ -47,7 +47,7 @@
 
 // fwd
 class evhash_abstract;
-typedef boost::shared_ptr<evhash_abstract> evhash;
+typedef std::shared_ptr<evhash_abstract> evhash;
 
 
 /**

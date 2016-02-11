@@ -145,7 +145,7 @@ private:
     
     // pimpl
     class qkd_statistics_data;
-    boost::shared_ptr<qkd_statistics_data> d;
+    std::shared_ptr<qkd_statistics_data> d;
     
 };
 

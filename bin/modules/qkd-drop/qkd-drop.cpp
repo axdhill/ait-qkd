@@ -79,7 +79,7 @@ public:
  */
 qkd_drop::qkd_drop() : qkd::module::module("drop", qkd::module::module_type::TYPE_OTHER, MODULE_DESCRIPTION, MODULE_ORGANISATION) {
 
-    d = boost::shared_ptr<qkd_drop::qkd_drop_data>(new qkd_drop::qkd_drop_data());
+    d = std::shared_ptr<qkd_drop::qkd_drop_data>(new qkd_drop::qkd_drop_data());
     
     // apply default values
     set_drop_ratio(0.05);

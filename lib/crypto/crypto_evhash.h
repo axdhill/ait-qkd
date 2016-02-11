@@ -237,7 +237,7 @@ private:
     
     // pimpl
     class evhash_data;
-    boost::shared_ptr<evhash_data> d;
+    std::shared_ptr<evhash_data> d;
 
     
 };

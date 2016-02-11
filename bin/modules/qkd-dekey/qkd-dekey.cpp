@@ -84,7 +84,7 @@ public:
  * ctor
  */
 qkd_dekey::qkd_dekey() : qkd::module::module("dekey", qkd::module::module_type::TYPE_OTHER, MODULE_DESCRIPTION, MODULE_ORGANISATION) {
-    d = boost::shared_ptr<qkd_dekey::qkd_dekey_data>(new qkd_dekey::qkd_dekey_data());
+    d = std::shared_ptr<qkd_dekey::qkd_dekey_data>(new qkd_dekey::qkd_dekey_data());
     new DekeyAdaptor(this);
 }
 

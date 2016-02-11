@@ -168,7 +168,7 @@ private:
     
     // pimpl
     class qkd_ping_data;
-    boost::shared_ptr<qkd_ping_data> d;
+    std::shared_ptr<qkd_ping_data> d;
     
 };
 

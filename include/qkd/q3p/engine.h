@@ -36,11 +36,10 @@
 // incs
 
 #include <exception>
+#include <memory>
 #include <string>
 
 #include <inttypes.h>
-
-#include <boost/shared_ptr.hpp>
 
 // Qt
 #include <QtCore/QObject>
@@ -75,7 +74,7 @@ namespace q3p {
     
 // fwd
 class engine_instance;
-typedef boost::shared_ptr<engine_instance> engine;
+typedef std::shared_ptr<engine_instance> engine;
 typedef std::map<QString, qkd::q3p::engine> engine_map;
 
 
@@ -1033,7 +1032,7 @@ private:
 
     // pimpl
     class engine_data;
-    boost::shared_ptr<engine_data> d;
+    std::shared_ptr<engine_data> d;
 
 };
 

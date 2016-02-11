@@ -44,11 +44,10 @@
 // incs
 
 #include <exception>
+#include <memory>
 #include <string>
 
 #include <inttypes.h>
-
-#include <boost/shared_ptr.hpp>
 
 // ait
 #include <qkd/utility/memory.h>
@@ -434,7 +433,7 @@ private:
     
     // pimpl
     class bigint_data;
-    boost::shared_ptr<bigint_data> d;
+    std::shared_ptr<bigint_data> d;
 
 };
 

@@ -35,7 +35,7 @@
 // ------------------------------------------------------------
 // incs
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 // Qt
 #include <QtCore/QObject>
@@ -123,7 +123,7 @@ private:
     
     // pimpl
     class handshake_data;
-    boost::shared_ptr<handshake_data> d;
+    std::shared_ptr<handshake_data> d;
     
 };
   

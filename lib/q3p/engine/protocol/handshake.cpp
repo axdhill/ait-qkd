@@ -88,7 +88,7 @@ public:
  */
 handshake::handshake(QAbstractSocket * cSocket, qkd::q3p::engine_instance * cEngine) : protocol(cSocket, cEngine) {
     // pimpl
-    d = boost::shared_ptr<qkd::q3p::protocol::handshake::handshake_data>(new qkd::q3p::protocol::handshake::handshake_data());
+    d = std::shared_ptr<qkd::q3p::protocol::handshake::handshake_data>(new qkd::q3p::protocol::handshake::handshake_data());
 }
 
 

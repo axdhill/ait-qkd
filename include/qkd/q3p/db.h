@@ -36,12 +36,11 @@
 // incs
 
 #include <exception>
+#include <memory>
 #include <mutex>
 #include <string>
 
 #include <inttypes.h>
-
-#include <boost/shared_ptr.hpp>
 
 // Qt
 #include <QtCore/QObject>
@@ -63,7 +62,7 @@ namespace q3p {
     
 // fwd
 class db;
-typedef boost::shared_ptr<db> key_db;
+typedef std::shared_ptr<db> key_db;
 
 
 /**

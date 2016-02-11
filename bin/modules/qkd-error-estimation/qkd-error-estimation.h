@@ -177,7 +177,7 @@ private:
     
     // pimpl
     class qkd_error_estimation_data;
-    boost::shared_ptr<qkd_error_estimation_data> d;
+    std::shared_ptr<qkd_error_estimation_data> d;
     
 };
 

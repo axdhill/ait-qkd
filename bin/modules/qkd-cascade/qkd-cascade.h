@@ -120,7 +120,7 @@ private:
   
     // pimpl
     class qkd_cascade_data;
-    boost::shared_ptr<qkd_cascade_data> d;
+    std::shared_ptr<qkd_cascade_data> d;
     
 };
 

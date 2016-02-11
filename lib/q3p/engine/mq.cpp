@@ -117,7 +117,7 @@ mq_instance::mq_instance(qkd::q3p::engine_instance * cEngine) : QObject(), m_cEn
     if (!m_cEngine) throw qkd::q3p::mq_instance::mq_no_engine();
     
     // pimpl
-    d = boost::shared_ptr<qkd::q3p::mq_instance::mq_data>(new qkd::q3p::mq_instance::mq_data());    
+    d = std::shared_ptr<qkd::q3p::mq_instance::mq_data>(new qkd::q3p::mq_instance::mq_data());    
     
     // create the message queue object
     m_sName = "/" + engine()->link_id().toStdString();

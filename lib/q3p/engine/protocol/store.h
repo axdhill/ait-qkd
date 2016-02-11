@@ -35,8 +35,6 @@
 // ------------------------------------------------------------
 // incs
 
-#include <boost/shared_ptr.hpp>
-
 // Qt
 #include <QtCore/QObject>
 #include <QtNetwork/QAbstractSocket>

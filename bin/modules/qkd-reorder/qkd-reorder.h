@@ -153,7 +153,7 @@ private:
     
     // pimpl
     class qkd_reorder_data;
-    boost::shared_ptr<qkd_reorder_data> d;
+    std::shared_ptr<qkd_reorder_data> d;
     
 };
 

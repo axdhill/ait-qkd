@@ -88,7 +88,7 @@ double tau(double nErrorRate);
  */
 qkd_privacy_amplification::qkd_privacy_amplification() : qkd::module::module("privacy-amplification", qkd::module::module_type::TYPE_PRIVACY_AMPLIFICATION, MODULE_DESCRIPTION, MODULE_ORGANISATION) {
 
-    d = boost::shared_ptr<qkd_privacy_amplification::qkd_privacy_amplification_data>(new qkd_privacy_amplification::qkd_privacy_amplification_data());
+    d = std::shared_ptr<qkd_privacy_amplification::qkd_privacy_amplification_data>(new qkd_privacy_amplification::qkd_privacy_amplification_data());
     
     // apply default values
     set_reduction_rate(1.0);

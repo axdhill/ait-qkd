@@ -158,7 +158,7 @@ private:
     
     // pimpl
     class qkd_throttle_data;
-    boost::shared_ptr<qkd_throttle_data> d;
+    std::shared_ptr<qkd_throttle_data> d;
     
 };
 

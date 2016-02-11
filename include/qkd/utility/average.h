@@ -38,11 +38,10 @@
 #include <chrono>
 #include <exception>
 #include <list>
+#include <memory>
 #include <string>
 
 #include <inttypes.h>
-
-#include <boost/shared_ptr.hpp>
 
 
 // ------------------------------------------------------------
@@ -56,7 +55,7 @@ namespace utility {
 
 // fwd
 class average_technique;
-typedef boost::shared_ptr<average_technique> average;
+typedef std::shared_ptr<average_technique> average;
 
 
 /**
@@ -110,7 +109,7 @@ protected:
     
     // fwd
     class average_data;
-    typedef boost::shared_ptr<average_data> average_data_ptr;           /**< a average data particle */
+    typedef std::shared_ptr<average_data> average_data_ptr;           /**< a average data particle */
     
     
 public:

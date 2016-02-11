@@ -34,8 +34,6 @@
 // ait
 #include <qkd/utility/average.h>
 
-        #include <qkd/utility/debug.h>
-
 #include "average_data.h"
 #include "average_time.h"
 #include "average_value.h"
@@ -86,8 +84,8 @@ std::chrono::high_resolution_clock::duration average_technique::avg_distance_int
 average average_technique::create(std::string sTechnique, uint64_t nWindowSize) {
 
     // treat different techniques
-    if (sTechnique == "time") return boost::shared_ptr<average_technique>(new average_time(nWindowSize));
-    if (sTechnique == "value") return boost::shared_ptr<average_technique>(new average_value(nWindowSize));
+    if (sTechnique == "time") return std::shared_ptr<average_technique>(new average_time(nWindowSize));
+    if (sTechnique == "value") return std::shared_ptr<average_technique>(new average_value(nWindowSize));
 
     throw average_technique_unknown();
 }

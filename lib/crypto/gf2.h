@@ -35,18 +35,18 @@
 // ------------------------------------------------------------
 // incs
 
-#include <arpa/inet.h>
+#include <memory>
 
-#include <boost/shared_ptr.hpp>
+#include <arpa/inet.h>
 
 #include <qkd/utility/memory.h>
 
+#include <qkd/utility/debug.h>
+#include <qkd/utility/memory.h>
 
-    #include <qkd/utility/debug.h>
-    #include <qkd/utility/memory.h>
+#undef DUMP_BLOB
+#define DUMP_BLOB(b, s) qkd::utility::debug() << s << qkd::utility::memory::wrap((unsigned char *)b, BLOB_BYTES).as_hex();
 
-    #undef DUMP_BLOB
-    #define DUMP_BLOB(b, s) qkd::utility::debug() << s << qkd::utility::memory::wrap((unsigned char *)b, BLOB_BYTES).as_hex();
 
 // ------------------------------------------------------------
 // defs

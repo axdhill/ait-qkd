@@ -194,7 +194,7 @@ private:
 
     // pimpl
     class qkd_enkey_data;
-    boost::shared_ptr<qkd_enkey_data> d;
+    std::shared_ptr<qkd_enkey_data> d;
     
 };
 

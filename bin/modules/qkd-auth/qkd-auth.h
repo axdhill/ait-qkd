@@ -294,7 +294,7 @@ private:
 
     // pimpl
     class qkd_auth_data;
-    boost::shared_ptr<qkd_auth_data> d;
+    std::shared_ptr<qkd_auth_data> d;
     
 };
 

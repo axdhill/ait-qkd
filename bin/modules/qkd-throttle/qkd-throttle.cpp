@@ -86,7 +86,7 @@ public:
  */
 qkd_throttle::qkd_throttle() : qkd::module::module("throttle", qkd::module::module_type::TYPE_OTHER, MODULE_DESCRIPTION, MODULE_ORGANISATION) {
 
-    d = boost::shared_ptr<qkd_throttle::qkd_throttle_data>(new qkd_throttle::qkd_throttle_data());
+    d = std::shared_ptr<qkd_throttle::qkd_throttle_data>(new qkd_throttle::qkd_throttle_data());
     
     d->m_cBitsPerSecond = qkd::utility::average_technique::create("time", 1000);
     d->m_cKeysPerSecond = qkd::utility::average_technique::create("time", 1000);

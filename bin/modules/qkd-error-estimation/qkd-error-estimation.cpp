@@ -88,7 +88,7 @@ public:
  */
 qkd_error_estimation::qkd_error_estimation() : qkd::module::module("error-estimation", qkd::module::module_type::TYPE_ERROR_ESTIMATION, MODULE_DESCRIPTION, MODULE_ORGANISATION) {
 
-    d = boost::shared_ptr<qkd_error_estimation::qkd_error_estimation_data>(new qkd_error_estimation::qkd_error_estimation_data());
+    d = std::shared_ptr<qkd_error_estimation::qkd_error_estimation_data>(new qkd_error_estimation::qkd_error_estimation_data());
     
     // apply default values
     set_disclose(0.1);

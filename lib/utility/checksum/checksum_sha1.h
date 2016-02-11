@@ -94,7 +94,7 @@ protected:
      * pimpl
      */
     class data;
-    boost::shared_ptr<data> d;
+    std::shared_ptr<data> d;
 
 };
 

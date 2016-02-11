@@ -188,7 +188,7 @@ void qkd_cascade::qkd_cascade_data::generate_random_permutation(std::vector<uint
  * ctor
  */
 qkd_cascade::qkd_cascade() : qkd::module::module("cascade", qkd::module::module_type::TYPE_ERROR_CORRECTION, MODULE_DESCRIPTION, MODULE_ORGANISATION) {
-    d = boost::shared_ptr<qkd_cascade::qkd_cascade_data>(new qkd_cascade::qkd_cascade_data());
+    d = std::shared_ptr<qkd_cascade::qkd_cascade_data>(new qkd_cascade::qkd_cascade_data());
 }
 
 

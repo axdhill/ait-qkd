@@ -88,7 +88,7 @@ public:
  * ctor
  */
 qkd_tee::qkd_tee() : qkd::module::module("tee", qkd::module::module_type::TYPE_OTHER, MODULE_DESCRIPTION, MODULE_ORGANISATION) {
-    d = boost::shared_ptr<qkd_tee::qkd_tee_data>(new qkd_tee::qkd_tee_data());
+    d = std::shared_ptr<qkd_tee::qkd_tee_data>(new qkd_tee::qkd_tee_data());
     new TeeAdaptor(this);
 }
 

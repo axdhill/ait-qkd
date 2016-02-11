@@ -36,11 +36,10 @@
 // incs
 
 #include <exception>
+#include <memory>
 #include <string>
 
 #include <inttypes.h>
-
-#include <boost/shared_ptr.hpp>
 
 // ait
 #include <qkd/utility/memory.h>
@@ -67,7 +66,7 @@ namespace utility {
 
 // fwd
 class random_source;
-typedef boost::shared_ptr<random_source> random;
+typedef std::shared_ptr<random_source> random;
 
 
 /**

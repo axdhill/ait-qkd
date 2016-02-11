@@ -60,21 +60,21 @@ key_db db::open(QString sURL) {
     
     // null://
     if (cURL.scheme() == "null") {
-        key_db cKeyDB = boost::shared_ptr<db>(new qkd::q3p::db_null(sURL));
+        key_db cKeyDB = std::shared_ptr<db>(new qkd::q3p::db_null(sURL));
         cKeyDB->init(sURL);
         return cKeyDB;
     }
     
     // ram://
     if (cURL.scheme() == "ram") {
-        key_db cKeyDB = boost::shared_ptr<db>(new qkd::q3p::db_ram(sURL));
+        key_db cKeyDB = std::shared_ptr<db>(new qkd::q3p::db_ram(sURL));
         cKeyDB->init(sURL);
         return cKeyDB;
     }
     
     // file://
     if (cURL.isLocalFile() || (cURL.scheme() == "")) {
-        key_db cKeyDB = boost::shared_ptr<db>(new qkd::q3p::db_file(sURL));
+        key_db cKeyDB = std::shared_ptr<db>(new qkd::q3p::db_file(sURL));
         cKeyDB->init(sURL);
         return cKeyDB;
     }

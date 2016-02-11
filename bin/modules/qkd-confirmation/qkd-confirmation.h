@@ -181,7 +181,7 @@ private:
     
     // pimpl
     class qkd_confirmation_data;
-    boost::shared_ptr<qkd_confirmation_data> d;
+    std::shared_ptr<qkd_confirmation_data> d;
     
 };
 

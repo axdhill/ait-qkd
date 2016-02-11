@@ -35,7 +35,7 @@
 // ------------------------------------------------------------
 // incs
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 // Qt
 #include <QtCore/QObject>
@@ -181,7 +181,7 @@ private:
     
     // pimpl
     class load_data;
-    boost::shared_ptr<load_data> d;
+    std::shared_ptr<load_data> d;
 };
   
 

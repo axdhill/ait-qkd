@@ -91,7 +91,7 @@ public:
  */
 qkd_reorder::qkd_reorder() : qkd::module::module("reorder", qkd::module::module_type::TYPE_OTHER, MODULE_DESCRIPTION, MODULE_ORGANISATION) {
 
-    d = boost::shared_ptr<qkd_reorder::qkd_reorder_data>(new qkd_reorder::qkd_reorder_data());
+    d = std::shared_ptr<qkd_reorder::qkd_reorder_data>(new qkd_reorder::qkd_reorder_data());
 
     // apply default values
     set_buffer_size(5);

@@ -35,11 +35,11 @@
 // ------------------------------------------------------------
 // incs
 
+#include <memory>
 #include <string>
 
 // boost
 #include <boost/filesystem.hpp>
-#include <boost/shared_ptr.hpp>
 
 // 0MQ
 #include <zmq.h>
@@ -404,7 +404,7 @@ private:
 /**
  * smart pointer to a path instance
  */
-typedef boost::shared_ptr<path> path_ptr;
+typedef std::shared_ptr<path> path_ptr;
 
 
 }

@@ -35,7 +35,7 @@
 // -----------------------------------------------------------------
 // incs
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 // ait
 #include <qkd/key/key.h>
@@ -52,7 +52,7 @@ namespace simulate {
     
 // fwd
 class measurement_base;
-typedef boost::shared_ptr<measurement_base> measurement;
+typedef std::shared_ptr<measurement_base> measurement;
 
 
 /**

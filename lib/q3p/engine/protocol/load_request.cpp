@@ -98,7 +98,7 @@ public:
 /**
  * a smart pointer for load messages
  */
-typedef boost::shared_ptr<load_message_instance> load_message;
+typedef std::shared_ptr<load_message_instance> load_message;
 
 
 /**
@@ -137,7 +137,7 @@ public:
  */
 load_request::load_request(QAbstractSocket * cSocket, qkd::q3p::engine_instance * cEngine) : key_move(cSocket, cEngine) {
     // pimpl
-    d = boost::shared_ptr<qkd::q3p::protocol::load_request::load_request_data>(new qkd::q3p::protocol::load_request::load_request_data());
+    d = std::shared_ptr<qkd::q3p::protocol::load_request::load_request_data>(new qkd::q3p::protocol::load_request::load_request_data());
 }
 
 
@@ -496,7 +496,7 @@ protocol_error load_request::recv_LOAD_REQ(UNUSED qkd::q3p::message & cMessage) 
     if ((nKeysOutgoing == 0) && (nKeysApplication == 0)) return protocol_error::PROTOCOL_ERROR_NO_ERROR;
     
     // setup the message to send
-    load_message cLoadMessage = boost::shared_ptr<load_message_instance>(new load_message_instance);
+    load_message cLoadMessage = std::shared_ptr<load_message_instance>(new load_message_instance);
     
     // grab keys from the common store for incoming buffer and mark each of them
     cLoadMessage->cCommonStoreKeysForOutgoing = cCommonStore->find_valid(nKeysOutgoing * cOutgoingBuffer->quantum(), 1);
@@ -628,7 +628,7 @@ void load_request::run_internal() {
     key_db & cCommonStore = engine()->common_store();
     
     // setup the message to send
-    load_message cLoadReqMessage = boost::shared_ptr<load_message_instance>(new load_message_instance);
+    load_message cLoadReqMessage = std::shared_ptr<load_message_instance>(new load_message_instance);
     
     // do not proceed if there aren't any keys to move
     if ((cCommonStore->count() / 3) == 0) return;

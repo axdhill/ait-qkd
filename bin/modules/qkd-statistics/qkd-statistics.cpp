@@ -251,7 +251,7 @@ qkd_statistics::qkd_statistics() :
         qkd::module::module("statistics", 
         qkd::module::module_type::TYPE_OTHER, MODULE_DESCRIPTION, MODULE_ORGANISATION) {
 
-    d = boost::shared_ptr<qkd_statistics::qkd_statistics_data>(new qkd_statistics::qkd_statistics_data(this));
+    d = std::shared_ptr<qkd_statistics::qkd_statistics_data>(new qkd_statistics::qkd_statistics_data(this));
     
     // enforce DBus registration
     new StatisticsAdaptor(this);

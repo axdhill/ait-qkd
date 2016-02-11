@@ -63,7 +63,7 @@ Engine(cEngine) {
     if (!m_cEngine) throw qkd::q3p::nic_instance::nic_no_engine();
     
     // pimpl
-    d = boost::shared_ptr<qkd::q3p::nic_instance::nic_data>(new qkd::q3p::nic_in
+    d = std::shared_ptr<qkd::q3p::nic_instance::nic_data>(new qkd::q3p::nic_in
 stance::nic_data());    
     d->nFD = 0;
     

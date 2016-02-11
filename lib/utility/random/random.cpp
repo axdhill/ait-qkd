@@ -122,26 +122,26 @@ static random_singelton g_cRandomSingelton;
 qkd::utility::random random_source::create(std::string sURL) {
 
     // check for empty url
-    if (sURL.empty()) return boost::shared_ptr<random_source>(new qkd::utility::random_c_api());
+    if (sURL.empty()) return std::shared_ptr<random_source>(new qkd::utility::random_c_api());
     
     // check what we have
     QUrl cURL(QString::fromStdString(sURL), QUrl::TolerantMode);
     
     // switch for the correct scheme
     if (cURL.isLocalFile()) {
-        return boost::shared_ptr<random_source>(new qkd::utility::random_file(cURL));
+        return std::shared_ptr<random_source>(new qkd::utility::random_file(cURL));
     }
     else if (sURL.substr(0, std::string("cbc-aes").length()) == "cbc-aes") {
-        return boost::shared_ptr<random_source>(new qkd::utility::random_cbc_aes(sURL));
+        return std::shared_ptr<random_source>(new qkd::utility::random_cbc_aes(sURL));
     }
     else if (sURL.substr(0, std::string("hmac-sha").length()) == "hmac-sha") {
-        return boost::shared_ptr<random_source>(new qkd::utility::random_hmac_sha(sURL));
+        return std::shared_ptr<random_source>(new qkd::utility::random_hmac_sha(sURL));
     }
     else {
         throw random_url_scheme_unknown();
     }
     
-    return boost::shared_ptr<random_source>(new qkd::utility::random_source());
+    return std::shared_ptr<random_source>(new qkd::utility::random_source());
 }
 
 

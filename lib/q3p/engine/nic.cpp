@@ -109,7 +109,7 @@ nic_instance::nic_instance(qkd::q3p::engine_instance * cEngine) : QObject(), m_c
     if (!m_cEngine) throw qkd::q3p::nic_instance::nic_no_engine();
     
     // pimpl
-    d = boost::shared_ptr<qkd::q3p::nic_instance::nic_data>(new qkd::q3p::nic_instance::nic_data());    
+    d = std::shared_ptr<qkd::q3p::nic_instance::nic_data>(new qkd::q3p::nic_instance::nic_data());    
     d->nFD = 0;
     
     // get up q3pX

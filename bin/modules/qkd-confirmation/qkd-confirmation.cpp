@@ -83,7 +83,7 @@ public:
  * ctor
  */
 qkd_confirmation::qkd_confirmation() : qkd::module::module("confirmation", qkd::module::module_type::TYPE_CONFIRMATION, MODULE_DESCRIPTION, MODULE_ORGANISATION) {
-    d = boost::shared_ptr<qkd_confirmation::qkd_confirmation_data>(new qkd_confirmation::qkd_confirmation_data());
+    d = std::shared_ptr<qkd_confirmation::qkd_confirmation_data>(new qkd_confirmation::qkd_confirmation_data());
     set_rounds(10);
     new ConfirmationAdaptor(this);
 }

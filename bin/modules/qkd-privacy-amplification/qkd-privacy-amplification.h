@@ -148,7 +148,7 @@ private:
     
     // pimpl
     class qkd_privacy_amplification_data;
-    boost::shared_ptr<qkd_privacy_amplification_data> d;
+    std::shared_ptr<qkd_privacy_amplification_data> d;
     
 };
 

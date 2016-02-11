@@ -140,7 +140,7 @@ private:
     
     // pimpl
     class qkd_drop_data;
-    boost::shared_ptr<qkd_drop_data> d;
+    std::shared_ptr<qkd_drop_data> d;
     
 };
 
