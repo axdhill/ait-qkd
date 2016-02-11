@@ -233,8 +233,9 @@ public:
         return youngest_internal(); 
     }
 
+
     /**
-     * Gets the lowest recorded value within the window size.
+     * gets the lowest recorded value within the window size
      *
      * @return the lowest value
      */
@@ -243,8 +244,9 @@ public:
         return lowest_internal();
     }
 
+    
     /**
-     * Gets the highest recorded value within the window size.
+     * gets the highest recorded value within the window size
      *
      * @return the highest value
      */
@@ -333,15 +335,17 @@ private:
      */
     double youngest_internal() const;
 
+    
     /**
-     * Gets the highest recorded value within the window size.
+     * gets the highest recorded value within the window size
      *
      * @return the highest value
      */
     double highest_internal() const;
 
+    
     /**
-     * Gets the lowest recorded value within the window size.
+     * gets the lowest recorded value within the window size
      *
      * @return the lowest value
      */

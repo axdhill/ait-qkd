@@ -86,27 +86,29 @@ double average_technique::youngest_internal() const {
     return 0.0;
 }
 
+
 /**
- * Gets the lowest recorded value within the window size.
+ * gets the lowest recorded value within the window size
  *
  * @return the lowest value
  */
 double average_technique::lowest_internal() const {
     return d.size()
-           ? (* std::min_element(d.begin(), d.end(), [](const average_data_ptr& i, const average_data_ptr& j) {
+           ? (* std::min_element(d.begin(), d.end(), [](average_data_ptr const & i, average_data_ptr const & j) {
                 return i->value() < j->value();
             }))->value()
            : 0;
 }
 
+
 /**
- * Gets the highest recorded value within the window size.
+ * gets the highest recorded value within the window size
  *
  * @return the highest value
  */
 double average_technique::highest_internal() const {
     return d.size()
-           ? (* std::max_element(d.begin(), d.end(), [](const average_data_ptr& i, const average_data_ptr& j) {
+           ? (* std::max_element(d.begin(), d.end(), [](average_data_ptr const & i, average_data_ptr const & j) {
                 return i->value() < j->value();
             }))->value()
            : 0;
