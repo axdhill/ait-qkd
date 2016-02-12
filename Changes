@@ -5,6 +5,11 @@ This file holds the changes of the AIT QKD R10 throughout the versions
 Changes from 9.9999.6 to 9.9999.7
 ---------------------------------
 
+* random URLs now support "c-api:[seed]"
+
+    The random class now support simple POSIX C rand() with 
+    optional seed values.
+
 * drop of boost::shared_ptr and boost::exception
 
     boost::shared_ptr and boost::exception have been dropped in favor

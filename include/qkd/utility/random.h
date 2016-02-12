@@ -78,7 +78,7 @@ typedef std::shared_ptr<random_source> random;
  * 
  * with a proper URL.
  * 
- * If the URL is empty, than a C API random source 
+ * If the URL is empty, than a C API random source ("c-api")
  * using rand() is created.
  * 
  * An URL might look like this:
@@ -88,6 +88,13 @@ typedef std::shared_ptr<random_source> random;
  * Whenever the end of a file has been reached (eof)
  * the random source starts reading anew from the
  * beginning of the file.
+ * 
+ * Current supprted URLs are:
+ * 
+ *      file://                 read random values from a file
+ *      c-api:[seed]            use POSIX C api rand, optionally with a seed value
+ *      hmac-sha:key            use hmac with SHA, depending on key size with 256, 384 or 512 bits
+ *      cbs-aes:key             use cypher-block-chaining AES, depending on key size with 128, 192 or 256 bits
  * 
  * Hence, the floating point retrievals (float and double) do
  * return values in the range [0.0, 1.0)
