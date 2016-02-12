@@ -146,7 +146,7 @@ public:
          * exception description 
          * @return  a human readable exception description
          */
-        const char * what() const noexcept { return "unkown random url scheme"; } 
+        const char * what() const noexcept { return "unknown random url scheme"; }
     };
 
 
