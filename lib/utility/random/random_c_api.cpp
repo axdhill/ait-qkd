@@ -48,6 +48,20 @@ using namespace qkd::utility;
 // ------------------------------------------------------------
 // code
 
+random_c_api::random_c_api() { init(); };
+
+/**
+ * ctor
+ */
+random_c_api::random_c_api(std::string const &sURL) : random_c_api() {
+    std::vector<std::string> parts;
+    boost::split(parts, sURL, boost::is_any_of(":"));
+
+    if (parts.size() > 1 && parts[1].length() > 0) {
+        unsigned int seedValue = std::stoul(parts[1]);
+        seed(seedValue);
+    }
+}
 
 
 /**

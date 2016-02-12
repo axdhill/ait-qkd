@@ -68,19 +68,12 @@ public:
     /**
      * ctor
      */
-    explicit random_c_api() { init(); };
+    explicit random_c_api();
 
-    explicit random_c_api(std::string const & sURL) {
-        random_c_api();
-
-        std::vector<std::string> parts;
-        boost::split(parts, sURL, boost::is_any_of(":"));
-
-        if (parts.size() > 1 && parts[1].length() > 0) {
-            unsigned int seedValue = std::stoul(parts[1]);
-            seed(seedValue);
-        }
-    }
+    /**
+     * ctor
+     */
+    explicit random_c_api(std::string const & sURL);
 
     
     /**
