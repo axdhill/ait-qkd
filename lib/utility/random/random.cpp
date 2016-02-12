@@ -30,6 +30,7 @@
  
 // ------------------------------------------------------------
 // incs
+#include <boost/algorithm/string.hpp>
 
 // ait
 #include <qkd/utility/random.h>
@@ -136,6 +137,18 @@ qkd::utility::random random_source::create(std::string sURL) {
     }
     else if (sURL.substr(0, std::string("hmac-sha").length()) == "hmac-sha") {
         return std::shared_ptr<random_source>(new qkd::utility::random_hmac_sha(sURL));
+    }
+    else if (sURL.substr(0, std::string("c-api").length()) == "c-api") {
+        std::vector<std::string> parts;
+        boost::split(parts, sURL, boost::is_any_of(":"));
+        qkd::utility::random_c_api * instance = new qkd::utility::random_c_api();
+
+        if (parts.size() > 1 && parts[1].length() > 0) {
+            auto seed = std::stoul(parts[1]);
+            instance->seed(seed);
+        }
+
+        return std::shared_ptr<random_source>(instance);
     }
     else {
         throw random_url_scheme_unknown();

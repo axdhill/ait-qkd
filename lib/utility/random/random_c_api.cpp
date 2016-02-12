@@ -71,6 +71,15 @@ void random_c_api::get(char * cBuffer, uint64_t nSize) {
     }
 }
 
+/**
+ * Enforces usage of the specified random seed.
+ *
+ * @param  seed  the seed value to use.
+ */
+void random_c_api::seed(unsigned int seed) const {
+    srand(seed);
+}
+
 
 /**
  * init the object
@@ -82,5 +91,5 @@ void random_c_api::init() {
     //        they will yield always the very same
     //        sequence of random numbers
     
-    srand(time(nullptr));
+    seed(time(nullptr));
 }

@@ -76,6 +76,13 @@ public:
      * @return  a HR-string describing the random source
      */
     virtual std::string describe() const { return "random source using POSIX C API rand() function"; };
+
+    /**
+     * Enforces usage of the specified random seed.
+     *
+     * @param  seed  the seed value to use.
+     */
+    void seed(unsigned int seed) const;
     
 
 private:

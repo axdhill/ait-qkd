@@ -182,6 +182,38 @@ int test() {
         qkd::utility::bigint cBI(qkd::utility::memory::wrap((qkd::utility::memory::value_t *)&nR_i, sizeof(nR_i)));
         std::cout << " hmac-sha-512 random: " << nR_i << std::endl;
     }
+
+    // create the C API's random generator
+    cRandom = qkd::utility::random_source::create("c-api");
+    std::cout << cRandom->describe() << std::endl;
+    for (uint64_t i = 0; i < 10; i++) {
+        cRandom >> nR_i;
+        qkd::utility::bigint cBI(qkd::utility::memory::wrap((qkd::utility::memory::value_t *)&nR_i, sizeof(nR_i)));
+        std::cout << "        c-api random: " << nR_i << std::endl;
+    }
+
+    // create the C API's random generator with a fixed seed
+    // TODO: Verify that these expected values are actually consistent across different environments
+    const int32_t expected[] = {
+              691102790,
+            -1662155164,
+              130162647,
+            -1574942683,
+             -346380092,
+             1229004811,
+             -118387889,
+              334573773,
+             -130276716,
+            -2137708120
+    };
+    cRandom = qkd::utility::random_source::create("c-api:42");
+    std::cout << cRandom->describe() << std::endl;
+    for (uint64_t i = 0; i < 10; i++) {
+        cRandom >> nR_i;
+        qkd::utility::bigint cBI(qkd::utility::memory::wrap((qkd::utility::memory::value_t *)&nR_i, sizeof(nR_i)));
+        std::cout << " c-api/seeded random: " << nR_i << std::endl;
+        assert(nR_i == expected[i]);
+    }
     
     return 0;
 }
