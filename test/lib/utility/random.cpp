@@ -186,26 +186,23 @@ int test() {
     }
 
     // create the C API's random generator with a fixed seed
-    // TODO: Verify that these expected values are actually consistent across different environments
-    const int32_t expected[] = {
-              691102790,
-            -1662155164,
-              130162647,
-            -1574942683,
-             -346380092,
-             1229004811,
-             -118387889,
-              334573773,
-             -130276716,
-            -2137708120
-    };
+    // First run: generate ten random numbers and remember them for later.
+    int32_t expected[10];
     cRandom = qkd::utility::random_source::create("c-api:42");
     std::cout << cRandom->describe() << std::endl;
     for (uint64_t i = 0; i < 10; i++) {
+        cRandom >> expected[i];
+        std::cout << " c-api/seeded random: " << expected[i] << std::endl;
+    }
+
+    // Second pass: validate that the RNG is in fact producing the same
+    // numbers when we are using the same seed.
+    cRandom = qkd::utility::random_source::create("c-api:42");
+    for (uint64_t i = 0; i < 10; i++) {
         cRandom >> nR_i;
-        std::cout << " c-api/seeded random: " << nR_i << std::endl;
         assert(nR_i == expected[i]);
     }
+    std::cout << " c-api/seeded random: second run produces same numbers with same seed" << std::endl;
     
     return 0;
 }
