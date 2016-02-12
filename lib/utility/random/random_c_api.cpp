@@ -48,7 +48,7 @@ using namespace qkd::utility;
 // ------------------------------------------------------------
 // code
 
-random_c_api::random_c_api() { init(); };
+random_c_api::random_c_api() { init(); }
 
 /**
  * ctor
