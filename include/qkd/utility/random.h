@@ -89,10 +89,10 @@ typedef std::shared_ptr<random_source> random;
  * the random source starts reading anew from the
  * beginning of the file.
  * 
- * Current supprted URLs are:
+ * Current supported URLs are:
  * 
- *      file://                 read random values from a file
- *      c-api:[seed]            use POSIX C api rand, optionally with a seed value
+ *      file://filepath         read random values from a file
+ *      c-api:[seed]            use POSIX C api rand(), optionally with a seed value
  *      hmac-sha:key            use hmac with SHA, depending on key size with 256, 384 or 512 bits
  *      cbs-aes:key             use cypher-block-chaining AES, depending on key size with 128, 192 or 256 bits
  * 
