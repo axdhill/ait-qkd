@@ -134,7 +134,6 @@ int test() {
     std::cout << cRandom->describe() << std::endl;
     for (uint64_t i = 0; i < 10; i++) {
         cRandom >> nR_i;
-        qkd::utility::bigint cBI(qkd::utility::memory::wrap((qkd::utility::memory::value_t *)&nR_i, sizeof(nR_i)));
         std::cout << "  cbc-aes-128 random: " << nR_i << std::endl;
     }
 
@@ -143,7 +142,6 @@ int test() {
     std::cout << cRandom->describe() << std::endl;
     for (uint64_t i = 0; i < 10; i++) {
         cRandom >> nR_i;
-        qkd::utility::bigint cBI(qkd::utility::memory::wrap((qkd::utility::memory::value_t *)&nR_i, sizeof(nR_i)));
         std::cout << "  cbc-aes-192 random: " << nR_i << std::endl;
     }
 
@@ -152,7 +150,6 @@ int test() {
     std::cout << cRandom->describe() << std::endl;
     for (uint64_t i = 0; i < 10; i++) {
         cRandom >> nR_i;
-        qkd::utility::bigint cBI(qkd::utility::memory::wrap((qkd::utility::memory::value_t *)&nR_i, sizeof(nR_i)));
         std::cout << "  cbc-aes-256 random: " << nR_i << std::endl;
     }
     
@@ -161,7 +158,6 @@ int test() {
     std::cout << cRandom->describe() << std::endl;
     for (uint64_t i = 0; i < 10; i++) {
         cRandom >> nR_i;
-        qkd::utility::bigint cBI(qkd::utility::memory::wrap((qkd::utility::memory::value_t *)&nR_i, sizeof(nR_i)));
         std::cout << " hmac-sha-256 random: " << nR_i << std::endl;
     }
 
@@ -170,7 +166,6 @@ int test() {
     std::cout << cRandom->describe() << std::endl;
     for (uint64_t i = 0; i < 10; i++) {
         cRandom >> nR_i;
-        qkd::utility::bigint cBI(qkd::utility::memory::wrap((qkd::utility::memory::value_t *)&nR_i, sizeof(nR_i)));
         std::cout << " hmac-sha-384 random: " << nR_i << std::endl;
     }
     
@@ -179,7 +174,6 @@ int test() {
     std::cout << cRandom->describe() << std::endl;
     for (uint64_t i = 0; i < 10; i++) {
         cRandom >> nR_i;
-        qkd::utility::bigint cBI(qkd::utility::memory::wrap((qkd::utility::memory::value_t *)&nR_i, sizeof(nR_i)));
         std::cout << " hmac-sha-512 random: " << nR_i << std::endl;
     }
 
@@ -188,7 +182,6 @@ int test() {
     std::cout << cRandom->describe() << std::endl;
     for (uint64_t i = 0; i < 10; i++) {
         cRandom >> nR_i;
-        qkd::utility::bigint cBI(qkd::utility::memory::wrap((qkd::utility::memory::value_t *)&nR_i, sizeof(nR_i)));
         std::cout << "        c-api random: " << nR_i << std::endl;
     }
 
@@ -210,7 +203,6 @@ int test() {
     std::cout << cRandom->describe() << std::endl;
     for (uint64_t i = 0; i < 10; i++) {
         cRandom >> nR_i;
-        qkd::utility::bigint cBI(qkd::utility::memory::wrap((qkd::utility::memory::value_t *)&nR_i, sizeof(nR_i)));
         std::cout << " c-api/seeded random: " << nR_i << std::endl;
         assert(nR_i == expected[i]);
     }
