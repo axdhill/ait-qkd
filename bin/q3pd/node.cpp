@@ -275,7 +275,7 @@ void node::apply_config_file() {
  */
 void node::apply_link_config(std::string const & sLinkIdentifier, qkd::utility::properties const & cConfig) {
     
-    if (qkd::utility::debug::enabled()) qkd::utility::debug() << "applying values for config setting '" << sLinkIdentifier << "'";
+    qkd::utility::debug() << "applying values for config setting '" << sLinkIdentifier << "'";
     
     if (cConfig.find("id") == cConfig.end()) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
@@ -315,6 +315,10 @@ void node::apply_link_config(std::string const & sLinkIdentifier, qkd::utility::
     
     if (cConfig.find("db") != cConfig.end()) {
         cEngine->open_db(QString::fromStdString(cConfig.at("db")));
+    }
+    if (!cEngine->db_opened()) {
+        qkd::utility::syslog::warning() << "failed to open keystore DB at " << cConfig.at("db");
+        return;
     }
     
     if ((cConfig.find("secret") != cConfig.end()) && (cConfig.find("secret_file") != cConfig.end())) {

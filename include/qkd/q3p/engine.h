@@ -301,7 +301,7 @@ public:
     /**
      * returns a string describing the current charge states of the buffers
      * 
-     * this is for debugging. The stfin has the form
+     * this is for debugging. The string has the form
      *      < < 'C',count, amount >,< 'I',count, amount >,< 'O',count, amount >,< 'A',count, amount > >
      *
      * having the current charge ("count") and the total ("amount") of the

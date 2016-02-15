@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-q3pd-file-db-fail
+# 
+# This is a test file.
+#
+# TEST: test q3pd faile access to a local DB file
+#
+# Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2012-2016 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+
+# ------------------------------------------------------------
+
+test_init "$(basename $0).d"
+
+${TEST_BASE}/bin/q3pd/q3pd --debug --config ${TEST_BASE}/test/test-data/q3pd-file-db-fail.conf alice 2>q3pd_file_db.stderr &
+sleep 1
+qkd_qdbus at.ac.ait.q3p.node-alice /Node quit
+
+grep '^failed to open keystore DB at' q3pd_file_db.stderr &> /dev/null
+if [ "$?" != "0" ]; then
+    echo "Failed to to detect a defective DB url."
+    exit 1
+fi
+    
+# state that test ok
+echo "=== TEST SUCCESS ==="

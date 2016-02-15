@@ -359,7 +359,6 @@ void engine_instance::calculate_state() {
     engine_state eNewState = engine_state::ENGINE_INIT;
     engine_state eOldState = d->m_eLinkState;
     
-    // DB opened?
     if (db_opened()) {
         
         eNewState = engine_state::ENGINE_OPEN;
@@ -375,10 +374,8 @@ void engine_instance::calculate_state() {
         }
     }
     
-    // state change?
     if (eNewState == eOldState) return;
 
-    // state switch
     d->m_eLinkState = eNewState;
     emit state_changed((unsigned int)d->m_eLinkState);
 }
@@ -1388,8 +1385,6 @@ QString engine_instance::nic() const {
  * @return  true, if successful
  */
 void engine_instance::open_db(QString sURL) {
-    
-    qkd::utility::debug() << "opening keystore DB at: " << sURL.toStdString();
     
     auto nStart = std::chrono::high_resolution_clock::now();
     

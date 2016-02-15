@@ -56,34 +56,28 @@
  */
 int main(int argc, char ** argv) {
     
-    // create the command line header
     std::string sApplication = std::string("q3pd - AIT Q3P Node V") + VERSION;
     std::string sDescription = std::string("\nThis is a Q3P node daemon.\n\nCopyright 2012-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS] ID";
     
-    // define program options
     boost::program_options::options_description cOptions(sApplication + "\n" + sDescription + "\n\n\t" + sSynopsis + "\n\nAllowed Options");
     cOptions.add_options()("config,c", boost::program_options::value<std::string>(), "configuration file URL");
     cOptions.add_options()("debug,d", "enable debug output on stderr");
     cOptions.add_options()("help,h", "this page");
     cOptions.add_options()("version,v", "print version string");
     
-    // final arguments
     boost::program_options::options_description cArgs("Arguments");
     cArgs.add_options()("ID", "ID is the identifier or name of the node");
     boost::program_options::positional_options_description cPositionalDescription; 
     cPositionalDescription.add("ID", 1);
     
-    // construct overall options
     boost::program_options::options_description cCmdLineOptions("Command Line");
     cCmdLineOptions.add(cOptions);
     cCmdLineOptions.add(cArgs);
 
-    // option variable map
     boost::program_options::variables_map cVariableMap;
     
     try {
-        // parse action
         boost::program_options::command_line_parser cParser(argc, argv);
         boost::program_options::store(cParser.options(cCmdLineOptions).positional(cPositionalDescription).run(), cVariableMap);
         boost::program_options::notify(cVariableMap);        
@@ -93,56 +87,45 @@ int main(int argc, char ** argv) {
         return 1;
     }
     
-    // check for "help" set
     if (cVariableMap.count("help")) {
         std::cout << cOptions << std::endl;
         std::cout << cArgs.find("ID", false).description() << "\n" << std::endl;      
         return 0;
     }
     
-    // check for "version" set
     if (cVariableMap.count("version")) {
         std::cout << sApplication << std::endl;
         return 0;
     }
     
-    // check for "debug" set
     if (cVariableMap.count("debug")) qkd::utility::debug::enabled() = true;
 
-    // we need a name
     if (cVariableMap.count("ID") != 1) {
         std::cerr << "need exactly one ID argument" << "\ntype '--help' for help" << std::endl;
         return 1;
     }
     
-    // extract the node id
     std::string sId = cVariableMap["ID"].as<std::string>();
 
-    // the id MUST be a DBus service particle
     if (!qkd::utility::dbus::valid_service_name_particle(sId)) {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "the given ID ('" << sId << "') cannot be used as a DBus service name, please consider another name.";
         std::cerr << "the given ID ('" << sId << "') cannot be used as a DBus service name, please consider another name." << std::endl;
         return 1;
     }
     
-    // some startup debug
     qkd::utility::debug() << "AIT Q3P Node " << QKD_VERSION << " Node-ID: " << sId;
     
-    // start Qt
     QCoreApplication cCoreApplication(argc, argv);
     cCoreApplication.setOrganizationName("AIT Austrian Institute of Technology GmbH");
     cCoreApplication.setOrganizationDomain("ait.ac.at");
     cCoreApplication.setApplicationName("Q3P Daemon");
     cCoreApplication.setApplicationVersion(QKD_VERSION);
     
-    // configuration file given?
     std::string sConfigFileURL;
     if (cVariableMap.count("config")) sConfigFileURL = cVariableMap["config"].as<std::string>();
     
-    // create the Q3P KeyStore object
     qkd::q3p::node cNode(QString::fromStdString(sId), QString::fromStdString(sConfigFileURL));
 
-    // launch!
     cCoreApplication.exec();
     
     return 0;
