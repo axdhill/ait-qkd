@@ -43,7 +43,7 @@ ${TEST_BASE}/bin/q3pd/q3pd --debug --config ${TEST_BASE}/test/test-data/q3pd-fil
 sleep 1
 qkd_qdbus at.ac.ait.q3p.node-alice /Node quit
 
-grep '^failed to open keystore DB at' q3pd_file_db.stderr &> /dev/null
+grep '^failed to open keystore DB with' q3pd_file_db.stderr &> /dev/null
 if [ "$?" != "0" ]; then
     echo "Failed to to detect a defective DB url."
     exit 1

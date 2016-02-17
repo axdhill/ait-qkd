@@ -43,6 +43,7 @@
 #include <QtDBus/QtDBus>
 
 // ait
+#include <qkd/q3p/engine.h>
 #include <qkd/utility/debug.h>
 #include <qkd/utility/environment.h>
 #include <qkd/utility/properties.h>
@@ -365,11 +366,82 @@ private:
     
 
     /**
+     * apply a link config: "db"
+     * 
+     * @param   cEngine             the link instance
+     * @param   sValue              the value for "db"
+     */
+    void apply_link_config_db(qkd::q3p::engine & cEngine, std::string const & sValue) const;
+    
+
+    /**
+     * apply a link config: "ipsec"
+     * 
+     * @param   cEngine             the link instance
+     * @param   sValue              the value for "ipsec"
+     */
+    void apply_link_config_ipsec(qkd::q3p::engine & cEngine, std::string const & sValue) const;
+    
+
+    /**
+     * apply a link config: "inject"
+     * 
+     * @param   cEngine             the link instance
+     * @param   sValue              the value for "inject"
+     */
+    void apply_link_config_inject(qkd::q3p::engine & cEngine, std::string const & sValue) const;
+    
+
+    /**
+     * apply a link config: "master"
+     * 
+     * @param   cEngine             the link instance
+     * @param   sValue              the value for "master"
+     */
+    void apply_link_config_master(qkd::q3p::engine & cEngine, std::string const & sValue) const;
+    
+
+    /**
      * create a set of config file hints
      * 
      * @return  an ordered list of config file hints
      */
     std::list<std::string> config_file_hints() const;
+    
+    
+    /**
+     * extract the link configurations based on a set of configuration entries
+     * 
+     * @param   cLinkConfig         [out] the found link configurations
+     * @param   cConfig             the loaded configuration values
+     */
+    void extract_link_config(std::map<std::string, qkd::utility::properties> & cLinkConfig, qkd::utility::properties const & cConfig);
+    
+    
+    /**
+     * load the config file
+     * 
+     * @param   cConfig         [out] the found properties inside the config file
+     */
+    void load_config_file(qkd::utility::properties & cConfig);
+    
+
+    /**
+     * load the secret specified by link config: "secret"
+     * 
+     * @param   sValue              the value for "secret"
+     * @return  the loaded secret
+     */
+    QByteArray load_link_config_secret(std::string const & sValue) const;
+    
+
+    /**
+     * load the secret specified by link config: "secret_file"
+     * 
+     * @param   sValue              the value for "secret"
+     * @return  the loaded secret
+     */
+    QByteArray load_link_config_secret_file(std::string const & sValue) const;
     
 
     /**

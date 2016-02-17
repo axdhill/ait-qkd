@@ -37,63 +37,33 @@ source ${TEST_BASE}/test/bin/test-functions
 
 # ------------------------------------------------------------
 
-# init test environment
 test_init "$(basename $0).d"
 
-# zap previous database
 rm -rf "${DB_ALICE_2_BOB}" &> /dev/null
 rm -rf "${DB_BOB_2_ALICE}" &> /dev/null
 
-# main
-q3pd_start "alice" --debug || exit $?
-q3pd_start "bob" --debug || exit $?
-
-# start alice and bob, inject a database and stop them in order to have a good
-# common store to test with later on
-
-# create alice
-qkd_qdbus at.ac.ait.q3p.node-alice /Node create_link 'alice_to_bob' &> /dev/null
-qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob open_db "file://${DB_ALICE_2_BOB}" &> /dev/null
-qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob inject_url "file://${SHARED_SECRET_FILE}" &> /dev/null
-
-# create bob
-qkd_qdbus at.ac.ait.q3p.node-bob /Node create_link 'bob_to_alice' &> /dev/null
-qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice open_db "file://${DB_BOB_2_ALICE}" &> /dev/null
-qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice inject_url "file://${SHARED_SECRET_FILE}" &> /dev/null
-
-# stop both nodes
-q3pd_stop "alice" || exit $?
-q3pd_stop "bob" || exit $?
-
-# here the real test starts
-echo "common stores prepared"
-
-# remove default test-config files
 rm -rf ${TEST_BASE}/q3pd_alice.config &> /dev/null
 rm -rf ${TEST_BASE}/q3pd_bob.config &> /dev/null
 
-# copy config files
 mkdir -p ${TEST_BASE}/bin/share/q3p &> /dev/null
 cp ${TEST_BASE}/test/q3p/alice.conf ${TEST_BASE}/bin/share/q3p/alice.conf  
 cp ${TEST_BASE}/test/q3p/bob.conf ${TEST_BASE}/bin/share/q3p/bob.conf
 
-# start both nodes
+dd if=/dev/urandom of="@CMAKE_BINARY_DIR@/inject.data" bs=1 count=1024
+
 echo "start alice"
-${TEST_BASE}/bin/q3pd/q3pd --config ${TEST_BASE}/bin/share/q3p/alice.conf --debug alice 2>>q3pd_${RANDOM}.stderr &
-sleep 1
+${TEST_BASE}/bin/q3pd/q3pd --config ${TEST_BASE}/bin/share/q3p/alice.conf --debug alice 2>>q3pd_alice_${RANDOM}.stderr &
 echo "started"
 
 echo "start bob"
-${TEST_BASE}/bin/q3pd/q3pd --config ${TEST_BASE}/bin/share/q3p/bob.conf --debug bob 2>>q3pd_${RANDOM}.stderr &
-sleep 1
+${TEST_BASE}/bin/q3pd/q3pd --config ${TEST_BASE}/bin/share/q3p/bob.conf --debug bob 2>>q3pd_bob_${RANDOM}.stderr &
 echo "started"
 
-# remove the config files (not to disturb further tests)
-rm  ${TEST_BASE}/bin/share/q3p/alice.conf  
-rm  ${TEST_BASE}/bin/share/q3p/bob.conf
-rm -rf ${TEST_BASE}/bin/share/q3p &> /dev/null
+#rm  ${TEST_BASE}/bin/share/q3p/alice.conf  
+#rm  ${TEST_BASE}/bin/share/q3p/bob.conf
+#rm -rf ${TEST_BASE}/bin/share/q3p &> /dev/null
 
-# check for connection
+sleep 1
 CONNECTED_ALICE=$(qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob connected)
 CONNECTED_BOB=$(qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice connected)
 if [ "${CONNECTED_ALICE}" != "true" ]; then
@@ -109,9 +79,7 @@ if [ "${CONNECTED_BOB}" != "true" ]; then
     exit 1
 fi
 
-# stop both nodes
 q3pd_stop "alice" || exit $?
 q3pd_stop "bob" || exit $?
 
-# state that test ok
 echo "=== TEST SUCCESS ==="
