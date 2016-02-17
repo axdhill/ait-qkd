@@ -100,6 +100,7 @@ set(QKD_SRC
     # random number sources
     utility/random/random.cpp
     utility/random/random_c_api.cpp
+    utility/random/random_congruential.cpp
     utility/random/random_cbc_aes.cpp
     utility/random/random_file.cpp
     utility/random/random_hmac_sha.cpp
