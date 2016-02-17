@@ -35,6 +35,7 @@
 #include <qkd/utility/random.h>
 
 #include "random_c_api.h"
+#include "random_congruential.h"
 #include "random_cbc_aes.h"
 #include "random_file.h"
 #include "random_hmac_sha.h"
@@ -139,6 +140,9 @@ qkd::utility::random random_source::create(std::string sURL) {
     }
     else if (sURL.substr(0, std::string("c-api").length()) == "c-api") {
         return std::shared_ptr<random_source>(new qkd::utility::random_c_api(sURL));
+    }
+    else if(sURL.substr(0, std::string("linear-congruential").length()) == "linear-congruential") {
+        return std::shared_ptr<random_source>(new qkd::utility::random_congruential(sURL));
     }
     else {
         throw random_url_scheme_unknown();

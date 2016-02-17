@@ -52,11 +52,11 @@
 
 
 int test() {
-    
+
     // creation: C API random source
     qkd::utility::random cRandom = qkd::utility::random_source::source();
     std::cout << cRandom->describe() << std::endl;
-    
+
     char nR_c;
     unsigned char nR_uc;
     int32_t nR_i;
@@ -66,7 +66,7 @@ int test() {
     float nR_f;
     double nR_d;
     qkd::utility::memory cMemory(32);
-    
+
     // read
     cRandom >> nR_c;
     std::cout << "         random char: " << (int)nR_c << std::endl;
@@ -86,7 +86,7 @@ int test() {
     std::cout << "       random double: " << nR_d << std::endl;
     cRandom >> cMemory;
     std::cout << "       random memory: " << cMemory.as_hex() << std::endl;
-    
+
     // read from file
     char sTempNameTemplate[] = "random_test_XXXXXX.tmp";
     UNUSED int nFD = mkstemps(sTempNameTemplate, strlen(".tmp"));
@@ -97,20 +97,20 @@ int test() {
     assert(cFileOut.is_open());
     cFileOut << cMemory;
     cFileOut.close();
-    
+
     // construct the URL
     boost::filesystem::path cURLPath = qkd::utility::environment::current_path();
     cURLPath /= sTempFileName;
     std::string sURL = std::string("file://") + cURLPath.string();
-    
+
     // create random source with file url
     cRandom = qkd::utility::random_source::create(sURL);
     std::cout << cRandom->describe() << std::endl;
-    
+
     qkd::utility::memory cRandomMemory = qkd::utility::memory(16);
     cRandom >> cRandomMemory;
     std::cout << "       random memory: " << cMemory.as_hex() << std::endl;
-    
+
     // bytes 0-7 are memory meta data
     assert(cRandomMemory[0x08] == 0xab);
     assert(cRandomMemory[0x09] == 0xcd);
@@ -120,7 +120,7 @@ int test() {
     assert(cRandomMemory[0x0d] == 0x45);
     assert(cRandomMemory[0x0e] == 0x67);
     assert(cRandomMemory[0x0f] == 0x89);
-    
+
     // create operating system random source
     cRandom = qkd::utility::random_source::create("file:///dev/urandom");
     std::cout << cRandom->describe() << std::endl;
@@ -128,7 +128,7 @@ int test() {
         cRandom >> nR_i;
         std::cout << "          random int: " << nR_i << std::endl;
     }
-    
+
     // create CBC-AES random generators: 128 bit ==> 'cbc-aes:<KEY>' with |KEY| = 16 bytes
     cRandom = qkd::utility::random_source::create("cbc-aes:70f5b70e05747c6d30d6cb75a2b7a036");
     std::cout << cRandom->describe() << std::endl;
@@ -152,7 +152,7 @@ int test() {
         cRandom >> nR_i;
         std::cout << "  cbc-aes-256 random: " << nR_i << std::endl;
     }
-    
+
     // create HMAC-SHA random generators: 256 bit ==> 'hmac-sha:<KEY>' with |KEY| = 32 bytes
     cRandom = qkd::utility::random_source::create("hmac-sha:42036fd1b857c03a35e1dbb0c8c6c458cf7c6fd74229a0519f941ae602ee07f0");
     std::cout << cRandom->describe() << std::endl;
@@ -168,7 +168,7 @@ int test() {
         cRandom >> nR_i;
         std::cout << " hmac-sha-384 random: " << nR_i << std::endl;
     }
-    
+
     // create HMAC-SHA random generators: 512 bit ==> 'hmac-sha:<KEY>' with |KEY| = 64 bytes
     cRandom = qkd::utility::random_source::create("hmac-sha:02bacda14a265a0b905c70baddc9c397ff78bb5d2080dabf8c177df1acce494bbb424bfabcdfed202dccbc5f2f3fe2984ed77009211c72ec97aaeb3c78fb3bed");
     std::cout << cRandom->describe() << std::endl;
@@ -203,7 +203,34 @@ int test() {
         assert(nR_i == expected[i]);
     }
     std::cout << " c-api/seeded random: second run produces same numbers with same seed" << std::endl;
-    
+
+    // create the linear congruential random generator
+    cRandom = qkd::utility::random_source::create("linear-congruential");
+    std::cout << cRandom->describe() << std::endl;
+    for (uint64_t i = 0; i < 10; i++) {
+        cRandom >> nR_i;
+        std::cout << "  lin. congr. random: " << nR_i << std::endl;
+    }
+
+    // create the C API's random generator with a fixed seed
+    // First run: generate ten random numbers and remember them for later.
+    cRandom = qkd::utility::random_source::create("linear-congruential:42");
+    std::cout << cRandom->describe() << std::endl;
+    for (uint64_t i = 0; i < 10; i++) {
+        cRandom >> expected[i];
+        std::cout << "lin. congr./seeded random: " << expected[i] << std::endl;
+    }
+
+
+    // Second pass: validate that the RNG is in fact producing the same
+    // numbers when we are using the same seed.
+    cRandom = qkd::utility::random_source::create("linear-congruential:42");
+    for (uint64_t i = 0; i < 10; i++) {
+        cRandom >> nR_i;
+        assert(nR_i == expected[i]);
+    }
+    std::cout << "lin. congr./seeded random: second run produces same numbers with same seed" << std::endl;
+
     return 0;
 }
 
