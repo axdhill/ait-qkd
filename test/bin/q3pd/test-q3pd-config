@@ -42,26 +42,15 @@ test_init "$(basename $0).d"
 rm -rf "${DB_ALICE_2_BOB}" &> /dev/null
 rm -rf "${DB_BOB_2_ALICE}" &> /dev/null
 
-rm -rf ${TEST_BASE}/q3pd_alice.config &> /dev/null
-rm -rf ${TEST_BASE}/q3pd_bob.config &> /dev/null
-
-mkdir -p ${TEST_BASE}/bin/share/q3p &> /dev/null
-cp ${TEST_BASE}/test/q3p/alice.conf ${TEST_BASE}/bin/share/q3p/alice.conf  
-cp ${TEST_BASE}/test/q3p/bob.conf ${TEST_BASE}/bin/share/q3p/bob.conf
-
 dd if=/dev/urandom of="@CMAKE_BINARY_DIR@/inject.data" bs=1 count=1024
 
 echo "start alice"
-${TEST_BASE}/bin/q3pd/q3pd --config ${TEST_BASE}/bin/share/q3p/alice.conf --debug alice 2>>q3pd_alice_${RANDOM}.stderr &
+${TEST_BASE}/bin/q3pd/q3pd --config ${TEST_BASE}/test/test-data/q3p/alice.conf --debug alice 2>>q3pd_alice_${RANDOM}.stderr &
 echo "started"
 
 echo "start bob"
-${TEST_BASE}/bin/q3pd/q3pd --config ${TEST_BASE}/bin/share/q3p/bob.conf --debug bob 2>>q3pd_bob_${RANDOM}.stderr &
+${TEST_BASE}/bin/q3pd/q3pd --config ${TEST_BASE}/test/test-data/q3p/bob.conf --debug bob 2>>q3pd_bob_${RANDOM}.stderr &
 echo "started"
-
-#rm  ${TEST_BASE}/bin/share/q3p/alice.conf  
-#rm  ${TEST_BASE}/bin/share/q3p/bob.conf
-#rm -rf ${TEST_BASE}/bin/share/q3p &> /dev/null
 
 sleep 1
 CONNECTED_ALICE=$(qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob connected)
