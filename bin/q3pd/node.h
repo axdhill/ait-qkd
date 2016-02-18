@@ -402,6 +402,15 @@ private:
     
 
     /**
+     * apply a link config: "nic"
+     * 
+     * @param   cEngine             the link instance
+     * @param   sValue              the value for "nic"
+     */
+    void apply_link_config_nic(qkd::q3p::engine & cEngine, std::string const & sValue) const;
+    
+
+    /**
      * create a set of config file hints
      * 
      * @return  an ordered list of config file hints

@@ -198,16 +198,16 @@ class engine_instance : public qkd::module::module {
     Q_OBJECT
     Q_CLASSINFO("D-Bus Interface", "at.ac.ait.q3p.link")
     
-    Q_PROPERTY(bool connected READ connected)                   /**< the engine's connected state */
-    Q_PROPERTY(bool db_opened READ db_opened)                   /**< DB opened flag */
-    Q_PROPERTY(QString link_id READ link_id)                    /**< the ID of this engine instance (aka Link) */
-    Q_PROPERTY(QString link_local READ link_local)              /**< the local hostaddress to serve */
-    Q_PROPERTY(QString link_peer READ link_peer)                /**< peer host address */
-    Q_PROPERTY(unsigned int link_state READ link_state)         /**< the current engine's state */
-    Q_PROPERTY(bool master READ master WRITE set_master)        /**< master role flag */
-    Q_PROPERTY(QString mq READ mq)                              /**< message queue name */
-    Q_PROPERTY(QString nic READ nic)                            /**< network interface card name */
-    Q_PROPERTY(bool slave READ slave WRITE set_slave)           /**< slave role flag */
+    Q_PROPERTY(bool connected READ connected)                       /**< the engine's connected state */
+    Q_PROPERTY(bool db_opened READ db_opened)                       /**< DB opened flag */
+    Q_PROPERTY(QString link_id READ link_id)                        /**< the ID of this engine instance (aka Link) */
+    Q_PROPERTY(QString link_local READ link_local)                  /**< the local hostaddress to serve */
+    Q_PROPERTY(QString link_peer READ link_peer)                    /**< peer host address */
+    Q_PROPERTY(unsigned int link_state READ link_state)             /**< the current engine's state */
+    Q_PROPERTY(bool master READ master WRITE set_master)            /**< master role flag */
+    Q_PROPERTY(QString mq READ mq)                                  /**< message queue name */
+    Q_PROPERTY(QString nic READ nic)                                /**< network interface card name */
+    Q_PROPERTY(bool slave READ slave WRITE set_slave)               /**< slave role flag */
 
     
 public:
@@ -487,6 +487,22 @@ public:
     
     
     /**
+     * return the local IP4 NIC address
+     * 
+     * @return  the local IP4 NIC address
+     */
+    std::string nic_ip4_local() const;
+    
+    
+    /**
+     * return the remote IP4 NIC address
+     * 
+     * @return  the remote IP4 NIC address
+     */
+    std::string nic_ip4_remote() const;
+    
+    
+    /**
      * access to the current outgoing buffer
      * 
      * @return  the current outgoing buffer
@@ -564,6 +580,22 @@ public:
      * @param   bMaster     the new master role flag
      */
     void set_master(bool bMaster);
+    
+    
+    /**
+     * set the local IP4 NIC address
+     * 
+     * @param   sIP4    the new local IP4 NIC address
+     */
+    void set_nic_ip4_local(std::string const & sIP4);
+    
+    
+    /**
+     * set the remote IP4 NIC address
+     * 
+     * @param   sIP4    the new remote IP4 NIC address
+     */
+    void set_nic_ip4_remote(std::string const & sIP4);
     
     
     /**

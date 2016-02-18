@@ -186,6 +186,54 @@ void nic_instance::reader() {
 
 
 /**
+ * set the local IP4 address of the NIC
+ * 
+ * @param   sIP4        the new local address of the NIC
+ */
+void nic_instance::set_ip4_local(QString sIP4) {
+    
+    std::string s = sIP4.toStdString();
+    if (m_cEngine->nic_ip4_local() != s) {
+        m_cEngine->set_nic_ip4_local(s);
+        return;
+    }
+    
+    m_sIP4Local = s;
+    setup_networking();
+}
+
+
+/**
+ * set the remote IP4 address of the NIC
+ * 
+ * @param   sIP4        the new remote address of the NIC
+ */
+void nic_instance::set_ip4_remote(QString sIP4) {
+    
+    std::string s = sIP4.toStdString();
+    if (m_cEngine->nic_ip4_remote() != s) {
+        m_cEngine->set_nic_ip4_remote(s);
+        return;
+    }
+    
+    m_sIP4Remote = s;
+    setup_networking();
+}
+
+
+/**
+ * apply IP4 address and routing
+ */
+void nic_instance::setup_networking() {
+    
+qkd::utility::debug(true) << __DEBUG_LOCATION__ << "TODO: m_sIP4Local=" << m_sIP4Local << ", m_sIP4Remote=" << m_sIP4Remote;    
+
+    // emit ip4_changed();
+    
+}
+
+
+/**
  * write data to the device, thus sending it to the kernel
  * 
  * this is used to send data which have been received by

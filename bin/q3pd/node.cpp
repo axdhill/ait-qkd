@@ -34,6 +34,7 @@
 #include "config.h"
 
 #include <fstream>
+#include <regex>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/program_options.hpp>
@@ -207,6 +208,7 @@ void node::apply_link_config(std::string const & sLinkIdentifier, qkd::utility::
         std::string sSecretFile;        /**< filename of secret data config */
         std::string sIPSec;             /**< IPSec setting in config */
         std::string sInject;            /**< inject file in config */
+        std::string sNIC;               /**< NIC addressing and routing */
         
     } cLinkConfig;
     
@@ -220,6 +222,7 @@ void node::apply_link_config(std::string const & sLinkIdentifier, qkd::utility::
     cLinkConfig.sSecretFile = (cConfig.find("secret_file")  != cConfig.end() ? cConfig.at("secret_file") : "");
     cLinkConfig.sIPSec      = (cConfig.find("ipsec")        != cConfig.end() ? cConfig.at("ipsec") : "");
     cLinkConfig.sInject     = (cConfig.find("inject")       != cConfig.end() ? cConfig.at("inject") : "");
+    cLinkConfig.sNIC        = (cConfig.find("nic")          != cConfig.end() ? cConfig.at("nic") : "");
     
     if (cLinkConfig.sId.empty()) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
@@ -259,6 +262,7 @@ void node::apply_link_config(std::string const & sLinkIdentifier, qkd::utility::
         return;
     }
     
+    apply_link_config_nic(cEngine, cLinkConfig.sNIC);
     apply_link_config_ipsec(cEngine, cLinkConfig.sIPSec);
     
     if (cLinkConfig.sListenURI.size()) {
@@ -393,6 +397,32 @@ void node::apply_link_config_master(qkd::q3p::engine & cEngine, std::string cons
 
 
 /**
+ * apply a link config: "nic"
+ * 
+ * @param   cEngine             the link instance
+ * @param   sValue              the value for "nic"
+ */
+void node::apply_link_config_nic(qkd::q3p::engine & cEngine, std::string const & sValue) const {
+    
+    if (sValue.empty()) {
+        return;
+    }
+    
+    static const std::regex r("([\\.[:alnum:]]+) *to *([\\.[:alnum:]]+)", std::regex_constants::ECMAScript | std::regex_constants::icase);
+    std::smatch m;
+    std::regex_search(sValue, m, r);
+    
+    if (m.size() != 3) {
+        qkd::utility::syslog::warning() << "failed to parse nic address and routing configuration for '" << cEngine->id().toStdString() << "'";
+        return;
+    }
+    
+    cEngine->set_nic_ip4_local(m[1]);
+    cEngine->set_nic_ip4_remote(m[2]);
+}    
+
+
+/**
  * create a set of config file hints
  * 
  * @return  an ordered list of config file hints
@@ -498,7 +528,7 @@ void node::extract_link_config(std::map<std::string, qkd::utility::properties> &
         }
         std::string sKey = ssKey.str();
         
-        const std::set<std::string> cValidKeyNames = { "db", "id", "listen.uri", "master", "peer.uri", "secret", "secret_file", "ipsec", "inject" };
+        const std::set<std::string> cValidKeyNames = { "db", "id", "listen.uri", "master", "peer.uri", "secret", "secret_file", "ipsec", "inject", "nic" };
         if (cValidKeyNames.find(sKey) == cValidKeyNames.end()) {
             qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
                     << ": " << "parsed config file: '" << m_sConfigFile.toStdString() 
@@ -633,6 +663,7 @@ QByteArray node::load_link_config_secret_file(std::string const & sValue) const 
         
     return res;
 }
+
 
 /**
  * get the current present modules on the node

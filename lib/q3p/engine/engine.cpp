@@ -157,6 +157,9 @@ public:
     
     qkd::q3p::mq m_cMQ;                             /**< the message queue */
     qkd::q3p::nic m_cNIC;                           /**< network interface "card" */
+    std::string m_sNICIP4Local;                     /**< local IP4 address */
+    std::string m_sNICIP4Remote;                    /**< remote IP4 address */
+    
     
     // TODO: Stefan
     //qkd::q3p::ipsec m_cIPSec;                       /**< IPSec implementation */
@@ -1379,6 +1382,26 @@ QString engine_instance::nic() const {
 
 
 /**
+ * return the local IP4 NIC address
+ * 
+ * @return  the local IP4 NIC address
+ */
+std::string engine_instance::nic_ip4_local() const {
+    return d->m_sNICIP4Local;
+}
+
+
+/**
+ * return the remote IP4 NIC address
+ * 
+ * @return  the remote IP4 NIC address
+ */
+std::string engine_instance::nic_ip4_remote() const {
+    return d->m_sNICIP4Remote;
+}
+
+
+/**
  * open (or create) the key store DB on the specified URL
  * 
  * @param   sURL        url defining the key-DB
@@ -1739,6 +1762,34 @@ void engine_instance::set_master(bool bMaster) {
 
 
 /**
+ * set the local IP4 NIC address
+ * 
+ * @param   sIP4    the new local IP4 NIC address
+ */
+void engine_instance::set_nic_ip4_local(std::string const & sIP4) {
+    
+    d->m_sNICIP4Local = sIP4;
+    if (d->m_cNIC) {
+        d->m_cNIC->set_ip4_local(QString::fromStdString(sIP4));
+    }
+}
+
+
+/**
+ * set the remote IP4 NIC address
+ * 
+ * @param   sIP4    the new remote IP4 NIC address
+ */
+void engine_instance::set_nic_ip4_remote(std::string const & sIP4) {
+    
+    d->m_sNICIP4Remote = sIP4;
+    if (d->m_cNIC) {
+        d->m_cNIC->set_ip4_remote(QString::fromStdString(sIP4));
+    }
+}
+
+
+/**
  * sets the slave role on the keystore
  * 
  * This only works if the key store is not
@@ -1863,12 +1914,14 @@ void engine_instance::setup_nic() {
     qkd::utility::debug() << "setting up virtual NIC...";
     
     d->m_cNIC = std::shared_ptr<qkd::q3p::nic_instance>(new qkd::q3p::nic_instance(this));
+    d->m_cNIC->set_ip4_local(QString::fromStdString(d->m_sNICIP4Local));
+    d->m_cNIC->set_ip4_remote(QString::fromStdString(d->m_sNICIP4Remote));
     
     new NicAdaptor(d->m_cNIC.get());
     QString sNICObjectPath = d->m_sDBusObjectPath + "/NIC";
     if (!d->m_cDBus.registerObject(sNICObjectPath, d->m_cNIC.get())) {
-        QString sMessage = QString("Failed to register DBus object \"") + sNICObjectPath + "\"";
-        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << sMessage.toStdString();
+        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
+                << "Failed to register DBus object \"" << sNICObjectPath.toStdString() << "\"";
     }
 }
     
