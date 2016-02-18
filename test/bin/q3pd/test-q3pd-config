@@ -52,7 +52,7 @@ echo "start bob"
 ${TEST_BASE}/bin/q3pd/q3pd --config ${TEST_BASE}/test/test-data/q3p/bob.conf --debug bob 2>>q3pd_bob_${RANDOM}.stderr &
 echo "started"
 
-sleep 1
+sleep 10
 CONNECTED_ALICE=$(qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob connected)
 CONNECTED_BOB=$(qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice connected)
 if [ "${CONNECTED_ALICE}" != "true" ]; then
@@ -67,6 +67,8 @@ if [ "${CONNECTED_BOB}" != "true" ]; then
     q3pd_stop "bob"
     exit 1
 fi
+
+exit 1
 
 q3pd_stop "alice" || exit $?
 q3pd_stop "bob" || exit $?

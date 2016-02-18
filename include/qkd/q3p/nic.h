@@ -210,6 +210,22 @@ private:
     
     
     /**
+     * adds the IP4 route to the kernel
+     * 
+     * @return  true, if successully added
+     */
+    bool add_ip4_route();
+    
+    
+    /**
+     * assign local IP4
+     * 
+     * @return  true, if successully assigned
+     */
+    bool assign_local_ip4();
+    
+    
+    /**
      * the reader thread
      */
     void reader();
