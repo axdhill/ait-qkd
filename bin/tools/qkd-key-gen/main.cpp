@@ -402,11 +402,11 @@ int generate(config const & cConfig) {
     
     // sanity checks
     if (cConfig.nRate > 1.0) {
-        std::cerr << "rate is " << cConfig.nRate << " which is quite impossible to fullfill." << std::endl;
+        std::cerr << "rate is " << cConfig.nRate << " which is quite impossible to fulfill." << std::endl;
         return 1;
     }
     if (cConfig.nRate < 0.0) {
-        std::cerr << "rate is " << cConfig.nRate << " which is quite impossible to fullfill." << std::endl;
+        std::cerr << "rate is " << cConfig.nRate << " which is quite impossible to fulfill." << std::endl;
         return 1;
     }
     
@@ -516,7 +516,7 @@ int main(int argc, char ** argv) {
     // define program options
     boost::program_options::options_description cOptions(sApplication + "\n" + sDescription + "\n\n\t" + sSynopsis + "\n\nAllowed Options");
     cOptions.add_options()("errorbits,e", "set number error bits in the key");
-    cOptions.add_options()("disclosed,d", boost::program_options::value<double>()->default_value(0.0, "0.0"), "set rate of dislosed bits in the key");
+    cOptions.add_options()("disclosed,d", boost::program_options::value<double>()->default_value(0.0, "0.0"), "set rate of disclosed bits in the key");
     cOptions.add_options()("help,h", "this page");
     cOptions.add_options()("id,i", boost::program_options::value<qkd::key::key_id>()->default_value(1), "first key id");
     cOptions.add_options()("keys,k", boost::program_options::value<uint64_t>()->default_value(10), "number of keys to produce");
@@ -524,14 +524,14 @@ int main(int argc, char ** argv) {
     cOptions.add_options()("randomize-size", "randomize the key size within 2% standard deviation");
     cOptions.add_options()("rate,r", boost::program_options::value<double>()->default_value(0.05, "0.05"), "error rate in each key");
     cOptions.add_options()("quantum,q", "create quantum detector tables as key material (whereas 1 byte holds 2 events which are 2 key bits)");
-    cOptions.add_options()("silent", "don't be see chatty");
+    cOptions.add_options()("silent", "don't be so chatty");
     cOptions.add_options()("version,v", "print version string");
     cOptions.add_options()("exact,x", "produce exact amount of errors");
     cOptions.add_options()("zero,z", "instead of random bits, start with all 0");
     
     // final arguments
     boost::program_options::options_description cArgs("Arguments");
-    cArgs.add_options()("FILE", "FILE is the name of files to create. There will be 2 files created: \none with suffix '.alice' and one with suffix '.bob'. \n\nWhen creating quantum tables the --errorbits and --dislosed flags are ignored.");
+    cArgs.add_options()("FILE", "FILE is the name of files to create. There will be 2 files created: \none with suffix '.alice' and one with suffix '.bob'. \n\nWhen creating quantum tables the --errorbits and --disclosed flags are ignored.");
     boost::program_options::positional_options_description cPositionalDescription; 
     cPositionalDescription.add("FILE", 1);
     
@@ -569,7 +569,7 @@ int main(int argc, char ** argv) {
     
     // we need a file
     if (cVariableMap.count("FILE") != 1) {
-        std::cerr << "need excactly one FILE argument" << "\ntype '--help' for help" << std::endl;
+        std::cerr << "need exactly one FILE argument" << "\ntype '--help' for help" << std::endl;
         return 1;
     }
     
@@ -607,15 +607,15 @@ void show_config(config const & cConfig) {
     if (cConfig.bSilent) return;
     
     std::cout << "qkd key generation setting: \n";
-    std::cout << "\tfile:              " << cConfig.sFile << "\n";
-    std::cout << "\tkeys:              " << cConfig.nKeys << "\n";
-    std::cout << "\tfirst id:          " << cConfig.nId << "\n";
-    std::cout << "\tsize:              " << cConfig.nSize << "\n";
-    std::cout << "\trandomize-size:    " << (cConfig.bRandomizeSize ? "yes" : "no") << "\n";
-    std::cout << "\trate:              " << cConfig.nRate << "\n";
-    std::cout << "\texact:             " << cConfig.bExact << "\n";
-    std::cout << "\tzero:              " << cConfig.bZero << "\n";
-    std::cout << "\tset error bits:    " << cConfig.bSetErrorBits << "\n";
-    std::cout << "\tdislosed bit rate: " << cConfig.nDisclosedRate << "\n";
-    std::cout << "\tquantum:           " << cConfig.bQuantumTables << std::endl;
+    std::cout << "\tfile:               " << cConfig.sFile << "\n";
+    std::cout << "\tkeys:               " << cConfig.nKeys << "\n";
+    std::cout << "\tfirst id:           " << cConfig.nId << "\n";
+    std::cout << "\tsize:               " << cConfig.nSize << "\n";
+    std::cout << "\trandomize-size:     " << (cConfig.bRandomizeSize ? "yes" : "no") << "\n";
+    std::cout << "\trate:               " << cConfig.nRate << "\n";
+    std::cout << "\texact:              " << cConfig.bExact << "\n";
+    std::cout << "\tzero:               " << cConfig.bZero << "\n";
+    std::cout << "\tset error bits:     " << cConfig.bSetErrorBits << "\n";
+    std::cout << "\tdisclosed bit rate: " << cConfig.nDisclosedRate << "\n";
+    std::cout << "\tquantum:            " << cConfig.bQuantumTables << std::endl;
 }
