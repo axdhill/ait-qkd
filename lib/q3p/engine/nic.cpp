@@ -48,8 +48,11 @@
 #if defined(__linux__)
 
 #   include <arpa/inet.h>
+#   include <asm/types.h>
 #   include <linux/if.h>
 #   include <linux/if_tun.h>
+#   include <linux/netlink.h>
+#   include <linux/rtnetlink.h> 
 #   include <sys/ioctl.h>
 #   include <netinet/in.h>
 #   include <sys/socket.h>
@@ -430,6 +433,7 @@ bool check_device_flags(std::string const & sDevice) {
     strncpy(cIFReq.ifr_name, sDevice.c_str(), IFNAMSIZ);
     
     nExitCode = ioctl(s, SIOCGIFFLAGS, &cIFReq);
+    close(s);
     if (nExitCode != 0) {
         return false;
     }
@@ -479,6 +483,7 @@ in_addr_t get_current_ip4(std::string const & sDevice) {
     strncpy(cIFReq.ifr_name, sDevice.c_str(), IFNAMSIZ);
     
     nExitCode = ioctl(s, SIOCGIFADDR, &cIFReq);
+    close(s);
     if (nExitCode != 0) {
         return res;
     }
@@ -549,6 +554,7 @@ bool set_current_ip4(std::string const & sDevice, in_addr_t nIP4) {
     memcpy((char *)&cIFReq + offsetof(struct ifreq, ifr_addr), (char *)&cAddr, sizeof(struct sockaddr));
 
     nExitCode = ioctl(s, SIOCSIFADDR, &cIFReq);
+    close(s);
     if (nExitCode != 0) {
         qkd::utility::syslog::warning() << "Failed to assign IP4 '" << inet_addr_to_string(nIP4) << "' to interface " << sDevice << ": error code = " << errno << " - " << strerror(errno);
         return false;
@@ -612,10 +618,10 @@ void set_device_flags(std::string const & sDevice) {
     strncpy(cIFReq.ifr_name, sDevice.c_str(), IFNAMSIZ);
     
     short nFlags = (IFF_UP | IFF_POINTOPOINT | IFF_RUNNING | IFF_NOARP | IFF_MULTICAST);
-    
     memcpy((char *)&cIFReq + offsetof(struct ifreq, ifr_flags), (char *)&nFlags, sizeof(short));
 
     nExitCode = ioctl(s, SIOCSIFFLAGS, &cIFReq);
+    close(s);
     if (nExitCode != 0) {
         qkd::utility::syslog::warning() << "Failed to set device flags to interface " << sDevice << ": error code = " << errno << " - " << strerror(errno);
         return;
