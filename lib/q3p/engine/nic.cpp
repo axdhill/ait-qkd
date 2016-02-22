@@ -101,11 +101,59 @@ public:
 
 
 /**
+ * check if the device flags are point-to-point
+ * 
+ * @param   sDevice         the device
+ * @return  true, if the device flags are ok
+ */
+bool check_device_flags(std::string const & sDevice);
+
+
+/**
+ * get current IP4 address of device
+ * 
+ * @param   sDevice         the device
+ * @return  the inetrnet IP4 address of the device
+ */
+in_addr_t get_current_ip4(std::string const & sDevice);
+
+
+/**
+ * quick and dirty in_addr_t to string
+ * 
+ * (because standard POSIX stuff is plain stupid with all
+ * that struct inaddr, in_addr_t, s_addr, ... what a mess!)
+ * 
+ * @param   nIP4        the IP4 address
+ * @return  string in the 4 digit-dot notation
+ */
+std::string inet_addr_to_string(in_addr_t nIP4);
+
+
+/**
  * checks if the given string contains an IP4 dotted address
  * 
  * @return  true, if inet_aton accepts it (or similar)
  */
 bool is_ip4_string(std::string const & sIP4);
+
+
+/**
+ * set current IP4 address of device
+ * 
+ * @param   sDevice         the device
+ * @param   nIP4            the new IP4 address
+ * @return  true, if successully assigned
+ */
+bool set_current_ip4(std::string const & sDevice, in_addr_t nIP4);
+
+
+/**
+ * apply network device flags properly
+ * 
+ * @param   sDevice         the device
+ */
+void set_device_flags(std::string const & sDevice);
 
 
 // ------------------------------------------------------------
@@ -163,7 +211,7 @@ bool nic_instance::add_ip4_route() {
         return false;
     }
 
-    if (m_sIP4Local.empty()) {
+    if (m_sIP4Local.empty() || m_sIP4Remote.empty()) {
         return false;
     }
     
@@ -177,10 +225,6 @@ bool nic_instance::add_ip4_route() {
         return false;
     }
     
-    if (system("which ip &> /dev/null") != 0) {
-        qkd::utility::syslog::warning() << "Failed to locate system 'ip' command. Have you installed iproute2 and is 'ip' in the current PATH?";
-        return false;
-    }
     
 #elif __WIN32__
 
@@ -206,11 +250,6 @@ bool nic_instance::add_ip4_route() {
  */
 bool nic_instance::assign_local_ip4() {
 
-#ifdef __linux__    
-
-    // ------------------------------------------------------------
-    // LINUX implementation
-
     if (m_sName.empty()) {
         return false;
     }
@@ -223,83 +262,21 @@ bool nic_instance::assign_local_ip4() {
         qkd::utility::debug() << "Failed to translate local IP4 address: '" << m_sIP4Local << "'";
         return false;
     }
-
-    int nExitCode = 0;    
-    int s = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
-    ifreq cIFReq;
     
-    // set IP4 address on interface
-    // ioctl(SOCKET-FD, SIOCSIFADDR, {ifr_name="DEV-NAME", ifr_addr={AF_INET, inet_addr("IP-ADDR)}}) == 0
-    memset(&cIFReq, 0, sizeof(cIFReq));
-    strncpy(cIFReq.ifr_name, m_sName.c_str(), IFNAMSIZ);
+    in_addr_t nIP4 = inet_addr(m_sIP4Local.c_str());
+    if (get_current_ip4(m_sName) == nIP4) {
+        return true;
+    }
     
-    sockaddr_in cAddr;
-    memset(&cAddr, 0, sizeof(cAddr));
-    cAddr.sin_family = AF_INET;
-    cAddr.sin_port = 0;
-    cAddr.sin_addr.s_addr = inet_addr(m_sIP4Local.c_str());
-    memcpy((char *)&cIFReq + offsetof(struct ifreq, ifr_addr), (char *)&cAddr, sizeof(struct sockaddr));
-
-    nExitCode = ioctl(s, SIOCSIFADDR, &cIFReq);
-    if (nExitCode != 0) {
-        qkd::utility::syslog::warning() << "Failed to assign IP4 '" << m_sIP4Local << "' to interface " << m_sName << ": error code = " << errno << " - " << strerror(errno);
+    if (!set_current_ip4(m_sName, nIP4)) {
         return false;
     }
     
-qkd::utility::debug(true) << __DEBUG_LOCATION__ << "ioctl()=" << nExitCode;    
-    
-    // ioctl(SOCKET-FD, SIOCGIFFLAGS, {ifr_name="DEV-NAME", ifr_flags=IFF_POINTOPOINT|IFF_NOARP|IFF_MULTICAST}) == 0
-
-
-    // ioctl(SOCKET-FD, SIOCSIFFLAGS, {ifr_name="DEV-NAME", ifr_flags=IFF_UP|IFF_POINTOPOINT|IFF_RUNNING|IFF_NOARP|IFF_MULTICAST}) == 0
-    
-    
-    
-/*    
-    if (system("which ip &> /dev/null") != 0) {
-        qkd::utility::syslog::warning() << "Failed to locate system 'ip' command. Have you installed iproute2 and is 'ip' in the current PATH?";
-        return false;
+    if (!check_device_flags(m_sName)) {
+        set_device_flags(m_sName);
     }
     
-    std::string sCmdIPAddrChange = boost::str(boost::format("ip addr change %s dev %s") % m_sIP4Local % m_sName);
-    std::string sCmdLinkSetMTU = boost::str(boost::format("ip link set dev %s mtu 65535") % m_sName);
-    std::string sCmdLinkUp = boost::str(boost::format("ip link set dev %s up") % m_sName);
-    
-    int nExitCode = 0;
-    
-    nExitCode = system(sCmdIPAddrChange.c_str());
-    if (nExitCode != 0) {
-        qkd::utility::syslog::warning() << "Failed to issue: " << sCmdIPAddrChange << " - returned: " << nExitCode;
-        return false;
-    }
-    
-    nExitCode = system(sCmdLinkSetMTU.c_str());
-    if (nExitCode != 0) {
-        qkd::utility::syslog::warning() << "Failed to issue: " << sCmdLinkSetMTU << " - returned: " << nExitCode;
-        return false;
-    }
-    
-    nExitCode = system(sCmdLinkUp.c_str());
-    if (nExitCode != 0) {
-        qkd::utility::syslog::warning() << "Failed to issue: " << sCmdLinkUp << " - returned: " << nExitCode;
-        return false;
-    }
-*/    
-qkd::utility::debug() << __DEBUG_LOCATION__ << "IP4 DONE";
-
-
-#elif __WIN32__
-
-    // ------------------------------------------------------------
-    // WINDOWS implementation
-    
-#error "Windows port not implemented yet"
-    
-#else
-
-    #error "Port to current target operating system not implemented yet"
-
-#endif    
+    qkd::utility::syslog::info() << "assigned " << m_sIP4Local << " to device " << m_sName;
     
     return false;
 }
@@ -431,6 +408,104 @@ void nic_instance::write(qkd::utility::memory const & cData) {
 
 
 /**
+ * check if the device flags are point-to-point
+ * 
+ * @param   sDevice         the device
+ * @return  true, if the device flags are ok
+ */
+bool check_device_flags(std::string const & sDevice) {
+    
+    bool res = false;
+    
+#ifdef __linux__    
+
+    // ------------------------------------------------------------
+    // LINUX implementation
+    
+    int nExitCode = 0;
+    
+    int s = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
+    ifreq cIFReq;
+    memset(&cIFReq, 0, sizeof(cIFReq));
+    strncpy(cIFReq.ifr_name, sDevice.c_str(), IFNAMSIZ);
+    
+    nExitCode = ioctl(s, SIOCGIFFLAGS, &cIFReq);
+    if (nExitCode != 0) {
+        return false;
+    }
+    
+    short nFlags;
+    memcpy((char *)&nFlags, (char *)&cIFReq + offsetof(struct ifreq, ifr_flags), sizeof(nFlags));
+    
+    res = (nFlags == (IFF_UP | IFF_POINTOPOINT | IFF_RUNNING | IFF_NOARP | IFF_MULTICAST));
+    
+#elif __WIN32__
+
+    // ------------------------------------------------------------
+    // WINDOWS implementation
+    
+#error "Windows port not implemented yet"
+    
+#else
+
+    #error "Port to current target operating system not implemented yet"
+
+#endif    
+    
+    return res;
+}
+
+
+/**
+ * get current IP4 address of device
+ * 
+ * @param   sDevice         the device
+ * @return  the inetrnet IP4 address of the device
+ */
+in_addr_t get_current_ip4(std::string const & sDevice) {
+    
+    in_addr_t res = -1;
+    
+#ifdef __linux__    
+
+    // ------------------------------------------------------------
+    // LINUX implementation
+
+    int nExitCode = 0;
+    
+    int s = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
+    ifreq cIFReq;
+    memset(&cIFReq, 0, sizeof(cIFReq));
+    strncpy(cIFReq.ifr_name, sDevice.c_str(), IFNAMSIZ);
+    
+    nExitCode = ioctl(s, SIOCGIFADDR, &cIFReq);
+    if (nExitCode != 0) {
+        return res;
+    }
+    
+    sockaddr_in cAddr;
+    memcpy((char *)&cAddr, (char *)&cIFReq + offsetof(struct ifreq, ifr_addr), sizeof(cAddr));
+    res = cAddr.sin_addr.s_addr;
+
+#elif __WIN32__
+
+    // ------------------------------------------------------------
+    // WINDOWS implementation
+    
+#error "Windows port not implemented yet"
+    
+#else
+
+    #error "Port to current target operating system not implemented yet"
+
+#endif    
+    
+    return res;
+}
+
+
+
+/**
  * checks if the given string contains an IP4 dotted address
  * 
  * @return  true, if inet_aton accepts it (or similar)
@@ -443,4 +518,120 @@ bool is_ip4_string(std::string const & sIP4) {
     }
     
     return true;
+}
+
+/**
+ * set current IP4 address of device
+ * 
+ * @param   sDevice         the device
+ * @param   nIP4            the new IP4 address
+ * @return  true, if successully assigned
+ */
+bool set_current_ip4(std::string const & sDevice, in_addr_t nIP4) {
+    
+#ifdef __linux__    
+
+    // ------------------------------------------------------------
+    // LINUX implementation
+    
+    int nExitCode = 0;    
+    int s = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
+    ifreq cIFReq;
+    
+    memset(&cIFReq, 0, sizeof(cIFReq));
+    strncpy(cIFReq.ifr_name, sDevice.c_str(), IFNAMSIZ);
+    
+    sockaddr_in cAddr;
+    memset(&cAddr, 0, sizeof(cAddr));
+    cAddr.sin_family = AF_INET;
+    cAddr.sin_port = 0;
+    cAddr.sin_addr.s_addr = nIP4;
+    memcpy((char *)&cIFReq + offsetof(struct ifreq, ifr_addr), (char *)&cAddr, sizeof(struct sockaddr));
+
+    nExitCode = ioctl(s, SIOCSIFADDR, &cIFReq);
+    if (nExitCode != 0) {
+        qkd::utility::syslog::warning() << "Failed to assign IP4 '" << inet_addr_to_string(nIP4) << "' to interface " << sDevice << ": error code = " << errno << " - " << strerror(errno);
+        return false;
+    }
+    
+#elif __WIN32__
+
+    // ------------------------------------------------------------
+    // WINDOWS implementation
+    
+#error "Windows port not implemented yet"
+    
+#else
+
+    #error "Port to current target operating system not implemented yet"
+
+#endif    
+
+    return true;
+}
+
+
+/**
+ * quick and dirty in_addr_t to string
+ * 
+ * (because standard POSIX stuff is plain stupid with all
+ * that struct inaddr, in_addr_t, s_addr, ... what a mess!)
+ * 
+ * @param   nIP4        the IP4 address
+ * @return  string in the 4 digit-dot notation
+ */
+std::string inet_addr_to_string(in_addr_t nIP4) {
+    
+    std::stringstream ss;
+    
+    char * c = (char *)&nIP4;
+    ss << (int)c[0] << "." << (int)c[1] << "." << (int)c[2] << "." << (int)c[3];
+    
+    return ss.str();
+}
+
+
+
+/**
+ * apply network device flags properly
+ * 
+ * @param   sDevice         the device
+ */
+void set_device_flags(std::string const & sDevice) {
+
+#ifdef __linux__    
+
+    // ------------------------------------------------------------
+    // LINUX implementation
+    
+    int nExitCode = 0;    
+    int s = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
+    ifreq cIFReq;
+    
+    memset(&cIFReq, 0, sizeof(cIFReq));
+    strncpy(cIFReq.ifr_name, sDevice.c_str(), IFNAMSIZ);
+    
+    short nFlags = (IFF_UP | IFF_POINTOPOINT | IFF_RUNNING | IFF_NOARP | IFF_MULTICAST);
+    
+    memcpy((char *)&cIFReq + offsetof(struct ifreq, ifr_flags), (char *)&nFlags, sizeof(short));
+
+    nExitCode = ioctl(s, SIOCSIFFLAGS, &cIFReq);
+    if (nExitCode != 0) {
+        qkd::utility::syslog::warning() << "Failed to set device flags to interface " << sDevice << ": error code = " << errno << " - " << strerror(errno);
+        return;
+    }
+    
+#elif __WIN32__
+
+    // ------------------------------------------------------------
+    // WINDOWS implementation
+    
+#error "Windows port not implemented yet"
+    
+#else
+
+    #error "Port to current target operating system not implemented yet"
+
+#endif    
+  
 }
