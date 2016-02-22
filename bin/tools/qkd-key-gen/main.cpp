@@ -531,7 +531,7 @@ int main(int argc, char ** argv) {
     cOptions.add_options()("randomize-size", "randomize the key size within 2% standard deviation");
     cOptions.add_options()("rate,r", boost::program_options::value<double>()->default_value(0.05, "0.05"), "error rate in each key");
     cOptions.add_options()("quantum,q", "create quantum detector tables as key material (whereas 1 byte holds 2 events which are 2 key bits)");
-    cOptions.add_options()("random", boost::program_options::value<std::string>()->default_value(""), "force the random number generator to use a specific algorithm.");
+    cOptions.add_options()("random-url", boost::program_options::value<std::string>()->default_value(""), "force the random number generator to use a specific algorithm.");
     cOptions.add_options()("silent", "don't be so chatty");
     cOptions.add_options()("version,v", "print version string");
     cOptions.add_options()("exact,x", "produce exact amount of errors");
@@ -596,7 +596,7 @@ int main(int argc, char ** argv) {
     cConfig.nDisclosedRate = cVariableMap["disclosed"].as<double>();
     cConfig.bQuantumTables = (cVariableMap.count("quantum") > 0);
     cConfig.bSilent = (cVariableMap.count("silent") > 0);
-    cConfig.sRandomSource = cVariableMap["random"].as<std::string>();
+    cConfig.sRandomSource = cVariableMap["random-url"].as<std::string>();
     
     // show config to user
     show_config(cConfig);
