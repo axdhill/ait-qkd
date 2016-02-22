@@ -88,15 +88,15 @@ The examples as created as a series, going from a very basic simple demo to more
         $ cd build
         $ qkd-key-gen input_keys
         qkd key generation setting: 
-                file:              input_keys
-                keys:              10
-                size:              1024
-                rate:              0.05
-                exact:             0
-                zero:              0
-                set error bits:    0
-                dislosed bit rate: 0
-                quantum:           0
+                file:               input_keys
+                keys:               10
+                size:               1024
+                rate:               0.05
+                exact:              0
+                zero:               0
+                set error bits:     0
+                disclosed bit rate: 0
+                quantum:            0
         created key #1
         created key #2
         created key #3
