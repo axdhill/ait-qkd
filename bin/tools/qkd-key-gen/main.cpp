@@ -61,6 +61,7 @@ public:
     config() : nKeys(0), nId(0), nSize(0), bRandomizeSize(false), nStandardDeviation(0.0), nRate(0.0), bExact(false), bZero(false), bSetErrorBits(false), nDisclosedRate(0.0), bQuantumTables(false) {};
     
     std::string sFile;              /**< file name */
+    std::string sRandomSource;      /**< random source */
     uint64_t nKeys;                 /**< number of keys to produce */
     qkd::key::key_id nId;           /**< first key id */
     uint64_t nSize;                 /**< size of each key */
@@ -421,6 +422,12 @@ int generate(config const & cConfig) {
         std::cerr << "failed to open Bob's file '" << cConfig.sFile << ".bob': " << strerror(errno) << std::endl;
         return 2;
     }
+
+    // prepare random number generator if necessary
+    if (!cConfig.sRandomSource.empty()) {
+        qkd::utility::random cRandomSource = qkd::utility::random_source::create(cConfig.sRandomSource);
+        qkd::utility::random_source::set_source(cRandomSource);
+    }
     
     // generate key by key
     for (qkd::key::key_id nKeyId = cConfig.nId; nKeyId < (cConfig.nId + cConfig.nKeys); nKeyId++) {
@@ -524,6 +531,7 @@ int main(int argc, char ** argv) {
     cOptions.add_options()("randomize-size", "randomize the key size within 2% standard deviation");
     cOptions.add_options()("rate,r", boost::program_options::value<double>()->default_value(0.05, "0.05"), "error rate in each key");
     cOptions.add_options()("quantum,q", "create quantum detector tables as key material (whereas 1 byte holds 2 events which are 2 key bits)");
+    cOptions.add_options()("random", boost::program_options::value<std::string>()->default_value(""), "force the random number generator to use a specific algorithm.");
     cOptions.add_options()("silent", "don't be so chatty");
     cOptions.add_options()("version,v", "print version string");
     cOptions.add_options()("exact,x", "produce exact amount of errors");
@@ -588,6 +596,7 @@ int main(int argc, char ** argv) {
     cConfig.nDisclosedRate = cVariableMap["disclosed"].as<double>();
     cConfig.bQuantumTables = (cVariableMap.count("quantum") > 0);
     cConfig.bSilent = (cVariableMap.count("silent") > 0);
+    cConfig.sRandomSource = cVariableMap["random"].as<std::string>();
     
     // show config to user
     show_config(cConfig);
@@ -606,16 +615,17 @@ void show_config(config const & cConfig) {
     
     if (cConfig.bSilent) return;
     
-    std::cout << "qkd key generation setting: \n";
-    std::cout << "\tfile:               " << cConfig.sFile << "\n";
-    std::cout << "\tkeys:               " << cConfig.nKeys << "\n";
-    std::cout << "\tfirst id:           " << cConfig.nId << "\n";
-    std::cout << "\tsize:               " << cConfig.nSize << "\n";
-    std::cout << "\trandomize-size:     " << (cConfig.bRandomizeSize ? "yes" : "no") << "\n";
-    std::cout << "\trate:               " << cConfig.nRate << "\n";
-    std::cout << "\texact:              " << cConfig.bExact << "\n";
-    std::cout << "\tzero:               " << cConfig.bZero << "\n";
-    std::cout << "\tset error bits:     " << cConfig.bSetErrorBits << "\n";
-    std::cout << "\tdisclosed bit rate: " << cConfig.nDisclosedRate << "\n";
+    std::cout << "qkd key generation setting:" << std::endl;
+    std::cout << "\tfile:               " << cConfig.sFile << std::endl;
+    std::cout << "\trandom source:      " << cConfig.sRandomSource << std::endl;
+    std::cout << "\tkeys:               " << cConfig.nKeys << std::endl;
+    std::cout << "\tfirst id:           " << cConfig.nId << std::endl;
+    std::cout << "\tsize:               " << cConfig.nSize << std::endl;
+    std::cout << "\trandomize-size:     " << (cConfig.bRandomizeSize ? "yes" : "no") << std::endl;
+    std::cout << "\trate:               " << cConfig.nRate << std::endl;
+    std::cout << "\texact:              " << cConfig.bExact << std::endl;
+    std::cout << "\tzero:               " << cConfig.bZero << std::endl;
+    std::cout << "\tset error bits:     " << cConfig.bSetErrorBits << std::endl;
+    std::cout << "\tdisclosed bit rate: " << cConfig.nDisclosedRate << std::endl;
     std::cout << "\tquantum:            " << cConfig.bQuantumTables << std::endl;
 }
