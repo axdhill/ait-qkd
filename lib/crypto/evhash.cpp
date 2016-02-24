@@ -476,7 +476,7 @@ private:
     /**
      * setup the GF2 with precalculation tables
      */
-    void setup_gf2() { setup_bitreduction_table(); };
+    void setup_gf2() { setup_bitreduction_table(); }
 
 
     /** 
