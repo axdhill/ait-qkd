@@ -48,7 +48,7 @@ while [ "${1}" != "" ]; do
             echo
             echo "USAGE: qkd-blob-keystream [OPTION] KEYSIZE FILE"
             echo 
-            echo "with OPTION been:"
+            echo "with OPTION being:"
             echo "  -d|--debug     enable debug mode instantly to all modules"
             echo "  -h|--help      this page"
             echo

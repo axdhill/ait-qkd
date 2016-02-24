@@ -224,7 +224,7 @@ int main(int argc, char ** argv) {
         return 1;
     }
     if ((!bScanMQs) && (cVariableMap.count("MQ") != 1)) {
-        std::cerr << "need excactly one MQ argument, if not scanning" << "\ntype '--help' for help"<< std::endl;
+        std::cerr << "need exactly one MQ argument, if not scanning" << "\ntype '--help' for help"<< std::endl;
         return 1;
     }
     

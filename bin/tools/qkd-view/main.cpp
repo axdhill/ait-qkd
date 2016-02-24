@@ -530,7 +530,7 @@ int main(int argc, char ** argv) {
     
     // create the command line header
     std::string sApplication = std::string("qkd-view - AIT QKD System View V") + VERSION;
-    std::string sDescription = std::string("\nThis shows the current QKD system.\nThe values of the found nodes, links and modules are sperated by tabs.\n\nCopyright 2012-2016 AIT Austrian Institute of Technology GmbH");
+    std::string sDescription = std::string("\nThis shows the current QKD system.\nThe values of the found nodes, links and modules are separated by tabs.\n\nCopyright 2012-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS]";
     
     // define program options
@@ -538,7 +538,7 @@ int main(int argc, char ** argv) {
     cOptions.add_options()("debug,d", "enable debug output on stderr");
     cOptions.add_options()("help,h", "this page");
     cOptions.add_options()("module-io,i", "only show modules I/O addresses");
-    cOptions.add_options()("omit-header,o", "dont print headers on each table");
+    cOptions.add_options()("omit-header,o", "don't print headers on each table");
     cOptions.add_options()("short,s", "output is shorten to more important data");
     cOptions.add_options()("version,v", "print version string");
     
