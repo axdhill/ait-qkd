@@ -58,7 +58,8 @@ function setup_debian() {
         texlive-latex-extra \
         texlive-font-utils \
         dbus-x11 \
-        libcap2-bin
+        libcap2-bin \
+        python3
 }
 
 
