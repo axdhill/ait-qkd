@@ -142,7 +142,7 @@ function test_init() {
         
     )
     
-    # clean up any remants of previous tests
+    # clean up any remnants of previous tests
     test_cleanup
     
     # setup local DBUS for testing
