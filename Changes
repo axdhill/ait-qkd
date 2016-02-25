@@ -23,7 +23,7 @@ Changes from 9.9999.6 to 9.9999.7
     To make use of the newly added random number generators,
     qkd-key-gen has been extended to allow the user to manually
     select which random number generating algorithm to make use
-    of using the --random-url=... argument. This is particularly
+    by using the --random-url=... argument. This is particularly
     useful for development and testing purposes where fixed
     seeds can be employed to generate more deterministic
     results.
@@ -49,6 +49,12 @@ Changes from 9.9999.6 to 9.9999.7
     privacy amplification. Here the QBER and the disclosed bits of 
     all keys are taken into account to form a new key. This also
     includes the bits of once disclosed keys.
+
+* qkd-view now supports JSON formatting
+
+    The qkd-view tool now supports JSON output when the --json (or -j)
+    parameter is specified. This is useful for slightly more stable
+    parsing, in particular for test cases.
 
 * new tool: qkd-key-compare
 
