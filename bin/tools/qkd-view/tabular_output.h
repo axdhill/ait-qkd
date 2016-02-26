@@ -63,12 +63,21 @@ public:
 protected:
     typedef std::map<std::string, std::string::size_type> column_width;
 
+    /**
+     * A basic container tracking calculated column widths.
+     */
     struct {
         column_width cLink;         /**< width of link columns */
         column_width cModule;       /**< width of module columns */
         column_width cNode;         /**< width of node columns */
     } cColumnWidth;
 
+    /**
+     * Set the maximum column width for a given set of properties.
+     *
+     * @param   cColumnWidth   the column width map.
+     * @param   cProperties    the properties to inspect.
+     */
     void set_column_width(column_width &cColumnWidth, qkd::utility::properties const &cProperties);
 
     /**

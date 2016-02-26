@@ -52,13 +52,19 @@ void tabular_output::initialize(configuration_options const &cProgramOptions) {
 void tabular_output::write(std::ostream &cOut, qkd::utility::investigation &cInvestigation) {
     if (!bPrintHeader)
         dump_investigation_details(cOut, cInvestigation);
-    if (bPrintModuleIO) {
+    if (!bPrintModuleIO) {
         dump_nodes(cOut, cInvestigation.nodes());
         dump_links(cOut, cInvestigation.links());
     }
     dump_modules(cOut, cInvestigation.modules());
 }
 
+/**
+ * Set the maximum column width for a given set of properties.
+ *
+ * @param   cColumnWidth   the column width map.
+ * @param   cProperties    the properties to inspect.
+ */
 void tabular_output::set_column_width(column_width &cColumnWidth, qkd::utility::properties const &cProperties) {
     // set the column names as initial width
     for (auto const &cColumn : cProperties) {

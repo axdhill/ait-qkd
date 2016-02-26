@@ -48,7 +48,7 @@ void json_output::initialize(configuration_options const &cProgramOptions) {
 void json_output::write(std::ostream &cOut, qkd::utility::investigation &cInvestigation) {
     cOut << "{ \"details\": ";
     dump_investigation_details(cOut, cInvestigation);
-    if (bPrintModuleIO) {
+    if (!bPrintModuleIO) {
         cOut << ", ";
         dump_nodes(cOut, cInvestigation.nodes());
         cOut << ", ";
