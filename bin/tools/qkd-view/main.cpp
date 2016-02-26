@@ -52,7 +52,7 @@
 // ------------------------------------------------------------
 // code
 
-inline output_format * getOutputFormatFor(boost::program_options::variables_map const & cProgramOptions) {
+inline output_format *get_output_format_for(boost::program_options::variables_map const &cProgramOptions) {
     output_format * returnValue;
     if (cProgramOptions.count("json") == 0)
         returnValue = new tabular_output();
@@ -126,7 +126,7 @@ int main(int argc, char ** argv) {
     qkd::utility::investigation cInvestigation = qkd::utility::investigation::investigate();
 
     // prepare output
-    output_format * cOutputFormat = getOutputFormatFor(cVariableMap);
+    output_format * cOutputFormat = get_output_format_for(cVariableMap);
     cOutputFormat->initialize(cVariableMap);
     cOutputFormat->write(cInvestigation);
     
