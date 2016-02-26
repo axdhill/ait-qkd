@@ -34,20 +34,45 @@
 #include <memory>
 #include <qkd/utility/investigation.h>
 
-
+/**
+ * Defines an abstract base class for how qkd-view handles different types of
+ * formatted output.
+ */
 class output_format {
 public:
+    /**
+     * Defines a data container for general runtime formatting options.
+     */
     struct configuration_options {
+        /** A flag that indicates if we are interested in module io. */
         bool bOnlyModuleIO = false;
+        /** A flag that indicates if we are interested in headers. */
         bool bOmitHeader = false;
+        /** A flag that indicates if we are interested in less detailed but more succinct output. */
         bool bOutputShort = false;
+        /** A flag that indicates if we are interested in JSON-formatted output. */
         bool bOutputAsJSON = false;
     };
 
+    /**
+     * Initializes the output format according to the provided runtime options.
+     * @param  cProgramOptions  formatting-related runtime options
+     */
     virtual void initialize(configuration_options const &cProgramOptions) = 0;
-    virtual void write(std::ostream &cOut, qkd::utility::investigation & cInvestigation) = 0;
 
-    static std::shared_ptr<output_format> create(configuration_options const & cOptions);
+    /**
+     * Writes investigation results to the specified output stream.
+     * @param  cOut            the stream to write to.
+     * @param  cInvestigation  the particular investigation instance to format.
+     */
+    virtual void write(std::ostream &cOut, qkd::utility::investigation &cInvestigation) = 0;
+
+    /**
+     * Creates a new instance depending on the provided options.
+     * @param   cOptions   a data container with relevant formatting and output options.
+     * @return  an already initialized output_format instance.
+     */
+    static std::shared_ptr<output_format> create(configuration_options const &cOptions);
 };
 
 

@@ -31,6 +31,11 @@
 #include "json_output.h"
 #include "tabular_output.h"
 
+/**
+ * Creates a new instance depending on the provided options.
+ * @param   cOptions   a data container with relevant formatting and output options.
+ * @return  an already initialized output_format instance.
+ */
 std::shared_ptr<output_format> output_format::create(configuration_options const &cOptions) {
     std::shared_ptr<output_format> returnValue;
     if (cOptions.bOutputAsJSON)

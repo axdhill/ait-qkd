@@ -34,12 +34,21 @@
 
 #include "tabular_output.h"
 
+/**
+ * Initializes the output format according to the provided runtime options.
+ * @param  cProgramOptions  formatting-related runtime options
+ */
 void tabular_output::initialize(configuration_options const &cProgramOptions) {
     bPrintHeader = ! cProgramOptions.bOmitHeader;
     bPrintModuleIO = cProgramOptions.bOnlyModuleIO;
     bPrintShort = cProgramOptions.bOutputShort;
 }
 
+/**
+ * Writes investigation results to the specified output stream.
+ * @param  cOut            the stream to write to.
+ * @param  cInvestigation  the particular investigation instance to format.
+ */
 void tabular_output::write(std::ostream &cOut, qkd::utility::investigation &cInvestigation) {
     if (!bPrintHeader)
         dump_investigation_details(cOut, cInvestigation);
@@ -62,6 +71,11 @@ void tabular_output::set_column_width(column_width &cColumnWidth, qkd::utility::
     }
 }
 
+/**
+ * Writes the basic investigation details to the specified stream.
+ * @param  cOut            the stream to write to.
+ * @param  cInvestigation  the particular investigation instance to format.
+ */
 void tabular_output::dump_investigation_details(std::ostream &cOut, qkd::utility::investigation &cInvestigation) const {
     std::time_t cTimestamp = std::chrono::system_clock::to_time_t(cInvestigation.timestamp());
     cOut << "QKD system investigation results from " << std::ctime(&cTimestamp);
@@ -69,6 +83,11 @@ void tabular_output::dump_investigation_details(std::ostream &cOut, qkd::utility
     std::chrono::duration_cast<std::chrono::milliseconds>(cInvestigation.duration()).count() << "ms" << std::endl;
 }
 
+/**
+ * Writes link information to the specified stream.
+ * @param  cOut            the stream to write to.
+ * @param  cLinkMap        the particular link data to format.
+ */
 void tabular_output::dump_links(std::ostream &cOut, const std::map<std::string, qkd::utility::properties> &cLinkMap) {
     // something to show at all?
     if (cLinkMap.empty()) return;
@@ -144,6 +163,11 @@ void tabular_output::dump_links(std::ostream &cOut, const std::map<std::string, 
     if (bPrintHeader) cOut << std::endl;
 }
 
+/**
+ * Writes module information to the specified stream.
+ * @param  cOut            the stream to write to.
+ * @param  cModuleMap      the particular module data to format.
+ */
 void tabular_output::dump_modules(std::ostream &cOut, const std::map<std::string, qkd::utility::properties> &cModuleMap) {
     // something to show at all?
     if (cModuleMap.empty()) return;
@@ -350,6 +374,11 @@ void tabular_output::dump_modules(std::ostream &cOut, const std::map<std::string
     if (bPrintHeader) cOut << std::endl;
 }
 
+/**
+ * Writes node information to the specified stream.
+ * @param  cOut            the stream to write to.
+ * @param  cNodeMap        the particular node data to format.
+ */
 void tabular_output::dump_nodes(std::ostream &cOut, const std::map<std::string, qkd::utility::properties> &cNodeMap) {
     // something to show at all?
     if (cNodeMap.empty()) return;

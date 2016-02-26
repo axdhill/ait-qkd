@@ -37,13 +37,27 @@
 
 #include "output_format.h"
 
+/**
+ * An output_format implementation that specifically deals with tabular formatted
+ * output.
+ */
 class tabular_output : public output_format {
 public:
     bool bPrintHeader = true;
     bool bPrintModuleIO = false;
     bool bPrintShort = false;
 
+    /**
+     * Initializes the output format according to the provided runtime options.
+     * @param  cProgramOptions  formatting-related runtime options
+     */
     void initialize(configuration_options const &cProgramOptions);
+
+    /**
+     * Writes investigation results to the specified output stream.
+     * @param  cOut            the stream to write to.
+     * @param  cInvestigation  the particular investigation instance to format.
+     */
     void write(std::ostream &cOut, qkd::utility::investigation &cInvestigation);
 
 protected:
@@ -57,10 +71,33 @@ protected:
 
     void set_column_width(column_width &cColumnWidth, qkd::utility::properties const &cProperties);
 
+    /**
+     * Writes the basic investigation details to the specified stream.
+     * @param  cOut            the stream to write to.
+     * @param  cInvestigation  the particular investigation instance to format.
+     */
     void dump_investigation_details(std::ostream &cOut, qkd::utility::investigation &cInvestigation) const;
+
+    /**
+     * Writes node information to the specified stream.
+     * @param  cOut            the stream to write to.
+     * @param  cNodeMap        the particular node data to format.
+     */
     void dump_nodes(std::ostream &cOut, const std::map<std::string, qkd::utility::properties> &cNodeMap);
+
+    /**
+     * Writes link information to the specified stream.
+     * @param  cOut            the stream to write to.
+     * @param  cLinkMap        the particular link data to format.
+     */
     void dump_links(std::ostream &cOut, const std::map<std::string, qkd::utility::properties> &cLinkMap);
-    void dump_modules(std::ostream &cOut, const std::map<std::string, qkd::utility::properties> & cModuleMap);
+
+    /**
+     * Writes module information to the specified stream.
+     * @param  cOut            the stream to write to.
+     * @param  cModuleMap      the particular module data to format.
+     */
+    void dump_modules(std::ostream &cOut, const std::map<std::string, qkd::utility::properties> &cModuleMap);
 };
 
 

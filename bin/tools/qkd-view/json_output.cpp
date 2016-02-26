@@ -32,10 +32,19 @@
 
 #include "json_output.h"
 
+/**
+ * Initializes the output format according to the provided runtime options.
+ * @param  cProgramOptions  formatting-related runtime options
+ */
 void json_output::initialize(configuration_options const &cProgramOptions) {
     bPrintModuleIO = cProgramOptions.bOnlyModuleIO;
 }
 
+/**
+ * Writes investigation results to the specified output stream.
+ * @param  cOut            the stream to write to.
+ * @param  cInvestigation  the particular investigation instance to format.
+ */
 void json_output::write(std::ostream &cOut, qkd::utility::investigation &cInvestigation) {
     cOut << "{ \"details\": ";
     dump_investigation_details(cOut, cInvestigation);
@@ -50,6 +59,12 @@ void json_output::write(std::ostream &cOut, qkd::utility::investigation &cInvest
     cOut << "}" << std::endl;
 }
 
+/**
+ * Utility method that provides a format instance for the specified fields.
+ *
+ * @param  cFields         a vector of all the fields we are interested in.
+ * @return a format instance that concatenates all fields into a JSON object.
+ */
 inline boost::format json_output::simple_format(std::vector<std::string> const &cFields) const {
     std::stringstream ss;
     ss << "{";
@@ -66,12 +81,22 @@ inline boost::format json_output::simple_format(std::vector<std::string> const &
     }
 }
 
+/**
+ * Writes the basic investigation details to the specified stream.
+ * @param  cOut            the stream to write to.
+ * @param  cInvestigation  the particular investigation instance to format.
+ */
 void json_output::dump_investigation_details(std::ostream &cOut, qkd::utility::investigation &cInvestigation) const {
     std::time_t cTimestamp = std::chrono::system_clock::to_time_t(cInvestigation.timestamp());
     cOut << "{ \"time\":\"" << std::ctime(&cTimestamp) << "\", \"investigation_time\":"
     << std::chrono::duration_cast<std::chrono::milliseconds>(cInvestigation.duration()).count() << " }";
 }
 
+/**
+ * Writes node information to the specified stream.
+ * @param  cOut            the stream to write to.
+ * @param  cNodeMap        the particular node data to format.
+ */
 void json_output::dump_nodes(std::ostream &cOut,
                              const std::map<std::string, qkd::utility::properties> &cNodeMap) const {
     const std::vector<std::string> fields = {"id", "dbus", "start_time", "process_id", "process_image", "config_file",
@@ -81,6 +106,11 @@ void json_output::dump_nodes(std::ostream &cOut,
     cOut << "]";
 }
 
+/**
+ * Writes link information to the specified stream.
+ * @param  cOut            the stream to write to.
+ * @param  cLinkMap        the particular link data to format.
+ */
 void json_output::dump_links(std::ostream &cOut,
                              const std::map<std::string, qkd::utility::properties> &cNodeMap) const {
     const std::vector<std::string> fields = {"id", "node", "dbus", "state", "connected", "db_opened", "uri_local",
@@ -90,6 +120,11 @@ void json_output::dump_links(std::ostream &cOut,
     cOut << "]";
 }
 
+/**
+ * Writes module information to the specified stream.
+ * @param  cOut            the stream to write to.
+ * @param  cModuleMap      the particular module data to format.
+ */
 void json_output::dump_modules(std::ostream &cOut,
                                const std::map<std::string, qkd::utility::properties> &cModuleMap) const {
     std::vector<std::string> fields;
@@ -108,6 +143,14 @@ void json_output::dump_modules(std::ostream &cOut,
     cOut << "]";
 }
 
+/**
+ * Utility method that dumps a specified set of properties to the specified
+ * output stream.
+ *
+ * @param  cOut            the stream to write to.
+ * @param  cFields         a vector of all the fields we are interested in.
+ * @param  source          the investigation's data container.
+ */
 inline void json_output::dump_json_array(std::ostream &cOut,
                                          const std::vector<std::string> &cFields,
                                          const std::map<std::string, qkd::utility::properties> &source) const {
