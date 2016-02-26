@@ -43,7 +43,7 @@ ${TEST_BASE}/bin/tools/qkd-statistics-average/qkd-statistics-average ${TEST_BASE
 
 diff -q test-qkd-statistics-average-result ${TEST_BASE}/test/test-data/test-qkd-statistics-average-expected 
 if [ "$?" != "0" ]; then
-    echo "qkd-statistics-average created different result as expected"
+    echo "qkd-statistics-average created a different result than expected"
     exit 1
 fi
 

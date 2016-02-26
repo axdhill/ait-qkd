@@ -54,7 +54,7 @@ ${TEST_BASE}/bin/qkd-key-gen --silent --size 2048 --keys ${KEYS_TO_PROCESS} --qu
 # compare created final authenticated keys    
 diff "${TEST_BASE}/set1.alice" "${TEST_BASE}/set2.alice" &>/dev/null
 if [ "$?" != "0" ]; then
-    echo "keys generated with idenical seeds should not differ - failed"
+    echo "keys generated with identical seeds should not differ - failed"
     test_cleanup
     exit 1
 fi

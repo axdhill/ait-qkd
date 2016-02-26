@@ -33,7 +33,10 @@
 
 # sources
 set(QKD_VIEW_SRC
+    json_output.cpp
     main.cpp
+    output_format.cpp
+    tabular_output.cpp
 )
 
 # bin definition
