@@ -27,24 +27,27 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <boost/algorithm/string/replace.hpp>
+#include <boost/format.hpp>
+
 #include "json_output.h"
 
-void json_output::initialize(boost::program_options::variables_map &cProgramOptions) {
-    if (cProgramOptions.count("module-io")) bPrintModuleIO = true;
+void json_output::initialize(configuration_options const &cProgramOptions) {
+    bPrintModuleIO = cProgramOptions.bOnlyModuleIO;
 }
 
-void json_output::write(qkd::utility::investigation &cInvestigation) {
-    std::cout << "{ \"details\": ";
-    dump_investigation_details(cInvestigation);
+void json_output::write(std::ostream &cOut, qkd::utility::investigation &cInvestigation) {
+    cOut << "{ \"details\": ";
+    dump_investigation_details(cOut, cInvestigation);
     if (bPrintModuleIO) {
-        std::cout << ", ";
-        dump_nodes(cInvestigation.nodes());
-        std::cout << ", ";
-        dump_links(cInvestigation.links());
+        cOut << ", ";
+        dump_nodes(cOut, cInvestigation.nodes());
+        cOut << ", ";
+        dump_links(cOut, cInvestigation.links());
     }
-    std::cout << ", ";
-    dump_modules(cInvestigation.modules());
-    std::cout << "}" << std::endl;
+    cOut << ", ";
+    dump_modules(cOut, cInvestigation.modules());
+    cOut << "}" << std::endl;
 }
 
 inline boost::format json_output::simple_format(std::vector<std::string> const &cFields) const {
@@ -52,40 +55,43 @@ inline boost::format json_output::simple_format(std::vector<std::string> const &
     ss << "{";
     for (uint32_t i = 0; i < cFields.size(); i++) {
         if (i > 0) ss << ",";
-        ss << "\"" << cFields[i] << "\":\"%" << std::to_string(i+1) << "%\"";
+        ss << "\"" << cFields[i] << "\":\"%" << std::to_string(i + 1) << "%\"";
     }
     ss << "}";
     try {
         return boost::format(ss.str());
-    } catch (const std::exception& ex) { // TODO: Remove exception handling when no more issues are found
+    } catch (const std::exception &ex) { // TODO: Remove exception handling when no more issues are found
         std::cerr << ss.str() << std::endl;
         throw ex;
     }
 }
 
-void json_output::dump_investigation_details(qkd::utility::investigation &cInvestigation) const {
+void json_output::dump_investigation_details(std::ostream &cOut, qkd::utility::investigation &cInvestigation) const {
     std::time_t cTimestamp = std::chrono::system_clock::to_time_t(cInvestigation.timestamp());
-    std::cout << "{ \"time\":\"" << std::ctime(&cTimestamp) << "\", \"investigation_time\":"
+    cOut << "{ \"time\":\"" << std::ctime(&cTimestamp) << "\", \"investigation_time\":"
     << std::chrono::duration_cast<std::chrono::milliseconds>(cInvestigation.duration()).count() << " }";
 }
 
-void json_output::dump_nodes(const std::map<std::string, qkd::utility::properties> &cNodeMap) const {
+void json_output::dump_nodes(std::ostream &cOut,
+                             const std::map<std::string, qkd::utility::properties> &cNodeMap) const {
     const std::vector<std::string> fields = {"id", "dbus", "start_time", "process_id", "process_image", "config_file",
                                              "random_url", "debug"};
-    std::cout << "\"nodes\": [";
-    dump_json_array(fields, cNodeMap);
-    std::cout << "]";
+    cOut << "\"nodes\": [";
+    dump_json_array(cOut, fields, cNodeMap);
+    cOut << "]";
 }
 
-void json_output::dump_links(const std::map<std::string, qkd::utility::properties> &cNodeMap) const {
+void json_output::dump_links(std::ostream &cOut,
+                             const std::map<std::string, qkd::utility::properties> &cNodeMap) const {
     const std::vector<std::string> fields = {"id", "node", "dbus", "state", "connected", "db_opened", "uri_local",
                                              "uri_peer", "master", "slave", "mq", "nic"};
-    std::cout << "\"links\": [";
-    dump_json_array(fields, cNodeMap);
-    std::cout << "]";
+    cOut << "\"links\": [";
+    dump_json_array(cOut, fields, cNodeMap);
+    cOut << "]";
 }
 
-void json_output::dump_modules(const std::map<std::string, qkd::utility::properties> &cModuleMap) const {
+void json_output::dump_modules(std::ostream &cOut,
+                               const std::map<std::string, qkd::utility::properties> &cModuleMap) const {
     std::vector<std::string> fields;
     if (bPrintModuleIO)
         fields = {"id", "url_pipe_in", "url_pipe_out", "url_listen", "url_peer"};
@@ -97,12 +103,13 @@ void json_output::dump_modules(const std::map<std::string, qkd::utility::propert
                 "disclosed_bits_outgoing", "debug", "description", "organisation", "process_image"
         };
 
-    std::cout << "\"modules\": [";
-    dump_json_array(fields, cModuleMap);
-    std::cout << "]";
+    cOut << "\"modules\": [";
+    dump_json_array(cOut, fields, cModuleMap);
+    cOut << "]";
 }
 
-inline void json_output::dump_json_array(const std::vector<std::string> &cFields,
+inline void json_output::dump_json_array(std::ostream &cOut,
+                                         const std::vector<std::string> &cFields,
                                          const std::map<std::string, qkd::utility::properties> &source) const {
     const boost::format formatPrototype = simple_format(cFields);
     bool pastFirst = false;
@@ -113,9 +120,9 @@ inline void json_output::dump_json_array(const std::vector<std::string> &cFields
             nodeFormat % cNode.second.at(field);
 
         if (pastFirst)
-            std::cout << ",";
+            cOut << ",";
         else
             pastFirst = true;
-        std::cout << nodeFormat.str();
+        cOut << nodeFormat.str();
     }
 }

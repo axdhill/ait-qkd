@@ -33,8 +33,9 @@
 
 # sources
 set(QKD_VIEW_SRC
-    main.cpp
     json_output.cpp
+    main.cpp
+    output_format.cpp
     tabular_output.cpp
 )
 

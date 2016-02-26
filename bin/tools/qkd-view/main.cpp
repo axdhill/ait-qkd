@@ -33,8 +33,7 @@
 // incs
 
 #include <iostream>
-
-#include <boost/format.hpp>
+#include <memory>
 #include <boost/program_options.hpp>
 
 // Qt
@@ -45,21 +44,10 @@
 #include <qkd/utility/investigation.h>
 
 #include "output_format.h"
-#include "tabular_output.h"
-#include "json_output.h"
 
 
 // ------------------------------------------------------------
 // code
-
-inline output_format *get_output_format_for(boost::program_options::variables_map const &cProgramOptions) {
-    output_format * returnValue;
-    if (cProgramOptions.count("json") == 0)
-        returnValue = new tabular_output();
-    else
-        returnValue = new json_output();
-    return returnValue;
-}
 
 
 /**
@@ -95,6 +83,7 @@ int main(int argc, char ** argv) {
 
     // option variable map
     boost::program_options::variables_map cVariableMap;
+    output_format::configuration_options cActualOptions;
     
     try {
         // parse action
@@ -107,28 +96,36 @@ int main(int argc, char ** argv) {
         return 1;
     }
     
-    // check for "help" set
+    // check if "help" is set
     if (cVariableMap.count("help")) {
         std::cout << cOptions << std::endl;
         return 0;
     }
     
-    // check for "version" set
+    // check if "version" is set
     if (cVariableMap.count("version")) {
         std::cout << sApplication << std::endl;
         return 0;
     }
 
-    // check for "debug" set
+    // check if "debug" is set
     if (cVariableMap.count("debug")) qkd::utility::debug::enabled() = true;
+
+    // check if "module-io" is set and update the configuration struct
+    if (cVariableMap.count("module-io")) cActualOptions.bOnlyModuleIO = true;
+
+    // check if "omit-header" is set and update the configuration struct
+    if (cVariableMap.count("omit-header")) cActualOptions.bOmitHeader = true;
+
+    // check if "short" is set and update the configuration struct
+    if (cVariableMap.count("short")) cActualOptions.bOutputShort = true;
     
     // investigate the system
     qkd::utility::investigation cInvestigation = qkd::utility::investigation::investigate();
 
     // prepare output
-    output_format * cOutputFormat = get_output_format_for(cVariableMap);
-    cOutputFormat->initialize(cVariableMap);
-    cOutputFormat->write(cInvestigation);
+    std::shared_ptr<output_format> cOutputFormat = output_format::create(cActualOptions);
+    cOutputFormat->write(std::cout, cInvestigation);
     
     return 0;
 }

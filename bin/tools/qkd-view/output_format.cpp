@@ -1,5 +1,5 @@
 /*
- * output_format.h
+ * output_format.cpp
  *
  * This is shows the current QKD system snapshot
  *
@@ -27,28 +27,16 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QKD_OUTPUT_FORMAT_H
-#define QKD_OUTPUT_FORMAT_H
+#include "output_format.h"
+#include "json_output.h"
+#include "tabular_output.h"
 
-#include <ostream>
-#include <memory>
-#include <qkd/utility/investigation.h>
-
-
-class output_format {
-public:
-    struct configuration_options {
-        bool bOnlyModuleIO = false;
-        bool bOmitHeader = false;
-        bool bOutputShort = false;
-        bool bOutputAsJSON = false;
-    };
-
-    virtual void initialize(configuration_options const &cProgramOptions) = 0;
-    virtual void write(std::ostream &cOut, qkd::utility::investigation & cInvestigation) = 0;
-
-    static std::shared_ptr<output_format> create(configuration_options const & cOptions);
-};
-
-
-#endif //QKD_OUTPUT_FORMAT_H
+std::shared_ptr<output_format> output_format::create(configuration_options const &cOptions) {
+    std::shared_ptr<output_format> returnValue;
+    if (cOptions.bOutputAsJSON)
+        returnValue = std::shared_ptr<output_format>(new json_output());
+    else
+        returnValue = std::shared_ptr<output_format>(new tabular_output());
+    returnValue->initialize(cOptions);
+    return returnValue;
+}

@@ -27,31 +27,27 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
+#include <ostream>
+#include <sstream>
 
 #include <boost/format.hpp>
-#include <boost/program_options.hpp>
 
-#include <qkd/utility/debug.h>
-#include <qkd/utility/investigation.h>
-
-#include "output_format.h"
 #include "tabular_output.h"
 
-void tabular_output::initialize(boost::program_options::variables_map &cProgramOptions) {
-    if (cProgramOptions.count("omit-header")) bPrintHeader = false;
-    if (cProgramOptions.count("module-io")) bPrintModuleIO = true;
-    if (cProgramOptions.count("short")) bPrintShort = true;
+void tabular_output::initialize(configuration_options const &cProgramOptions) {
+    bPrintHeader = ! cProgramOptions.bOmitHeader;
+    bPrintModuleIO = cProgramOptions.bOnlyModuleIO;
+    bPrintShort = cProgramOptions.bOutputShort;
 }
 
-void tabular_output::write(qkd::utility::investigation &cInvestigation) {
+void tabular_output::write(std::ostream &cOut, qkd::utility::investigation &cInvestigation) {
     if (!bPrintHeader)
-        dump_investigation_details(cInvestigation);
+        dump_investigation_details(cOut, cInvestigation);
     if (bPrintModuleIO) {
-        dump_nodes(cInvestigation.nodes());
-        dump_links(cInvestigation.links());
+        dump_nodes(cOut, cInvestigation.nodes());
+        dump_links(cOut, cInvestigation.links());
     }
-    dump_modules(cInvestigation.modules());
+    dump_modules(cOut, cInvestigation.modules());
 }
 
 void tabular_output::set_column_width(column_width &cColumnWidth, qkd::utility::properties const &cProperties) {
@@ -66,14 +62,14 @@ void tabular_output::set_column_width(column_width &cColumnWidth, qkd::utility::
     }
 }
 
-void tabular_output::dump_investigation_details(qkd::utility::investigation &cInvestigation) const {
+void tabular_output::dump_investigation_details(std::ostream &cOut, qkd::utility::investigation &cInvestigation) const {
     std::time_t cTimestamp = std::chrono::system_clock::to_time_t(cInvestigation.timestamp());
-    std::cout << "QKD system investigation results from " << std::ctime(&cTimestamp);
-    std::cout << "QKD system investigation took " <<
+    cOut << "QKD system investigation results from " << std::ctime(&cTimestamp);
+    cOut << "QKD system investigation took " <<
     std::chrono::duration_cast<std::chrono::milliseconds>(cInvestigation.duration()).count() << "ms" << std::endl;
 }
 
-void tabular_output::dump_links(const std::map<std::string, qkd::utility::properties> &cLinkMap) {
+void tabular_output::dump_links(std::ostream &cOut, const std::map<std::string, qkd::utility::properties> &cLinkMap) {
     // something to show at all?
     if (cLinkMap.empty()) return;
 
@@ -120,7 +116,7 @@ void tabular_output::dump_links(const std::map<std::string, qkd::utility::proper
         % "mq"
         % "nic";
 
-        std::cout << cHeading.str() << std::endl;
+        cOut << cHeading.str() << std::endl;
     }
 
     // go over the found links
@@ -141,14 +137,14 @@ void tabular_output::dump_links(const std::map<std::string, qkd::utility::proper
         cLinkFormat % cLink.second.at("mq");
         cLinkFormat % cLink.second.at("nic");
 
-        std::cout << cLinkFormat.str() << std::endl;
+        cOut << cLinkFormat.str() << std::endl;
     }
 
     // add an artificial empty line for nice viewing if headers are on
-    if (bPrintHeader) std::cout << std::endl;
+    if (bPrintHeader) cOut << std::endl;
 }
 
-void tabular_output::dump_modules(const std::map<std::string, qkd::utility::properties> &cModuleMap) {
+void tabular_output::dump_modules(std::ostream &cOut, const std::map<std::string, qkd::utility::properties> &cModuleMap) {
     // something to show at all?
     if (cModuleMap.empty()) return;
 
@@ -282,7 +278,7 @@ void tabular_output::dump_modules(const std::map<std::string, qkd::utility::prop
             % "organisation"
             % "process_image";
         }
-        std::cout << cHeading.str() << std::endl;
+        cOut << cHeading.str() << std::endl;
     }
 
     // go over the found modules
@@ -347,14 +343,14 @@ void tabular_output::dump_modules(const std::map<std::string, qkd::utility::prop
             cModuleFormat % cModule.second.at("process_image");
         }
 
-        std::cout << cModuleFormat.str() << std::endl;
+        cOut << cModuleFormat.str() << std::endl;
     }
 
     // add an artificial empty line for nice viewing if headers are on
-    if (bPrintHeader) std::cout << std::endl;
+    if (bPrintHeader) cOut << std::endl;
 }
 
-void tabular_output::dump_nodes(const std::map<std::string, qkd::utility::properties> &cNodeMap) {
+void tabular_output::dump_nodes(std::ostream &cOut, const std::map<std::string, qkd::utility::properties> &cNodeMap) {
     // something to show at all?
     if (cNodeMap.empty()) return;
 
@@ -393,7 +389,7 @@ void tabular_output::dump_nodes(const std::map<std::string, qkd::utility::proper
         % "random_url"
         % "debug";
 
-        std::cout << cHeading.str() << std::endl;
+        cOut << cHeading.str() << std::endl;
     }
 
     // go over the found nodes
@@ -410,9 +406,9 @@ void tabular_output::dump_nodes(const std::map<std::string, qkd::utility::proper
         cNodeFormat % cNode.second.at("random_url");
         cNodeFormat % cNode.second.at("debug");
 
-        std::cout << cNodeFormat.str() << std::endl;
+        cOut << cNodeFormat.str() << std::endl;
     }
 
     // add an artificial empty line for nice viewing if headers are on
-    if (bPrintHeader) std::cout << std::endl;
+    if (bPrintHeader) cOut << std::endl;
 }

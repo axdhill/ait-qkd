@@ -30,12 +30,8 @@
 #ifndef QKD_TABULAR_OUTPUT_H
 #define QKD_TABULAR_OUTPUT_H
 
-#include <iostream>
+#include <ostream>
 
-#include <boost/format.hpp>
-#include <boost/program_options.hpp>
-
-#include <qkd/utility/debug.h>
 #include <qkd/utility/investigation.h>
 #include <qkd/utility/properties.h>
 
@@ -47,8 +43,8 @@ public:
     bool bPrintModuleIO = false;
     bool bPrintShort = false;
 
-    void initialize(boost::program_options::variables_map & cProgramOptions);
-    void write(qkd::utility::investigation & cInvestigation);
+    void initialize(configuration_options const &cProgramOptions);
+    void write(std::ostream &cOut, qkd::utility::investigation &cInvestigation);
 
 protected:
     typedef std::map<std::string, std::string::size_type> column_width;
@@ -59,12 +55,12 @@ protected:
         column_width cNode;         /**< width of node columns */
     } cColumnWidth;
 
-    void set_column_width(column_width & cColumnWidth, qkd::utility::properties const & cProperties);
+    void set_column_width(column_width &cColumnWidth, qkd::utility::properties const &cProperties);
 
-    void dump_investigation_details(qkd::utility::investigation & cInvestigation) const;
-    void dump_nodes(const std::map<std::string, qkd::utility::properties> &cNodeMap);
-    void dump_links(const std::map<std::string, qkd::utility::properties> &cLinkMap);
-    void dump_modules(const std::map<std::string, qkd::utility::properties> & cModuleMap);
+    void dump_investigation_details(std::ostream &cOut, qkd::utility::investigation &cInvestigation) const;
+    void dump_nodes(std::ostream &cOut, const std::map<std::string, qkd::utility::properties> &cNodeMap);
+    void dump_links(std::ostream &cOut, const std::map<std::string, qkd::utility::properties> &cLinkMap);
+    void dump_modules(std::ostream &cOut, const std::map<std::string, qkd::utility::properties> & cModuleMap);
 };
 
 

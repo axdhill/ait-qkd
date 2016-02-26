@@ -33,8 +33,6 @@
 #include <iostream>
 
 #include <boost/format.hpp>
-#include <boost/program_options.hpp>
-#include <boost/algorithm/string/replace.hpp>
 
 #include <qkd/utility/debug.h>
 #include <qkd/utility/investigation.h>
@@ -46,17 +44,17 @@ class json_output : public output_format {
 public:
     bool bPrintModuleIO = false;
 
-    void initialize(boost::program_options::variables_map & cProgramOptions);
-    void write(qkd::utility::investigation & cInvestigation);
+    void initialize(configuration_options const &cProgramOptions);
+    void write(std::ostream &cOut, qkd::utility::investigation &cInvestigation);
 
 protected:
-    void dump_investigation_details(qkd::utility::investigation & cInvestigation) const;
-    void dump_nodes(const std::map<std::string, qkd::utility::properties> &cNodeMap) const;
-    void dump_links(const std::map<std::string, qkd::utility::properties> &cLinkMap) const;
-    void dump_modules(const std::map<std::string, qkd::utility::properties> & cModuleMap) const;
+    void dump_investigation_details(std::ostream &cOut, qkd::utility::investigation &cInvestigation) const;
+    void dump_nodes(std::ostream &cOut, const std::map<std::string, qkd::utility::properties> &cNodeMap) const;
+    void dump_links(std::ostream &cOut, const std::map<std::string, qkd::utility::properties> &cLinkMap) const;
+    void dump_modules(std::ostream &cOut, const std::map<std::string, qkd::utility::properties> & cModuleMap) const;
 
-    inline void dump_json_array(const std::vector<std::string> &cFields, const std::map<std::string, qkd::utility::properties> &source)const;
-    inline boost::format simple_format(std::vector<std::string> const &cFields)const;
+    inline void dump_json_array(std::ostream &cOut, const std::vector<std::string> &cFields, const std::map<std::string, qkd::utility::properties> &source)const;
+    inline boost::format simple_format(std::vector<std::string> const &cFields) const;
 };
 
 
