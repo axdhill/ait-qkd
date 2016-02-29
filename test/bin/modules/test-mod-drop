@@ -44,7 +44,7 @@ test_init "$(basename $0).d"
 rm -rf cat_keys.* &> /dev/null
 
 KEYS_TO_PROCESS="10000"
-${TEST_BASE}/bin/qkd-key-gen --silent --size 64 --keys ${KEYS_TO_PROCESS} cat_keys
+${TEST_BASE}/bin/qkd-key-gen --silent --size 64 --keys ${KEYS_TO_PROCESS} --random-url=linear-congruential:42 cat_keys
 
 # truncate previous debug out
 echo -n > drop_debug.alice
@@ -57,7 +57,7 @@ echo "cat.bob.url_pipe_out = ipc:///tmp/qkd/drop.bob.in" >> drop.config
 # start two pipelines
 PIPELINE_CONFIG="drop.config"
 
-# start the modules - we are just usinfg alice
+# start the modules - we are just using alice
 ( ${TEST_BASE}/bin/qkd-cat --run --config ${PIPELINE_CONFIG} --file "cat_keys.alice" ) &
 ( ${TEST_BASE}/bin/qkd-drop --debug --run --config ${PIPELINE_CONFIG} 1> drop_keys.alice 2>> drop_debug.alice ) &
 
@@ -70,7 +70,7 @@ done
 # wait until all keys have been processed
 sleep 1
 wait_idle cat drop
-echo "keys droped"
+echo "keys dropped"
 
 # count remaining keys
 REMAINING_KEYS=$(${TEST_BASE}/bin/qkd-key-dump drop_keys.alice | grep '^key' | wc -l)
@@ -79,7 +79,7 @@ echo "dropped ${DROPPED_KEYS}"
 
 # as this is a stochastic process we loose some precision 
 # with a drop ration of 20% we have an expectation of 2000 keys
-# as this is a binomial distritbution we also expect +/- variance
+# as this is a binomial distribution we also expect +/- variance
 # of 10000 * 0.2 * 0.8 = 1600 keys
 if [ "${DROPPED_KEYS}" -lt "400" ]; then
     echo "dropped less keys - failed"
@@ -90,9 +90,19 @@ if [ "${DROPPED_KEYS}" -gt "3600" ]; then
     exit 1
 fi
 
+if [[ $(md5sum cat_keys.alice) != 47cc415adb0324c01038387c8c395788* ]]; then
+    echo "Alice is using unexpected keys (cat_keys.alice) - failed"
+    exit 1
+fi
+
+if [[ $(md5sum cat_keys.bob) != e8efe36b601a6205be984b4dbe9e399d* ]]; then
+    echo "Bob is using unexpected keys (cat_keys.bob) - failed"
+    exit 1
+fi
+
 # stop machines
 test_cleanup
 
-# state that test ok
+# state that the test was ok
 echo "=== TEST SUCCESS ==="
 
