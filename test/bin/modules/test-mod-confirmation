@@ -45,7 +45,7 @@ test_init "$(basename $0).d"
 
 # create keys
 KEYS_TO_PROCESS="100"                
-${TEST_BASE}/bin/qkd-key-gen --silent --size 4096 --keys ${KEYS_TO_PROCESS} cat_keys
+${TEST_BASE}/bin/qkd-key-gen --silent --size 4096 --keys ${KEYS_TO_PROCESS} --random-url=linear-congruential:42 cat_keys
 
 # truncate previous debug out
 echo -n > confirmation_debug.alice
@@ -82,18 +82,44 @@ grep "^confirmation.*ok$" confirmation_debug.bob > confirmation_debug.bob.out
 
 # result must be the same on for both
 if [ ! -s confirmation_keys.alice ]; then
-    echo "alice has not pushed keys"
+    echo "alice has not pushed any keys"
     exit 1
 fi
 if [ ! -s confirmation_keys.bob ]; then
-    echo "bob has not pushed keys"
+    echo "bob has not pushed any keys"
     exit 1
 fi
-diff -q confirmation_debug.alice.out confirmation_debug.bob.out
-if [ "$?" != "0" ]; then
-    echo "result of qkd-confirmation differ"
+
+if [[ $(md5sum cat_keys.alice) != 0560d40730e7335a4ad3d9da4764ae0e* ]]; then
+    echo "Alice is using unexpected keys (cat_keys.alice) - failed"
     exit 1
 fi
+
+if [[ $(md5sum cat_keys.bob) != e24006faeda2b942483d7895d3f56ef0* ]]; then
+    echo "Bob is using unexpected keys (cat_keys.bob) - failed"
+    exit 1
+fi
+
+if [[ $(md5sum confirmation_keys.alice) != b3dfaba480f71a10834320e0038e5c8a* ]]; then
+    echo "Alice's confirmation keys are unexpected (confirmation_keys.alice) - failed"
+    exit 1
+fi
+
+if [[ $(md5sum confirmation_keys.bob) != b3dfaba480f71a10834320e0038e5c8a* ]]; then
+    echo "Bob's confirmation keys are unexpected (confirmation_keys.bob) - failed"
+    exit 1
+fi
+
+if [[ $(md5sum confirmation_debug.alice.out) != a3aeacf0617604263c9a4f7111daddb8* ]]; then
+    echo "Alice's confirmation is unexpected (confirmation_debug.alice.out) - failed"
+    exit 1
+fi
+
+if [[ $(md5sum confirmation_debug.bob.out) != a3aeacf0617604263c9a4f7111daddb8* ]]; then
+    echo "Bob's confirmation is unexpected (confirmation_debug.bob.out) - failed"
+    exit 1
+fi
+
 
 # we must have KEYS_TO_PROCESS lines
 if [ "$(wc -l confirmation_debug.alice.out | awk '{ print $1 }')" != "${KEYS_TO_PROCESS}" ]; then
