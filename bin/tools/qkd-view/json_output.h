@@ -49,17 +49,18 @@ public:
     bool bPrintModuleIO = false;
 
     /**
-     * Initializes the output format according to the provided runtime options.
+     * ctor
+     * 
      * @param  cProgramOptions  formatting-related runtime options
      */
-    void initialize(configuration_options const &cProgramOptions);
+    json_output(configuration_options const &cProgramOptions);
 
     /**
      * Writes investigation results to the specified output stream.
      * @param  cOut            the stream to write to.
      * @param  cInvestigation  the particular investigation instance to format.
      */
-    void write(std::ostream &cOut, qkd::utility::investigation &cInvestigation);
+    void write(std::ostream &cOut, qkd::utility::investigation const & cInvestigation);
 
 protected:
     /**
@@ -67,28 +68,28 @@ protected:
      * @param  cOut            the stream to write to.
      * @param  cInvestigation  the particular investigation instance to format.
      */
-    void dump_investigation_details(std::ostream &cOut, qkd::utility::investigation &cInvestigation) const;
+    void dump_investigation_details(std::ostream &cOut, qkd::utility::investigation const & cInvestigation) const;
 
     /**
      * Writes node information to the specified stream.
      * @param  cOut            the stream to write to.
      * @param  cNodeMap        the particular node data to format.
      */
-    void dump_nodes(std::ostream &cOut, const std::map<std::string, qkd::utility::properties> &cNodeMap) const;
+    void dump_nodes(std::ostream &cOut, std::map<std::string, qkd::utility::properties> const & cNodeMap) const;
 
     /**
      * Writes link information to the specified stream.
      * @param  cOut            the stream to write to.
      * @param  cLinkMap        the particular link data to format.
      */
-    void dump_links(std::ostream &cOut, const std::map<std::string, qkd::utility::properties> &cLinkMap) const;
+    void dump_links(std::ostream &cOut, std::map<std::string, qkd::utility::properties> const & cLinkMap) const;
 
     /**
      * Writes module information to the specified stream.
      * @param  cOut            the stream to write to.
      * @param  cModuleMap      the particular module data to format.
      */
-    void dump_modules(std::ostream &cOut, const std::map<std::string, qkd::utility::properties> &cModuleMap) const;
+    void dump_modules(std::ostream &cOut, std::map<std::string, qkd::utility::properties> const & cModuleMap) const;
 
     /**
      * Utility method that dumps a specified set of properties to the specified

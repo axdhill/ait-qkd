@@ -27,21 +27,36 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "output_format.h"
+
+// ------------------------------------------------------------
+// incs
+
+
 #include "json_output.h"
+#include "output_format.h"
 #include "tabular_output.h"
+
+
+// ------------------------------------------------------------
+// code
+
 
 /**
  * Creates a new instance depending on the provided options.
+ * 
  * @param   cOptions   a data container with relevant formatting and output options.
  * @return  an already initialized output_format instance.
  */
-std::shared_ptr<output_format> output_format::create(configuration_options const &cOptions) {
+std::shared_ptr<output_format> output_format::create(configuration_options const & cOptions) {
+    
     std::shared_ptr<output_format> returnValue;
-    if (cOptions.bOutputAsJSON)
-        returnValue = std::shared_ptr<output_format>(new json_output());
-    else
-        returnValue = std::shared_ptr<output_format>(new tabular_output());
-    returnValue->initialize(cOptions);
+    
+    if (cOptions.bOutputAsJSON) {
+        returnValue = std::shared_ptr<output_format>(new json_output(cOptions));
+    }
+    else {
+        returnValue = std::shared_ptr<output_format>(new tabular_output(cOptions));
+    }
+    
     return returnValue;
 }

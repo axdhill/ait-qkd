@@ -37,6 +37,7 @@ set(QKD_VIEW_SRC
     main.cpp
     output_format.cpp
     tabular_output.cpp
+    tabular_writer.cpp
 )
 
 # bin definition

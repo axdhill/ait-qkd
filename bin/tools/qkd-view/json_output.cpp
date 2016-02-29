@@ -36,7 +36,7 @@
  * Initializes the output format according to the provided runtime options.
  * @param  cProgramOptions  formatting-related runtime options
  */
-void json_output::initialize(configuration_options const &cProgramOptions) {
+json_output::json_output(configuration_options const &cProgramOptions) {
     bPrintModuleIO = cProgramOptions.bOnlyModuleIO;
 }
 
@@ -45,7 +45,7 @@ void json_output::initialize(configuration_options const &cProgramOptions) {
  * @param  cOut            the stream to write to.
  * @param  cInvestigation  the particular investigation instance to format.
  */
-void json_output::write(std::ostream &cOut, qkd::utility::investigation &cInvestigation) {
+void json_output::write(std::ostream &cOut, qkd::utility::investigation const & cInvestigation) {
     cOut << "{ \"details\": ";
     dump_investigation_details(cOut, cInvestigation);
     if (!bPrintModuleIO) {
@@ -86,7 +86,7 @@ inline boost::format json_output::simple_format(std::vector<std::string> const &
  * @param  cOut            the stream to write to.
  * @param  cInvestigation  the particular investigation instance to format.
  */
-void json_output::dump_investigation_details(std::ostream &cOut, qkd::utility::investigation &cInvestigation) const {
+void json_output::dump_investigation_details(std::ostream &cOut, qkd::utility::investigation const & cInvestigation) const {
     std::time_t cTimestamp = std::chrono::system_clock::to_time_t(cInvestigation.timestamp());
     cOut << "{ \"time\":\"" << std::ctime(&cTimestamp) << "\", \"investigation_time\":"
     << std::chrono::duration_cast<std::chrono::milliseconds>(cInvestigation.duration()).count() << " }";

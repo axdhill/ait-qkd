@@ -28,6 +28,22 @@
 # ------------------------------------------------------------
 
 
+# additional includes
+include_directories(${CMAKE_SOURCE_DIR}/include ${CMAKE_BINARY_DIR})
+
+# libs
+set(CMAKE_REQUIRED_LIBRARIES "qkd;${CMAKE_REQUIRED_LIBRARIES}")
+
+# test lib coverage
+set(TEST_TABULAR_WRITER_SRC                     
+    tabular_writer.cpp
+    ../../../bin/tools/qkd-view/tabular_writer.cpp)
+    
+add_executable(test-tabular-writer              ${TEST_TABULAR_WRITER_SRC})
+
+target_link_libraries(test-tabular-writer       ${CMAKE_REQUIRED_LIBRARIES})
+
+
 # ------------------------------------------------------------
 # test scripts
 
