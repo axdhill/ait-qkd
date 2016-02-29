@@ -76,21 +76,6 @@ public:
 private:
 
     
-    typedef std::map<std::string, std::string::size_type> column_width;
-
-    
-    /**
-     * A basic container tracking calculated column widths.
-     */
-    struct {
-        
-        column_width cLink;         /**< width of link columns */
-        column_width cModule;       /**< width of module columns */
-        column_width cNode;         /**< width of node columns */
-        
-    } cColumnWidth;
-
-    
     /**
      * Writes the basic investigation details to the specified stream.
      * 
@@ -153,16 +138,6 @@ private:
      */
     void dump_modules_short(std::ostream & cOut, const std::map<std::string, qkd::utility::properties> & cModuleMap);
     
-    
-    /**
-     * Set the maximum column width for a given set of properties.
-     * 
-     *
-     * @param   cColumnWidth   the column width map.
-     * @param   cProperties    the properties to inspect.
-     */
-    void set_column_width(column_width & cColumnWidth, qkd::utility::properties const & cProperties);
-
     
     bool bPrintHeader = true;               /**< pringt header in output */
     bool bPrintModuleIO = false;            /**< print only module connection addresses */

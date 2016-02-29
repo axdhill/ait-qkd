@@ -78,8 +78,6 @@ void tabular_output::dump_investigation_details(std::ostream & cOut, qkd::utilit
  */
 void tabular_output::dump_links(std::ostream & cOut, std::map<std::string, qkd::utility::properties> const & cLinkMap) {
     
-    if (cLinkMap.empty()) return;
-    
     static std::list<std::string> const cFields = { 
             "id", 
             "node", 
@@ -126,8 +124,6 @@ void tabular_output::dump_modules(std::ostream & cOut, std::map<std::string, qkd
  */
 void tabular_output::dump_modules_full(std::ostream & cOut, const std::map<std::string, qkd::utility::properties> & cModuleMap) {
     
-    if (cModuleMap.empty()) return;
-    
     static std::list<std::string> const cFields = { 
             "id", 
             "dbus", 
@@ -169,8 +165,6 @@ void tabular_output::dump_modules_full(std::ostream & cOut, const std::map<std::
  */
 void tabular_output::dump_modules_io(std::ostream & cOut, const std::map<std::string, qkd::utility::properties> & cModuleMap) {
 
-    if (cModuleMap.empty()) return;
-    
     static std::list<std::string> const cFields = { 
             "id", 
             "url_pipe_in", 
@@ -189,8 +183,6 @@ void tabular_output::dump_modules_io(std::ostream & cOut, const std::map<std::st
  * @param  cModuleMap      the particular module data to format.
  */
 void tabular_output::dump_modules_short(std::ostream & cOut, const std::map<std::string, qkd::utility::properties> & cModuleMap) {
-    
-    if (cModuleMap.empty()) return;
     
     static std::list<std::string> const cFields = { 
             "id", 
@@ -221,8 +213,6 @@ void tabular_output::dump_modules_short(std::ostream & cOut, const std::map<std:
  */
 void tabular_output::dump_nodes(std::ostream & cOut, std::map<std::string, qkd::utility::properties> const & cNodeMap) {
 
-    if (cNodeMap.empty()) return;
-    
     static std::list<std::string> const cFields = { 
             "id", 
             "dbus", 
@@ -238,24 +228,6 @@ void tabular_output::dump_nodes(std::ostream & cOut, std::map<std::string, qkd::
 
 
 /**
- * Set the maximum column width for a given set of properties.
- *
- * @param   cColumnWidth   the column width map.
- * @param   cProperties    the properties to inspect.
- */
-void tabular_output::set_column_width(column_width & cColumnWidth, qkd::utility::properties const & cProperties) {
-    
-    for (auto const &cColumn : cProperties) {
-        if (cColumnWidth.find(cColumn.first) == cColumnWidth.end()) {
-            cColumnWidth[cColumn.first] = cColumn.first.length();
-        }
-
-        cColumnWidth[cColumn.first] = std::max(cColumnWidth[cColumn.first], cColumn.second.length());
-    }
-}
-
-
-/**
  * Writes investigation results to the specified output stream.
  * 
  * @param  cOut            the stream to write to.
@@ -266,9 +238,17 @@ void tabular_output::write(std::ostream & cOut, qkd::utility::investigation cons
     if (!bPrintHeader) {
         dump_investigation_details(cOut, cInvestigation);
     }
+    
     if (!bPrintModuleIO) {
-        dump_nodes(cOut, cInvestigation.nodes());
-        dump_links(cOut, cInvestigation.links());
+        if (!cInvestigation.nodes().empty()) {
+            dump_nodes(cOut, cInvestigation.nodes());
+        }
+        if (cInvestigation.links().empty()) {
+            dump_links(cOut, cInvestigation.links());
+        }
     }
-    dump_modules(cOut, cInvestigation.modules());
+    
+    if (!cInvestigation.modules().empty()) {
+        dump_modules(cOut, cInvestigation.modules());
+    }
 }
