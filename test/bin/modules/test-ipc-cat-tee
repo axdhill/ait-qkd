@@ -88,7 +88,7 @@ do
     fi
 done
 
-echo "pipeline with ICP ok."
+echo "pipeline with IPC ok."
 
 # enforce cleansing
 test_cleanup
