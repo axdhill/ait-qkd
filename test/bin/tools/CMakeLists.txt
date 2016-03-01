@@ -28,11 +28,28 @@
 # ------------------------------------------------------------
 
 
+# additional includes
+include_directories(${CMAKE_SOURCE_DIR}/include ${CMAKE_BINARY_DIR})
+
+# libs
+set(CMAKE_REQUIRED_LIBRARIES "qkd;${CMAKE_REQUIRED_LIBRARIES}")
+
+# test lib coverage
+set(TEST_TABULAR_WRITER_SRC                     
+    tabular_writer.cpp
+    ../../../bin/tools/qkd-view/tabular_writer.cpp)
+    
+add_executable(test-tabular-writer              ${TEST_TABULAR_WRITER_SRC})
+
+target_link_libraries(test-tabular-writer       ${CMAKE_REQUIRED_LIBRARIES})
+
+
 # ------------------------------------------------------------
 # test scripts
 
 # tools test
 configure_file(test-qkd-key-compare             ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-key-compare            @ONLY)
+configure_file(test-qkd-key-gen                 ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-key-gen                @ONLY)
 configure_file(test-qkd-pipeline                ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-pipeline               @ONLY)
 configure_file(test-qkd-pipeline-autoconnect    ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-pipeline-autoconnect   @ONLY)
 configure_file(test-qkd-statistics-average      ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-statistics-average     @ONLY)

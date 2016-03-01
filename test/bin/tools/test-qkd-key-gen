@@ -1,15 +1,15 @@
 #!/bin/bash
 
 # ------------------------------------------------------------
-# test-qkd-statistics-average
+# test-qkd-key-gen
 # 
 # This is a test file.
 #
-# TEST: test the qkd-statistics-average tool
+# TEST: tests some aspects of the qkd-key-gen tool
 #
-# Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+# Author: Manuel Warum, <manuel.warum@ait.ac.at>
 #
-# Copyright (C) 2015-2016 AIT Austrian Institute of Technology
+# Copyright (C) 2013-2016 AIT Austrian Institute of Technology
 # AIT Austrian Institute of Technology GmbH
 # Donau-City-Strasse 1 | 1220 Vienna | Austria
 # http://www.ait.ac.at
@@ -39,16 +39,36 @@ source ${TEST_BASE}/test/bin/test-functions
 # init test environment
 test_init "$(basename $0).d"
 
-${TEST_BASE}/bin/tools/qkd-statistics-average/qkd-statistics-average ${TEST_BASE}/test/test-data/1000_1024_0.04.alice.*.statistics 1> test-qkd-statistics-average-result
+# we need to replace ourselves in the build folder
+cd ${TEST_BASE}
 
-diff -q test-qkd-statistics-average-result ${TEST_BASE}/test/test-data/test-qkd-statistics-average-expected 
+# zap previous keys
+rm -rf cat_keys.* &> /dev/null
+
+# create keys
+KEYS_TO_PROCESS="1000"
+${TEST_BASE}/bin/qkd-key-gen --silent --size 2048 --keys ${KEYS_TO_PROCESS} --quantum --rate 0.03 --random-url=linear-congruential:42 set1
+${TEST_BASE}/bin/qkd-key-gen --silent --size 2048 --keys ${KEYS_TO_PROCESS} --quantum --rate 0.03 --random-url=linear-congruential:42 set2
+${TEST_BASE}/bin/qkd-key-gen --silent --size 2048 --keys ${KEYS_TO_PROCESS} --quantum --rate 0.03 --random-url=linear-congruential:43 set3
+
+# compare created final authenticated keys    
+diff "${TEST_BASE}/set1.alice" "${TEST_BASE}/set2.alice" &>/dev/null
 if [ "$?" != "0" ]; then
-    echo "qkd-statistics-average created a different result than expected"
+    echo "keys generated with identical seeds should not differ - failed"
+    test_cleanup
     exit 1
 fi
 
-# stop machines
-test_cleanup
+diff "${TEST_BASE}/set2.alice" "${TEST_BASE}/set3.alice" &>/dev/null
+if [ "$?" == "0" ]; then
+    echo "keys generated with different seeds should differ - failed"
+    test_cleanup
+    exit 1
+fi
 
+# stop modules
+test_cleanup
+    
 # state that test ok
 echo "=== TEST SUCCESS ==="
+

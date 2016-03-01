@@ -207,7 +207,7 @@ public:
      *
      * @return  the cardinality
      */
-    unsigned int cardinality() const { return GF_BITS; };
+    unsigned int cardinality() const { return GF_BITS; }
 
 
     /**
@@ -215,7 +215,7 @@ public:
      *
      * @return  the modulus for this Galois Field
      */
-    blob_t const & modulus() const { return modulus_equiv; };
+    blob_t const & modulus() const { return modulus_equiv; }
 
 
     /**
@@ -476,7 +476,7 @@ private:
     /**
      * setup the GF2 with precalculation tables
      */
-    void setup_gf2() { setup_bitreduction_table(); };
+    void setup_gf2() { setup_bitreduction_table(); }
 
 
     /** 

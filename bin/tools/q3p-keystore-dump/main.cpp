@@ -156,7 +156,7 @@ void dump(QString sURL) {
     auto nStop = std::chrono::high_resolution_clock::now();
     auto nTimeDiff = std::chrono::duration_cast<std::chrono::milliseconds>(nStop - nStart);
 
-    std::cout << "dumping took " << nTimeDiff.count() << " millisec" << std::endl;
+    std::cout << "dumping took " << nTimeDiff.count() << " milliseconds" << std::endl;
 }
 
 
@@ -208,7 +208,7 @@ int main(int argc, char ** argv) {
     if (cVariableMap.count("help")) {
         std::cout << cOptions << std::endl;
         std::cout << cArgs.find("URL", false).description() << "\n" << std::endl;      
-        std::cout << "The colums are this:\n\n";
+        std::cout << "The columns are:\n\n";
         std::cout << "\tkey-id:     id of the key in the DB\n";
         std::cout << "\tflags:      flags of a key:\n";
         std::cout << "\t                I = injected\n";
@@ -228,7 +228,7 @@ int main(int argc, char ** argv) {
     
     // we need a url
     if (cVariableMap.count("URL") != 1) {
-        std::cerr << "need excactly one URL argument" << "\ntype '--help' for help" << std::endl;
+        std::cerr << "need exactly one URL argument" << "\ntype '--help' for help" << std::endl;
         return 1;
     }
     

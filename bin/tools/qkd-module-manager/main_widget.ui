@@ -33,7 +33,7 @@
        <item>
         <widget class="QLabel" name="cLbModules">
          <property name="statusTip">
-          <string>Current known QKD modules in the system</string>
+          <string>Currently known QKD modules in the system</string>
          </property>
          <property name="text">
           <string>&amp;Modules:</string>

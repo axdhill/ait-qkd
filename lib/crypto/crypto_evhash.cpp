@@ -107,7 +107,6 @@ crypto_evhash::crypto_evhash(qkd::key::key const & cKey) : context(cKey) {
  */
 void crypto_evhash::add_internal(qkd::crypto::crypto_context const & cContext) {
     
-    // only add same things 
     if (name() != cContext->name()) {
         throw std::invalid_argument("can't add different crypto contexts algorithms");
     }
@@ -118,10 +117,7 @@ void crypto_evhash::add_internal(qkd::crypto::crypto_context const & cContext) {
         throw std::invalid_argument("can't add evaluation hash of different keys");
     }
 
-    // finalize us first (to add any remaining stuff)
     d->m_cEvhash->finalize();
-        
-    // this must be a right crypto_evhash context yet
     crypto_evhash * cEvHashContext = dynamic_cast<crypto_evhash *>(cContext.get());
     
     // t_n(this) = t_n-1(this) * k^(m)
