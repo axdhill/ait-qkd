@@ -31,6 +31,7 @@
 // ------------------------------------------------------------
 // incs
 
+#include <iomanip>
 #include <sstream>
 
 #include <boost/algorithm/string/replace.hpp>
@@ -62,8 +63,9 @@ json_output::json_output(configuration_options const & cProgramOptions) {
 void json_output::dump_investigation_details(std::ostream & cOut, qkd::utility::investigation const & cInvestigation) const {
     
     std::time_t cTimestamp = std::chrono::system_clock::to_time_t(cInvestigation.timestamp());
+    
     cOut << "{ \"time\":\"" 
-            << std::ctime(&cTimestamp) 
+            << std::put_time(std::localtime(&cTimestamp), "%F %T") 
             << "\", \"investigation_time\":"
             << std::chrono::duration_cast<std::chrono::milliseconds>(cInvestigation.duration()).count() 
             << " }";
