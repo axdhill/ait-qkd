@@ -104,6 +104,7 @@ int main(int argc, char ** argv) {
     cActualOptions.bOnlyModuleIO = (cVariableMap.count("module-io") > 0);
     cActualOptions.bOmitHeader = (cVariableMap.count("omit-header") > 0);
     cActualOptions.bOutputShort = (cVariableMap.count("short") > 0);
+    cActualOptions.bOutputAsJSON = (cVariableMap.count("json") > 0);
     
     std::shared_ptr<output_format> cOutputFormat = output_format::create(cActualOptions);
     qkd::utility::investigation cInvestigation = qkd::utility::investigation::investigate();

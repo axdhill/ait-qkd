@@ -27,8 +27,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QKD_TABULAR_WRITER_H
-#define QKD_TABULAR_WRITER_H
+#ifndef QKD_VIEW_TABULAR_WRITER_H
+#define QKD_VIEW_TABULAR_WRITER_H
 
 
 // ------------------------------------------------------------

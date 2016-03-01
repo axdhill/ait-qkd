@@ -28,8 +28,8 @@
  */
 
 
-#ifndef QKD_OUTPUT_FORMAT_H
-#define QKD_OUTPUT_FORMAT_H
+#ifndef QKD_VIEW_OUTPUT_FORMAT_H
+#define QKD_VIEW_OUTPUT_FORMAT_H
 
 
 // ------------------------------------------------------------

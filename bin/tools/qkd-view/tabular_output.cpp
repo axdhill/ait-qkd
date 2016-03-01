@@ -235,7 +235,7 @@ void tabular_output::dump_nodes(std::ostream & cOut, std::map<std::string, qkd::
  */
 void tabular_output::write(std::ostream & cOut, qkd::utility::investigation const & cInvestigation) {
     
-    if (!bPrintHeader) {
+    if (bPrintHeader) {
         dump_investigation_details(cOut, cInvestigation);
     }
     
@@ -243,7 +243,7 @@ void tabular_output::write(std::ostream & cOut, qkd::utility::investigation cons
         if (!cInvestigation.nodes().empty()) {
             dump_nodes(cOut, cInvestigation.nodes());
         }
-        if (cInvestigation.links().empty()) {
+        if (!cInvestigation.links().empty()) {
             dump_links(cOut, cInvestigation.links());
         }
     }
