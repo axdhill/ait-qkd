@@ -59,15 +59,12 @@
  */
 int main(int argc, char ** argv) {
     
-    // get up Qt
     QCoreApplication cApp(argc, argv);
     
-    // create the command line header
     std::string sApplication = std::string("qkd-view - AIT QKD System View V") + VERSION;
     std::string sDescription = std::string("\nThis shows the current QKD system.\nThe values of the found nodes, links and modules are separated by tabs.\n\nCopyright 2012-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS]";
     
-    // define program options
     boost::program_options::options_description cOptions(sApplication + "\n" + sDescription + "\n\n    " + sSynopsis + "\n\nAllowed Options");
     cOptions.add_options()("debug,d", "enable debug output on stderr");
     cOptions.add_options()("help,h", "this page");
@@ -77,16 +74,12 @@ int main(int argc, char ** argv) {
     cOptions.add_options()("json,j", "output is using a JSON syntax");
     cOptions.add_options()("version,v", "print version string");
     
-    // construct overall options
     boost::program_options::options_description cCmdLineOptions("Command Line");
     cCmdLineOptions.add(cOptions);
 
-    // option variable map
     boost::program_options::variables_map cVariableMap;
-    output_format::configuration_options cActualOptions;
     
     try {
-        // parse action
         boost::program_options::command_line_parser cParser(argc, argv);
         boost::program_options::store(cParser.options(cCmdLineOptions).run(), cVariableMap);
         boost::program_options::notify(cVariableMap);        
@@ -96,35 +89,25 @@ int main(int argc, char ** argv) {
         return 1;
     }
     
-    // check if "help" is set
     if (cVariableMap.count("help")) {
         std::cout << cOptions << std::endl;
         return 0;
     }
-    
-    // check if "version" is set
     if (cVariableMap.count("version")) {
         std::cout << sApplication << std::endl;
         return 0;
     }
 
-    // check if "debug" is set
     if (cVariableMap.count("debug")) qkd::utility::debug::enabled() = true;
 
-    // check if "module-io" is set and update the configuration struct
-    if (cVariableMap.count("module-io")) cActualOptions.bOnlyModuleIO = true;
-
-    // check if "omit-header" is set and update the configuration struct
-    if (cVariableMap.count("omit-header")) cActualOptions.bOmitHeader = true;
-
-    // check if "short" is set and update the configuration struct
-    if (cVariableMap.count("short")) cActualOptions.bOutputShort = true;
+    output_format::configuration_options cActualOptions;
+    cActualOptions.bOnlyModuleIO = (cVariableMap.count("module-io") > 0);
+    cActualOptions.bOmitHeader = (cVariableMap.count("omit-header") > 0);
+    cActualOptions.bOutputShort = (cVariableMap.count("short") > 0);
+    cActualOptions.bOutputAsJSON = (cVariableMap.count("json") > 0);
     
-    // investigate the system
-    qkd::utility::investigation cInvestigation = qkd::utility::investigation::investigate();
-
-    // prepare output
     std::shared_ptr<output_format> cOutputFormat = output_format::create(cActualOptions);
+    qkd::utility::investigation cInvestigation = qkd::utility::investigation::investigate();
     cOutputFormat->write(std::cout, cInvestigation);
     
     return 0;
