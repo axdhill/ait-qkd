@@ -44,7 +44,7 @@ NUMBER_TEE=10
 
 rm -rf ipc-keys.* &> /dev/null
 
-${TEST_BASE}/bin/qkd-key-gen --silent --keys=${NUMBER_KEYS} ipc-keys
+${TEST_BASE}/bin/qkd-key-gen --silent --keys=${NUMBER_KEYS} --random-url=linear-congruential:42 ipc-keys
 rm -f ipc-keys.bob &> /dev/null
 
 # start the modules in the background
@@ -75,12 +75,20 @@ wait_idle cat tee
 echo "got keys"
 
 # the MD5 of all keys-files MUST be equal
-FILE_VARIANTS="$(md5sum ipc-keys.* | cut -d ' ' -f 1 | uniq | wc -l)"
-if [ "${FILE_VARIANTS}" != "1" ]; then
-    echo "IPC pipe failed: we do have output variants."
+if [[ $(md5sum ipc-keys.alice) != 84689ed1310c3c12ab37d32d0a1916fb* ]]; then
+    echo "Unexpected output, ipc-keys.alice does not match the expected value - failed"
     exit 1
 fi
-echo "pipeline with ICP ok."
+
+for CURRENT_FILE in {1..10}
+do
+    if [[ $(cmp ipc-keys.alice "ipc-keys.${CURRENT_FILE}") != "" ]]; then
+        echo "ipc-keys.$CURRENT_FILE does not match the expected (ipc-keys.alice's) value - failed"
+        exit 1
+    fi
+done
+
+echo "pipeline with IPC ok."
 
 # enforce cleansing
 test_cleanup

@@ -44,7 +44,7 @@ test_init "$(basename $0).d"
 rm -rf cat_keys.* &> /dev/null
 
 KEYS_TO_PROCESS="100"
-${TEST_BASE}/bin/qkd-key-gen --silent --size 64 --keys ${KEYS_TO_PROCESS} cat_keys
+${TEST_BASE}/bin/qkd-key-gen --silent --size 64 --keys ${KEYS_TO_PROCESS} --random-url=linear-congruential:42 cat_keys
 
 # truncate previous debug out
 echo -n > reorder_debug.alice
@@ -57,7 +57,7 @@ echo "cat.bob.url_pipe_out = ipc:///tmp/qkd/reorder.bob.in" >> reorder.config
 # start two pipelines
 PIPELINE_CONFIG="reorder.config"
 
-# start the modules - we are just usinfg alice
+# start the modules - we are just using alice
 ( ${TEST_BASE}/bin/qkd-cat --run --config ${PIPELINE_CONFIG} --file "cat_keys.alice" ) &
 ( ${TEST_BASE}/bin/qkd-reorder --debug --run --config ${PIPELINE_CONFIG} 1> reorder_keys.alice 2>> reorder_debug.alice ) &
 
@@ -83,7 +83,17 @@ if [ ! -s reorder_keys.alice ]; then
 fi
 diff --brief reorder.original_keys reorder.reordered_keys > /dev/null
 if [ "$?" == "0" ]; then
-    echo "reorderd file is same as input file - failed"
+    echo "reordered file is same as input file - failed"
+    exit 1
+fi
+
+echo "Verifying MD5 hashes of generated data"
+if [[ $(md5sum "cat_keys.alice") != 77863e546e843d86fb97b07e8d2bd76e* ]]; then
+    echo "Alice used unexpected original keys - failed"
+    exit 1
+fi
+if [[ $(md5sum "reorder_keys.alice") != b377655cce3e48690c0eedc10e1848f9* ]]; then
+    echo "Alice used unexpected reordered keys - failed"
     exit 1
 fi
 

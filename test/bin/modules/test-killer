@@ -5,7 +5,7 @@
 # 
 # This is a test file.
 #
-# TEST: create a pipline and kill one module right in
+# TEST: create a pipeline and kill one module right in
 #       middle of processing. Then start the module anew
 #       and place it at the killed position again.
 #
@@ -97,7 +97,7 @@ qkd_qdbus ${MODULE_TEE} /Module run
 qkd_qdbus ${MODULE_TEE} /Module resume
 
 # now wait a bit to process some keys
-echo "wait some time ..."
+echo "waiting for some time ..."
 sleep 2
 
 # kill the TEE
@@ -105,7 +105,7 @@ echo "killing the TEE module ..."
 ps -ef | grep qkd-tee | awk '{ print $2; }' | xargs kill
 
 # let some time pass
-echo "wait some time ..."
+echo "waiting for some time ..."
 sleep 1
 
 # relaunch the module and reconnect
@@ -131,11 +131,11 @@ wait_idle throttle cat tee
 # though the overall sum might not be the same since
 # some keys might have been dropped due to timeout
 if [ "$(grep ^key-PULL qkd-tee.1.debug | wc -l)" = "0" ]; then
-    echo "failed: first qkd-tee did not pulled keys"
+    echo "failed: first qkd-tee did not pull keys"
     exit 1
 fi
 if [ "$(grep ^key-PULL qkd-tee.2.debug | wc -l)" = "0" ]; then
-    echo "failed: second qkd-tee did not pulled keys"
+    echo "failed: second qkd-tee did not pull keys"
     exit 1
 fi
 echo "killing and relaunching a module in the pipeline works ok"
@@ -143,6 +143,6 @@ echo "killing and relaunching a module in the pipeline works ok"
 # cleanup finally
 test_cleanup
 
-# state that test ok
+# state that the test was ok
 echo "=== TEST SUCCESS ==="
 

@@ -40,7 +40,7 @@ test_init "$(basename $0).d"
 
 rm -rf cat_keys.* &> /dev/null
 KEYS_TO_PROCESS="1000"
-${TEST_BASE}/bin/qkd-key-gen --silent --size 2048 --keys ${KEYS_TO_PROCESS} --quantum --rate 0.03 cat_keys
+${TEST_BASE}/bin/qkd-key-gen --silent --size 2048 --keys ${KEYS_TO_PROCESS} --quantum --rate 0.03 --random-url=linear-congruential:42 cat_keys
 
 LOG_FOLDER="$(pwd)/log"
 mkdir -p ${LOG_FOLDER} &> /dev/null
@@ -73,6 +73,28 @@ ${TEST_BASE}/bin/qkd-pipeline stop ${TEST_BASE}/test/test-data/bb84-cascade/pipe
 ${TEST_BASE}/bin/qkd-pipeline stop ${TEST_BASE}/test/test-data/bb84-cascade/pipeline-bob.xml
 
 sleep 1
+
+echo "Verifying MD5 hashes of generated data"
+if [[ $(md5sum "cat_keys.alice") != 3f426579163afdc1caac77e29939ae4d* ]]; then
+    echo "Alice used unexpected keys - failed"
+    exit 1
+fi
+if [[ $(md5sum "cat_keys.bob") != 9c0fcc80ce2bbd8fd79e977e883ed599* ]]; then
+    echo "Bob used unexpected keys - failed"
+    exit 1
+fi
+
+cmp -s "confirmed-keys.alice" "confirmed-keys.bob"
+if [[ $? -ne 0 ]]; then
+    echo "Alice and Bob have an unexpected set of confirmed keys - failed"
+    exit 1
+fi
+
+cmp -s "corrected-keys.alice" "corrected-keys.bob"
+if [[ $? -ne 0 ]]; then
+    echo "Alice and Bob have an unexpected set of corrected keys - failed"
+    exit 1
+fi
 
 test_cleanup
     

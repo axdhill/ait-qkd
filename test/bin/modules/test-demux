@@ -41,7 +41,7 @@ source ${TEST_BASE}/test/bin/test-functions
 test_init "$(basename $0).d"
 
 rm -rf cat_keys.* &> /dev/null
-${TEST_BASE}/bin/qkd-key-gen --silent --size 1000 --keys 1000 cat_keys
+${TEST_BASE}/bin/qkd-key-gen --silent --size 1000 --keys 1000 --random-url=linear-congruential:42 cat_keys
 
 ( ${TEST_BASE}/bin/qkd-cat --run --debug --config ${TEST_BASE}/test/test-data/demux/cat.conf 2> qkd_cat.debug ) &
 ( ${TEST_BASE}/bin/qkd-tee --run --debug --config ${TEST_BASE}/test/test-data/demux/tee-1.conf 1> /dev/null 2> qkd_tee.1.debug ) &
@@ -116,8 +116,16 @@ if [ $(wc -l qkd_tee.5.PUSH | awk '{ print $1; }') = 0 ]; then
 fi
 
 cat qkd_tee.1.PUSH qkd_tee.2.PUSH qkd_tee.3.PUSH qkd_tee.4.PUSH qkd_tee.5.PUSH > qkd_tee.pushed
+# TODO: Test below might actually no longer be necessary as any deviation in output should be identified
+# by the whole md5 thing going on five lines further down.
 if [ $(wc -l qkd_tee.pushed | awk '{ print $1; }') != 1000 ]; then
     echo "not exactly 1000 keys pushed by"
+    exit 1
+fi
+
+awk '{print $12;}' qkd_tee.pushed > qkd_tee.crc.pushed
+if [[ $(md5sum qkd_tee.crc.pushed) != 13b5aa1995cb72c6f284296e298f22e8* ]]; then
+    echo "Unexpected output, CRCs do not mismatch (either in count of by value) - failed"
     exit 1
 fi
 
