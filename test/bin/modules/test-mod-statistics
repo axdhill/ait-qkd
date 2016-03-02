@@ -43,7 +43,7 @@ test_init "$(basename $0).d"
 # zap previous keys
 rm -rf cat_keys.* &> /dev/null
 
-# trunacte previous debug out
+# truncate previous debug out
 echo -n > statistics_debug.alice
 echo -n > statistics_debug.bob
 
@@ -72,6 +72,14 @@ done
 sleep 1
 wait_idle cat cascade statistics
 echo "got keys"
+
+# TODO: Verify if this test can only be 'okay' iff everything is 'corrected'
+if [[ $(awk '{if (NR!=1) {print $6; }}' statistics.alice | uniq) != 'corrected' ]]; then
+    echo "Statistics show not all entries for Alice are in a 'corrected' state - warning"
+fi
+if [[ $(awk '{if (NR!=1) {print $6; }}' statistics.bob | uniq) != 'corrected' ]]; then
+    echo "Statistics show not all entries for Bob are in a 'corrected' state - warning"
+fi
 
 # stop machines
 test_cleanup
