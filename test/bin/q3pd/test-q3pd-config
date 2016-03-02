@@ -45,11 +45,11 @@ rm -rf "${DB_BOB_2_ALICE}" &> /dev/null
 dd if=/dev/urandom of="@CMAKE_BINARY_DIR@/inject.data" bs=1 count=1024
 
 echo "start alice"
-${TEST_BASE}/bin/q3pd/q3pd --config ${TEST_BASE}/test/test-data/q3p/alice.conf --debug alice 2>>q3pd_alice_${RANDOM}.stderr &
+${TEST_BASE}/bin/q3pd/q3pd --config ${TEST_BASE}/test/test-data/q3p/alice.conf --debug alice 2>>q3pd_alice.stderr &
 echo "started"
 
 echo "start bob"
-${TEST_BASE}/bin/q3pd/q3pd --config ${TEST_BASE}/test/test-data/q3p/bob.conf --debug bob 2>>q3pd_bob_${RANDOM}.stderr &
+${TEST_BASE}/bin/q3pd/q3pd --config ${TEST_BASE}/test/test-data/q3p/bob.conf --debug bob 2>>q3pd_bob.stderr &
 echo "started"
 
 sleep 10

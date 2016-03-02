@@ -135,7 +135,7 @@ node::node(QString const & sId, QString const & sConfigFileURL) : QObject(), m_s
         qkd::utility::syslog::info() << "node registered on DBus as \"" << sServiceName.toStdString() << "\"";
     }
     
-    QTimer::singleShot(0, this, SLOT(apply_config_file()));
+    apply_config_file();
 }
 
 
