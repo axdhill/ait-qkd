@@ -55,7 +55,7 @@ rm -rf cat-keys.* &> /dev/null
 # create keys
 FIRST_ID=1
 for i in $(seq 1 ${NUMBER_CAT}); do
-    ${TEST_BASE}/bin/qkd-key-gen --silent --id ${FIRST_ID} --keys=${NUMBER_KEYS} cat-keys-${i}
+    ${TEST_BASE}/bin/qkd-key-gen --silent --id ${FIRST_ID} --keys=${NUMBER_KEYS} --random-url=linear-congruential:42 cat-keys-${i}
     FIRST_ID=$((${FIRST_ID} + ${NUMBER_KEYS}))
 done
 
@@ -77,7 +77,7 @@ while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module | wc -l)" != "$
 done
 echo "modules created"
 
-# start tee module full fucntional
+# start tee module full functional
 MODULE_TEE=$(${TEST_BASE}/bin/qkd-view | grep tee | awk '{ print $3; }')
 qkd_qdbus ${MODULE_TEE} /Module set_urls "ipc:///tmp/qkd/tee.in" "stdout://" "" ""
 qkd_qdbus ${MODULE_TEE} /Module run 
@@ -97,6 +97,24 @@ wait_idle tee cat
 echo "module work done"
 
 # check results
+echo "Verifying MD5 hashes of generated data"
+if [[ $(md5sum "cat-keys-1.alice") != 5d11c3e058050040d3721df05bc69eaa* ]]; then
+    echo "First set of keys (cat-keys-1.alice) has unexpected values - warning"
+fi
+if [[ $(md5sum "cat-keys-2.alice") != a84f6514292a078b549274ef42e05874* ]]; then
+    echo "Second set of keys (cat-keys-2.alice) has unexpected values - warning"
+fi
+if [[ $(md5sum "cat-keys-3.alice") != c2b915551525ed8d679354a92c6eb974* ]]; then
+    echo "Third set of keys (cat-keys-3.alice) has unexpected values - warning"
+fi
+if [[ $(md5sum "cat-keys-4.alice") != 41c4b2cb95e2c73ae78930b1a9c28e8b* ]]; then
+    echo "Fourth set of keys (cat-keys-4.alice) has unexpected values - warning"
+fi
+if [[ $(md5sum "cat-keys-5.alice") != 07f85f8f54684452b42f2b9115e897b7* ]]; then
+    echo "Fifth set of keys (cat-keys-5.alice) has unexpected values - warning"
+fi
+
+
 rm cat_total_keys &> /dev/null
 for i in $(seq 1 ${NUMBER_CAT}); do
     cat cat-keys-${i}.alice >> cat_total_keys
@@ -104,21 +122,29 @@ done
 ${TEST_BASE}/bin/qkd-key-dump cat_total_keys | grep "^key #" > cat_ids
 ${TEST_BASE}/bin/qkd-key-dump tee_keys.alice | grep "^key #" > tee_ids
 
+if [[ $(md5sum "cat_total_keys") != 721550fe3bbd4738dc8c9e85ec7bea72* ]]; then
+    echo "Combined set of keys (cat_total_keys) has unexpected values - warning"
+fi
+
 # we have a +1 if the tee_id *does* actually differ!
-# this means: this was real parallellization with keys out-of-order!! yeah!
+# this means: this was real parallelization with keys out-of-order!! yeah!
 diff -q cat_ids tee_ids &> /dev/null
 if [ "$?" = "1" ]; then
-    echo "keys have been really parallelized. nice ... =)"
+    echo "keys have really been parallelized. nice ... =)"
 fi
 
 # created sorted key id files
 sort cat_ids > cat_ids_sorted
 sort tee_ids > tee_ids_sorted
 
+if [[ $(md5sum "tee_ids_sorted") != 5725a5f45636cf1dc1044ea6298c6eca* ]]; then
+    echo "Sorted set of keys (tee_ids_sorted) has unexpected values - warning"
+fi
+
 # final - real - check
 diff -q cat_ids_sorted tee_ids_sorted &> /dev/null
 if [ "$?" != "0" ]; then
-    echo "WOHA! Parallized result differs from intended input. =(  - failed"
+    echo "WOHA! Parallelized result differs from intended input. =(  - failed"
     exit 1
 fi
 
