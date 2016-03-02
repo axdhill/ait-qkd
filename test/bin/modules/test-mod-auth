@@ -43,7 +43,7 @@ test_init "$(basename $0).d"
 # zap previous keys
 rm -rf cat_keys.* &> /dev/null
 
-# trunacte previous debug out
+# truncate previous debug out
 echo -n > auth_pre_debug.alice
 echo -n > auth_pre_debug.bob
 echo -n > cascade_debug.alice
@@ -53,7 +53,7 @@ echo -n > auth_post_debug.bob
 
 # create keys
 KEYS_TO_PROCESS="10"
-${TEST_BASE}/bin/qkd-key-gen --silent --size 2048 --keys ${KEYS_TO_PROCESS} --rate 0.03 cat_keys
+${TEST_BASE}/bin/qkd-key-gen --silent --size 2048 --keys ${KEYS_TO_PROCESS} --rate 0.03 --random-url=linear-congruential:42 cat_keys
 
 # prepare the config files
 cp ${TEST_BASE}/test/test-data/auth-test.conf auth_pre.config
@@ -102,14 +102,28 @@ if [ "$?" != "0" ]; then
 fi
 echo "authentication pipeline corrected keys - ok"
 
+echo "Verifying MD5 hashes of generated data"
+if [[ $(md5sum "auth_keys.alice") != 43f694b673ab4a3d52534da73064e778* ]]; then
+    echo "Alice's auth keys have unexpected values - warning"
+fi
+if [[ $(md5sum "auth_keys.bob") != 43f694b673ab4a3d52534da73064e778* ]]; then
+    echo "Bob's auth keys have unexpected values - warning"
+fi
+if [[ $(md5sum "cat_keys.alice") != fee7e0567add7754a017f67df3d1459e* ]]; then
+    echo "cat_keys.alice has unexpected values - warning"
+fi
+if [[ $(md5sum "cat_keys.bob") != 5d8419e70e1dd6ae6e82167e79ede12f* ]]; then
+    echo "cat_keys.bob has unexpected values - warning"
+fi
+
 # in this scenario we'll correct 6 keys, but can only verify 5
-# too less keys to authentcate left
+# not enough keys left to authenticate
 if [ "$(grep PUSH auth_post_debug.alice  | wc -l)" != "5" ]; then
-    echo "alice pushed more verified keys than suppossed - huh?"
+    echo "alice pushed more verified keys than supposed to - huh?"
     exit 1
 fi
 if [ "$(grep PUSH auth_post_debug.bob  | wc -l)" != "5" ]; then
-    echo "alice pushed more verified keys than suppossed - huh?"
+    echo "alice pushed more verified keys than supposed to - huh?"
     exit 1
 fi
 
