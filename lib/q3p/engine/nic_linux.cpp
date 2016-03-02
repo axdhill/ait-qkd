@@ -1,7 +1,7 @@
 /*
- * nic.cpp
+ * nic_linux.cpp
  *
- * implement the network interface q3p "card"
+ * implement the network interface q3p "card" on Linux
  * 
  * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
@@ -28,6 +28,10 @@
  */
 
  
+// this is only Linux code
+#if defined(__linux__)
+
+
 // ------------------------------------------------------------
 // incs
 
@@ -41,30 +45,17 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-// this is currently Linux only code
-// TODO: find a way to make this portable.
-//       there is TUN/TAP support on other operating
-//       systems like Mac OSX ...
-#if defined(__linux__)
-
-#   include <arpa/inet.h>
-#   include <asm/types.h>
-#   include <linux/if.h>
-#   include <linux/if_tun.h>
-#   include <linux/netlink.h>
-#   include <linux/rtnetlink.h> 
-#   include <sys/ioctl.h>
-#   include <netinet/in.h>
-#   include <sys/socket.h>
-
-#else
-
-#   error "Currently no other operating system than Linux supported. Sorry. Visit: http://sqt.ait.ac.at/software or mail oliver.maurhart@ait.ac.at for support on this."
-
-#endif
+#include <arpa/inet.h>
+#include <asm/types.h>
+#include <linux/if.h>
+#include <linux/if_tun.h>
+#include <linux/netlink.h>
+#include <linux/rtnetlink.h> 
+#include <sys/ioctl.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
 
 #include <boost/format.hpp>
-
 
 // Qt
 #include <QtCore/QSocketNotifier>
@@ -75,8 +66,10 @@
 #include <qkd/utility/debug.h>
 #include <qkd/utility/syslog.h>
 
-
 using namespace qkd::q3p;
+
+#define NIC_OS_DETAIL_IMPLEMENTATION
+#include "nic_common.cpp"
 
 
 // ------------------------------------------------------------
@@ -134,6 +127,16 @@ std::string inet_addr_to_string(in_addr_t nIP4);
 
 
 /**
+ * get up the tun (from tun/tap) device
+ * 
+ * @param   nDeviceFD       device file descriptor
+ * @param   sDeviceName     name of new device
+ * @return  true, if device has been successully setup
+ */
+bool init_tun(int & nDeviceFD, std::string & sDeviceName);
+
+
+/**
  * checks if the given string contains an IP4 dotted address
  * 
  * @return  true, if inet_aton accepts it (or similar)
@@ -179,7 +182,13 @@ nic_instance::nic_instance(qkd::q3p::engine_instance * cEngine) : QObject(), m_c
     d->nFD = 0;
     
     // get up q3pX
-    init_tun();
+    if (init_tun(d->nFD, m_sName)) {
+    
+        d->bRun = true;
+        d->cReaderThread = std::thread([this]{ reader(); });
+        
+        emit device_ready(QString::fromStdString(m_sName));
+    }
 }
 
 
@@ -205,11 +214,6 @@ nic_instance::~nic_instance() {
  */
 bool nic_instance::add_ip4_route() {
     
-#ifdef __linux__    
-
-    // ------------------------------------------------------------
-    // LINUX implementation
-    
     if (m_sName.empty()) {
         return false;
     }
@@ -227,20 +231,6 @@ bool nic_instance::add_ip4_route() {
         qkd::utility::debug() << "Failed to translate remote IP4 address: '" << m_sIP4Remote << "'";
         return false;
     }
-    
-    
-#elif __WIN32__
-
-    // ------------------------------------------------------------
-    // WINDOWS implementation
-    
-#error "Windows port not implemented yet"
-    
-#else
-
-    #error "Port to current target operating system not implemented yet"
-
-#endif    
     
     return false;
 }
@@ -285,40 +275,6 @@ bool nic_instance::assign_local_ip4() {
 }
 
 
-
-/**
- * get up the tun (from tun/tap) device
- */
-void nic_instance::init_tun() {
-    
-    d->nFD = ::open("/dev/net/tun", O_RDWR);
-    if (d->nFD < 0) {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "could not access /dev/net/tun: " << strerror(errno);
-        return;
-    }
-    
-    struct ifreq cIFReq;
-    memset(&cIFReq, 0, sizeof(cIFReq));
-    cIFReq.ifr_flags = IFF_TUN;
-    
-    strncpy(cIFReq.ifr_name, "q3p%d", IFNAMSIZ);
-    if (ioctl(d->nFD, TUNSETIFF, (void *)&cIFReq) == -1) {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "could not create TUN device: " << strerror(errno);
-        close(d->nFD);
-        d->nFD = 0;
-        return;
-    }
-    
-    m_sName = cIFReq.ifr_name;
-    
-    d->bRun = true;
-    d->cReaderThread = std::thread([this]{ reader(); });
-    
-    emit device_ready(QString::fromStdString(m_sName));
-    qkd::utility::syslog::info() << "created TUN device: " << m_sName;
-}
-
-
 /**
  * the reader thread
  * 
@@ -335,55 +291,6 @@ void nic_instance::reader() {
         
         qkd::utility::memory cPayload = qkd::utility::memory::wrap((qkd::utility::memory::value_t *)cBuffer, nSize);
         m_cEngine->send_data(cPayload);
-    }
-}
-
-
-/**
- * set the local IP4 address of the NIC
- * 
- * @param   sIP4        the new local address of the NIC
- */
-void nic_instance::set_ip4_local(QString sIP4) {
-    
-    std::string s = sIP4.toStdString();
-    if (m_cEngine->nic_ip4_local() != s) {
-        m_cEngine->set_nic_ip4_local(s);
-        return;
-    }
-    
-    m_sIP4Local = s;
-    setup_networking();
-}
-
-
-/**
- * set the remote IP4 address of the NIC
- * 
- * @param   sIP4        the new remote address of the NIC
- */
-void nic_instance::set_ip4_remote(QString sIP4) {
-    
-    std::string s = sIP4.toStdString();
-    if (m_cEngine->nic_ip4_remote() != s) {
-        m_cEngine->set_nic_ip4_remote(s);
-        return;
-    }
-    
-    m_sIP4Remote = s;
-    setup_networking();
-}
-
-
-/**
- * apply IP4 address and routing
- */
-void nic_instance::setup_networking() {
-
-    if (assign_local_ip4()) {
-        if (add_ip4_route()) {
-        }
-        emit ip4_changed();
     }
 }
 
@@ -420,11 +327,6 @@ bool check_device_flags(std::string const & sDevice) {
     
     bool res = false;
     
-#ifdef __linux__    
-
-    // ------------------------------------------------------------
-    // LINUX implementation
-    
     int nExitCode = 0;
     
     int s = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
@@ -443,19 +345,6 @@ bool check_device_flags(std::string const & sDevice) {
     
     res = (nFlags == (IFF_UP | IFF_POINTOPOINT | IFF_RUNNING | IFF_NOARP | IFF_MULTICAST));
     
-#elif __WIN32__
-
-    // ------------------------------------------------------------
-    // WINDOWS implementation
-    
-#error "Windows port not implemented yet"
-    
-#else
-
-    #error "Port to current target operating system not implemented yet"
-
-#endif    
-    
     return res;
 }
 
@@ -470,11 +359,6 @@ in_addr_t get_current_ip4(std::string const & sDevice) {
     
     in_addr_t res = -1;
     
-#ifdef __linux__    
-
-    // ------------------------------------------------------------
-    // LINUX implementation
-
     int nExitCode = 0;
     
     int s = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
@@ -492,22 +376,8 @@ in_addr_t get_current_ip4(std::string const & sDevice) {
     memcpy((char *)&cAddr, (char *)&cIFReq + offsetof(struct ifreq, ifr_addr), sizeof(cAddr));
     res = cAddr.sin_addr.s_addr;
 
-#elif __WIN32__
-
-    // ------------------------------------------------------------
-    // WINDOWS implementation
-    
-#error "Windows port not implemented yet"
-    
-#else
-
-    #error "Port to current target operating system not implemented yet"
-
-#endif    
-    
     return res;
 }
-
 
 
 /**
@@ -525,6 +395,7 @@ bool is_ip4_string(std::string const & sIP4) {
     return true;
 }
 
+
 /**
  * set current IP4 address of device
  * 
@@ -533,11 +404,6 @@ bool is_ip4_string(std::string const & sIP4) {
  * @return  true, if successully assigned
  */
 bool set_current_ip4(std::string const & sDevice, in_addr_t nIP4) {
-    
-#ifdef __linux__    
-
-    // ------------------------------------------------------------
-    // LINUX implementation
     
     int nExitCode = 0;    
     int s = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
@@ -559,19 +425,6 @@ bool set_current_ip4(std::string const & sDevice, in_addr_t nIP4) {
         qkd::utility::syslog::warning() << "Failed to assign IP4 '" << inet_addr_to_string(nIP4) << "' to interface " << sDevice << ": error code = " << errno << " - " << strerror(errno);
         return false;
     }
-    
-#elif __WIN32__
-
-    // ------------------------------------------------------------
-    // WINDOWS implementation
-    
-#error "Windows port not implemented yet"
-    
-#else
-
-    #error "Port to current target operating system not implemented yet"
-
-#endif    
 
     return true;
 }
@@ -597,6 +450,39 @@ std::string inet_addr_to_string(in_addr_t nIP4) {
 }
 
 
+/**
+ * get up the tun (from tun/tap) device
+ * 
+ * @param   nDeviceFD       device file descriptor
+ * @param   sDeviceName     name of new device
+ * @return  true, if device has been successully setup
+ */
+bool init_tun(int & nDeviceFD, std::string & sDeviceName) {
+    
+    nDeviceFD = ::open("/dev/net/tun", O_RDWR);
+    if (nDeviceFD < 0) {
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "could not access /dev/net/tun: " << strerror(errno);
+        return false;
+    }
+    
+    struct ifreq cIFReq;
+    memset(&cIFReq, 0, sizeof(cIFReq));
+    cIFReq.ifr_flags = IFF_TUN;
+    
+    strncpy(cIFReq.ifr_name, "q3p%d", IFNAMSIZ);
+    if (ioctl(nDeviceFD, TUNSETIFF, (void *)&cIFReq) == -1) {
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "could not create TUN device: " << strerror(errno);
+        close(nDeviceFD);
+        nDeviceFD = 0;
+        return false;
+    }
+    
+    sDeviceName = cIFReq.ifr_name;
+    qkd::utility::syslog::info() << "created TUN device: " << sDeviceName;
+    
+    return true;
+}
+
 
 /**
  * apply network device flags properly
@@ -605,11 +491,6 @@ std::string inet_addr_to_string(in_addr_t nIP4) {
  */
 void set_device_flags(std::string const & sDevice) {
 
-#ifdef __linux__    
-
-    // ------------------------------------------------------------
-    // LINUX implementation
-    
     int nExitCode = 0;    
     int s = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
     ifreq cIFReq;
@@ -627,17 +508,6 @@ void set_device_flags(std::string const & sDevice) {
         return;
     }
     
-#elif __WIN32__
-
-    // ------------------------------------------------------------
-    // WINDOWS implementation
-    
-#error "Windows port not implemented yet"
-    
-#else
-
-    #error "Port to current target operating system not implemented yet"
-
-#endif    
-  
 }
+
+#endif

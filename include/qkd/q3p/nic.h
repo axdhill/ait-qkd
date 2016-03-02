@@ -244,12 +244,6 @@ private:
     
     
     /**
-     * get up the tun (from tun/tap) device
-     */
-    void init_tun();
-    
-    
-    /**
      * local IP4 address
      */
     std::string m_sIP4Local;
