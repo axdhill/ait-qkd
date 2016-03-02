@@ -99,7 +99,7 @@ QString protocol::protocol_error_description(protocol_error eError) {
         
     }
     
-    return "unkown error";
+    return "unknown error";
 }
 
 
