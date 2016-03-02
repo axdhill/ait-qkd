@@ -49,10 +49,10 @@ echo -n > ping.bob.debug
 # start bob in the background
 ( ${TEST_BASE}/bin/qkd-ping --debug --bob --run 1> ping.bob.output 2> ping.bob.debug ) &
 
-# run alice in the forground
+# run alice in the foreground
 ${TEST_BASE}/bin/qkd-ping --debug --count 50 --sleep 100 --run 1> ping.alice.output 2> ping.alice.debug
 
-# grap both outputs, reformat and compare them
+# grep both outputs, reformat and compare them
 grep -a -o '(crc32: .*)' ping.alice.output 1> ping.alice.output.crc32
 grep -a -o '(crc32: .*)' ping.bob.output 1> ping.bob.output.crc32
 
