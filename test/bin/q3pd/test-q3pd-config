@@ -52,15 +52,18 @@ echo "start bob"
 ${TEST_BASE}/bin/q3pd/q3pd --config ${TEST_BASE}/test/test-data/q3p/bob.conf --debug bob 2>>q3pd_bob.stderr &
 echo "started"
 
-sleep 10
+sleep 1
+echo "requesting alice's connection state to bob..."
 CONNECTED_ALICE=$(qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob connected)
-CONNECTED_BOB=$(qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice connected)
 if [ "${CONNECTED_ALICE}" != "true" ]; then
     echo "alice failed to connect to bob"
     q3pd_stop "alice"
     q3pd_stop "bob"
     exit 1
 fi
+
+echo "requesting bob's connection state to alice..."
+CONNECTED_BOB=$(qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice connected)
 if [ "${CONNECTED_BOB}" != "true" ]; then
     echo "bob failed to connect to alice"
     q3pd_stop "alice"
@@ -68,7 +71,7 @@ if [ "${CONNECTED_BOB}" != "true" ]; then
     exit 1
 fi
 
-exit 1
+sleep 100
 
 q3pd_stop "alice" || exit $?
 q3pd_stop "bob" || exit $?
