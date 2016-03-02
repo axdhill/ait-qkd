@@ -352,7 +352,6 @@ private:
      */
     virtual void get(UNUSED char * cBuffer, UNUSED uint64_t nSize) { 
         throw random_get_unknown();
-        return; 
     };
     
 };

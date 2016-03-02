@@ -154,7 +154,6 @@ bool qkd_confirmation::process(qkd::key::key & cKey, qkd::crypto::crypto_context
     if (is_bob()) return process_bob(cKey, cIncomingContext, cOutgoingContext);
     
     throw std::logic_error("module acts neither as alice nor as bob");
-    return true;
 }
 
 

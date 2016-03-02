@@ -144,11 +144,8 @@ qkd::utility::random random_source::create(std::string sURL) {
     else if(sURL.substr(0, std::string("linear-congruential").length()) == "linear-congruential") {
         return std::shared_ptr<random_source>(new qkd::utility::random_congruential(sURL));
     }
-    else {
-        throw random_url_scheme_unknown();
-    }
-    
-    return std::shared_ptr<random_source>(new qkd::utility::random_source());
+
+    throw random_url_scheme_unknown();
 }
 
 
