@@ -112,7 +112,7 @@ public:
      * @param   sURL        the new PEER URL
      */
     virtual void set_url_peer(UNUSED QString sURL) {
-        set_url_peer("");
+        module::set_url_peer("");
     };
 
 

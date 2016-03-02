@@ -134,8 +134,8 @@ void ttm::flush_timetags(bool bForce) {
     
     // if no force is used test if we need to flush
     if (!bForce) {
-        bool bFlush = (m_cTimeTags.nCurrentTimeTagAlice >= 1024) && (m_cTimeTags.nCurrentTimeTagAlice >= 1024);
-        if (!bFlush) bFlush = (m_cTimeTags.nCurrentTimeTagAlice >= 2047) || (m_cTimeTags.nCurrentTimeTagAlice >= 2047);
+        bool bFlush = (m_cTimeTags.nCurrentTimeTagAlice >= 1024) && (m_cTimeTags.nCurrentTimeTagBob >= 1024);
+        if (!bFlush) bFlush = (m_cTimeTags.nCurrentTimeTagAlice >= 2047) || (m_cTimeTags.nCurrentTimeTagBob >= 2047);
         if (!bFlush) return;
     }
     

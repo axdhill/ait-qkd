@@ -1258,15 +1258,12 @@ qulonglong module::state() const {
  * @return  the human readable module state name 
  */
 QString module::state_name(module_state eState) {
-    
-    QString res;
-    
     switch (eState) {
-    case module_state::STATE_NEW: return "new";
-    case module_state::STATE_READY: return "ready";
-    case module_state::STATE_RUNNING: return "running";
-    case module_state::STATE_TERMINATING: return "terminating";
-    case module_state::STATE_TERMINATED: return "terminated";
+        case module_state::STATE_NEW: return "new";
+        case module_state::STATE_READY: return "ready";
+        case module_state::STATE_RUNNING: return "running";
+        case module_state::STATE_TERMINATING: return "terminating";
+        case module_state::STATE_TERMINATED: return "terminated";
     }
     
     return "unkown state";
@@ -1381,18 +1378,15 @@ qulonglong module::type() const {
  * @return  the human readable module-type name 
  */
 QString module::type_name(module_type eType) {
-    
-    QString res;
-    
     switch (eType) {
-    case module_type::TYPE_PRESIFTING: return "presifting";
-    case module_type::TYPE_SIFTING: return "sifting";
-    case module_type::TYPE_ERROR_ESTIMATION: return "error estimation";
-    case module_type::TYPE_ERROR_CORRECTION: return "error correction";
-    case module_type::TYPE_CONFIRMATION: return "confirmation";
-    case module_type::TYPE_PRIVACY_AMPLIFICATION: return "privacy amplification";
-    case module_type::TYPE_KEYSTORE: return "q3p keystore";
-    case module_type::TYPE_OTHER: return "other";
+        case module_type::TYPE_PRESIFTING: return "presifting";
+        case module_type::TYPE_SIFTING: return "sifting";
+        case module_type::TYPE_ERROR_ESTIMATION: return "error estimation";
+        case module_type::TYPE_ERROR_CORRECTION: return "error correction";
+        case module_type::TYPE_CONFIRMATION: return "confirmation";
+        case module_type::TYPE_PRIVACY_AMPLIFICATION: return "privacy amplification";
+        case module_type::TYPE_KEYSTORE: return "q3p keystore";
+        case module_type::TYPE_OTHER: return "other";
     }
     
     return "unkown type";
