@@ -233,7 +233,7 @@ void node::apply_link_config(std::string const & sLinkIdentifier, qkd::utility::
     qkd::q3p::engine cEngine = qkd::q3p::engine_instance::get(sId);
     if (cEngine.get() == nullptr) {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ 
-                << ": " << "failed to setup link: engine created but unable to fetch unstance. this mus not happen. this is a bug.";
+                << ": " << "failed to setup link: engine created but unable to fetch instance. this must not happen. this is a bug.";
         return;
     }
     
