@@ -139,7 +139,7 @@ private:
     void dump_modules_short(std::ostream & cOut, const std::map<std::string, qkd::utility::properties> & cModuleMap);
     
     
-    bool bPrintHeader = true;               /**< pringt header in output */
+    bool bPrintHeader = true;               /**< print header in output */
     bool bPrintModuleIO = false;            /**< print only module connection addresses */
     bool bPrintShort = false;               /**< print only important data */
     

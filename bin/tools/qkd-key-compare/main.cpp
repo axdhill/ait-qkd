@@ -111,7 +111,7 @@ bool check_file(std::string const & sFile);
  * 
  * @param   cConfig         the comparison config
  * @param   cStreamOut      where to stream to
- * @return  0 = sucess, else failure
+ * @return  0 = success, else failure
  */
 int compare(compare_config & cConfig, std::ostream & cStreamOut);
 
@@ -168,7 +168,7 @@ bool check_file(std::string const & sFile) {
  * 
  * @param   cConfig         the comparison config
  * @param   cStreamOut      where to stream to
- * @return  0 = sucess, else failure
+ * @return  0 = success, else failure
  */
 int compare(compare_config & cConfig, std::ostream & cStreamOut) {
     

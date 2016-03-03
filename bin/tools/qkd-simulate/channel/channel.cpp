@@ -133,7 +133,7 @@ void channel::detector_thread() {
         // do a measurement
         measurement cMeasurement = measure();
         measurement_bb84 * cMeasurementBB84 = dynamic_cast<qkd::simulate::measurement_bb84 *>(cMeasurement.get());
-        if (!cMeasurementBB84->free_running()) flush_measurment(cMeasurement);
+        if (!cMeasurementBB84->free_running()) flush_measurement(cMeasurement);
         
         // yet another round
         m_nRound++;
@@ -149,7 +149,7 @@ void channel::detector_thread() {
  * 
  * @param   cMeasurement    the measurement made
  */
-void channel::flush_measurment(qkd::simulate::measurement const & cMeasurement) {
+void channel::flush_measurement(qkd::simulate::measurement const &cMeasurement) {
     
     // only proceed if we are entitled to run
     if (!is_simulation_running()) return;

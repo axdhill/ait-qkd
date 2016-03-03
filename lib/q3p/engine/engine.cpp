@@ -1833,7 +1833,7 @@ void engine_instance::setup_ipsec() {
     qkd::utility::debug() << "setting up IPSec...";
     
     // TODO: Stefan
-    std::cerr << "engine_instance::setup_ipsec(): STEFAN: Bitte implement me." << std::endl;
+    std::cerr << "engine_instance::setup_ipsec(): STEFAN: Please implement me." << std::endl;
 }
     
     
@@ -1906,7 +1906,7 @@ void engine_instance::shutdown_ipsec() {
     qkd::utility::debug() << "shutting down IPSec...";
     
     // TODO: Stefan
-    std::cerr << "engine_instance::shutdown_ipsec(): STEFAN: Bitte implement me." << std::endl;
+    std::cerr << "engine_instance::shutdown_ipsec(): STEFAN: Please implement me." << std::endl;
 }
     
     

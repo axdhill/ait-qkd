@@ -212,7 +212,7 @@ void qkd_statistics::qkd_statistics_data::write_statistics(qkd::key::key const &
 
     std::lock_guard<std::recursive_mutex> cLock(cPropertyMutex);
 
-    boost::format cLineFormater = 
+    boost::format cLineFormatter =
             boost::format("%015ums %010u %010u %6.4f %010u      %-13s %7.5f %012u %018u %12.0f %14.0f");
 
     double nShannonEfficiency = qkd::utility::shannon_efficiency(
@@ -228,19 +228,19 @@ void qkd_statistics::qkd_statistics_data::write_statistics(qkd::key::key const &
     double bps = cKeyBitsOutgoingRate->sum();
 
     auto cTimePoint = std::chrono::duration_cast<std::chrono::milliseconds>(cParentModule->age());
-    cLineFormater % cTimePoint.count();
-    cLineFormater % cKey.id();
-    cLineFormater % (cKey.size() * 8);
-    cLineFormater % cKey.meta().nErrorRate;
-    cLineFormater % cKey.meta().nDisclosedBits;
-    cLineFormater % cKey.state_string();
-    cLineFormater % nShannonEfficiency;
-    cLineFormater % nKeysOutgoing;
-    cLineFormater % nKeyBitsOutgoing;
-    cLineFormater % kps;
-    cLineFormater % bps;
-    
-    cStatisticsFile << cLineFormater.str() << std::endl;
+    cLineFormatter % cTimePoint.count();
+    cLineFormatter % cKey.id();
+    cLineFormatter % (cKey.size() * 8);
+    cLineFormatter % cKey.meta().nErrorRate;
+    cLineFormatter % cKey.meta().nDisclosedBits;
+    cLineFormatter % cKey.state_string();
+    cLineFormatter % nShannonEfficiency;
+    cLineFormatter % nKeysOutgoing;
+    cLineFormatter % nKeyBitsOutgoing;
+    cLineFormatter % kps;
+    cLineFormatter % bps;
+
+    cStatisticsFile << cLineFormatter.str() << std::endl;
 }
 
 

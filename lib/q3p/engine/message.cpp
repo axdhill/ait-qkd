@@ -135,23 +135,23 @@ void message::set_zipped(bool bZipped) {
 std::string message::str() const {
     
     // generate a header signature
-    boost::format cHeaderFormater = boost::format("<%|10|><%|10|><%|1|%|1|%|1|><%|1|><%|-12|><%|5|><%|10|><%|10|>");
-    cHeaderFormater % length();
-    cHeaderFormater % id();
-    cHeaderFormater % (encrypted() ? 'E' : ' ');
-    cHeaderFormater % (authentic() ? 'A' : ' ');
-    cHeaderFormater % (zipped() ? 'Z' : ' ');
-    cHeaderFormater % 2;
-    cHeaderFormater % qkd::q3p::protocol::protocol::protocol_id_name(protocol_id());
-    cHeaderFormater % channel_id();
-    cHeaderFormater % encryption_key();
-    cHeaderFormater % authentication_key();
+    boost::format cHeaderFormatter = boost::format("<%|10|><%|10|><%|1|%|1|%|1|><%|1|><%|-12|><%|5|><%|10|><%|10|>");
+    cHeaderFormatter % length();
+    cHeaderFormatter % id();
+    cHeaderFormatter % (encrypted() ? 'E' : ' ');
+    cHeaderFormatter % (authentic() ? 'A' : ' ');
+    cHeaderFormatter % (zipped() ? 'Z' : ' ');
+    cHeaderFormatter % 2;
+    cHeaderFormatter % qkd::q3p::protocol::protocol::protocol_id_name(protocol_id());
+    cHeaderFormatter % channel_id();
+    cHeaderFormatter % encryption_key();
+    cHeaderFormatter % authentication_key();
 
     // the header string
-    std::string sHeaderSignature = cHeaderFormater.str();
+    std::string sHeaderSignature = cHeaderFormatter.str();
     
     // combine all elements
-    boost::format cMessageFormater = boost::format("%1%<---DATA---><%2%>") % sHeaderSignature % tag().as_hex();
+    boost::format cMessageFormatter = boost::format("%1%<---DATA---><%2%>") % sHeaderSignature % tag().as_hex();
     
-    return cMessageFormater.str();
+    return cMessageFormatter.str();
 }

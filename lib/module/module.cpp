@@ -313,7 +313,7 @@ qkd::module::connection const & qkd::module::module::connection(qkd::module::con
  * The given file URL is parsed and the found configuration
  * is handed out to apply_config()
  *
- * Oppossed to the D-Bus method slot of the same name
+ * Opposed to the D-Bus method slot of the same name,
  * this method calls exit(1) if the configuration URL
  * failed to load.
  * 

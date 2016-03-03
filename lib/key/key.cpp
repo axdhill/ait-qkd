@@ -144,8 +144,8 @@ void qkd::key::key::meta_data::write(std::ostream & cStream) const {
     cStream.write((char*)&(this->eKeyState), sizeof(this->eKeyState));
     
     // write disclosed bits
-    uint64_t nDislosedBits = htobe64(this->nDisclosedBits);
-    cStream.write((char *)&nDislosedBits, sizeof(nDislosedBits));
+    uint64_t nDisclosedBits = htobe64(this->nDisclosedBits);
+    cStream.write((char *)&nDisclosedBits, sizeof(nDisclosedBits));
 
     // write error rate
     cStream.write((char *)&(this->nErrorRate), sizeof(this->nErrorRate));

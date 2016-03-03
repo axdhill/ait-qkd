@@ -54,7 +54,7 @@ using namespace qkd::simulate;
 /** 
  * ctor
  */
-source::source() : m_bMultiPhotons(false), m_nMultiPhotonRate(0.0), m_nPhotonRate(1000000.0), m_nSignalErrorProbablity(0.05) {
+source::source() : m_bMultiPhotons(false), m_nMultiPhotonRate(0.0), m_nPhotonRate(1000000.0), m_nSignalErrorProbability(0.05) {
 }
 
 
@@ -107,7 +107,7 @@ void source::handle(event const & cEvent) {
             
             php.eStateA = photon_state::ENTANGLED;
             php.eStateB = photon_state::ENTANGLED;
-            php.nEntanglementError = m_nSignalErrorProbablity;
+            php.nEntanglementError = m_nSignalErrorProbability;
             
             try { 
                 
@@ -140,7 +140,7 @@ void source::handle(event const & cEvent) {
 /**
  * set multi photon rate in [0 - 1 0000 Hz]
  * 
- * @param   nMultiPhotonRate        the new multphoton rate
+ * @param   nMultiPhotonRate        the new multiphoton rate
  */
 void source::set_multi_photon_rate(double nMultiPhotonRate) throw(std::out_of_range) { 
     if (nMultiPhotonRate < 0.0 || nMultiPhotonRate > 10000.0) throw std::out_of_range("source::set_multi_photon_rate: nMultiPhotonRate"); 
@@ -162,11 +162,11 @@ void source::set_photon_rate(double nPhotonRate) throw(std::out_of_range) {
 /**
  * sets source signal error probability in [0 - 100 %]
  * 
- * @param   nSignalErrorProbablity      the new signal/error probability
+ * @param   nSignalErrorProbability      the new signal/error probability
  */
-void source::set_signal_error_probability(double nSignalErrorProbablity) throw(std::out_of_range) {
-    if (nSignalErrorProbablity < 0.0 || nSignalErrorProbablity > 100.0) throw std::out_of_range("source::set_signal_error_probability: nSignalErrorProbablity");
-    m_nSignalErrorProbablity = nSignalErrorProbablity / 100.0; // P.G.: added / 100.0
+void source::set_signal_error_probability(double nSignalErrorProbability) throw(std::out_of_range) {
+    if (nSignalErrorProbability < 0.0 || nSignalErrorProbability > 100.0) throw std::out_of_range("source::set_signal_error_probability: nSignalErrorProbability");
+    m_nSignalErrorProbability = nSignalErrorProbability / 100.0; // P.G.: added / 100.0
 }
 
 
@@ -181,7 +181,7 @@ void source::write_parameters(std::ofstream & cStream) {
     cStream << "m_bMultiPhotons: " << m_bMultiPhotons << std::endl;
     cStream << "m_nMultiPhotonRate: " << m_nMultiPhotonRate << std::endl;
     cStream << "m_nPhotonRate: " << m_nPhotonRate << std::endl;
-    cStream << "m_nSignalErrorProbablity: " << m_nSignalErrorProbablity << std::endl;
+    cStream << "m_nSignalErrorProbability: " << m_nSignalErrorProbability << std::endl;
     cStream << std::endl;
 }
 

@@ -107,17 +107,17 @@ void led::blink() {
     
     // evaluate in which blinking state we are
     std::chrono::system_clock::time_point cNow = std::chrono::system_clock::now();
-    uint64_t nBlinkIntervall = 1000 / blinking_hertz();
+    uint64_t nBlinkInterval = 1000 / blinking_hertz();
     uint64_t nSinceLast = std::chrono::duration_cast<std::chrono::milliseconds>(cNow - m_cBlinkingLast).count();
 
     // nothing to do at all
-    if (nSinceLast < nBlinkIntervall) return;
+    if (nSinceLast < nBlinkInterval) return;
     
     // check how many blinks we've passed
-    uint64_t nBlinks = nSinceLast / nBlinkIntervall;
+    uint64_t nBlinks = nSinceLast / nBlinkInterval;
     
     // set new "now" (but with proper timespan, not now + interval)
-    m_cBlinkingLast = m_cBlinkingLast + std::chrono::milliseconds(nBlinks * nBlinkIntervall);
+    m_cBlinkingLast = m_cBlinkingLast + std::chrono::milliseconds(nBlinks * nBlinkInterval);
     
     // an even number of blinks is ... no blink at all
     if (!(nBlinks & 0x00000001)) return;

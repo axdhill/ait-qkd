@@ -53,7 +53,7 @@
 
 int test() {
     
-    // setup a association defintion
+    // setup a association definition
     
     qkd::crypto::association::association_definition cDefintion;
     

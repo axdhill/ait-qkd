@@ -180,7 +180,7 @@ int test() {
     assert(cMemoryA.get() != cMemoryB.get());
     assert(cMemoryA.equal(cMemoryB));
     
-    // copying and assignement
+    // copying and assignment
     cKeyA = cKeyB;
     cKeyB = foo();
     cKeyA = qkd::key::key(foo());

@@ -189,19 +189,19 @@ void module::module_internal::debug_message(bool bSent, qkd::module::message con
  */
 void module::module_internal::debug_key_pull(qkd::key::key const & cKey) {
 
-    boost::format cLineFormater = 
+    boost::format cLineFormatter =
             boost::format("key-PULL [%015ums] id: %010u bits: %010u err: %6.4f dis: %010u crc: %08x state: %-13s");
     
     auto cTimePoint = std::chrono::duration_cast<std::chrono::milliseconds>(cModule->age());
-    cLineFormater % cTimePoint.count();
-    cLineFormater % cKey.id();
-    cLineFormater % (cKey.size() * 8);
-    cLineFormater % cKey.meta().nErrorRate;
-    cLineFormater % cKey.meta().nDisclosedBits;
-    cLineFormater % cKey.data().crc32();
-    cLineFormater % cKey.state_string();
+    cLineFormatter % cTimePoint.count();
+    cLineFormatter % cKey.id();
+    cLineFormatter % (cKey.size() * 8);
+    cLineFormatter % cKey.meta().nErrorRate;
+    cLineFormatter % cKey.meta().nDisclosedBits;
+    cLineFormatter % cKey.data().crc32();
+    cLineFormatter % cKey.state_string();
     
-    qkd::utility::debug() << cLineFormater.str();
+    qkd::utility::debug() << cLineFormatter.str();
 }
 
 
@@ -212,22 +212,22 @@ void module::module_internal::debug_key_pull(qkd::key::key const & cKey) {
  */
 void module::module_internal::debug_key_push(qkd::key::key const & cKey) {
 
-    boost::format cLineFormater = 
+    boost::format cLineFormatter =
             boost::format("key-PUSH [%015ums] id: %010u bits: %010u err: %6.4f dis: %010u crc: %08x state: %-13s dur: %012u ns (%06u ms)");
 
     auto cTimePoint = std::chrono::duration_cast<std::chrono::milliseconds>(cModule->age());
-    cLineFormater % cTimePoint.count();
-    cLineFormater % cKey.id();
-    cLineFormater % (cKey.size() * 8);
-    cLineFormater % cKey.meta().nErrorRate;
-    cLineFormater % cKey.meta().nDisclosedBits;
-    cLineFormater % cKey.data().crc32();
-    cLineFormater % cKey.state_string();
+    cLineFormatter % cTimePoint.count();
+    cLineFormatter % cKey.id();
+    cLineFormatter % (cKey.size() * 8);
+    cLineFormatter % cKey.meta().nErrorRate;
+    cLineFormatter % cKey.meta().nDisclosedBits;
+    cLineFormatter % cKey.data().crc32();
+    cLineFormatter % cKey.state_string();
     auto cNanoSeconds =  std::chrono::duration_cast<std::chrono::nanoseconds>(cKey.dwell());
-    cLineFormater % cNanoSeconds.count();
-    cLineFormater % (uint64_t)(std::floor(cNanoSeconds.count() / 1000000.0 + 0.5));
+    cLineFormatter % cNanoSeconds.count();
+    cLineFormatter % (uint64_t)(std::floor(cNanoSeconds.count() / 1000000.0 + 0.5));
     
-    qkd::utility::debug() << cLineFormater.str();
+    qkd::utility::debug() << cLineFormatter.str();
 }
 
 
