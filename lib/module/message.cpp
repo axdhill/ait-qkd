@@ -73,30 +73,30 @@ message::message(qkd::module::message_type eType) {
  */
 std::string message::string(std::string const & sIndent) const {
     
-    boost::format cLineFormater = boost::format("<%10u><%-8s><%10u><%08x>\n%s");
+    boost::format cLineFormatter = boost::format("<%10u><%-8s><%10u><%08x>\n%s");
 
-    cLineFormater % id();
+    cLineFormatter % id();
     
     switch (type()) {
         
     case qkd::module::message_type::MESSAGE_TYPE_DATA:
-        cLineFormater % "DATA";
+        cLineFormatter % "DATA";
         break;
     
     case qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC:
-        cLineFormater % "KEY_SYNC";
+        cLineFormatter % "KEY_SYNC";
         break;
         
     default:
-        cLineFormater % "UNKNOWN";
+        cLineFormatter % "UNKNOWN";
         break;
     }
+
+    cLineFormatter % data().size();
+    cLineFormatter % data().crc32();
+    cLineFormatter % data().canonical(sIndent);
     
-    cLineFormater % data().size();
-    cLineFormater % data().crc32();
-    cLineFormater % data().canonical(sIndent);
-    
-    return cLineFormater.str();
+    return cLineFormatter.str();
 }
 
 

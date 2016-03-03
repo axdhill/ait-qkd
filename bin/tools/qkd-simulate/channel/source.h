@@ -113,7 +113,7 @@ public:
     /**
      * set multi photon rate in [0 - 1 0000 Hz]
      * 
-     * @param   nMultiPhotonRate        the new multphoton rate
+     * @param   nMultiPhotonRate        the new multi-photon rate
      */
     void set_multi_photon_rate(double nMultiPhotonRate) throw(std::out_of_range);
     
@@ -129,9 +129,9 @@ public:
     /**
      * sets source signal error probability in [0 - 100 %]
      * 
-     * @param   nSignalErrorProbablity      the new signal/error probability
+     * @param   nSignalErrorProbability      the new signal/error probability
      */
-    void set_signal_error_probability(double nSignalErrorProbablity) throw(std::out_of_range);
+    void set_signal_error_probability(double nSignalErrorProbability) throw(std::out_of_range);
 
     
     /**
@@ -139,7 +139,7 @@ public:
      *
      * @return  signal error probability in [%]
      */
-    double signal_error_probability() const { return m_nSignalErrorProbablity * 100.0; };
+    double signal_error_probability() const { return m_nSignalErrorProbability * 100.0; };
 
     
     /**
@@ -162,7 +162,7 @@ private:
     bool m_bMultiPhotons;                       /**< multi photons enabled flag */
     double m_nMultiPhotonRate;                  /**< multi photon rate in 1/s */
     double m_nPhotonRate;                       /**< photon rate in 1/s */
-    double m_nSignalErrorProbablity;            /**< signal/error probability [0-1] */
+    double m_nSignalErrorProbability;           /**< signal/error probability [0-1] */
 };
 
 

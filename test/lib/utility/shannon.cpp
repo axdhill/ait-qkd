@@ -56,7 +56,7 @@
 
 int test() {
 
-    // invalid/extrem cases
+    // invalid/extreme cases
     assert(qkd::utility::binary_entropy(1.0) == 0);
     assert(qkd::utility::binary_entropy(0.0) == 0);
     assert(std::isnan(qkd::utility::binary_entropy(1.5)));
@@ -66,7 +66,7 @@ int test() {
     // 1/2 error
     assert(qkd::utility::binary_entropy(0.5) == 1.0);
     
-    // some erro rrates
+    // some error rates
     double nErrorRate[3] = { 0.10, 0.05, 0.01 };
     
     // calculate the shannon limits

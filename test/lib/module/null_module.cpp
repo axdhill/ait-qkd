@@ -3,7 +3,7 @@
  * 
  * This is a test file.
  *
- * TEST: test the qkd::module::module class for pure compliation
+ * TEST: test the qkd::module::module class for pure compilation
  *
  * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *

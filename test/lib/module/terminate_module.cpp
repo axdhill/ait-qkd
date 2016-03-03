@@ -52,7 +52,7 @@
 
 
 /**
- * The terminate_module test the terminatation after an amount of keys
+ * The terminate_module test the termination after an amount of keys
  */
 class terminate_module : public qkd::module::module {
     

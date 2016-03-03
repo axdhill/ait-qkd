@@ -1,9 +1,9 @@
 /*
- * retio.cpp
+ * si_units.cpp
  * 
  * This is a test file.
  *
- * TEST: test the qkd::utility::ratio method
+ * TEST: test the qkd::utility::ratio_to_string method
  *
  * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *

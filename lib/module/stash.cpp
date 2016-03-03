@@ -233,7 +233,7 @@ qkd::key::key stash::pick_bob() {
     }
     
     if (cMessage.type() != qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC) {
-        throw std::runtime_error("accidently received a non-sync message when waiting for key to pick");
+        throw std::runtime_error("accidentally received a non-sync message when waiting for key to pick");
     }
     
     uint32_t nCmdSync;
@@ -327,7 +327,7 @@ void stash::push(qkd::key::key & cKey) {
 void stash::recv(qkd::module::message & cMessage) {
     
     if (cMessage.type() != qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC) {
-        throw std::runtime_error("accidently tried to sync keys based on a non-sync message");
+        throw std::runtime_error("accidentally tried to sync keys based on a non-sync message");
     }
 
     m_cPeerStash.clear();

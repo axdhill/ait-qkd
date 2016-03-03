@@ -115,7 +115,7 @@ void qkd::internal_backtrace::dump_trace(int nSignal) {
     const int nCalls = ::backtrace(cBuffer, 255); 
 
     // dump stack
-    std::cerr << "\n\n**** WOHA! WOHA! WOHA! Something nasty has happend!! =( ****\nDumping backtrace. The lines below might come handy ...\nSorry, the AIT QDK team.\n" << std::endl;
+    std::cerr << "\n\n**** WOHA! WOHA! WOHA! Something nasty has happened!! =( ****\nDumping backtrace. The lines below might come handy ...\nSorry, the AIT QDK team.\n" << std::endl;
     backtrace_symbols_fd(cBuffer, nCalls, 2);
 
     signal(nSignal, SIG_DFL);

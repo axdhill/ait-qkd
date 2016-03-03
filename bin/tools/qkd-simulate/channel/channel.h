@@ -435,7 +435,7 @@ private:
      * 
      * @param   cMeasurement     the measurement made
      */
-    void flush_measurment(qkd::simulate::measurement const & cMeasurement);
+    void flush_measurement(qkd::simulate::measurement const &cMeasurement);
     
     
     /**

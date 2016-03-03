@@ -90,7 +90,7 @@ int test() {
     cMemoryB = qkd::utility::memory::from_hex("04f3e58");
     cBigintA = qkd::utility::bigint(cMemoryA);
     
-    // string represenations functions
+    // string representation functions
     assert(cBigintA.as_dual().compare("11110000010011010111110010100000") == 0);
     assert(cBigintA.as_dec().compare("4031610016") == 0);
     assert(cBigintA.as_hex().compare("f04d7ca0") == 0);

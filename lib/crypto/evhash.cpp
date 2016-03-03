@@ -321,9 +321,9 @@ protected:
     /**
      * shift a blob to the left for an amount of bits
      *
-     * @param   res             num << bits plus oveflow
+     * @param   res             num << bits plus overflow
      * @param   num             the number to shift
-     * @param   overflow        will contain the oveflow
+     * @param   overflow        will contain the overflow
      * @param   bits            amount of bits to shift
      */
     inline void blob_shift_left(blob_t & res, blob_t const & num, blob_t & overflow, unsigned int bits) const {

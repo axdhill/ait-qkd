@@ -80,7 +80,7 @@ void investigation_dbus::add_link(qkd::utility::investigation_result & cInvestig
     // parse the result
     QMap<QString, QVariant> cResult = qkd::utility::dbus::map(cReply);
     if (!cResult.contains("id")) {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << sNodeServiceName.toStdString() << ": link has no id - huh? Go, tell Oliver! This mustnot happen! o.O";
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << sNodeServiceName.toStdString() << ": link has no id - huh? Go, tell Oliver! This must not happen! o.O";
         return;
     }
     
@@ -131,7 +131,7 @@ void investigation_dbus::add_module(qkd::utility::investigation_result & cInvest
     // parse the result
     QMap<QString, QVariant> cResult = qkd::utility::dbus::map(cReply);
     if (!cResult.contains("id")) {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << sServiceName.toStdString() << ": module has no id - huh? Go, tell Oliver! This mustnot happen! o.O";
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << sServiceName.toStdString() << ": module has no id - huh? Go, tell Oliver! This must not happen! o.O";
         return;
     }
     

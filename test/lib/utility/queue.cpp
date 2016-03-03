@@ -57,7 +57,7 @@ int test() {
     // create a queue
     qkd::utility::queue<std::string> cQueue;
     
-    // check for emptyness
+    // check for emptiness
     assert(cQueue.empty());
     assert(cQueue.size() == 0);
     
@@ -65,7 +65,7 @@ int test() {
     cQueue.push("Two");
     cQueue.push("Three");
     
-    // check for emptyness
+    // check for emptiness
     assert(!cQueue.empty());
     assert(cQueue.size() == 3);
     

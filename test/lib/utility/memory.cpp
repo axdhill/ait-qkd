@@ -146,7 +146,7 @@ int test() {
     cMemoryB = qkd::utility::memory((unsigned char *)area, 10);
     assert(cMemoryB.size() == 10);
 
-    // A and B are not identical but simliar
+    // A and B are not identical but similiar
     assert(cMemoryA != cMemoryB);
     assert(cMemoryA.equal(cMemoryB));
 

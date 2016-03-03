@@ -532,7 +532,7 @@ QStringList node::links() {
 /**
  * load the config file
  * 
- * @param   cConfig         [out] the found proerties inside the config file
+ * @param   cConfig         [out] the properties found inside the config file
  */
 void node::load_config_file(qkd::utility::properties & cConfig) {
 

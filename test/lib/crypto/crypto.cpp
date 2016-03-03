@@ -459,7 +459,7 @@ int test() {
     cEvHash96_A << cText[1];
     cEvHash96_A << cText[2];
 
-    cEvHash96_A->finalize(cFinalKey);   // <--- cut: add remainding message bytes to tag now
+    cEvHash96_A->finalize(cFinalKey);   // <--- cut: add remaining message bytes to tag now
                                         //      the final key does not modify the internal
                                         //      state of the ev-hash
     cEvHash96_A << cText[3];

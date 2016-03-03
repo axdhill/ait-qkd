@@ -297,7 +297,7 @@ std::string channel::channel_error_description(qkd::q3p::channel_error eError) {
         
     }
     
-    return "unkown error";
+    return "unknown error";
 }
 
 

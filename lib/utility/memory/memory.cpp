@@ -153,7 +153,7 @@ std::string memory::canonical(std::string const sIndent) const {
         
         if (i) ss << "\n";
     
-        boost::format cLineFormater = boost::format("%s%08x   %-49s  |%-17s|");
+        boost::format cLineFormatter = boost::format("%s%08x   %-49s  |%-17s|");
 
         std::stringstream ss_hex;
         std::stringstream ss_ascii;
@@ -177,13 +177,13 @@ std::string memory::canonical(std::string const sIndent) const {
             if ((m_cMemory[j] >= ' ') && (m_cMemory[j] <= '~')) ss_ascii << m_cMemory[j];
             else ss_ascii << '.';
         }
+
+        cLineFormatter % sIndent;
+        cLineFormatter % i;
+        cLineFormatter % ss_hex.str();
+        cLineFormatter % ss_ascii.str();
         
-        cLineFormater % sIndent;
-        cLineFormater % i;
-        cLineFormater % ss_hex.str();
-        cLineFormater % ss_ascii.str();
-        
-        ss << cLineFormater.str();
+        ss << cLineFormatter.str();
     }
     
     return ss.str();
