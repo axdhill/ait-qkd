@@ -1,0 +1,110 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-qkd-view-json
+# 
+# This is a test file.
+#
+# TEST: tests the JSON-compliant output format of qkd-view
+#
+# Author: Manuel Warum, <manuel.warum@ait.ac.at>
+#
+# Copyright (C) 2013-2016 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+# ------------------------------------------------------------
+
+test_init "$(basename $0).d"
+
+NUMBER_KEYS=100
+NUMBER_TEE=10
+
+rm -rf ipc-keys.* &> /dev/null
+
+${TEST_BASE}/bin/qkd-key-gen --silent --keys=${NUMBER_KEYS} --random-url=linear-congruential:42 ipc-keys
+rm -f ipc-keys.bob &> /dev/null
+
+# start the modules in the background
+( ${TEST_BASE}/bin/qkd-cat --run --config ${TEST_BASE}/test/test-data/ipc-cat-tee/cat.conf 2> /dev/null ) &
+( ${TEST_BASE}/bin/qkd-tee --run --config ${TEST_BASE}/test/test-data/ipc-cat-tee/tee-1.conf --file ipc-keys.1 2> /dev/null ) &
+( ${TEST_BASE}/bin/qkd-tee --run --config ${TEST_BASE}/test/test-data/ipc-cat-tee/tee-2.conf --file ipc-keys.2 2> /dev/null ) &
+( ${TEST_BASE}/bin/qkd-tee --run --config ${TEST_BASE}/test/test-data/ipc-cat-tee/tee-3.conf --file ipc-keys.3 2> /dev/null ) &
+( ${TEST_BASE}/bin/qkd-tee --run --config ${TEST_BASE}/test/test-data/ipc-cat-tee/tee-4.conf --file ipc-keys.4 2> /dev/null ) &
+( ${TEST_BASE}/bin/qkd-tee --run --config ${TEST_BASE}/test/test-data/ipc-cat-tee/tee-5.conf --file ipc-keys.5 2> /dev/null ) &
+( ${TEST_BASE}/bin/qkd-tee --run --config ${TEST_BASE}/test/test-data/ipc-cat-tee/tee-6.conf --file ipc-keys.6 2> /dev/null ) &
+( ${TEST_BASE}/bin/qkd-tee --run --config ${TEST_BASE}/test/test-data/ipc-cat-tee/tee-7.conf --file ipc-keys.7 2> /dev/null ) &
+( ${TEST_BASE}/bin/qkd-tee --run --config ${TEST_BASE}/test/test-data/ipc-cat-tee/tee-8.conf --file ipc-keys.8 2> /dev/null ) &
+( ${TEST_BASE}/bin/qkd-tee --run --config ${TEST_BASE}/test/test-data/ipc-cat-tee/tee-9.conf --file ipc-keys.9 2> /dev/null ) &
+( ${TEST_BASE}/bin/qkd-tee --run --config ${TEST_BASE}/test/test-data/ipc-cat-tee/tee-10.conf --file ipc-keys.10 2> /dev/null ) &
+
+# wait until the modules are up
+while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module.cat | wc -l)" != "1" ]; do
+    echo "waiting for the pipeline to ignite ..."
+    sleep 1
+done
+while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module.tee | wc -l)" != "${NUMBER_TEE}" ]; do
+    echo "waiting for the pipeline to ignite ..."
+    sleep 1
+done
+echo "modules created"
+
+wait_idle cat
+
+${TEST_BASE}/bin/qkd-view --json > qkd_view.post-cat.json
+
+wait_idle tee
+
+${TEST_BASE}/bin/qkd-view --json > qkd_view.post-tee.json
+
+sleep 1
+
+# It's incredibly difficult to test time-sensitive JSON data, so we're basically just looking for
+# indicators that it might be somewhat complete.
+
+if [ ! -f qkd_view.post-cat.json ] || ! grep -q \{ qkd_view.post-cat.json; then
+    echo "Could not find any JSON output from qkd-view (after cat) - failed"
+    exit 1
+fi
+
+if [ ! -f qkd_view.post-tee.json ] || ! grep -q \{ qkd_view.post-tee.json; then
+    echo "Could not find any JSON output from qkd-view (after tee) - failed"
+    exit 1
+fi
+
+if [ $(wc -c < qkd_view.post-cat.json) -lt 200 ]; then
+    echo "JSON output might not be complete (after cat) - failed"
+fi
+
+if [ $(wc -c < qkd_view.post-tee.json) -lt 200 ]; then
+    echo "JSON output might not be complete (after tee) - warning, inconclusive"
+fi
+
+# stop modules
+test_cleanup
+rm -rf ipc-keys.* &> /dev/null
+    
+# state that test ok
+echo "=== TEST SUCCESS ==="
+
