@@ -28,12 +28,6 @@
  */
 
  
-/*
- * Netlink interaction inspired by 
- * http://stackoverflow.com/questions/3288065/getting-gateway-to-use-for-a-given-ip-in-ansi-c#3288983
- */
-
-
 // this is only Linux code
 #if defined(__linux__)
 
@@ -41,30 +35,15 @@
 // ------------------------------------------------------------
 // incs
 
-#include <stddef.h>
-
 #include <atomic>
 #include <thread>
 #include <signal.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/stat.h>
 #include <fcntl.h>
-
+ 
 #include <arpa/inet.h>
-#include <asm/types.h>
 #include <linux/if.h>
 #include <linux/if_tun.h>
-#include <linux/netlink.h>
-#include <linux/rtnetlink.h> 
 #include <sys/ioctl.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-
-#include <boost/format.hpp>
-
-// Qt
-#include <QtCore/QSocketNotifier>
 
 // ait
 #include <qkd/q3p/engine.h>
@@ -73,19 +52,6 @@
 #include <qkd/utility/syslog.h>
 
 using namespace qkd::q3p;
-
-#define NIC_OS_DETAIL_IMPLEMENTATION
-#include "nic_common.cpp"
-
-
-// ------------------------------------------------------------
-// vars
-
-
-/**
- * netlink message sequence number
- */
-static unsigned int g_nNetlinkMessageNumber = 0;
 
 
 // ------------------------------------------------------------
@@ -158,31 +124,6 @@ bool init_tun(int & nDeviceFD, std::string & sDeviceName);
  * @return  true, if inet_aton accepts it (or similar)
  */
 bool is_ip4_string(std::string const & sIP4);
-
-
-/**
- * receive from the netlink layer
- * 
- * The buffer has to be allocated prior with a proper buffer size. On success the buffer
- * will be filled with nlmsghdr structs linear. On success the number of bytes written
- * to the buffer is returned, else -1.
- * 
- * @param   nSocket             the netlink socket
- * @param   cBuffer             the buffer which receives the netlink messages
- * @param   nMessageNumber      the message number to receive
- * @return  number of bytes received (-1 in case of error)
- */
-int netlink_recv(int nSocket, char * cBuffer, ssize_t nBufferSize, int nMessageNumber);
-    
-    
-/**
- * send a netlink message to the kernel
- * 
- * @param   nSocket             the netlink socket
- * @param   cNetlinkMessage     the message to be sent
- * @return  true on successul sent
- */
-bool netlink_send(int nSocket, struct nlmsghdr * cNetlinkMessage);
 
 
 /**
@@ -418,92 +359,6 @@ in_addr_t get_current_ip4(std::string const & sDevice) {
     res = cAddr.sin_addr.s_addr;
 
     return res;
-}
-
-
-/**
- * receive from the netlink layer
- * 
- * The buffer has to be allocated prior with a proper buffer size. On success the buffer
- * will be filled with nlmsghdr structs linearly. On success the number of bytes written
- * to the buffer is returned, else -1.
- * 
- * @param   nSocket             the netlink socket
- * @param   cBuffer             the buffer which receives the netlink messages
- * @param   nMessageNumber      the message number to receive
- * @return  number of bytes received (-1 in case of error)
- */
-int netlink_recv(int nSocket, char * cBuffer, ssize_t nBufferSize, unsigned int nMessageNumber) {
-    
-    unsigned int nProcessId = getpid();
-    int nRead = 0;
-    int nMessageLen = 0;
-
-    struct nlmsghdr * cNetlinkMessage = nullptr;
-    
-    do {
-        
-        nRead = recv(nSocket, cBuffer, nBufferSize - nMessageLen, 0);
-        if (nRead < 0) {
-            qkd::utility::debug() << "Failed to read from netlink socket. Error: " << strerror(errno);
-            return -1;
-        }
-
-        // TODO: check if the message number and the destination pid is ok
-        
-        cNetlinkMessage = (struct nlmsghdr *)cBuffer;
-
-        if ((NLMSG_OK(cNetlinkMessage, nRead) == 0) || (cNetlinkMessage->nlmsg_type == NLMSG_ERROR)) {
-            qkd::utility::debug() << "Error in received netlink message. Error: " << strerror(errno);
-            return -1;
-        }
-
-        if (cNetlinkMessage->nlmsg_type == NLMSG_DONE) {
-            break;
-        } 
-        else {
-            cBuffer += nRead;
-            nMessageLen += nRead;
-        }
-
-        if ((cNetlinkMessage->nlmsg_flags & NLM_F_MULTI) == 0) {
-            // no multipart message --> no further recv necessary
-            break;
-        }
-        
-    } while ((cNetlinkMessage->nlmsg_seq != nMessageNumber) || (cNetlinkMessage->nlmsg_pid != nProcessId));
-    
-    return nMessageLen;
-}
-
-
-/**
- * send a netlink message to the kernel
- * 
- * @param   nSocket             the netlink socket
- * @param   cNetlinkMessage     the message to be sent
- * @return  true on successul sent
- */
-bool netlink_send(int nSocket, struct nlmsghdr * cNetlinkMessage) {
-    
-    if (nSocket == -1) {
-        qkd::utility::debug() << "Refused to send netlink message on invalid socket.";
-        return false;
-    }
-    if (cNetlinkMessage == nullptr) {
-        qkd::utility::debug() << "Refused to send NULL netlink message.";
-        return false;
-    }
-    
-    cNetlinkMessage->nlmsg_seq = g_nNetlinkMessageNumber++;
-    cNetlinkMessage->nlmsg_pid = getpid();
-    
-    if (send(nSocket, cNetlinkMessage, cNetlinkMessage->nlmsg_len, 0) < 0) {
-        qkd::utility::debug() << "Failed to send netlink message. Error: " << strerror(errno);
-        return false;
-    }
-    
-    return true;
 }
 
 

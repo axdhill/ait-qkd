@@ -28,9 +28,14 @@
  */
 
 
-#ifndef NIC_OS_DETAIL_IMPLEMENTATION
-#error "nic_common.cpp may not be directly compiled. It is to be included into the nic_[OS].cpp files."
-#endif
+// ------------------------------------------------------------
+// incs
+
+// // ait
+#include <qkd/q3p/engine.h>
+#include <qkd/q3p/nic.h>
+
+using namespace qkd::q3p;
 
 
 // ------------------------------------------------------------

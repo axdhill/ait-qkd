@@ -38,9 +38,6 @@
 
 using namespace qkd::q3p;
 
-#define NIC_OS_DETAIL_IMPLEMENTATION
-#include "nic_common.cpp"
-
 
 // ------------------------------------------------------------
 // code

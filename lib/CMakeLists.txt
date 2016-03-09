@@ -126,8 +126,10 @@ set(QKD_SRC
     q3p/engine/engine.cpp
     q3p/engine/message.cpp
     q3p/engine/mq.cpp
-    q3p/engine/nic_linux.cpp
-    q3p/engine/nic_win32.cpp
+    q3p/engine/nic.cpp
+    q3p/engine/linux/netlink.cpp
+    q3p/engine/linux/nic_linux.cpp
+    q3p/engine/win32/nic_win32.cpp
     q3p/engine/protocol/data.cpp
     q3p/engine/protocol/handshake.cpp
     q3p/engine/protocol/key_move.cpp
