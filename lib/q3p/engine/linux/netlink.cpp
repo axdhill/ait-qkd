@@ -47,6 +47,8 @@
 #include <unistd.h>
 #include <sys/socket.h>
 
+#include <boost/format.hpp>
+
 // ait
 #include <qkd/utility/debug.h>
 #include "netlink.h"
@@ -74,9 +76,9 @@ static unsigned int g_nNetlinkMessageNumber = 0;
  * @return  a human readble string for the route
  */
 std::string netlink::route::str() const {
-    
-    // TODO
-    return "TBD";
+    boost::format cFormat("from: %-15s to: %-15s gw: %-15s dev: %s");
+    cFormat % inet_ntoa(cSrcAddress) % inet_ntoa(cDstAddress) % inet_ntoa(cGateway) % sInterface;
+    return cFormat.str();
 }
 
 
@@ -84,9 +86,9 @@ std::string netlink::route::str() const {
  * ctor
  */
 netlink::netlink() {
-    m_nNetlinkSocket = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_ROUTE);
-    if (m_nNetlinkSocket == -1) {
-        qkd::utility::debug() << "Failed to create netlink socket. Error: " << strerror(errno);
+    m_nNetlinkRouteSocket = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_ROUTE);
+    if (m_nNetlinkRouteSocket == -1) {
+        qkd::utility::debug() << "Failed to create netlink route socket. Error: " << strerror(errno);
     }
 }
 
@@ -95,8 +97,8 @@ netlink::netlink() {
  * dtor
  */
 netlink::~netlink() {
-    if (m_nNetlinkSocket == -1) {
-        close(m_nNetlinkSocket);
+    if (m_nNetlinkRouteSocket == -1) {
+        close(m_nNetlinkRouteSocket);
     }
 }
 
@@ -134,13 +136,14 @@ netlink & netlink::instance() {
  * will be filled with nlmsghdr structs linearly. On success the number of bytes written
  * to the buffer is returned, else -1.
  * 
+ * @param   nSocket             the netlink socket to use
  * @param   cBuffer             the buffer which receives the netlink messages
  * @param   nMessageNumber      the message number to receive
  * @return  number of bytes received (-1 in case of error)
  */
-int netlink::recv(char * cBuffer, ssize_t nBufferSize, unsigned int nMessageNumber) {
+int netlink::recv(int nSocket, char * cBuffer, ssize_t nBufferSize, unsigned int nMessageNumber) {
     
-    if (m_nNetlinkSocket == -1) {
+    if (nSocket == -1) {
         qkd::utility::debug() << "Refused to receive netlink message on invalid socket.";
         return 0;
     }
@@ -153,7 +156,7 @@ int netlink::recv(char * cBuffer, ssize_t nBufferSize, unsigned int nMessageNumb
     
     do {
         
-        nRead = ::recv(m_nNetlinkSocket, cBuffer, nBufferSize - nMessageLen, 0);
+        nRead = ::recv(nSocket, cBuffer, nBufferSize - nMessageLen, 0);
         if (nRead < 0) {
             qkd::utility::debug() << "Failed to read from netlink socket. Error: " << strerror(errno);
             return -1;
@@ -190,12 +193,13 @@ int netlink::recv(char * cBuffer, ssize_t nBufferSize, unsigned int nMessageNumb
 /**
  * send a netlink message to the kernel
  * 
+ * @param   nSocket             the netlink socket to use
  * @param   cNetlinkMessage     the message to be sent
  * @return  message number sent (or 0 in case or error)
  */
-unsigned int netlink::send(struct nlmsghdr * cNetlinkMessage) {
+unsigned int netlink::send(int nSocket, struct nlmsghdr * cNetlinkMessage) {
     
-    if (m_nNetlinkSocket == -1) {
+    if (nSocket == -1) {
         qkd::utility::debug() << "Refused to send netlink message on invalid socket.";
         return 0;
     }
@@ -210,7 +214,7 @@ unsigned int netlink::send(struct nlmsghdr * cNetlinkMessage) {
     cNetlinkMessage->nlmsg_seq = g_nNetlinkMessageNumber;
     cNetlinkMessage->nlmsg_pid = getpid();
     
-    if (::send(m_nNetlinkSocket, cNetlinkMessage, cNetlinkMessage->nlmsg_len, 0) < 0) {
+    if (::send(nSocket, cNetlinkMessage, cNetlinkMessage->nlmsg_len, 0) < 0) {
         qkd::utility::debug() << "Failed to send netlink message. Error: " << strerror(errno);
         return 0;
     }

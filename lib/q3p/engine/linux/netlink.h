@@ -105,29 +105,6 @@ public:
     static netlink & instance();
 
 
-    /**
-     * receive from the netlink layer
-     * 
-     * The buffer has to be allocated prior with a proper buffer size. On success the buffer
-     * will be filled with nlmsghdr structs linear. On success the number of bytes written
-     * to the buffer is returned, else -1.
-     * 
-     * @param   cBuffer             the buffer which receives the netlink messages
-     * @param   nMessageNumber      the message number to receive
-     * @return  number of bytes received (-1 in case of error)
-     */
-    int recv(char * cBuffer, ssize_t nBufferSize, unsigned int nMessageNumber);
-    
-        
-    /**
-     * send a netlink message to the kernel
-     * 
-     * @param   cNetlinkMessage     the message to be sent
-     * @return  message number sent (or 0 in case or error)
-     */
-    unsigned int send(struct nlmsghdr * cNetlinkMessage);
-
-
 private:
     
     
@@ -144,9 +121,34 @@ private:
     
     
     /**
-     * the netlink socket
+     * receive from the netlink layer
+     * 
+     * The buffer has to be allocated prior with a proper buffer size. On success the buffer
+     * will be filled with nlmsghdr structs linear. On success the number of bytes written
+     * to the buffer is returned, else -1.
+     * 
+     * @param   nSocket             the netlink socket to use
+     * @param   cBuffer             the buffer which receives the netlink messages
+     * @param   nMessageNumber      the message number to receive
+     * @return  number of bytes received (-1 in case of error)
      */
-    int m_nNetlinkSocket;
+    int recv(int nSocket, char * cBuffer, ssize_t nBufferSize, unsigned int nMessageNumber);
+    
+        
+    /**
+     * send a netlink message to the kernel
+     * 
+     * @param   nSocket             the netlink socket to use
+     * @param   cNetlinkMessage     the message to be sent
+     * @return  message number sent (or 0 in case or error)
+     */
+    unsigned int send(int nSocket, struct nlmsghdr * cNetlinkMessage);
+
+
+    /**
+     * the netlink route socket
+     */
+    int m_nNetlinkRouteSocket;
     
 };
   
