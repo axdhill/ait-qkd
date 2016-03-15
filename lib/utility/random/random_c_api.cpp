@@ -90,7 +90,7 @@ void random_c_api::get(char * cBuffer, uint64_t nSize) {
  *
  * @param  seed  the seed value to use.
  */
-void random_c_api::seed(unsigned int seed) const {
+void random_c_api::seed(result_type seed) {
     srand(seed);
 }
 

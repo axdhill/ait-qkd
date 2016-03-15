@@ -97,7 +97,7 @@ void random_congruential::get(char * cBuffer, uint64_t nSize) {
  *
  * @param  seed  the seed value to use.
  */
-void random_congruential::seed(unsigned int seed) {
+void random_congruential::seed(result_type seed) {
     m_cLinearCongruentialEngine.seed(seed);
 }
 

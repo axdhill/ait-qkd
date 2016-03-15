@@ -348,13 +348,18 @@ public:
     static random & source();
 
 
-protected:
-
-
     /**
      * ctor
      */
     random_source() {};
+
+    /**
+     * iff the underlying implementation supports it, the random source will be seeded
+     * with the specified value.
+     *
+     * @param   seed    the seed to use, if applicable.
+     */
+    virtual void seed(UNUSED result_type seed) { };
     
     
 private:

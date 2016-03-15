@@ -88,7 +88,7 @@ public:
      *
      * @param  seed  the seed value to use.
      */
-    void seed(unsigned int seed) const;
+    void seed(result_type seed);
     
 
 private:
