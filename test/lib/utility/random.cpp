@@ -233,8 +233,9 @@ int test() {
 
     // Asserting that random_source follows C++'s UniformRandomNumberGenerator concept
     // This is probably a compile-time check more than anything else
-    std::uniform_int_distribution<int64_t> d(0, 1000);
-    d(*cRandom);
+    std::uniform_int_distribution<int64_t> d(0, 10);
+    nR_i = d(*cRandom);
+    assert(nR_i >= 0 && nR_i <= 10);
     std::cout << "random_source appears to follow the UniformRandomNumberGenerator concept" << std::endl;
 
     return 0;
