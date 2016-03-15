@@ -39,6 +39,7 @@
 // ait
 #include <qkd/utility/shannon.h>
 #include <qkd/utility/syslog.h>
+#include <qkd/utility/random.h>
 
 #include "category.h"
 #include "qkd-cascade.h"
@@ -69,6 +70,7 @@ public:
      */
     qkd_cascade_data() : nPasses(14) {
         cAvgError = qkd::utility::average_technique::create("value", 10);
+        cRandom = qkd::utility::random_source::create("");
     };
 
 
@@ -100,7 +102,7 @@ public:
      */
     inline bool rand_bit(double p) {
         std::bernoulli_distribution cDistribution(p); 
-        return cDistribution(cRandom); 
+        return cDistribution(*cRandom);
     }
 
 
@@ -113,7 +115,7 @@ public:
      */
     int64_t rand_int(int64_t a, int64_t b) {                                                                                                                                                                                                                               
         std::uniform_int_distribution<int64_t> cDistribution(a,b);
-        return cDistribution(cRandom);
+        return cDistribution(*cRandom);
     }
 
 
@@ -122,14 +124,14 @@ public:
      *
      * @param   nSeed           the new random number generator seed
      */
-    void set_random_seed(std::default_random_engine::result_type nSeed) { cRandom.seed(nSeed); };
+    void set_random_seed(qkd::utility::random_source::result_type nSeed) { cRandom->seed(nSeed); };
 
 
-    std::recursive_mutex cPropertyMutex;    /**< property mutex */
+    std::recursive_mutex cPropertyMutex;                      /**< property mutex */
 
-    qkd::utility::average cAvgError;        /**< the error rate averaged over the last samples */
-    uint64_t nPasses;                       /**< number of passes */
-    std::default_random_engine cRandom;     /**< random engine used */
+    qkd::utility::average cAvgError;                          /**< the error rate averaged over the last samples */
+    uint64_t nPasses;                                         /**< number of passes */
+    std::shared_ptr<qkd::utility::random_source> cRandom;     /**< random engine used */
 };
 
 
