@@ -231,6 +231,12 @@ int test() {
     }
     std::cout << "lin. congr./seeded random: second run produces same numbers with same seed" << std::endl;
 
+    // Asserting that random_source follows C++'s UniformRandomNumberGenerator concept
+    // This is probably a compile-time check more than anything else
+    std::uniform_int_distribution<int64_t> d(0, 1000);
+    d(*cRandom);
+    std::cout << "random_source appears to follow the UniformRandomNumberGenerator concept" << std::endl;
+
     return 0;
 }
 

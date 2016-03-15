@@ -107,6 +107,24 @@ class random_source {
 
     
 public:
+    // Definition to satisfy the UniformRandomNumberGenerator concept
+    typedef int64_t result_type;
+
+    // Definition to satisfy the UniformRandomNumberGenerator concept
+    static constexpr result_type min() { return std::numeric_limits<result_type>::min(); }
+
+    // Definition to satisfy the UniformRandomNumberGenerator concept
+    static constexpr result_type max() { return std::numeric_limits<result_type>::max(); }
+
+    // Definition to satisfy the UniformRandomNumberGenerator concept
+    virtual double entropy() const { return 0.; }
+
+    // Definition to satisfy the UniformRandomNumberGenerator concept
+    result_type operator()() {
+        result_type i;
+        get((char*)&i, sizeof(i));
+        return i;
+    }
 
 
     /**
