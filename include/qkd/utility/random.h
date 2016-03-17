@@ -116,7 +116,7 @@ public:
      * This class method exists to satisfy the UniformRandomNumberGenerator concept and returns
      * the lower bound of the domain used by this number generator.
      *
-     * @return  returns the smallest value that G's operator() may return.
+     * @return  returns the smallest value that the operator() may return.
      */
     static constexpr result_type min() { return std::numeric_limits<result_type>::min(); }
 
@@ -124,7 +124,7 @@ public:
      * This class method exists to satisfy the UniformRandomNumberGenerator concept and returns
      * the upper bound of the domain used by this number generator.
      *
-     * @return  returns the largest value that G's operator() may return.
+     * @return  returns the largest value that the operator() may return.
      */
     static constexpr result_type max() { return std::numeric_limits<result_type>::max(); }
 
