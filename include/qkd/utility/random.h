@@ -125,7 +125,7 @@ public:
     static constexpr result_type max() { return std::numeric_limits<result_type>::max(); }
 
     /**
-     * This class method exists to satisfy the UniformRandomNumberGenerator concept and returns
+     * This method exists to satisfy the UniformRandomNumberGenerator concept and returns
      * a value indicating the entropy of this random number generator, depending on the
      * underlying implementation and defaulting to 0 (the worst case). A deterministic random
      * number generator (e.g. a pseudo-random engine) has entropy zero.
@@ -133,7 +133,8 @@ public:
     virtual double entropy() const { return 0.; }
 
     /**
-     * Returns a value in the closed interval.
+     * This method exists to satisfy the UniformRandomNumberGenerator concept and returns
+     * a value in the closed interval.
      * @return  a number between min() and max()
      */
     result_type operator()() {
