@@ -107,19 +107,35 @@ class random_source {
 
     
 public:
-    // Definition to satisfy the UniformRandomNumberGenerator concept
+    /**
+     * This type definition exists to satisfy the UniformRandomNumberGenerator concept.
+     */
     typedef int64_t result_type;
 
-    // Definition to satisfy the UniformRandomNumberGenerator concept
+    /**
+     * This class method exists to satisfy the UniformRandomNumberGenerator concept and returns
+     * the lower bound of the domain used by this number generator.
+     */
     static constexpr result_type min() { return std::numeric_limits<result_type>::min(); }
 
-    // Definition to satisfy the UniformRandomNumberGenerator concept
+    /**
+     * This class method exists to satisfy the UniformRandomNumberGenerator concept and returns
+     * the upper bound of the domain used by this number generator.
+     */
     static constexpr result_type max() { return std::numeric_limits<result_type>::max(); }
 
-    // Definition to satisfy the UniformRandomNumberGenerator concept
+    /**
+     * This class method exists to satisfy the UniformRandomNumberGenerator concept and returns
+     * a value indicating the entropy of this random number generator, depending on the
+     * underlying implementation and defaulting to 0 (the worst case). A deterministic random
+     * number generator (e.g. a pseudo-random engine) has entropy zero.
+     */
     virtual double entropy() const { return 0.; }
 
-    // Definition to satisfy the UniformRandomNumberGenerator concept
+    /**
+     * Returns a value in the closed interval.
+     * @return  a number between min() and max()
+     */
     result_type operator()() {
         result_type i;
         get((char*)&i, sizeof(i));
