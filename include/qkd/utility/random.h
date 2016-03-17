@@ -115,12 +115,16 @@ public:
     /**
      * This class method exists to satisfy the UniformRandomNumberGenerator concept and returns
      * the lower bound of the domain used by this number generator.
+     *
+     * @return  returns the smallest value that G's operator() may return.
      */
     static constexpr result_type min() { return std::numeric_limits<result_type>::min(); }
 
     /**
      * This class method exists to satisfy the UniformRandomNumberGenerator concept and returns
      * the upper bound of the domain used by this number generator.
+     *
+     * @return  returns the largest value that G's operator() may return.
      */
     static constexpr result_type max() { return std::numeric_limits<result_type>::max(); }
 
@@ -129,12 +133,16 @@ public:
      * a value indicating the entropy of this random number generator, depending on the
      * underlying implementation and defaulting to 0 (the worst case). A deterministic random
      * number generator (e.g. a pseudo-random engine) has entropy zero.
+     *
+     * @return   value indicating the entropy of this random number generator where 0 is a
+     * deterministic random number generator.
      */
     virtual double entropy() const { return 0.; }
 
     /**
      * This method exists to satisfy the UniformRandomNumberGenerator concept and returns
      * a value in the closed interval.
+     *
      * @return  a number between min() and max()
      */
     result_type operator()() {
