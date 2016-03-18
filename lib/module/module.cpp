@@ -1501,7 +1501,6 @@ void module::work() {
             if (!read(cKey)) {
 
                 if (get_state() != qkd::module::module_state::STATE_RUNNING) break;
-                qkd::utility::debug() << "failed to read key from previous module in pipe";
                 continue;
             }
             
