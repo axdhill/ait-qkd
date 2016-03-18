@@ -1500,8 +1500,6 @@ bool engine_instance::process(UNUSED qkd::key::key & cKey, UNUSED qkd::crypto::c
  */
 void engine_instance::q3p_timeout() {
     
-    qkd::utility::debug() << "timeout: running Q3P LOAD and Q3P STORE or reconnect";
-    
     if (connected()) {
     
         if (d->m_cProtocol.cLoad) d->m_cProtocol.cLoad->run();
