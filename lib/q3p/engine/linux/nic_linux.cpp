@@ -51,6 +51,8 @@
 #include <qkd/utility/debug.h>
 #include <qkd/utility/syslog.h>
 
+#include "netlink.h"
+
 using namespace qkd::q3p;
 
 
@@ -94,18 +96,6 @@ bool check_device_flags(std::string const & sDevice);
  * @return  the inetrnet IP4 address of the device
  */
 in_addr_t get_current_ip4(std::string const & sDevice);
-
-
-/**
- * quick and dirty in_addr_t to string
- * 
- * (because standard POSIX stuff is plain stupid with all
- * that struct inaddr, in_addr_t, s_addr, ... what a mess!)
- * 
- * @param   nIP4        the IP4 address
- * @return  string in the 4 digit-dot notation
- */
-std::string inet_addr_to_string(in_addr_t nIP4);
 
 
 /**
@@ -213,6 +203,15 @@ bool nic_instance::add_ip4_route() {
         qkd::utility::debug() << "Failed to translate remote IP4 address: '" << m_sIP4Remote << "'";
         return false;
     }
+    
+    netlink::route cRoute;
+    cRoute.cDstAddress.s_addr = inet_addr(m_sIP4Remote.c_str());
+    cRoute.cSrcAddress.s_addr = inet_addr(m_sIP4Local.c_str());
+    cRoute.cGateway.s_addr = 0;
+    cRoute.sInterface = m_sName;
+    
+    netlink & cNetlink = netlink::instance();
+    cNetlink.add_route(cRoute);
     
     return false;
 }
@@ -404,31 +403,13 @@ bool set_current_ip4(std::string const & sDevice, in_addr_t nIP4) {
     nExitCode = ioctl(s, SIOCSIFADDR, &cIFReq);
     close(s);
     if (nExitCode != 0) {
-        qkd::utility::syslog::warning() << "Failed to assign IP4 '" << inet_addr_to_string(nIP4) << "' to interface " << sDevice << ": error code = " << errno << " - " << strerror(errno);
+        in_addr cIP4;
+        cIP4.s_addr = nIP4;
+        qkd::utility::syslog::warning() << "Failed to assign IP4 '" << inet_ntoa(cIP4) << "' to interface " << sDevice << ": error code = " << errno << " - " << strerror(errno);
         return false;
     }
 
     return true;
-}
-
-
-/**
- * quick and dirty in_addr_t to string
- * 
- * (because standard POSIX stuff is plain stupid with all
- * that struct inaddr, in_addr_t, s_addr, ... what a mess!)
- * 
- * @param   nIP4        the IP4 address
- * @return  string in the 4 digit-dot notation
- */
-std::string inet_addr_to_string(in_addr_t nIP4) {
-    
-    std::stringstream ss;
-    
-    char * c = (char *)&nIP4;
-    ss << (int)c[0] << "." << (int)c[1] << "." << (int)c[2] << "." << (int)c[3];
-    
-    return ss.str();
 }
 
 

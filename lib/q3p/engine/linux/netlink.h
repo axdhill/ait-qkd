@@ -39,11 +39,10 @@
 // incs
 
 #include <arpa/inet.h>
-#include <sys/types.h>
-#include <linux/netlink.h>
 
 #include <map>
 #include <string>
+
 
 // ------------------------------------------------------------
 // decls
@@ -64,14 +63,23 @@ public:
     
     
     /**
+     * a single netlink socket
+     */
+    struct socket {
+        int nSocket;                        /**< socket identifier */
+        __u32 nSequenceNumber;              /**< message sequence number */
+    };
+    
+    
+    /**
      * a single route
      */
     struct route {
         
-        struct in_addr cDstAddress;             /**< TO: destination address */
-        struct in_addr cSrcAddress;             /**< FROM: source address */
-        struct in_addr cGateway;                /**< gateway address to use */
-        std::string sInterface;                 /**< interface name */
+        in_addr cDstAddress;            /**< TO: destination address */
+        in_addr cSrcAddress;            /**< FROM: source address */
+        in_addr cGateway;               /**< gateway address to use */
+        std::string sInterface;         /**< interface name */
         
         
         /**
@@ -87,6 +95,40 @@ public:
      * a routing table indexed by "TO: destination address"
      */
     typedef std::map<in_addr, route> routing_table;
+    
+    
+    /**
+     * add a route to the kernel routing table
+     * 
+     * @param   cRoute      the route to add
+     * @return  true on success
+     */
+    bool add_route(route const & cRoute);
+    
+    
+    /**
+     * return debug flag
+     * 
+     * @return  return the debug flag
+     */
+    static bool & debug() { return m_bDebug; }
+    
+    
+    /**
+     * return debug kernel message blobs flag
+     * 
+     * @return  return the debug kernel message blobs flag
+     */
+    static bool & debug_message_blobs() { return m_bDebugMessageBlobs; }
+    
+    
+    /**
+     * remove a route from the kernel routing table
+     * 
+     * @param   cRoute      the route to remove
+     * @return  true on success
+     */
+    bool del_route(route const & cRoute);
     
     
     /**
@@ -121,34 +163,21 @@ private:
     
     
     /**
-     * receive from the netlink layer
-     * 
-     * The buffer has to be allocated prior with a proper buffer size. On success the buffer
-     * will be filled with nlmsghdr structs linear. On success the number of bytes written
-     * to the buffer is returned, else -1.
-     * 
-     * @param   nSocket             the netlink socket to use
-     * @param   cBuffer             the buffer which receives the netlink messages
-     * @param   nMessageNumber      the message number to receive
-     * @return  number of bytes received (-1 in case of error)
+     * debug netlink send/recv
      */
-    int recv(int nSocket, char * cBuffer, ssize_t nBufferSize, unsigned int nMessageNumber);
+    static bool m_bDebug;
     
-        
+    
     /**
-     * send a netlink message to the kernel
-     * 
-     * @param   nSocket             the netlink socket to use
-     * @param   cNetlinkMessage     the message to be sent
-     * @return  message number sent (or 0 in case or error)
+     * debug netlink kernel blobs send/recv
      */
-    unsigned int send(int nSocket, struct nlmsghdr * cNetlinkMessage);
-
-
+    static bool m_bDebugMessageBlobs;
+    
+    
     /**
-     * the netlink route socket
+     * the rtnetlink sockket
      */
-    int m_nNetlinkRouteSocket;
+    qkd::q3p::netlink::socket m_cNetlinkRouteSocket;
     
 };
   
