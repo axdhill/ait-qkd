@@ -107,11 +107,14 @@ class random_source {
 
     
 public:
+    
+    
     /**
      * This type definition exists to satisfy the UniformRandomNumberGenerator concept.
      */
     typedef int64_t result_type;
 
+    
     /**
      * This class method exists to satisfy the UniformRandomNumberGenerator concept and returns
      * the lower bound of the domain used by this number generator.
@@ -120,6 +123,7 @@ public:
      */
     static constexpr result_type min() { return std::numeric_limits<result_type>::min(); }
 
+    
     /**
      * This class method exists to satisfy the UniformRandomNumberGenerator concept and returns
      * the upper bound of the domain used by this number generator.
@@ -128,6 +132,7 @@ public:
      */
     static constexpr result_type max() { return std::numeric_limits<result_type>::max(); }
 
+    
     /**
      * This method exists to satisfy the UniformRandomNumberGenerator concept and returns
      * a value indicating the entropy of this random number generator, depending on the
@@ -138,6 +143,7 @@ public:
      * deterministic random number generator.
      */
     virtual double entropy() const { return 0.; }
+    
 
     /**
      * This method exists to satisfy the UniformRandomNumberGenerator concept and returns
