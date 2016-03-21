@@ -204,11 +204,11 @@ bool nic_instance::add_ip4_route() {
         return false;
     }
     
-    netlink::route cRoute;
-    cRoute.cDstAddress.s_addr = inet_addr(m_sIP4Remote.c_str());
-    cRoute.cSrcAddress.s_addr = inet_addr(m_sIP4Local.c_str());
-    cRoute.cGateway.s_addr = 0;
-    cRoute.sInterface = m_sName;
+    route cRoute;
+    cRoute.m_cDstAddress.s_addr = inet_addr(m_sIP4Remote.c_str());
+    cRoute.m_cSrcAddress.s_addr = inet_addr(m_sIP4Local.c_str());
+    cRoute.m_cGateway.s_addr = 0;
+    cRoute.m_sInterface = m_sName;
     
     netlink & cNetlink = netlink::instance();
     cNetlink.add_route(cRoute);

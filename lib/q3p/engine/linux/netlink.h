@@ -43,6 +43,8 @@
 #include <map>
 #include <string>
 
+#include "route.h"
+
 
 // ------------------------------------------------------------
 // decls
@@ -69,32 +71,6 @@ public:
         int nSocket;                        /**< socket identifier */
         __u32 nSequenceNumber;              /**< message sequence number */
     };
-    
-    
-    /**
-     * a single route
-     */
-    struct route {
-        
-        in_addr cDstAddress;            /**< TO: destination address */
-        in_addr cSrcAddress;            /**< FROM: source address */
-        in_addr cGateway;               /**< gateway address to use */
-        std::string sInterface;         /**< interface name */
-        
-        
-        /**
-         * describe route as string
-         * 
-         * @return  a human readble string for the route
-         */
-        std::string str() const;
-    };
-    
-    
-    /**
-     * a routing table indexed by "TO: destination address"
-     */
-    typedef std::map<in_addr, route> routing_table;
     
     
     /**

@@ -137,6 +137,7 @@ set(QKD_SRC
     q3p/engine/linux/netlink_rtattr.cpp
     q3p/engine/linux/netlink_rtmsg.cpp
     q3p/engine/linux/nic_linux.cpp
+    q3p/engine/linux/route.cpp
     q3p/engine/win32/nic_win32.cpp
     q3p/engine/protocol/data.cpp
     q3p/engine/protocol/handshake.cpp
