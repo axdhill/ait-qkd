@@ -64,6 +64,7 @@
 #include "netlink_ifinfomsg.h"
 #include "netlink_message.h"
 #include "netlink_nlmsghdr.h"
+#include "netlink_parser.h"
 #include "netlink_rtattr.h"
 #include "netlink_rtmsg.h"
 
@@ -100,7 +101,7 @@ bool netlink::m_bDebugMessageBlobs = true;
  * @param   nBufferSize         size of the buffer to write to
  * @return  number of bytes received (-1 in case of error)
  */
-static int netlink_recv(qkd::q3p::netlink::socket cSocket, unsigned int nPort, uint32_t nMessageNumber, char * cBuffer, size_t nBufferSize);
+UNUSED static int netlink_recv(qkd::q3p::netlink::socket cSocket, unsigned int nPort, uint32_t nMessageNumber, char * cBuffer, size_t nBufferSize);
 
     
 /**
@@ -133,6 +134,17 @@ UNUSED static __u32 netlink_send(qkd::q3p::netlink::socket cSocket, void * cNetl
  * @return  message number sent (or 0 in case or error)
  */
 static uint32_t netlink_send(qkd::q3p::netlink::socket cSocket, qkd::q3p::netlink_message const & cMessage);
+
+
+// /**
+//  * parse a netlink answer into a netlink message container
+//  * 
+//  * @param   cMessage                the netlink message
+//  * @param   cBuffer                 the buffer containing the kernel data
+//  * @param   nSize                   size of buffer
+//  * @return  true, if succesfully parsed
+//  */
+// static bool parse_netlink_blob(qkd::q3p::netlink_message & cMessage, char * cBuffer, uint32_t nSize);
 
 
 /**
@@ -237,6 +249,7 @@ netlink::routing_table netlink::get_routing_table() {
     netlink_nlmsghdr cNetlinkMessageHeader;
     cNetlinkMessageHeader->nlmsg_type = RTM_GETROUTE;
     cNetlinkMessageHeader->nlmsg_flags = NLM_F_DUMP | NLM_F_REQUEST;
+    cNetlinkMessageHeader->nlmsg_pid = getpid();
     cQuery.add(cNetlinkMessageHeader);
     
     netlink_ifinfomsg cInterfaceInfo;
@@ -256,7 +269,9 @@ netlink::routing_table netlink::get_routing_table() {
     // ---- recv netlink answer ----
     
     netlink_message cAnswer;
-    netlink_recv(m_cNetlinkRouteSocket, cNetlinkMessageHeader->nlmsg_pid, nMessageId, cAnswer);
+    if (netlink_recv(m_cNetlinkRouteSocket, cNetlinkMessageHeader->nlmsg_pid, nMessageId, cAnswer) > 0) {
+        
+    }
     
 //     char cRecvBuffer[16384];
 //     do {
@@ -345,15 +360,9 @@ int netlink_recv(qkd::q3p::netlink::socket cSocket, unsigned int nPort, uint32_t
     
     char * cDestinationBuffer = cBuffer;
 
-qkd::utility::debug() << __DEBUG_LOCATION__;
-    
     while (true) {
         
-qkd::utility::debug() << __DEBUG_LOCATION__;
-
         int nRead = recvmsg(cSocket.nSocket, &cMsg, 0);
-qkd::utility::debug() << __DEBUG_LOCATION__ << "nRead=" << nRead;
-        
         if (nRead < 0) {
             
             if (errno == EINTR || errno == EAGAIN) {
@@ -426,11 +435,85 @@ qkd::utility::debug() << __DEBUG_LOCATION__ << "nRead=" << nRead;
  */
 int netlink_recv(qkd::q3p::netlink::socket cSocket, unsigned int nPort, uint32_t nMessageNumber, UNUSED qkd::q3p::netlink_message & cMessage) {
     
-    static uint32_t const nBufferSize = 16384;
-    char cBuffer[nBufferSize];
-    int res = netlink_recv(cSocket, nPort, nMessageNumber, cBuffer, nBufferSize);
+    if (cSocket.nSocket == -1) {
+        qkd::utility::debug(netlink::debug()) << "Refused to receive netlink message on invalid socket.";
+        return 0;
+    }
     
-    return res;
+    int nMessageLen = 0;
+    static uint32_t const nBufferSize = 16384;
+    char cBuffer[16384];
+    
+    iovec cIOV;
+    cIOV.iov_base = cBuffer ;
+    cIOV.iov_len = nBufferSize;
+    
+    sockaddr_nl cNlAddr;
+    msghdr cMsg;
+    cMsg.msg_name = &cNlAddr;
+    cMsg.msg_namelen = sizeof(cNlAddr);
+    cMsg.msg_iov = &cIOV;
+    cMsg.msg_iovlen = 1;
+    
+    std::shared_ptr<netlink_parser> cParser;
+    
+    while (true) {
+        
+        int nRead = recvmsg(cSocket.nSocket, &cMsg, 0);
+        
+        if (nRead < 0) {
+            
+            if (errno == EINTR || errno == EAGAIN) {
+                continue;
+            }
+            qkd::utility::debug(netlink::debug()) << "Failed to read from netlink socket. Error: " << strerror(errno);
+            if (errno == ENOBUFS) {
+                continue;
+            }
+            return -1;
+        }
+        
+        if (nRead == 0) {
+            qkd::utility::debug(netlink::debug()) << "EOF on netlink";
+            return nMessageLen;
+        }
+        
+        if ((unsigned int)nRead < sizeof(nlmsghdr)) {
+            qkd::utility::debug(netlink::debug()) << "Netlink receive message is less than minimum nlmsghdr";
+            return -1;
+        }
+
+        nlmsghdr * cNlMsgHdr = (nlmsghdr *)cBuffer;
+        netlink_nlmsghdr cNetlinkMessage(*cNlMsgHdr);
+        if ((NLMSG_OK(cNlMsgHdr, nRead) == 0) || (cNetlinkMessage->nlmsg_type == NLMSG_ERROR)) {
+            qkd::utility::debug(netlink::debug()) << "Error in received netlink message. Error: " << strerror(errno);
+            return -1;
+        }
+        
+        if ((cNetlinkMessage->nlmsg_seq != nMessageNumber) || (cNetlinkMessage->nlmsg_pid != nPort)) {
+            qkd::utility::debug(netlink::debug()) << "Dropping kernel packet for wrong sequence number and/or wrong port id";
+            continue;
+        }
+        
+        if (!cParser) {
+            cParser = netlink_parser::create(cNetlinkMessage->nlmsg_type);
+        }
+        cParser->parse(cMessage, cBuffer, nRead);
+        
+        if (cNetlinkMessage->nlmsg_type == NLMSG_DONE) {
+            break;
+        }
+        
+        if ((cNetlinkMessage->nlmsg_flags & NLM_F_MULTI) == 0) {
+            break;
+        }
+    }
+    
+    if (netlink::debug_message_blobs()) {
+        qkd::utility::debug(netlink::debug()) << "netlink recv: " << cMessage.str();
+    }
+    
+    return nMessageLen;
 }
 
     
@@ -457,10 +540,6 @@ __u32 netlink_send(qkd::q3p::netlink::socket cSocket, void * cNetlinkMessage) {
     
     nlmsghdr * cNtMsg = (nlmsghdr *)cNetlinkMessage;
     cNtMsg->nlmsg_seq = cSocket.nSequenceNumber;
-    
-    // nlmsg_pid may not be getpid()... 
-    // this is only true for the first netlink socket of the process
-    cNtMsg->nlmsg_pid = getpid();
     
     if (::send(cSocket.nSocket, cNtMsg, cNtMsg->nlmsg_len, 0) < 0) {
         qkd::utility::debug(netlink::debug()) << "Failed to send netlink message. Error: " << strerror(errno);
@@ -512,11 +591,14 @@ uint32_t netlink_send(qkd::q3p::netlink::socket cSocket, qkd::q3p::netlink_messa
     
     std::unique_ptr<iovec[]> cIOVec(new iovec[cMessage.size()]);
     int i = 0;
+    uint32_t nTotalSize = 0;
     for (auto const & p : cMessage) {
         cIOVec.get()[i].iov_base = p->data();
         cIOVec.get()[i].iov_len = p->size();
+        nTotalSize += p->size();
         ++i;
     }
+    (*cMessageHeader)->nlmsg_len = nTotalSize;
     
     msghdr cMsgHdr;
     memset(&cMsgHdr, 0, sizeof(cMsgHdr));
@@ -529,11 +611,36 @@ uint32_t netlink_send(qkd::q3p::netlink::socket cSocket, qkd::q3p::netlink_messa
     }
     
     if (netlink::debug_message_blobs()) {
-        qkd::utility::debug(netlink::debug()) << cMessage.str();
+        qkd::utility::debug(netlink::debug()) << "netlink sent: " << cMessage.str();
     }
 
     return cSocket.nSequenceNumber; 
 }
+
+
+// /**
+//  * parse a netlink answer into a netlink message container
+//  * 
+//  * @param   cMessage                the netlink message
+//  * @param   cBuffer                 the buffer containing the kernel data
+//  * @param   nSize                   size of buffer
+//  * @return  true, if succesfully parsed
+//  */
+// bool parse_netlink_blob(qkd::q3p::netlink_message & cMessage, char * cBuffer, uint32_t nSize) {
+//     
+//     if (nSize < sizeof(nlmsghdr)) {
+//         return false;
+//     }
+//     if (!cBuffer) {
+//         return false;
+//     }
+//     
+//     nlmsghdr * cNlMsgHdr = (nlmsghdr *)cBuffer;
+//     netlink_nlmsghdr cNetlinkMessage(*cNlMsgHdr);
+//     cMessage.add(cNetlinkMessage);
+//     
+//     return true;
+// }
 
 
 /**

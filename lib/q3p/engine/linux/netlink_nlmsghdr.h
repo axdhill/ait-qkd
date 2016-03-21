@@ -68,6 +68,14 @@ public:
     
     
     /**
+     * ctor
+     * 
+     * @param   cNetlinkMessage     the nlmsghdr kernel object to wrap
+     */
+    netlink_nlmsghdr(nlmsghdr const & cNetlinkMessage);
+    
+    
+    /**
      * -> operator
      * 
      * @return  access to members of the wrapped netlink object
@@ -81,14 +89,6 @@ public:
      * @return  access to members of the wrapped netlink object
      */
     nlmsghdr const * operator->() const { return &m_cNetlinkMessage; }
-    
-    
-    /**
-     * ctor
-     * 
-     * @param   cNetlinkMessage     the nlmsghdr kernel object to wrap
-     */
-    netlink_nlmsghdr(nlmsghdr const & cNetlinkMessage);
     
     
     /**

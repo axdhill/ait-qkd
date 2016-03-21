@@ -38,8 +38,11 @@
 #include <string.h>
 #include <sstream>
 
+#include <arpa/inet.h>
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
+#include <net/if.h>
+#include <sys/socket.h>
 
 #include <qkd/utility/memory.h>
 
@@ -60,6 +63,18 @@ using namespace qkd::q3p;
  * @return  a string describing the routing attribute type
  */
 static std::string rtattr_type_str(uint64_t nNetlinkMessageType, uint64_t nRoutingAttributeType);
+
+
+/**
+ * the routing value as string
+ * 
+ * @param   nNetlinkMessageType     the netlink message type
+ * @param   nRoutingAttributeType   the routing attribute type
+ * @param   cValue                  the value
+ * @param   nSize                   size of the value
+ * @return  a string describing the routing attribute value
+ */
+static std::string rtattr_value_str(uint64_t nNetlinkMessageType, uint64_t nRoutingAttributeType, void const * cValue, uint64_t nSize);
 
 
 // ------------------------------------------------------------
@@ -145,7 +160,7 @@ std::string netlink_rtattr::str() const {
             ss << "null";
         }
         else {
-            ss << "\"hex: " << qkd::utility::memory::wrap((qkd::utility::memory::value_t *)value(), value_size()).as_hex() << "\"";
+            ss << rtattr_value_str(nlmsghdr_type(), cRouteAttribute->rta_type, value(), value_size());
         }
         ss << "}";
     }
@@ -246,6 +261,67 @@ std::string rtattr_type_str(uint64_t nNetlinkMessageType, uint64_t nRoutingAttri
     
     return ss.str();
 }
+
+
+/**
+ * the routing value as string
+ * 
+ * @param   nNetlinkMessageType     the netlink message type
+ * @param   nRoutingAttributeType   the routing attribute type
+ * @param   cValue                  the value
+ * @param   nSize                   size of the value
+ * @return  a string describing the routing attribute value
+ */
+std::string rtattr_value_str(uint64_t nNetlinkMessageType, uint64_t nRoutingAttributeType, void const * cValue, uint64_t nSize) {
+
+    std::stringstream ss;
+    char sIf[IF_NAMESIZE];
+    
+    switch (nNetlinkMessageType) {
+        
+    case RTM_NEWROUTE:
+    case RTM_DELROUTE:
+    case RTM_GETROUTE:
+        
+        switch (nRoutingAttributeType) {
+            
+        case RTA_DST:
+        case RTA_SRC:
+        case RTA_GATEWAY:
+        case RTA_PREFSRC:
+            ss << "\"" << inet_ntoa(*(in_addr *)cValue) << "\"";
+            break;
+        
+        case RTA_IIF:
+        case RTA_OIF:
+            ss << "\"" << if_indextoname(*(int *)cValue, sIf) << "\"";
+            break;
+        
+        case RTA_UNSPEC:
+        case RTA_PRIORITY:
+        case RTA_METRICS:
+        case RTA_MULTIPATH:
+        case RTA_PROTOINFO:
+        case RTA_FLOW:
+        case RTA_CACHEINFO:
+        case RTA_TABLE:
+        case RTA_MARK:
+        case RTA_MFC_STATS:
+        case RTA_VIA:
+        case RTA_NEWDST:
+        case RTA_PREF:
+        default:
+            ss << "\"hex: " << qkd::utility::memory::wrap((qkd::utility::memory::value_t *)cValue, nSize).as_hex() << "\"";
+        }
+        break;
+        
+    default:
+        ss << "\"?unkown routing attribute type? (" << (int)nRoutingAttributeType << ")\"";
+    }
+    
+    return ss.str();    
+}
+
 
     
 #endif

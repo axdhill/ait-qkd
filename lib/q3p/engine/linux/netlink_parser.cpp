@@ -1,11 +1,11 @@
 /*
- * nic_common.cpp
- *
- * common methods for any operating system to implement the network interface q3p "card" 
+ * netlink_parser.cpp
  * 
+ * parse a netlink kernel answer
+ *
  * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
- * Copyright (C) 2012-2016 AIT Austrian Institute of Technology
+ * Copyright (C) 2016 AIT Austrian Institute of Technology
  * AIT Austrian Institute of Technology GmbH
  * Donau-City-Strasse 1 | 1220 Vienna | Austria
  * http://www.ait.ac.at
@@ -28,12 +28,18 @@
  */
 
 
+// this is only Linux code
+#if defined(__linux__)
+ 
+
 // ------------------------------------------------------------
 // incs
 
-// // ait
-#include <qkd/q3p/engine.h>
-#include <qkd/q3p/nic.h>
+#include <linux/netlink.h>
+#include <linux/rtnetlink.h>
+
+#include "netlink_parser.h"
+#include "netlink_parser_xroute.h"
 
 using namespace qkd::q3p;
 
@@ -43,51 +49,25 @@ using namespace qkd::q3p;
 
 
 /**
- * set the local IP4 address of the NIC
+ * get a proper parser instance for a certain netlink message type
  * 
- * @param   sIP4        the new local address of the NIC
+ * @param   nNetlinkMessageType     the nlmsghdr type of the message returned
+ * @return  instance to parser object
  */
-void nic_instance::set_ip4_local(QString sIP4) {
+std::shared_ptr<netlink_parser> netlink_parser::create(unsigned int nNetlinkMessageType) {
     
-    std::string s = sIP4.toStdString();
-    if (m_cEngine->nic_ip4_local() != s) {
-        m_cEngine->set_nic_ip4_local(s);
-        return;
+    switch (nNetlinkMessageType) {
+        
+    case RTM_NEWROUTE:
+    case RTM_DELROUTE:
+    case RTM_GETROUTE:
+        return std::shared_ptr<netlink_parser>(new netlink_parser_xroute);
+        
     }
     
-    m_sIP4Local = s;
-    setup_networking();
+    throw std::runtime_error("unknown netlink message type to parse");
 }
 
-
-/**
- * set the remote IP4 address of the NIC
- * 
- * @param   sIP4        the new remote address of the NIC
- */
-void nic_instance::set_ip4_remote(QString sIP4) {
     
-    std::string s = sIP4.toStdString();
-    if (m_cEngine->nic_ip4_remote() != s) {
-        m_cEngine->set_nic_ip4_remote(s);
-        return;
-    }
-    
-    m_sIP4Remote = s;
-    setup_networking();
-}
 
-
-/**
- * apply IP4 address and routing
- */
-void nic_instance::setup_networking() {
-
-    if (assign_local_ip4()) {
-        emit ip4_changed();
-        if (add_ip4_route()) {
-            // TODO: emit signal
-        }
-    }
-}
-
+#endif

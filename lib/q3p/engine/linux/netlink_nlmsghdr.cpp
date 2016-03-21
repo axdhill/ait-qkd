@@ -121,6 +121,7 @@ std::string const & netlink_nlmsghdr::name() const {
  */
 void netlink_nlmsghdr::reset() {
     memset(&m_cNetlinkMessage, 0, sizeof(m_cNetlinkMessage));
+    m_cNetlinkMessage.nlmsg_len = sizeof(m_cNetlinkMessage);
 }
 
     
