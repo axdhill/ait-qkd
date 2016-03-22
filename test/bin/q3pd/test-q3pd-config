@@ -71,9 +71,6 @@ if [ "${CONNECTED_BOB}" != "true" ]; then
     exit 1
 fi
 
-# TODO
-sleep 100
-
 q3pd_stop "alice" || exit $?
 q3pd_stop "bob" || exit $?
 
