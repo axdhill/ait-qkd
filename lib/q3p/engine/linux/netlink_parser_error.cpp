@@ -1,7 +1,7 @@
 /*
- * netlink_message.cpp
+ * netlink_parser_error.cpp
  * 
- * a single netlink message to be sent or received
+ * parse NEW_ROUTE, DEL_ROUTE, GET_ROUTE answers from kernel
  *
  * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
@@ -35,13 +35,16 @@
 // ------------------------------------------------------------
 // incs
 
-#include <iterator>
-#include <sstream>
+#include <linux/netlink.h>
+#include <linux/rtnetlink.h>
 
-#include "netlink_message.h"
+#include <qkd/utility/debug.h>
+#include <qkd/common_macros.h>
+
+#include "netlink.h"
 #include "netlink_nlmsgerr.h"
 #include "netlink_nlmsghdr.h"
-
+#include "netlink_parser_error.h"
 
 using namespace qkd::q3p;
 
@@ -51,54 +54,34 @@ using namespace qkd::q3p;
 
 
 /**
- * returns the error code if this is received reply
+ * parse the message stored in cBuffer and add result to cMessage
  * 
- * The returned error code is negativ as in nlmsgerr.
- * 0 ... means: ACK
- * 1 ... means: this is not an error message 
- * 
- * @return  error code of the NLMSG_ERROR message
+ * @param   cMessage            message object to be filled
+ * @param   cBuffer             memory returned from the kernel
+ * @param   nSize               size of memory blob returned from the kernel
+ * @return  true, if succefully parsed
  */
-int netlink_message::error() const {
+bool netlink_parser_error::parse(netlink_message & cMessage, char * cBuffer, uint32_t nSize) {
     
-    if (size() != 2) {
-        return 1;
-    }
-    if (front().get()->name() != "nlmsghdr") {
-        return 1;
-    }
+    // parse an error information from the kernel
     
-    netlink_nlmsghdr * cNetlinkMessage = (netlink_nlmsghdr *)front().get();
-    if ((*cNetlinkMessage)->nlmsg_type != NLMSG_ERROR) {
-        return 1;
+    if (nSize < sizeof(nlmsghdr)) {
+        qkd::utility::debug(netlink::debug()) << "size of kernel answer too small to parse";
+        return false;
     }
     
-    netlink_nlmsgerr * cNetlinkError = (netlink_nlmsgerr *)(*(std::next(begin()))).get();
-    return (*cNetlinkError)->error;
-}    
-
-
-/**
- * turn the whole netlink message into a JSON string
- *
- * @return  the netlink message as JSON string
- */
-std::string netlink_message::str() const {
-    
-    std::stringstream ss;
-    
-    bool bFirst = true;
-    ss << "[ ";
-    for (auto const & m: (*this)) {
-        
-        if (!bFirst) ss << ", ";
-        else bFirst = false;
-        
-        ss << m->str();
+    nlmsghdr * cNlMsgHdr = (nlmsghdr *)cBuffer;
+    if (cNlMsgHdr->nlmsg_type != NLMSG_ERROR) {
+        throw std::runtime_error("wrong parser instance for kernel message chosen");
     }
-    ss << " ]";
     
-    return ss.str();
+    netlink_nlmsghdr cNetlinkMessage(*cNlMsgHdr);
+    cMessage.add(cNetlinkMessage);
+    
+    nlmsgerr * cNlMsgErr = (nlmsgerr *)NLMSG_DATA(cNlMsgHdr);
+    cMessage.add(netlink_nlmsgerr(*cNlMsgErr));
+    
+    return true;
 }
 
 

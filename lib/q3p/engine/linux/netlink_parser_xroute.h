@@ -39,6 +39,7 @@
 // incs
 
 #include "netlink_parser.h"
+#include "netlink_message.h"
 
 
 // ------------------------------------------------------------

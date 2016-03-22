@@ -39,6 +39,7 @@
 #include <linux/rtnetlink.h>
 
 #include "netlink_parser.h"
+#include "netlink_parser_error.h"
 #include "netlink_parser_xroute.h"
 
 using namespace qkd::q3p;
@@ -58,6 +59,9 @@ std::shared_ptr<netlink_parser> netlink_parser::create(unsigned int nNetlinkMess
     
     switch (nNetlinkMessageType) {
         
+    case NLMSG_ERROR:
+        return std::shared_ptr<netlink_parser>(new netlink_parser_error);
+        
     case RTM_NEWROUTE:
     case RTM_DELROUTE:
     case RTM_GETROUTE:
@@ -68,6 +72,5 @@ std::shared_ptr<netlink_parser> netlink_parser::create(unsigned int nNetlinkMess
     throw std::runtime_error("unknown netlink message type to parse");
 }
 
-    
 
 #endif

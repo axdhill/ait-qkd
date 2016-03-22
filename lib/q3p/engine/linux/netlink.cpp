@@ -32,12 +32,6 @@
 #if defined(__linux__)
  
 
-/*
- * Netlink interaction inspired by 
- * http://stackoverflow.com/questions/3288065/getting-gateway-to-use-for-a-given-ip-in-ansi-c#3288983
- */
-
-
 // ------------------------------------------------------------
 // incs
 
@@ -77,13 +71,13 @@ using namespace qkd::q3p;
 /**
  * static netlink debug flag
  */
-bool netlink::m_bDebug = true;
+bool netlink::m_bDebug = false;
 
 
 /**
  * debug netlink kernel blobs send/recv
  */
-bool netlink::m_bDebugMessageBlobs = true;
+bool netlink::m_bDebugMessageBlobs = false;
 
 
 // ------------------------------------------------------------
@@ -162,18 +156,21 @@ bool netlink::add_route(route const & cRoute) {
 
     // ---- send netlink add route request ----
     
-    // TODO: does not work currently
-    
     netlink_message cQuery;
     
     netlink_nlmsghdr cNetlinkMessageHeader;
     cNetlinkMessageHeader->nlmsg_type = RTM_NEWROUTE;
-    cNetlinkMessageHeader->nlmsg_flags = NLM_F_REPLACE | NLM_F_CREATE | NLM_F_APPEND;
+    cNetlinkMessageHeader->nlmsg_flags = NLM_F_EXCL | NLM_F_CREATE | NLM_F_REQUEST | NLM_F_ACK;
     cNetlinkMessageHeader->nlmsg_pid = getpid();
     cQuery.add(cNetlinkMessageHeader);
     
     netlink_rtmsg cRoutingMessage;
     cRoutingMessage->rtm_family = AF_INET;
+    cRoutingMessage->rtm_dst_len = 32;
+    cRoutingMessage->rtm_src_len = 0;
+    cRoutingMessage->rtm_table = RT_TABLE_MAIN;
+    cRoutingMessage->rtm_protocol = RTPROT_STATIC;
+    cRoutingMessage->rtm_scope = RT_SCOPE_LINK;
     cRoutingMessage->rtm_type = RTN_UNICAST;
     cQuery.add(cRoutingMessage);
     
@@ -183,14 +180,9 @@ bool netlink::add_route(route const & cRoute) {
     cQuery.add(cRtAttrDst);
     
     netlink_rtattr cRtAttrPrefSrc(RTM_NEWROUTE, sizeof(in_addr));
-    cRtAttrPrefSrc->rta_type = RTA_PREFSRC;
+    cRtAttrPrefSrc->rta_type = RTA_GATEWAY;
     memcpy(cRtAttrPrefSrc.value(), &cRoute.m_cSrcAddress, sizeof(in_addr));
     cQuery.add(cRtAttrPrefSrc);
-    
-    netlink_rtattr cRtAttrOIf(RTM_NEWROUTE, 4);
-    cRtAttrOIf->rta_type = RTA_OIF;
-    memcpy(cRtAttrOIf.value(), &nInterface, 4);
-    cQuery.add(cRtAttrOIf);
     
     uint32_t nMessageId = netlink_send(m_cNetlinkRouteSocket, cQuery);
     if (!nMessageId) {
@@ -201,7 +193,18 @@ bool netlink::add_route(route const & cRoute) {
     
     netlink_message cAnswer;
     if (netlink_recv(m_cNetlinkRouteSocket, cNetlinkMessageHeader->nlmsg_pid, nMessageId, cAnswer) > 0) {
-qkd::utility::debug(true) << "ANSWER";        
+        
+        int nError = cAnswer.error();
+        if (nError == 0) {
+            return true;
+        }
+        
+        if (nError > 0) {
+            qkd::utility::debug(netlink::debug()) << "Failed to set new route: received unknown netlink message answer (internal error).";
+        }
+        if (nError < 0) {
+            qkd::utility::debug(netlink::debug()) << "Failed to add new route: netlink error code: " << nError;
+        }
     }        
     
     return false;
@@ -215,6 +218,8 @@ qkd::utility::debug(true) << "ANSWER";
  * @return  true on success
  */
 bool netlink::del_route(UNUSED route const & cRoute) {
+    
+    // TODO: to be implemented
     
     return false;
 }
@@ -396,17 +401,23 @@ int netlink_recv(qkd::q3p::netlink::socket & cSocket, unsigned int nPort, uint32
 
         nlmsghdr * cNlMsgHdr = (nlmsghdr *)cBuffer;
         netlink_nlmsghdr cNetlinkMessage(*cNlMsgHdr);
-        if ((NLMSG_OK(cNlMsgHdr, nRead) == 0) || (cNetlinkMessage->nlmsg_type == NLMSG_ERROR)) {
+        
+        if (NLMSG_OK(cNlMsgHdr, nRead) == 0) {
             qkd::utility::debug(netlink::debug()) << "Error in received netlink message. Error: " << strerror(errno);
             return -1;
         }
-        
         if ((cNetlinkMessage->nlmsg_seq != nMessageNumber) || (cNetlinkMessage->nlmsg_pid != nPort)) {
             qkd::utility::debug(netlink::debug()) << "Dropping kernel packet for wrong sequence number and/or wrong port id";
             continue;
         }
         
         nMessageLen += nRead;
+        
+        if (cNetlinkMessage->nlmsg_type == NLMSG_ERROR) {
+            netlink_parser::create(NLMSG_ERROR)->parse(cMessage, cBuffer, nRead);
+            nMessageLen = nRead;
+            break;
+        }
         
         if (!cParser) {
             cParser = netlink_parser::create(cNetlinkMessage->nlmsg_type);

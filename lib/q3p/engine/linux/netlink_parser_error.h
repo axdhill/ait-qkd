@@ -1,7 +1,7 @@
 /*
- * netlink_message.h
+ * netlink_parser_error.h
  * 
- * a single netlink message to be sent or received
+ * parse NLMSG_ERROR answers from kernel
  *
  * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
@@ -31,18 +31,15 @@
 // this is only Linux code
 #if defined(__linux__)
  
-#ifndef __QKD_Q3P_LINUX_NETLINK_MESSAGE_H_
-#define __QKD_Q3P_LINUX_NETLINK_MESSAGE_H_
+#ifndef __QKD_Q3P_LINUX_NETLINK_PARSER_ERROR_H_
+#define __QKD_Q3P_LINUX_NETLINK_PARSER_ERROR_H_
 
 
 // ------------------------------------------------------------
 // incs
 
-#include <list>
-#include <memory>
-#include <string>
-
-#include "netlink_base.h"
+#include "netlink_parser.h"
+#include "netlink_message.h"
 
 
 // ------------------------------------------------------------
@@ -55,43 +52,26 @@ namespace q3p {
 
    
 /**
- * This class holds a whole netlink message to be sent and received
+ * Wrapper for rtattr
  */
-class netlink_message : public std::list<std::shared_ptr<qkd::q3p::netlink_base>> {
+class netlink_parser_error : public netlink_parser {
+    
 
 public:
-
-    
-    /**
-     * insert a new message object at end
-     * 
-     * @param   cNetlinkMessageObject       the object to add at end
-     */
-    void add(netlink_base const & cNetlinkMessageObject) { push_back(cNetlinkMessageObject.clone()); }
     
     
     /**
-     * returns the error code if this is received reply
+     * parse the message stored in cBuffer and add result to cMessage
      * 
-     * The returned error code is negativ as in nlmsgerr.
-     * 0 ... means: ACK
-     * 1 ... means: this is not an error message 
-     * 
-     * @return  error code of the NLMSG_ERROR message
+     * @param   cMessage            message object to be filled
+     * @param   cBuffer             memory returned from the kernel
+     * @param   nSize               size of memory blob returned from the kernel
+     * @return  true, if succefully parsed
      */
-    int error() const;
+    virtual bool parse(netlink_message & cMessage, char * cBuffer, uint32_t nSize);
     
-
-    /**
-     * turn the whole netlink message into a JSON string
-     *
-     * @return  the netlink message as JSON string
-     */
-    std::string str() const;
-
 };
-
-
+  
 
 }
 

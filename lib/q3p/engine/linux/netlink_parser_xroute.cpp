@@ -42,7 +42,6 @@
 #include <qkd/common_macros.h>
 
 #include "netlink.h"
-#include "netlink_message.h"
 #include "netlink_nlmsghdr.h"
 #include "netlink_parser_xroute.h"
 #include "netlink_rtattr.h"

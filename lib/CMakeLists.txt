@@ -131,8 +131,10 @@ set(QKD_SRC
     q3p/engine/linux/netlink_base.cpp
     q3p/engine/linux/netlink_ifinfomsg.cpp
     q3p/engine/linux/netlink_message.cpp
+    q3p/engine/linux/netlink_nlmsgerr.cpp
     q3p/engine/linux/netlink_nlmsghdr.cpp
     q3p/engine/linux/netlink_parser.cpp
+    q3p/engine/linux/netlink_parser_error.cpp
     q3p/engine/linux/netlink_parser_xroute.cpp
     q3p/engine/linux/netlink_rtattr.cpp
     q3p/engine/linux/netlink_rtmsg.cpp
