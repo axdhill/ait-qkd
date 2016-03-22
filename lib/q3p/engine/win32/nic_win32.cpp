@@ -1,7 +1,7 @@
 /*
- * nic_common.cpp
+ * nic_win32.cpp
  *
- * common methods for any operating system to implement the network interface q3p "card" 
+ * implement the network interface q3p "card" on win32 systems
  * 
  * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *
@@ -28,11 +28,12 @@
  */
 
 
+#if defined(__WIN32__)
+
+
 // ------------------------------------------------------------
 // incs
 
-// // ait
-#include <qkd/q3p/engine.h>
 #include <qkd/q3p/nic.h>
 
 using namespace qkd::q3p;
@@ -43,51 +44,67 @@ using namespace qkd::q3p;
 
 
 /**
- * set the local IP4 address of the NIC
+ * ctor
  * 
- * @param   sIP4        the new local address of the NIC
+ * @param   cEngine     the parent engine
+ * @throws  mq_no_engine
  */
-void nic_instance::set_ip4_local(QString sIP4) {
-    
-    std::string s = sIP4.toStdString();
-    if (m_cEngine->nic_ip4_local() != s) {
-        m_cEngine->set_nic_ip4_local(s);
-        return;
-    }
-    
-    m_sIP4Local = s;
-    setup_networking();
+nic_instance::nic_instance(qkd::q3p::engine_instance * cEngine) : QObject(), m_cEngine(cEngine) {
+#error "Windows port not implemented yet"
 }
 
 
 /**
- * set the remote IP4 address of the NIC
- * 
- * @param   sIP4        the new remote address of the NIC
+ * dtor
  */
-void nic_instance::set_ip4_remote(QString sIP4) {
-    
-    std::string s = sIP4.toStdString();
-    if (m_cEngine->nic_ip4_remote() != s) {
-        m_cEngine->set_nic_ip4_remote(s);
-        return;
-    }
-    
-    m_sIP4Remote = s;
-    setup_networking();
+nic_instance::~nic_instance() {
+#error "Windows port not implemented yet"
 }
 
 
 /**
- * apply IP4 address and routing
+ * adds the IP4 route to the kernel
+ * 
+ * @return  true, if successully added
  */
-void nic_instance::setup_networking() {
-
-    if (assign_local_ip4()) {
-        emit ip4_changed();
-        if (add_ip4_route()) {
-            // TODO: emit signal
-        }
-    }
+bool nic_instance::add_ip4_route() {
+#error "Windows port not implemented yet"
 }
 
+
+/**
+ * assign local IP4
+ * 
+ * @return  true, if successully assigned
+ */
+bool nic_instance::assign_local_ip4() {
+#error "Windows port not implemented yet"
+}
+
+
+/**
+ * the reader thread
+ * 
+ * read data from local user applications and send them
+ * to the peer instance
+ */
+void nic_instance::reader() {
+#error "Windows port not implemented yet"
+}
+
+
+/**
+ * write data to the device, thus sending it to the kernel
+ * 
+ * this is used to send data which have been received by
+ * the TUN/TAP to local user applications
+ * 
+ * @param   cData       the data to write
+ */
+void nic_instance::write(qkd::utility::memory const & cData) {
+#error "Windows port not implemented yet"
+}
+
+
+
+#endif

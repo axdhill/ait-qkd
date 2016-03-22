@@ -103,7 +103,9 @@ class nic_instance : public QObject {
     Q_OBJECT
     Q_CLASSINFO("D-Bus Interface", "at.ac.ait.q3p.nic")
     
-    Q_PROPERTY(QString name READ name)                      /**< network interface name */
+    Q_PROPERTY(QString ip4_local READ ip4_local WRITE set_ip4_local)        /**< local ip4 address of the NIC */
+    Q_PROPERTY(QString ip4_remote READ ip4_remote WRITE set_ip4_remote)     /**< remote ip4 address of the NIC */
+    Q_PROPERTY(QString name READ name)                                      /**< network interface name */
     
 public:
     
@@ -140,11 +142,43 @@ public:
     
     
     /**
+     * return the local IP4 address assigned to the NIC
+     * 
+     * @return  the local IP4 address used
+     */
+    inline QString ip4_local() const { return QString::fromStdString(m_sIP4Local); }
+    
+    
+    /**
+     * return the remote IP4 address assigned to the NIC
+     * 
+     * @return  the remote IP4 address used
+     */
+    inline QString ip4_remote() const { return QString::fromStdString(m_sIP4Remote); }
+    
+    
+    /**
      * name of the message queue
      * 
      * @return  the name of the message queue
      */
     inline QString name() const { return QString::fromStdString(m_sName); }
+    
+    
+    /**
+     * set the local IP4 address of the NIC
+     * 
+     * @param   sIP4        the new local address of the NIC
+     */
+    void set_ip4_local(QString sIP4);
+    
+    
+    /**
+     * set the remote IP4 address of the NIC
+     * 
+     * @param   sIP4        the new remote address of the NIC
+     */
+    void set_ip4_remote(QString sIP4);
     
     
     /**
@@ -166,7 +200,29 @@ signals:
     void device_ready(QString sDevice);
     
     
+    /**
+     * signaled whenever the address and/or route of the associated NIC changed
+     */
+    void ip4_changed();
+    
+    
 private:
+    
+    
+    /**
+     * adds the IP4 route to the kernel
+     * 
+     * @return  true, if successully added
+     */
+    bool add_ip4_route();
+    
+    
+    /**
+     * assign local IP4
+     * 
+     * @return  true, if successully assigned
+     */
+    bool assign_local_ip4();
     
     
     /**
@@ -176,15 +232,27 @@ private:
     
     
     /**
+     * apply IP4 address and routing
+     */
+    void setup_networking();
+    
+    
+    /**
      * the Q3P engine
      */
     qkd::q3p::engine_instance * m_cEngine;
     
     
     /**
-     * get up the tun (from tun/tap) device
+     * local IP4 address
      */
-    void init_tun();
+    std::string m_sIP4Local;
+    
+    
+    /**
+     * local IP4 address
+     */
+    std::string m_sIP4Remote;
     
     
     /**
