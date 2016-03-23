@@ -42,17 +42,30 @@ test_init "$(basename $0).d"
 rm -rf "${DB_ALICE_2_BOB}" &> /dev/null
 rm -rf "${DB_BOB_2_ALICE}" &> /dev/null
 
+# config file: "inject"
 dd if=/dev/urandom of="@CMAKE_BINARY_DIR@/inject.data" bs=1 count=1024
 
 echo "start alice"
 ${TEST_BASE}/bin/q3pd/q3pd --config ${TEST_BASE}/test/test-data/q3p/alice.conf --debug alice 2>>q3pd_alice.stderr &
+while :; do
+    ( qkd_qdbus | grep at.ac.ait.q3p.node-alice &> /dev/null ) && break;
+done
 echo "started"
 
 echo "start bob"
 ${TEST_BASE}/bin/q3pd/q3pd --config ${TEST_BASE}/test/test-data/q3p/bob.conf --debug bob 2>>q3pd_bob.stderr &
+while :; do
+    ( qkd_qdbus | grep at.ac.ait.q3p.node-bob &> /dev/null) && break;
+done
 echo "started"
 
+# let the nodes give some time to connect
+# the problem here is: immediately asking the nodes if they are connected
+# is too soon, they might be right in the middle of handshaking. At this
+# time they'll return "false" on a "connection?"-request.
+# so we give them time... but for how long?
 sleep 1
+
 echo "requesting alice's connection state to bob..."
 CONNECTED_ALICE=$(qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob connected)
 if [ "${CONNECTED_ALICE}" != "true" ]; then

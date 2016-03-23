@@ -46,23 +46,26 @@ rm -rf "${DB_BOB_2_ALICE}" &> /dev/null
 
 # main
 q3pd_start "alice" --debug || exit $?
+while :; do
+    ( qkd_qdbus | grep at.ac.ait.q3p.node-alice &> /dev/null ) && break;
+done
 q3pd_start "bob" --debug || exit $?
+while :; do
+    ( qkd_qdbus | grep at.ac.ait.q3p.node-bob &> /dev/null) && break;
+done
 
-# create alice
 qkd_qdbus at.ac.ait.q3p.node-alice /Node create_link 'alice_to_bob' &> /dev/null
 qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob open_db "file://${DB_ALICE_2_BOB}" &> /dev/null
 qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob inject_url "file://${SHARED_SECRET_FILE}" &> /dev/null
 qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob org.freedesktop.DBus.Properties.Set at.ac.ait.q3p.link master "true" &> /dev/null
 ALICE_MASTER=$(qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob master)
 
-# create bob
 qkd_qdbus at.ac.ait.q3p.node-bob /Node create_link 'bob_to_alice' &> /dev/null
 qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice open_db "file://${DB_BOB_2_ALICE}" &> /dev/null
 qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice inject_url "file://${SHARED_SECRET_FILE}" &> /dev/null
 qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice org.freedesktop.DBus.Properties.Set at.ac.ait.q3p.link slave "true" &> /dev/null
 BOB_SLAVE=$(qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice slave)
 
-# check roles
 if [ "${ALICE_MASTER}" != "true" ]; then
     echo "failed to set alice as master"
     q3pd_stop "alice"
@@ -76,35 +79,32 @@ if [ "${BOB_SLAVE}" != "true" ]; then
     exit 1
 fi
 
-# listen
 qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob listen "tcp://127.0.0.1:10011" "${SHARED_SECRET}" &> /dev/null
 qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice listen "tcp://127.0.0.1:10021" "${SHARED_SECRET}" &> /dev/null
 
-# let alice connect
 echo "connect"
 qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob connect "tcp://127.0.0.1:10021" "${SHARED_SECRET}" &> /dev/null
 echo "connect done"
 
-# check state
 ALICE_CONNECTED=$(qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob link_state)
-BOB_CONNECTED=$(qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice link_state)
-
 if [ "${ALICE_CONNECTED}" != "4" ]; then
     echo "alice not connected"
     q3pd_stop "alice"
     q3pd_stop "bob"
     exit 1
 fi
+echo "alice is connected to bob"
+BOB_CONNECTED=$(qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice link_state)
 if [ "${BOB_CONNECTED}" != "4" ]; then
     echo "bob not connected"
     q3pd_stop "alice"
     q3pd_stop "bob"
     exit 1
 fi
+echo "bob is connected to alice"
 
 q3pd_stop "bob" || exit $?
 q3pd_stop "alice" || exit $?
 
-# state that test ok
-echo "=== TEST SUCCESS ==="
 
+echo "=== TEST SUCCESS ==="

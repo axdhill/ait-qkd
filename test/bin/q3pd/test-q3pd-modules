@@ -37,20 +37,16 @@ source ${TEST_BASE}/test/bin/test-functions
 
 # ------------------------------------------------------------
 
-# init test environment
 test_init "$(basename $0).d"
 
-# zap previous database
 rm -rf "${DB_ALICE_2_BOB}" &> /dev/null
 rm -rf "${DB_BOB_2_ALICE}" &> /dev/null
 
-# start both nodes
 q3pd_start "alice" --debug || exit $?
-q3pd_start "bob" --debug || exit $?
-
 while :; do
     ( qkd_qdbus | grep at.ac.ait.q3p.node-alice &> /dev/null ) && break;
 done
+q3pd_start "bob" --debug || exit $?
 while :; do
     ( qkd_qdbus | grep at.ac.ait.q3p.node-bob &> /dev/null) && break;
 done
@@ -67,15 +63,14 @@ qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice open_db "file://${DB_BOB_2_A
 qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice inject_url "file://${SHARED_SECRET_FILE}" &> /dev/null
 qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice org.freedesktop.DBus.Properties.Set at.ac.ait.q3p.link slave "true" &> /dev/null
 
-# check for key presence
 KEYS_ALICE=$(qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob/CommonStore charge)
-KEYS_BOB=$(qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice/CommonStore charge)
 if [ "${KEYS_ALICE}" -lt "100" ]; then
     echo "Not enough (<100) keys on alice side"
     q3pd_stop "alice"
     q3pd_stop "bob"
     exit 1
 fi
+KEYS_BOB=$(qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice/CommonStore charge)
 if [ "${KEYS_BOB}" -lt "100" ]; then
     echo "Not enough (<100) keys on bob side"
     q3pd_stop "alice"
@@ -83,25 +78,19 @@ if [ "${KEYS_BOB}" -lt "100" ]; then
     exit 1
 fi
 
-# both should listen
 qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob listen "tcp://127.0.0.1:10011" "${SHARED_SECRET}" &> /dev/null
 qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice listen "tcp://127.0.0.1:10021" "${SHARED_SECRET}" &> /dev/null
-
-# let alice connect
 qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob connect "tcp://127.0.0.1:10021" "${SHARED_SECRET}" &> /dev/null
-
-# give both some time to handshake and warm up
 sleep 1
 
-# see if have a connection
 CONNECTED_ALICE=$(qkd_qdbus at.ac.ait.q3p.node-alice /Link/alice_to_bob connected)
-CONNECTED_BOB=$(qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice connected)
 if [ "${CONNECTED_ALICE}" != "true" ]; then
     echo "alice failed to connect to bob"
     q3pd_stop "alice"
     q3pd_stop "bob"
     exit 1
 fi
+CONNECTED_BOB=$(qkd_qdbus at.ac.ait.q3p.node-bob /Link/bob_to_alice connected)
 if [ "${CONNECTED_BOB}" != "true" ]; then
     echo "bob failed to connect to alice"
     q3pd_stop "alice"
@@ -109,7 +98,7 @@ if [ "${CONNECTED_BOB}" != "true" ]; then
     exit 1
 fi
 
-# now start some modules in the background
+# all is up and connected, now start some modules in the background
 ${TEST_BASE}/bin/qkd-cat &> /dev/null &
 ${TEST_BASE}/bin/qkd-cat &> /dev/null &
 ${TEST_BASE}/bin/qkd-tee &> /dev/null &
@@ -118,9 +107,9 @@ ${TEST_BASE}/bin/qkd-tee &> /dev/null &
 ${TEST_BASE}/bin/qkd-ping --debug --run 1> /dev/null 2>> qkd-ping_debug_1.txt &
 ${TEST_BASE}/bin/qkd-ping --bob --run 1> /dev/null 2>> qkd-ping_debug_2.txt &
 ${TEST_BASE}/bin/qkd-ping --debug --bob --connect "tcp://127.0.0.1:6999" --run 1> p.txt 2>> qkd-ping_debug_3.txt &
-sleep 2
 
-# the modules
+# set the hint of the modules (after all modules registered)
+sleep 1
 MODULES=$(qkd_qdbus | grep at.ac.ait.qkd.module)
 for m in ${MODULES}; do
     echo "Setting some hint to MODULE: ${m}"
@@ -133,13 +122,12 @@ qkd_qdbus at.ac.ait.q3p.node-alice /Node modules > alice-modules.present
 # kick the pid in the second column
 sed -i "s/;[0-9]*;/;/" alice-modules.present
 
-# clean up any running instance
-test_cleanup
-
 # generated expected output
 cat > alice-modules.expected << EOF
 cat;0;alice;default;This is a hint;;;;stdout://;
 cat;0;alice;default;This is a hint;;;;stdout://;
+keystore;2;alice;default;This is a hint;;tcp://127.0.0.1:10022;ipc:///tmp/qkd/keystore.alice_to_bob;;
+keystore;2;alice;default;This is a hint;tcp://127.0.0.1:10022;;ipc:///tmp/qkd/keystore.bob_to_alice;;
 ping;2;alice;default;This is a hint;;tcp://127.0.0.1:6789;;stdout://;
 ping;2;alice;default;This is a hint;tcp://127.0.0.1:6789;;;stdout://;
 ping;2;alice;default;This is a hint;tcp://127.0.0.1:6999;;;stdout://;
@@ -153,9 +141,10 @@ diff -q alice-modules.present alice-modules.expected &> /dev/null
 RESULT_OK=$?
 if [ "${RESULT_OK}" != "0" ]; then
     echo "listening of modules failed"
+    test_cleanup
     exit 1
 fi
 echo "listening of modules ok"
+test_cleanup
 
-# state that test ok
 echo "=== TEST SUCCESS ==="
