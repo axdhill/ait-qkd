@@ -58,61 +58,6 @@ using namespace qkd::utility;
 void wrapped_memory_deleter(UNUSED qkd::utility::memory::value_t * p);
 
 
-namespace qkd {
-    
-namespace utility {    
-
-    
-/**
- * our own dual table
- */
-class dual_table {
-
-public:
-
-    /**
-     * ctor
-     */
-    dual_table() {
-
-        // create lookup table of strings
-        for (int64_t i = 0; i < 256; i++) {
-
-            std::stringstream cStringStream;
-
-            if (i & 0x80) cStringStream << '1';
-            else cStringStream << '0';
-            if (i & 0x40) cStringStream << '1';
-            else cStringStream << '0';
-            if (i & 0x20) cStringStream << '1';
-            else cStringStream << '0';
-            if (i & 0x10) cStringStream << '1';
-            else cStringStream << '0';
-            if (i & 0x08) cStringStream << '1';
-            else cStringStream << '0';
-            if (i & 0x04) cStringStream << '1';
-            else cStringStream << '0';
-            if (i & 0x02) cStringStream << '1';
-            else cStringStream << '0';
-            if (i & 0x01) cStringStream << '1';
-            else cStringStream << '0';
-
-            cStringStream >> value[i];
-        }
-    }
-
-
-    /**
-     * table data
-     */
-    std::string value[256];
-};
-
-}
-
-}
-
-
 // ------------------------------------------------------------
 // code
 

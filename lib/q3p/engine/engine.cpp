@@ -1628,7 +1628,6 @@ void engine_instance::server_new() {
     if (!db_opened()) {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "won't connect to peer without an opened database";
         delete cConnection;
-        cConnection = nullptr;
         return;
     }
     
@@ -1636,7 +1635,6 @@ void engine_instance::server_new() {
         QString sMessage = QString("insufficient keys in database (minimum is %1): inject keys first in order to connect").arg(MIN_KEYS_IN_DB);
         qkd::utility::syslog::info() << sMessage.toStdString();
         delete cConnection;
-        cConnection = nullptr;
         return;
     }
     
@@ -1644,7 +1642,6 @@ void engine_instance::server_new() {
         QString sMessage = QString("connection attempt by \"%1:%2\" discarded: already connected or attempting to connect to peer").arg(cConnection->peerAddress().toString()).arg(cConnection->peerPort());
         qkd::utility::syslog::info() << sMessage.toStdString();
         delete cConnection;
-        cConnection = nullptr;
         return;
     }
     

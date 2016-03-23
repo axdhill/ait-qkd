@@ -60,28 +60,25 @@ void investigation::dump(std::ostream & cStream) const {
     //
     // I frickle around a "solution" in plain old rusty C ... :(
     //
+    
     time_t cTimestamp = std::chrono::system_clock::to_time_t(m_cTimestampEnd);
     tm * cTm = localtime(&cTimestamp);
     char sTimestamp[32];
     snprintf(sTimestamp, 32, "%04d-%02d-%02d %02d:%02d:%02d", cTm->tm_year + 1900, cTm->tm_mon, cTm->tm_mday, cTm->tm_hour, cTm->tm_min, cTm->tm_sec);
     cStream << "qkd system investigataion dump of timestamp: " << sTimestamp << std::endl;
     
-    // all the nodes
     cStream << "\"nodes\": {\n";
     for (auto const & cNode : m_cResult.cNodes) cNode.second.write(cStream, "\t");
     cStream << "}\n";
     
-    // all the links
     cStream << "\"links\": {\n";
     for (auto const & cLink : m_cResult.cLinks) cLink.second.write(cStream, "\t");
     cStream << "}\n";
     
-    // all the modules
     cStream << "\"modules\": {\n";
     for (auto const & cModule : m_cResult.cModules) cModule.second.write(cStream, "\t");
     cStream << "}\n";
     
-    // all the pipelines
     cStream << "\"pipelines\": {\n";
     for (auto const & cPipeline : m_cResult.cPipelines) cPipeline.second.write(cStream, "\t");
     cStream << "}\n";
@@ -95,18 +92,11 @@ void investigation::dump(std::ostream & cStream) const {
  */
 investigation investigation::investigate() {
     
-    // prepare a investigation object
     investigation cInvestigation;
     
-    // instantiate an investigation via DBus worker
     investigation_dbus cInvestigationDBus;
-    
-    // inspect system!
     cInvestigationDBus.investigate(cInvestigation.m_cResult);
-    
-    // capture end point
     cInvestigation.m_cTimestampEnd = std::chrono::system_clock::now();
     
     return cInvestigation;
 }
-

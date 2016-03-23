@@ -611,26 +611,20 @@ bool connection::write_key(qkd::module::path & cPath, qkd::key::key const & cKey
  */
 bool connection::zmq_socket_server() const {
     
-    bool res = false;
-    
     switch (m_eType) {
         
     case connection_type::LISTEN:
     case connection_type::PIPE_IN:
-        res = true;
-        break;
+        return true;
     
     case connection_type::PEER:
     case connection_type::PIPE_OUT:
-        res =  false;
-        break;
+        return false;
         
     default:
         throw std::logic_error("cannot deduce 0MQ socket server mode from connection type");
             
     }
-    
-    return res;
 }
 
 

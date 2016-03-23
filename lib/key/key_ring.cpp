@@ -64,14 +64,12 @@ void key_ring::push_back(qkd::key::key const & cKey) {
     // ensure that at least one last key is present in the ring
     if (cKey.size() && !size()) {
         std::vector<qkd::key::key>::push_back(qkd::key::key(id(), qkd::utility::memory(0)));
-        qkd::key::key cLastKey = back();
         m_nId++;
     }
 
     // add slices of the new key
     while (nSizeOfNewKey) {
     
-        // get the last key
         qkd::key::key & cLastKey = back();
         uint64_t nBytesToAdd = std::min((uint64_t)(key_size() - cLastKey.size()), nSizeOfNewKey);
         
@@ -82,7 +80,6 @@ void key_ring::push_back(qkd::key::key const & cKey) {
             continue;
         }
         
-        // add bytes to the last key
         cLastKey.data().resize(cLastKey.size() + nBytesToAdd);
         memcpy(cLastKey.data().get() + cLastKey.data().size() - nBytesToAdd, cNewKeyData, nBytesToAdd);
         nSizeOfNewKey -= nBytesToAdd;

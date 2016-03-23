@@ -186,6 +186,8 @@ void qkd_cascade::qkd_cascade_data::generate_random_permutation(std::vector<uint
         inv_perm[perm[i]] = i;
     }
 }
+
+
 /**
  * ctor
  */

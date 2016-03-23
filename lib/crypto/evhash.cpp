@@ -815,7 +815,7 @@ public:
     explicit evhash_impl(qkd::key::key const & cKey) : m_nBlocks(0), m_cRemainder(nullptr), m_nRemainderBytes(0) {
        
         unsigned int nModulus = 0;
-        bool bTwoStepPrecalculation = false;
+        bool bTwoStepPrecalculation;
 
         switch (GF_BITS) {
 

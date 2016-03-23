@@ -65,8 +65,6 @@ bool approximately_equal(double a, double b) {
 
 void test() {
     
-    double nAverage = 0.0;
-
     // sample values
     double nValues[20] = { 
         1.0, 2.0, 3.1, 200.3, 90.0, 23.4, 58.3, 834.0, 193.13, 98.321, 
@@ -89,8 +87,7 @@ void test() {
     // walk over the values and collect the results
     for (uint64_t i = 0; i < 20; i++) {
         cAverage << nValues[i];
-        nAverage = cAverage->avg();
-        ss << nAverage << std::endl;
+        ss << cAverage->avg() << std::endl;
     }
 
     // check result
@@ -129,8 +126,7 @@ void test() {
     for (uint64_t i = 0; i < 20; i++) {
         
         cAverage << nValues[i];
-        nAverage = cAverage->sum();
-        ss << nAverage << std::endl;
+        ss << cAverage->sum() << std::endl;
         
         // sleep for 150 millisecs
         usleep(150 * 1000);
