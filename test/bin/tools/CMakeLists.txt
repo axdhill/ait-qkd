@@ -53,7 +53,6 @@ configure_file(test-qkd-key-gen                 ${CMAKE_CURRENT_BINARY_DIR}/test
 configure_file(test-qkd-pipeline                ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-pipeline               @ONLY)
 configure_file(test-qkd-pipeline-autoconnect    ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-pipeline-autoconnect   @ONLY)
 configure_file(test-qkd-statistics-average      ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-statistics-average     @ONLY)
-configure_file(test-qkd-view-json               ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-view-json              @ONLY)
 configure_file(test-pipeline-sifting            ${CMAKE_CURRENT_BINARY_DIR}/test-pipeline-sifting           @ONLY)
 
 
@@ -64,5 +63,4 @@ configure_file(test-pipeline-sifting            ${CMAKE_CURRENT_BINARY_DIR}/test
 add_test(qkd-pipeline                           ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-pipeline)
 add_test(qkd-pipeline-autoconnect               ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-pipeline-autoconnect)
 add_test(qkd-qkd-statistics-average             ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-statistics-average)
-add_test(qkd-view-json                          ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-view-json)
 

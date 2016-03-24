@@ -37,13 +37,9 @@ source ${TEST_BASE}/test/bin/test-functions
 
 # ------------------------------------------------------------
 
-# init test environment
 test_init "$(basename $0).d"
-
-# zap previous keys
 rm -rf cat_keys.* &> /dev/null
 
-# truncate previous debug out
 echo -n > auth_pre_debug.alice
 echo -n > auth_pre_debug.bob
 echo -n > cascade_debug.alice
@@ -55,17 +51,14 @@ echo -n > auth_post_debug.bob
 KEYS_TO_PROCESS="10"
 ${TEST_BASE}/bin/qkd-key-gen --silent --size 2048 --keys ${KEYS_TO_PROCESS} --rate 0.03 --random-url=linear-congruential:42 cat_keys
 
-# prepare the config files
 cp ${TEST_BASE}/test/test-data/auth-test.conf auth_pre.config
 sed -i 's/auth-PRE/auth/' auth_pre.config
 cp ${TEST_BASE}/test/test-data/auth-test.conf auth_post.config
 sed -i 's/auth-POST/auth/' auth_post.config
 
-# start two pipelines
 PIPELINE_PRE_CONFIG="auth_pre.config"
 PIPELINE_POST_CONFIG="auth_post.config"
 
-# start the modules
 ( ${TEST_BASE}/bin/qkd-cat --debug --run --config ${PIPELINE_PRE_CONFIG} --file "cat_keys.alice" 2>> cat_debug.alice ) &
 ( ${TEST_BASE}/bin/qkd-cat --debug --bob --run --config ${PIPELINE_PRE_CONFIG} --file "cat_keys.bob" 2>> cat_debug.bob ) &
 ( ${TEST_BASE}/bin/qkd-auth --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> auth_pre_debug.alice ) &
@@ -75,15 +68,11 @@ PIPELINE_POST_CONFIG="auth_post.config"
 ( ${TEST_BASE}/bin/qkd-auth --debug --run --config ${PIPELINE_POST_CONFIG} 1> auth_keys.alice 2>> auth_post_debug.alice ) &
 ( ${TEST_BASE}/bin/qkd-auth --debug --bob --run --config ${PIPELINE_POST_CONFIG} 1> auth_keys.bob 2>> auth_post_debug.bob ) &
 
-# wait until the modules are up
 while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module.auth | wc -l)" != "4" ]; do
     echo "waiting for the pipeline to ignite ..."
-    sleep 1
+    sleep 0
 done
-
-# wait until all keys have been processed
-sleep 1
-wait_idle cat cascade auth
+wait_idle 
 echo "got keys"
 
 # check how many 
@@ -127,9 +116,7 @@ if [ "$(grep PUSH auth_post_debug.bob  | wc -l)" != "5" ]; then
     exit 1
 fi
 
-# stop modules
 test_cleanup
 
-# state that test ok
 echo "=== TEST SUCCESS ==="
 

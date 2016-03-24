@@ -76,11 +76,8 @@ sed -i 's/auth-POST/auth/' auth_post.config
 PIPELINE_PRE_CONFIG="auth_pre.config"
 PIPELINE_POST_CONFIG="auth_post.config"
 
-# start the modules: key material feeder
 ( ${TEST_BASE}/bin/qkd-cat --debug --run --config ${PIPELINE_PRE_CONFIG} --file "cat_keys.alice" 2>> cat_debug.alice ) &
 ( ${TEST_BASE}/bin/qkd-cat --debug --bob --run --config ${PIPELINE_PRE_CONFIG} --file "cat_keys.bob" 2>> cat_debug.bob ) &
-
-# start the modules
 ( ${TEST_BASE}/bin/qkd-auth --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> auth_pre_debug.alice ) &
 ( ${TEST_BASE}/bin/qkd-auth --debug --bob --run --config ${PIPELINE_PRE_CONFIG} 2>> auth_pre_debug.bob ) &
 ( ${TEST_BASE}/bin/qkd-sifting-bb84 --debug --run --config ${PIPELINE_PRE_CONFIG} 2>> bb84_debug.alice ) &
@@ -96,15 +93,11 @@ PIPELINE_POST_CONFIG="auth_post.config"
 ( ${TEST_BASE}/bin/qkd-auth --debug --run --config ${PIPELINE_POST_CONFIG} 1> auth_keys.alice 2>> auth_post_debug.alice ) &
 ( ${TEST_BASE}/bin/qkd-auth --debug --bob --run --config ${PIPELINE_POST_CONFIG} 1> auth_keys.bob 2>> auth_post_debug.bob ) &
 
-# wait until the modules are up
 while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module | wc -l)" != "16" ]; do
     echo "waiting for the pipeline to ignite ..."
-    sleep 1
+    sleep 0
 done
-
-# wait until the pipeline has been through
-sleep 1
-wait_idle cat bb84 cascade confirmation resize privacy-amplification
+wait_idle
 
 # final authentication keys may not differ
 if [ ! -s auth_keys.alice ]; then

@@ -37,43 +37,32 @@ source ${TEST_BASE}/test/bin/test-functions
 
 # ------------------------------------------------------------
 
-# init test environment
 test_init "$(basename $0).d"
-
-# zap previous keys
-#rm -rf cat_keys.* &> /dev/null
+rm -rf cat_keys.* &> /dev/null
 
 # create keys
 KEYS_TO_PROCESS="100"                
 ${TEST_BASE}/bin/qkd-key-gen --silent --size 4096 --keys ${KEYS_TO_PROCESS} --random-url=linear-congruential:42 cat_keys
 
-# truncate previous debug out
 echo -n > confirmation_debug.alice
 echo -n > confirmation_debug.bob
 
-# fix pipeline config
 cat ${TEST_BASE}/test/test-data/pipeline.conf | grep -v "^cat.alice.url_pipe_out" | grep -v "^cat.bob.url_pipe_out" > confirmation.config
 echo "cat.alice.url_pipe_out = ipc:///tmp/qkd/confirmation.alice.in" >> confirmation.config
 echo "cat.bob.url_pipe_out = ipc:///tmp/qkd/confirmation.bob.in" >> confirmation.config
 
-# start two pipelines
 PIPELINE_CONFIG="confirmation.config"
 
-# start the modules - for the confirmation we are using the same keys in the first round
 ( ${TEST_BASE}/bin/qkd-cat --run --config ${PIPELINE_CONFIG} --file "cat_keys.alice" ) &
 ( ${TEST_BASE}/bin/qkd-cat --bob --run --config ${PIPELINE_CONFIG} --file "cat_keys.alice" ) &
 ( ${TEST_BASE}/bin/qkd-confirmation --debug --run --config ${PIPELINE_CONFIG} 1> confirmation_keys.alice 2>> confirmation_debug.alice ) &
 ( ${TEST_BASE}/bin/qkd-confirmation --debug --bob --run --config ${PIPELINE_CONFIG} 1> confirmation_keys.bob 2>> confirmation_debug.bob ) &
 
-# wait until the modules are up
 while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module.confirmation | wc -l)" = "0" ]; do
     echo "waiting for the pipeline to ignite ..."
-    sleep 1
+    sleep 0
 done
-
-# wait until all keys have been processed
-sleep 1
-wait_idle cat confirmation
+wait_idle
 echo "got keys"
 
 # clean up the generated debug output
@@ -120,7 +109,6 @@ if [[ $(md5sum confirmation_debug.bob.out) != a3aeacf0617604263c9a4f7111daddb8* 
     exit 1
 fi
 
-
 # we must have KEYS_TO_PROCESS lines
 if [ "$(wc -l confirmation_debug.alice.out | awk '{ print $1 }')" != "${KEYS_TO_PROCESS}" ]; then
     echo "not all keys have been confirmed"
@@ -129,10 +117,6 @@ fi
 
 echo "qkd-confirmation work for equal keys"
 
-# stop machines
 test_cleanup
 
-# state that test ok
 echo "=== TEST SUCCESS ==="
-
-exit 0

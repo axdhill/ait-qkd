@@ -106,15 +106,11 @@ PIPELINE_POST_CONFIG="file://${TEST_BASE}/auth_post.config"
 ( ${TEST_BASE}/bin/qkd-auth --debug --run --config ${PIPELINE_POST_CONFIG} 1> auth_keys.alice 2>> auth_post_debug.alice ) &
 ( ${TEST_BASE}/bin/qkd-auth --debug --bob --run --config ${PIPELINE_POST_CONFIG} 1> auth_keys.bob 2>> auth_post_debug.bob ) &
 
-# wait until the modules are up
 while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module | wc -l)" != "20" ]; do
     echo "waiting for the pipeline to ignite ..."
-    sleep 1
+    sleep 0
 done
-
-# wait until the pipeline has been through
-sleep 1
-wait_idle cat bb84 cascade confirmation resize drop reorder privacy-amplification
+wait_idle
 
 # final authentication keys may not differ
 if [ ! -s auth_keys.alice ]; then

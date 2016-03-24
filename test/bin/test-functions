@@ -255,28 +255,19 @@ function q3pd_stop() {
 
 
 # --------------------------------------------------
-# wait for set idle flag in the given list of modules
+# wait for set idle flag in all modules
 #
-# ${+}      id of modules
-# 
 function wait_idle() {
 
-    MODULE=${1}
-    while [ "${MODULE}" ]; do
-    
-        echo "waiting for module(s) '${MODULE}' to be idle ..."
-        ${TEST_BASE}/bin/qkd-view --short | grep "module: *${MODULE}.*true *$" | while read LINE; do
-            qkd_qdbus $(echo ${LINE} | awk '{ print $3; }') /Module terminate > /dev/null
-            echo "sent terminate signal to module" $(echo ${LINE} | awk '{ print $3; }')
-        done
-        
-        NOT_STALLED=$(${TEST_BASE}/bin/qkd-view --short | grep "module: *${MODULE}.*false *$" | wc -l)
-        if [ "${NOT_STALLED}" -gt 0 ]; then
-            sleep 1
-        else
-            shift
-            MODULE=${1}
+    while :; do
+
+        # wait until there is no working module anymore (no single module having "idle" == false)
+        ${TEST_BASE}/bin/qkd-view --short | grep "module: *${MODULE}.*false *$" &> /dev/null
+        if [ "$?" != "0" ]; then
+            break
         fi
+        sleep 0
+        
     done
 }
 

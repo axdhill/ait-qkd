@@ -64,7 +64,7 @@ while :; do
             break;
         fi
     fi
-    sleep 1
+    sleep 0
     
 done
 

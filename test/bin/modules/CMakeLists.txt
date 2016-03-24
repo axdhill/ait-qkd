@@ -59,7 +59,6 @@ configure_file(test-mod-enkey                   ${CMAKE_CURRENT_BINARY_DIR}/test
 configure_file(test-mod-dekey                   ${CMAKE_CURRENT_BINARY_DIR}/test-mod-dekey                  @ONLY)
 configure_file(test-mod-statistics              ${CMAKE_CURRENT_BINARY_DIR}/test-mod-statistics             @ONLY)
 configure_file(test-full-pipeline               ${CMAKE_CURRENT_BINARY_DIR}/test-full-pipeline              @ONLY)
-configure_file(test-full-long-running           ${CMAKE_CURRENT_BINARY_DIR}/test-full-long-running          @ONLY)
 configure_file(test-disruptive-drop             ${CMAKE_CURRENT_BINARY_DIR}/test-disruptive-drop            @ONLY)
 configure_file(test-disruptive-reorder          ${CMAKE_CURRENT_BINARY_DIR}/test-disruptive-reorder         @ONLY)
 configure_file(test-full-disruptive             ${CMAKE_CURRENT_BINARY_DIR}/test-full-disruptive            @ONLY)

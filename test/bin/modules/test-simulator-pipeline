@@ -55,10 +55,8 @@ echo -n > privacy_amplification_debug.bob
 # to create keys you have to launch the simulator 
 # and load the 'simulator.conf' configuration file
 
-# start two pipelines
 PIPELINE_CONFIG="file://${TEST_BASE}/test/test-data/simulator-pipeline.conf"
 
-# start the modules
 ( ${TEST_BASE}/bin/qkd-sifting-bb84 --debug --run --config ${PIPELINE_CONFIG} 2>> bb84_debug.alice ) &
 ( ${TEST_BASE}/bin/qkd-sifting-bb84 --debug --bob --run --config ${PIPELINE_CONFIG} 2>> bb84_debug.bob ) &
 ( ${TEST_BASE}/bin/qkd-cascade --debug --run --config ${PIPELINE_CONFIG} 2>> cascade_debug.alice ) &
@@ -68,11 +66,9 @@ PIPELINE_CONFIG="file://${TEST_BASE}/test/test-data/simulator-pipeline.conf"
 ( ${TEST_BASE}/bin/qkd-privacy-amplification --debug --run --config ${PIPELINE_CONFIG} 1> shared_secret_key.alice 2>> privacy_amplification_debug.alice ) &
 ( ${TEST_BASE}/bin/qkd-privacy-amplification --debug --bob --run --config ${PIPELINE_CONFIG} 1> shared_secret_key.bob 2>> privacy_amplification_debug.bob ) &
 
-# wait until the modules are up
 while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module | wc -l)" != "8" ]; do
     echo "waiting for the pipeline to ignite ..."
-    sleep 1
+    sleep 0
 done
 
-# state that pipeline is up and running
 echo "=== PIPELINE UP ==="
