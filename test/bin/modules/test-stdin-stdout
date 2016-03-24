@@ -37,13 +37,9 @@ source ${TEST_BASE}/test/bin/test-functions
 
 # ------------------------------------------------------------
 
-# init test environment
 test_init "$(basename $0).d"
-
-# zap previous keys
 rm -rf stdin-stdout-keys.* &> /dev/null
 
-# create keys
 ${TEST_BASE}/bin/qkd-key-gen --silent --keys=100 stdin-stdout-keys
 
 # start the qkd-tee module in the background 
@@ -51,7 +47,6 @@ ${TEST_BASE}/bin/qkd-key-gen --silent --keys=100 stdin-stdout-keys
 ( cat stdin-stdout-keys.alice | ${TEST_BASE}/bin/qkd-tee --debug --file "stdin-stdout-keys.charly" 1> stdin-stdout-keys.daisy 2> stdin-stdout-tee.debug ) &
 sleep 1
 
-# pick the module
 MODULE_SERVICE=$(qkd_qdbus | grep at.ac.ait.qkd.module.tee)
 if [ "${MODULE_SERVICE}" = "" ]; then
     echo "failed to start tee QKD module"
@@ -59,7 +54,6 @@ if [ "${MODULE_SERVICE}" = "" ]; then
 fi
 echo "testing stdin-stdout on '${MODULE_SERVICE}'"
 
-# set stdin and stdout for the module
 qkd_qdbus ${MODULE_SERVICE} /Module set_urls "stdin://" "stdout://" "" ""
 qkd_qdbus ${MODULE_SERVICE} /Module run
 PIPE_IN=$(qkd_qdbus ${MODULE_SERVICE} /Module url_pipe_in)
@@ -75,11 +69,9 @@ if [ "${PIPE_OUT}" != "stdout://" ]; then
     exit 1
 fi
 
-# let the module fullfill the job
 qkd_qdbus ${MODULE_SERVICE} /Module resume
-sleep 1
+sleep 0
 
-# wait until all keys have been written
 while :; do
 
     # get current state of module
@@ -104,7 +96,8 @@ while :; do
         break;
     fi
     
-    sleep 1
+    sleep 0
+    
 done
 
 # we have read 10 keys now compare result files: all of them should have the very same MD5
@@ -114,16 +107,13 @@ if [ "${DIFFERENT_FILES}" != "1" ]; then
     exit 1
 fi
 
-# all good
 echo "qkd-tee works with stdin:// and stdout:// as expected"
 echo "1"
 echo qkd_qdbus ${MODULE_SERVICE} /Module terminate
 qkd_qdbus ${MODULE_SERVICE} /Module terminate
 echo "2"
 
-# enforced cleansing
 test_cleanup
 
-# state that test ok
 echo "=== TEST SUCCESS ==="
 

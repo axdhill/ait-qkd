@@ -37,24 +37,17 @@ source ${TEST_BASE}/test/bin/test-functions
 
 # ------------------------------------------------------------
 
-# init test environment
 test_init "$(basename $0).d"
-
-# zap previous keys
 rm -rf cat_keys.* &> /dev/null
 
-# truncate previous debug out
 echo -n > statistics_debug.alice
 echo -n > statistics_debug.bob
 
-# create keys
 KEYS_TO_PROCESS="100"
 ${TEST_BASE}/bin/qkd-key-gen --silent --size 512 --keys ${KEYS_TO_PROCESS} --rate 0.03 cat_keys
 
-# start two pipelines
 PIPELINE_CONFIG="file://${TEST_BASE}/test/test-data/statistics.conf"
 
-# start the modules
 ( ${TEST_BASE}/bin/qkd-cat --run --config ${PIPELINE_CONFIG} --file "cat_keys.alice" ) &
 ( ${TEST_BASE}/bin/qkd-cat --bob --run --config ${PIPELINE_CONFIG} --file "cat_keys.bob" ) &
 ( ${TEST_BASE}/bin/qkd-cascade --run --config ${PIPELINE_CONFIG}  ) &
@@ -62,15 +55,11 @@ PIPELINE_CONFIG="file://${TEST_BASE}/test/test-data/statistics.conf"
 ( ${TEST_BASE}/bin/qkd-statistics --debug --run --config ${PIPELINE_CONFIG} 1> statistics_keys.alice 2>> statistics_debug.alice ) &
 ( ${TEST_BASE}/bin/qkd-statistics --debug --bob --run --config ${PIPELINE_CONFIG} 1> statistics_keys.bob 2>> statistics_debug.bob ) &
 
-# wait until the modules are up
 while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module.statistics | wc -l)" = "0" ]; do
     echo "waiting for the pipeline to ignite ..."
-    sleep 1
+    sleep 0
 done
-
-# wait until all keys have been processed
-sleep 1
-wait_idle cat cascade statistics
+wait_idle 
 echo "got keys"
 
 # TODO: Verify if this test can only be 'okay' iff everything is 'corrected'
@@ -81,9 +70,6 @@ if [[ $(awk '{if (NR!=1) {print $6; }}' statistics.bob | uniq) != 'corrected' ]]
     echo "Statistics show not all entries for Bob are in a 'corrected' state - warning"
 fi
 
-# stop machines
 test_cleanup
 
-# state that test ok
 echo "=== TEST SUCCESS ==="
-

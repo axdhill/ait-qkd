@@ -42,37 +42,26 @@ source ${TEST_BASE}/test/bin/test-functions
 
 # ------------------------------------------------------------
 
-# init test environment
 test_init "$(basename $0).d"
-
-# zap previous keys
 rm -rf cat_keys.* &> /dev/null
 
-# create keys
 ${TEST_BASE}/bin/qkd-key-gen --silent --size 1000 --randomize-size --keys 1000 --rate 0.04 --errorbits cat_keys
 
-# truncate previous debug out
 echo -n > resize_debug.alice
 echo -n > resize_debug.bob
 
-# start two pipelines
 PIPELINE_CONFIG="file://${TEST_BASE}/test/test-data/resize-exact.conf"
 
-# start the modules - for the resize we are using the same keys in the first round
 ( ${TEST_BASE}/bin/qkd-cat --run --config ${PIPELINE_CONFIG} --file "cat_keys.alice" ) &
 ( ${TEST_BASE}/bin/qkd-cat --bob --run --config ${PIPELINE_CONFIG} --file "cat_keys.bob" ) &
 ( ${TEST_BASE}/bin/qkd-resize --debug --run --config ${PIPELINE_CONFIG} 1> resize_keys.alice 2>> resize_debug.alice ) &
 ( ${TEST_BASE}/bin/qkd-resize --debug --bob --run --config ${PIPELINE_CONFIG} 1> resize_keys.bob 2>> resize_debug.bob ) &
 
-# wait until the modules are up
 while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module.resize | wc -l)" = "0" ]; do
     echo "waiting for the pipeline to ignite ..."
-    sleep 1
+    sleep 0
 done
-
-# wait until all keys have been processed
-sleep 1
-wait_idle cat resize
+wait_idle
 echo "got keys"
 
 OUTPUT_VARIANTS=$(grep ^key-PUSH resize_debug.alice | awk '{ print $6; }' | uniq | wc -l)
@@ -99,5 +88,7 @@ fi
 echo "all keys of alice are exactly 1000 bytes"
 
 echo "qkd-resize exact key size works"
+
+test_cleanup
 
 echo "=== TEST SUCCESS ==="

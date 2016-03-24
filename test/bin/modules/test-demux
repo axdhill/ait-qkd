@@ -60,7 +60,7 @@ while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module.tee | wc -l)" !
 done
 echo "modules created"
 
-wait_idle cat tee
+wait_idle
 echo "got keys"
 test_cleanup
 

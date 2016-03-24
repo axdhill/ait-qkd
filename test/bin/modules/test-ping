@@ -37,19 +37,14 @@ source ${TEST_BASE}/test/bin/test-functions
 
 # ------------------------------------------------------------
 
-# init test environment
 test_init "$(basename $0).d"
 
-# remove any previous files
 echo -n > ping.alice.output
 echo -n > ping.alice.debug
 echo -n > ping.bob.output
 echo -n > ping.bob.debug
 
-# start bob in the background
 ( ${TEST_BASE}/bin/qkd-ping --debug --bob --run 1> ping.bob.output 2> ping.bob.debug ) &
-
-# run alice in the foreground
 ${TEST_BASE}/bin/qkd-ping --debug --count 50 --sleep 100 --run 1> ping.alice.output 2> ping.alice.debug
 
 # grep both outputs, reformat and compare them
@@ -65,10 +60,6 @@ fi
 
 echo "qkd-ping works."
 
-# clean up any running instance
 test_cleanup
 
-# state that test ok
 echo "=== TEST SUCCESS ==="
-
-exit 0

@@ -37,39 +37,28 @@ source ${TEST_BASE}/test/bin/test-functions
 
 # ------------------------------------------------------------
 
-# init test environment
 test_init "$(basename $0).d"
-
-# zap previous keys
 rm -rf cat_keys.* &> /dev/null
 
 KEYS_TO_PROCESS="10000"
 ${TEST_BASE}/bin/qkd-key-gen --silent --size 64 --keys ${KEYS_TO_PROCESS} --random-url=linear-congruential:42 cat_keys
 
-# truncate previous debug out
 echo -n > drop_debug.alice
 
-# fix pipeline config
 cat ${TEST_BASE}/test/test-data/pipeline.conf | grep -v "^cat.alice.url_pipe_out" | grep -v "^cat.bob.url_pipe_out" > drop.config
 echo "cat.alice.url_pipe_out = ipc:///tmp/qkd/drop.alice.in" >> drop.config
 echo "cat.bob.url_pipe_out = ipc:///tmp/qkd/drop.bob.in" >> drop.config
 
-# start two pipelines
 PIPELINE_CONFIG="drop.config"
 
-# start the modules - we are just using alice
 ( ${TEST_BASE}/bin/qkd-cat --run --config ${PIPELINE_CONFIG} --file "cat_keys.alice" ) &
 ( ${TEST_BASE}/bin/qkd-drop --debug --run --config ${PIPELINE_CONFIG} 1> drop_keys.alice 2>> drop_debug.alice ) &
 
-# wait until the modules are up
 while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module.drop | wc -l)" = "0" ]; do
     echo "waiting for the pipeline to ignite ..."
-    sleep 1
+    sleep 0
 done
-
-# wait until all keys have been processed
-sleep 1
-wait_idle cat drop
+wait_idle
 echo "keys dropped"
 
 # count remaining keys
@@ -100,9 +89,7 @@ if [[ $(md5sum cat_keys.bob) != e8efe36b601a6205be984b4dbe9e399d* ]]; then
     exit 1
 fi
 
-# stop machines
 test_cleanup
 
-# state that the test was ok
 echo "=== TEST SUCCESS ==="
 

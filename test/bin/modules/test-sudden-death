@@ -46,7 +46,7 @@ rm -f sudden_death.* &> /dev/null
 # on a recv
 ( ${TEST_BASE}/bin/qkd-ping --debug --run 1> sudden_death.alice 2> sudden_death.debug.alice ) &
 ( ${TEST_BASE}/bin/qkd-ping --bob --debug --run 1> sudden_death.bob 2> sudden_death.debug.bob ) &
-sleep 1
+sleep 0
 
 PID_BOB=$(${TEST_BASE}/bin/qkd-view -s | grep bob | awk '{ print $9; }')
 if [ -z "${PID_BOB}" ]; then
@@ -56,7 +56,7 @@ fi
 
 # kill bob and check how alice reacts to this
 kill ${PID_BOB}
-sleep 1
+sleep 0
 
 # check if alice detected bob's missing
 FAILED_RECV=$(grep 'failed to read from bob...' sudden_death.debug.alice | wc -l)
@@ -65,5 +65,4 @@ if [ -z "${FAILED_RECV}" ]; then
     exit 1
 fi
 
-# state that test ok
 echo "=== TEST SUCCESS ==="

@@ -39,13 +39,9 @@ source ${TEST_BASE}/test/bin/test-functions
 
 # ------------------------------------------------------------
 
-# init test environment
 test_init "$(basename $0).d"
-
-# zap previous keys
 rm -rf killer-keys.* &> /dev/null
 
-# create keys
 ${TEST_BASE}/bin/qkd-key-gen --silent --keys=100 killer-keys
 
 # create a pipeline: cat --> throttle --> tee
@@ -54,42 +50,36 @@ ${TEST_BASE}/bin/qkd-throttle --debug 2> qkd-throttle.debug &
 ${TEST_BASE}/bin/qkd-tee --debug 2> qkd-tee.1.debug &
 sleep 2
 
-# grab the CAT
 MODULE_CAT=$(qkd_qdbus | grep at.ac.ait.qkd.module.cat)
 if [ "${MODULE_CAT}" = "" ]; then
     echo "failed to start QKD module: cat"
     exit 1
 fi
 
-# grab the THROTTLE
 MODULE_THROTTLE=$(qkd_qdbus | grep at.ac.ait.qkd.module.throttle)
 if [ "${MODULE_THROTTLE}" = "" ]; then
     echo "failed to start QKD module: throttle"
     exit 1
 fi
 
-# grab the TEE
 MODULE_TEE=$(qkd_qdbus | grep at.ac.ait.qkd.module.tee)
 if [ "${MODULE_TEE}" = "" ]; then
     echo "failed to start QKD module: tee"
     exit 1
 fi
 
-# start the CAT
 echo "starting module: ${MODULE_CAT} ..."
 qkd_qdbus ${MODULE_CAT} /Module Set at.ac.ait.qkd.cat file_url "file://$(pwd)/killer-keys.alice"
 qkd_qdbus ${MODULE_CAT} /Module set_urls "" "ipc://$(pwd)/killer-throttle.in" "" ""
 qkd_qdbus ${MODULE_CAT} /Module run
 qkd_qdbus ${MODULE_CAT} /Module resume
 
-# start the THROTTLE
 echo "starting module: ${MODULE_THROTTLE} ..."
 qkd_qdbus ${MODULE_THROTTLE} /Module Set at.ac.ait.qkd.throttle max_keys_per_second 25
 qkd_qdbus ${MODULE_THROTTLE} /Module set_urls "ipc://$(pwd)/killer-throttle.in" "ipc://$(pwd)/killer-tee.in" "" ""
 qkd_qdbus ${MODULE_THROTTLE} /Module run 
 qkd_qdbus ${MODULE_THROTTLE} /Module resume
 
-# start the TEE
 echo "starting module: ${MODULE_TEE} ..."
 qkd_qdbus ${MODULE_TEE} /Module Set at.ac.ait.qkd.tee file_url "file://$(pwd)/killer-keys.1.tee"
 qkd_qdbus ${MODULE_TEE} /Module set_urls "ipc://$(pwd)/killer-tee.in" "" "" ""
@@ -125,7 +115,7 @@ qkd_qdbus ${MODULE_TEE} /Module resume
 
 sleep 1
 
-wait_idle throttle cat tee
+wait_idle
 
 # both modules must have pulled something
 # though the overall sum might not be the same since
@@ -140,9 +130,7 @@ if [ "$(grep ^key-PULL qkd-tee.2.debug | wc -l)" = "0" ]; then
 fi
 echo "killing and relaunching a module in the pipeline works ok"
 
-# cleanup finally
 test_cleanup
 
-# state that the test was ok
 echo "=== TEST SUCCESS ==="
 

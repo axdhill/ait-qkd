@@ -57,7 +57,6 @@ ${TEST_BASE}/bin/qkd-key-gen --silent --size 2048 --keys ${KEYS_TO_PROCESS} --ra
 # start two pipelines
 PIPELINE_CONFIG="file://${TEST_BASE}/test/test-data/disruptive-drop-simple.conf"
 
-# start the modules
 ( ${TEST_BASE}/bin/qkd-cat --run --config ${PIPELINE_CONFIG} --file "cat_keys.alice" ) &
 ( ${TEST_BASE}/bin/qkd-cat --bob --run --config ${PIPELINE_CONFIG} --file "cat_keys.bob" ) &
 ( ${TEST_BASE}/bin/qkd-drop --debug --run --config ${PIPELINE_CONFIG} 1> drop_keys.alice 2>> drop_debug.alice ) &
@@ -65,15 +64,11 @@ PIPELINE_CONFIG="file://${TEST_BASE}/test/test-data/disruptive-drop-simple.conf"
 ( ${TEST_BASE}/bin/qkd-cascade --debug --run --config ${PIPELINE_CONFIG} 1> cascade_keys.alice 2>> cascade_debug.alice ) &
 ( ${TEST_BASE}/bin/qkd-cascade --debug --bob --run --config ${PIPELINE_CONFIG} 1> cascade_keys.bob 2>> cascade_debug.bob ) &
 
-# wait until the modules are up
 while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module | wc -l)" != "6" ]; do
     echo "waiting for the pipeline to ignite ..."
-    sleep 1
+    sleep 0
 done
-
-# wait until the pipeline is through
-sleep 1
-wait_idle cat drop cascade
+wait_idle
 
 # check how many 
 if [ ! -s cascade_keys.alice ]; then

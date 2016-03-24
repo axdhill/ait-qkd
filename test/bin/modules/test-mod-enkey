@@ -36,27 +36,19 @@ source ${TEST_BASE}/test/bin/test-functions
 
 # ------------------------------------------------------------
 
-# init test environment
 test_init "$(basename $0).d"
-
-# zap previous keys
 rm -rf enkey_keys.* &> /dev/null
 
 # create blob
 dd if=/dev/urandom of=blob.alice bs=1024 count=32
 
-# truncate previous debug out
 echo -n > enkey_debug.alice
 
-# pipeline config
 PIPELINE_CONFIG="file://${TEST_BASE}/test/test-data/pipeline.conf"
 
-# start the modules - for the enkey we are using the same keys in the first round
 ( ${TEST_BASE}/bin/qkd-enkey --run --debug --config ${PIPELINE_CONFIG} --file "blob.alice" 1> enkey_keys.alice 2>> enkey_debug.alice ) &
-
-# wait until the modules did it's work
-sleep 1
-wait_idle enkey
+sleep 0
+wait_idle 
 
 # check expected with actual result
 xxd -ps -g 1 blob.alice | while read LINE; do echo -n ${LINE}; done > enkey_expected
@@ -70,7 +62,4 @@ fi
 echo "enkey blob'ed - ok"
 
 
-# state that test ok
 echo "=== TEST SUCCESS ==="
-
-exit 0

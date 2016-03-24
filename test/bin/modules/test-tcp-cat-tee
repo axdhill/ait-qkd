@@ -47,7 +47,6 @@ rm -rf tcp-keys.* &> /dev/null
 ${TEST_BASE}/bin/qkd-key-gen --silent --keys=${NUMBER_KEYS} --random-url=linear-congruential:42 tcp-keys
 rm -f tcp-keys.bob &> /dev/null
 
-# start the modules in the background
 ( ${TEST_BASE}/bin/qkd-cat --run --debug --config ${TEST_BASE}/test/test-data/tcp-cat-tee/cat.conf 2> qkd_cat.debug ) &
 ( ${TEST_BASE}/bin/qkd-tee --run --debug --config ${TEST_BASE}/test/test-data/tcp-cat-tee/tee-1.conf --file tcp-keys.1 2> qkd_tee.1.debug ) &
 ( ${TEST_BASE}/bin/qkd-tee --run --debug --config ${TEST_BASE}/test/test-data/tcp-cat-tee/tee-2.conf --file tcp-keys.2 2> qkd_tee.2.debug ) &
@@ -60,18 +59,16 @@ rm -f tcp-keys.bob &> /dev/null
 ( ${TEST_BASE}/bin/qkd-tee --run --debug --config ${TEST_BASE}/test/test-data/tcp-cat-tee/tee-9.conf --file tcp-keys.9 2> qkd_tee.9.debug ) &
 ( ${TEST_BASE}/bin/qkd-tee --run --debug --config ${TEST_BASE}/test/test-data/tcp-cat-tee/tee-10.conf --file tcp-keys.10 2> qkd_tee.10.debug ) &
 
-# wait until the modules are up
 while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module.cat | wc -l)" != "1" ]; do
     echo "waiting for the pipeline to ignite ..."
-    sleep 1
+    sleep 0
 done
 while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module.tee | wc -l)" != "${NUMBER_TEE}" ]; do
     echo "waiting for the pipeline to ignite ..."
-    sleep 1
+    sleep 0
 done
 echo "modules created"
-
-wait_idle cat tee
+wait_idle
 echo "got keys"
 
 # the MD5 of all keys-files MUST be equal
@@ -90,9 +87,7 @@ done
 
 echo "pipeline with TCP ok."
 
-# enforce cleansing
 test_cleanup
 
-# state that test ok
 echo "=== TEST SUCCESS ==="
 

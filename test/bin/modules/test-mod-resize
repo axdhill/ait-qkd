@@ -37,43 +37,31 @@ source ${TEST_BASE}/test/bin/test-functions
 
 # ------------------------------------------------------------
 
-# init test environment
 test_init "$(basename $0).d"
-
-# zap previous keys
 rm -rf cat_keys.* &> /dev/null
 
-# create keys
 ${TEST_BASE}/bin/qkd-key-gen --silent --size 1000 --keys 1000 --rate 0.04 --errorbits cat_keys
 
-# truncate previous debug out
 echo -n > resize_debug.alice
 echo -n > resize_debug.bob
 
-# fix pipeline config
 cat ${TEST_BASE}/test/test-data/pipeline.conf | grep -v "^cat.alice.url_pipe_out" | grep -v "^cat.bob.url_pipe_out" > resize.config
 
 echo "cat.alice.url_pipe_out = ipc:///tmp/qkd/resize.alice.in" >> resize.config
 echo "cat.bob.url_pipe_out = ipc:///tmp/qkd/resize.bob.in" >> resize.config
 
-# start two pipelines
 PIPELINE_CONFIG="resize.config"
 
-# start the modules - for the resize we are using the same keys in the first round
 ( ${TEST_BASE}/bin/qkd-cat --run --config ${PIPELINE_CONFIG} --file "cat_keys.alice" ) &
 ( ${TEST_BASE}/bin/qkd-cat --bob --run --config ${PIPELINE_CONFIG} --file "cat_keys.bob" ) &
 ( ${TEST_BASE}/bin/qkd-resize --debug --run --config ${PIPELINE_CONFIG} 1> resize_keys.alice 2>> resize_debug.alice ) &
 ( ${TEST_BASE}/bin/qkd-resize --debug --bob --run --config ${PIPELINE_CONFIG} 1> resize_keys.bob 2>> resize_debug.bob ) &
 
-# wait until the modules are up
 while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module.resize | wc -l)" = "0" ]; do
     echo "waiting for the pipeline to ignite ..."
-    sleep 1
+    sleep 0
 done
-
-# wait until all keys have been processed
-sleep 1
-wait_idle cat resize
+wait_idle 
 echo "got keys"
 
 # clean up the generated debug output
@@ -106,10 +94,6 @@ fi
 
 echo "qkd-resize works"
 
-# stop machines
 test_cleanup
 
-# state that test ok
 echo "=== TEST SUCCESS ==="
-
-exit 0

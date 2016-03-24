@@ -65,15 +65,11 @@ PIPELINE_CONFIG="file://${TEST_BASE}/test/test-data/disruptive-reorder-simple.co
 ( ${TEST_BASE}/bin/qkd-cascade --debug --run --config ${PIPELINE_CONFIG} 1> cascade_keys.alice 2>> cascade_debug.alice ) &
 ( ${TEST_BASE}/bin/qkd-cascade --debug --bob --run --config ${PIPELINE_CONFIG} 1> cascade_keys.bob 2>> cascade_debug.bob ) &
 
-# wait until the modules are up
 while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module | wc -l)" != "6" ]; do
     echo "waiting for the pipeline to ignite ..."
-    sleep 1
+    sleep 0
 done
-
-# wait until the pipeline is through
-sleep 1
-wait_idle cascade reorder cat
+wait_idle
 
 # check how many 
 if [ ! -s cascade_keys.alice ]; then
