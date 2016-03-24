@@ -147,7 +147,7 @@ def parse_file(fn):
 def print_header():
 
     """print the statistics average header"""
-    print("file avg_bits avg_error_rate avg_disclosed_bits avg_shannon_eff keys_total bits_total avg_keys_second avg_bps");
+    print("file avg_bits avg_error_rate avg_disclosed_bits avg_shannon_eff keys_total bits_total avg_keys_second avg_bps")
 
 
 def main():
@@ -166,7 +166,7 @@ def main():
 
     args = parser.parse_args()
 
-    if (args.version): 
+    if args.version:
         show_version()
         sys.exit(0)
 
