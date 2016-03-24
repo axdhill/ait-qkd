@@ -47,7 +47,7 @@ echo -n > enkey_debug.alice
 PIPELINE_CONFIG="file://${TEST_BASE}/test/test-data/pipeline.conf"
 
 ( ${TEST_BASE}/bin/qkd-enkey --run --debug --config ${PIPELINE_CONFIG} --file "blob.alice" 1> enkey_keys.alice 2>> enkey_debug.alice ) &
-sleep 0
+sleep 1
 wait_idle 
 
 # check expected with actual result

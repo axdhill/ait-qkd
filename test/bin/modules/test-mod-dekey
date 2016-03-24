@@ -49,7 +49,7 @@ echo -n > dekey_debug.alice
 PIPELINE_CONFIG="file://${TEST_BASE}/test/test-data/pipeline.conf"
 
 ( ${TEST_BASE}/bin/qkd-enkey --debug --run --config ${PIPELINE_CONFIG} --file "blob.alice" 2>>  enkey_debug.alice | ${TEST_BASE}/bin/qkd-dekey --debug --run --config ${PIPELINE_CONFIG} --file "blobed.alice" 1> /dev/null 2>>  dekey_debug.alice ) &
-sleep 0
+sleep 1
 wait_idle
 
 # check expected with actual result
