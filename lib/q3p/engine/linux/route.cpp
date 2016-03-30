@@ -83,20 +83,27 @@ bool route::empty() const {
 }
    
 
-
 /**
  * describe route as string
  * 
+ * @param   bDense      true for a minimal string
  * @return  a human readble string for the route
  */
-std::string route::str() const {
+std::string route::str(bool bDense) const {
     
     std::string sTo = host_address(&m_cDstAddress, m_nDstHostLen, false);
     std::string sFrom = host_address(&m_cSrcAddress, m_nSrcHostLen, false);
     std::string sGateway = host_address(&m_cGateway, m_nDstHostLen, true);
     
-    boost::format cFormat("to: %-18s from: %-18s gw: %-18s dev: %8s (index: %2d) priority: %5d metrics: %5d");
-    cFormat % sTo % sFrom % sGateway % m_sInterface % m_nInterface % m_nPriority % m_nMetrics;
+    boost::format cFormat;
+    if (bDense) {
+        cFormat = boost::format("%s --(%s)--> %s");
+        cFormat % sFrom % m_sInterface % sTo;
+    }
+    else {
+        cFormat = boost::format("to: %-18s from: %-18s gw: %-18s dev: %8s (index: %2d) priority: %5d metrics: %5d");
+        cFormat % sTo % sFrom % sGateway % m_sInterface % m_nInterface % m_nPriority % m_nMetrics;
+    }
     
     return cFormat.str();
 }

@@ -84,10 +84,6 @@ void nic_instance::set_ip4_remote(QString sIP4) {
 void nic_instance::setup_networking() {
 
     if (assign_local_ip4()) {
-        emit ip4_changed();
-        if (add_ip4_route()) {
-            // TODO: emit signal
-        }
+        add_ip4_route();
     }
 }
-

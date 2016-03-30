@@ -201,9 +201,21 @@ signals:
     
     
     /**
-     * signaled whenever the address and/or route of the associated NIC changed
+     * signaled whenever the address of the associated NIC changed
      */
     void ip4_changed();
+    
+    
+    /**
+     * signaled whenever we have a route to our peer
+     */
+    void route_added();
+    
+    
+    /**
+     * signaled whenever we lost a route to our peer
+     */
+    void route_deleted();
     
     
 private:
@@ -223,6 +235,14 @@ private:
      * @return  true, if successully assigned
      */
     bool assign_local_ip4();
+    
+    
+    /**
+     * removes the IP4 route from the kernel
+     * 
+     * @return  true, if successully removed
+     */
+    bool del_ip4_route();
     
     
     /**

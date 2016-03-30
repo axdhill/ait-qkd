@@ -211,9 +211,12 @@ bool nic_instance::add_ip4_route() {
     cRoute.m_sInterface = m_sName;
     
     netlink & cNetlink = netlink::instance();
-    cNetlink.add_route(cRoute);
+    bool bSuccess = cNetlink.add_route(cRoute);
+    if (bSuccess) {
+        emit route_added();
+    }
     
-    return false;
+    return bSuccess;
 }
 
 
@@ -252,7 +255,50 @@ bool nic_instance::assign_local_ip4() {
     
     qkd::utility::syslog::info() << "assigned " << m_sIP4Local << " to device " << m_sName;
     
-    return false;
+    emit ip4_changed();
+    
+    return true;
+}
+
+
+/**
+ * removes the IP4 route from the kernel
+ * 
+ * @return  true, if successully removed
+ */
+bool nic_instance::del_ip4_route() {
+
+    if (m_sName.empty()) {
+        return false;
+    }
+
+    if (m_sIP4Local.empty() || m_sIP4Remote.empty()) {
+        return false;
+    }
+    
+    if (!is_ip4_string(m_sIP4Local)) {
+        qkd::utility::debug() << "Failed to translate local IP4 address: '" << m_sIP4Local << "'";
+        return false;
+    }
+    
+    if (!is_ip4_string(m_sIP4Remote)) {
+        qkd::utility::debug() << "Failed to translate remote IP4 address: '" << m_sIP4Remote << "'";
+        return false;
+    }
+    
+    route cRoute;
+    cRoute.m_cDstAddress.s_addr = inet_addr(m_sIP4Remote.c_str());
+    cRoute.m_cSrcAddress.s_addr = inet_addr(m_sIP4Local.c_str());
+    cRoute.m_cGateway.s_addr = 0;
+    cRoute.m_sInterface = m_sName;
+    
+    netlink & cNetlink = netlink::instance();
+    bool bSuccess = cNetlink.del_route(cRoute);
+    if (bSuccess) {
+        emit route_deleted();
+    }
+    
+    return bSuccess;
 }
 
 

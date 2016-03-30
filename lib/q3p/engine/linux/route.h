@@ -92,9 +92,10 @@ public:
     /**
      * describe route as string
      * 
+     * @param   bDense      true for a minimal string
      * @return  a human readble string for the route
      */
-    std::string str() const;
+    std::string str(bool bDense = true) const;
 };
     
     

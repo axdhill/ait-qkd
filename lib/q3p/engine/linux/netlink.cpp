@@ -141,19 +141,6 @@ netlink::~netlink() {
  */
 bool netlink::add_route(route const & cRoute) {
 
-    int32_t nInterface = if_nametoindex(cRoute.m_sInterface.c_str());
-    if (!nInterface) {
-        qkd::utility::syslog::warning() << "Unable to get interface index for '" << cRoute.m_sInterface << "'";
-        return false;
-    }
-    
-    routing_table cRoutingTable = get_routing_table();
-    auto iter = std::find_if(cRoutingTable.begin(), cRoutingTable.end(), 
-                             [&](route const & r){ return ((r.m_cDstAddress.s_addr == cRoute.m_cDstAddress.s_addr) && (r.m_cSrcAddress.s_addr == cRoute.m_cSrcAddress.s_addr)); });
-    if (iter != cRoutingTable.end()) {
-        return true;
-    }
-
     // ---- send netlink add route request ----
     
     netlink_message cQuery;
@@ -196,6 +183,7 @@ bool netlink::add_route(route const & cRoute) {
         
         int nError = cAnswer.error();
         if (nError == 0) {
+            qkd::utility::debug(netlink::debug()) << "Added route: " << cRoute.str();
             return true;
         }
         
@@ -217,9 +205,59 @@ bool netlink::add_route(route const & cRoute) {
  * @param   cRoute      the route to remove
  * @return  true on success
  */
-bool netlink::del_route(UNUSED route const & cRoute) {
+bool netlink::del_route(route const & cRoute) {
     
-    // TODO: to be implemented
+    // ---- send netlink del route request ----
+    
+    netlink_message cQuery;
+    
+    netlink_nlmsghdr cNetlinkMessageHeader;
+    cNetlinkMessageHeader->nlmsg_type = RTM_DELROUTE;
+    cNetlinkMessageHeader->nlmsg_flags = NLM_F_REQUEST | NLM_F_ACK;
+    cNetlinkMessageHeader->nlmsg_pid = getpid();
+    cQuery.add(cNetlinkMessageHeader);
+    
+    netlink_rtmsg cRoutingMessage;
+    cRoutingMessage->rtm_family = AF_INET;
+    cRoutingMessage->rtm_dst_len = 32;
+    cRoutingMessage->rtm_src_len = 0;
+    cRoutingMessage->rtm_table = RT_TABLE_MAIN;
+    cRoutingMessage->rtm_scope = RT_SCOPE_NOWHERE;
+    cQuery.add(cRoutingMessage);
+    
+    netlink_rtattr cRtAttrDst(RTM_DELROUTE, sizeof(in_addr));
+    cRtAttrDst->rta_type = RTA_DST;
+    memcpy(cRtAttrDst.value(), &cRoute.m_cDstAddress, sizeof(in_addr));
+    cQuery.add(cRtAttrDst);
+    
+    netlink_rtattr cRtAttrPrefSrc(RTM_DELROUTE, sizeof(in_addr));
+    cRtAttrPrefSrc->rta_type = RTA_GATEWAY;
+    memcpy(cRtAttrPrefSrc.value(), &cRoute.m_cSrcAddress, sizeof(in_addr));
+    cQuery.add(cRtAttrPrefSrc);
+
+    uint32_t nMessageId = netlink_send(m_cNetlinkRouteSocket, cQuery);
+    if (!nMessageId) {
+        return false;
+    }
+    
+    // ---- recv netlink answer ----
+    
+    netlink_message cAnswer;
+    if (netlink_recv(m_cNetlinkRouteSocket, cNetlinkMessageHeader->nlmsg_pid, nMessageId, cAnswer) > 0) {
+        
+        int nError = cAnswer.error();
+        if (nError == 0) {
+            qkd::utility::debug(netlink::debug()) << "Removed route: " << cRoute.str();
+            return true;
+        }
+        
+        if (nError > 0) {
+            qkd::utility::debug(netlink::debug()) << "Failed to delete route: received unknown netlink message answer (internal error).";
+        }
+        if (nError < 0) {
+            qkd::utility::debug(netlink::debug()) << "Failed to delete route: netlink error code: " << nError;
+        }
+    }        
     
     return false;
 }
