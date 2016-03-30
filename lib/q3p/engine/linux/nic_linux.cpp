@@ -358,11 +358,6 @@ bool check_device_flags(std::string const & sDevice) {
     
     int nExitCode = 0;
     
-    // TODO: this fails with "operation not permitted" allthough
-    // the code worked previously with 
-    // sudo setcap cap_net_admin=ep /PATH/TO/q3pd
-    // --> BUG!
-    
     int s = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
     ifreq cIFReq;
     memset(&cIFReq, 0, sizeof(cIFReq));
