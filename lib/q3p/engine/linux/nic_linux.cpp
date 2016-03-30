@@ -168,6 +168,8 @@ nic_instance::nic_instance(qkd::q3p::engine_instance * cEngine) : QObject(), m_c
  * dtor
  */
 nic_instance::~nic_instance() {
+    
+    del_ip4_route();
 
     if (d->cReaderThread.get_id() != std::thread::id()) {
         d->bRun = false;
