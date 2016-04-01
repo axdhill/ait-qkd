@@ -5,13 +5,46 @@ This file holds the changes of the AIT QKD R10 throughout the versions
 Changes from 9.9999.6 to 9.9999.7
 ---------------------------------
 
+* q3pd config support now automatic ip assignment and routing
+
+    Due to the new "nic" option inside a link configuration of the
+    q3pd the link will assign an IPv4 address and a route to its
+    peer on the Q3P connection established.
+    
+    E.g.:
+    
+        [link.alice_to_bob]
+        id = alice_to_bob
+        nic = 10.81.39.121 to 10.81.39.122
+    
+    This will assign the ip 10.81.39.121 to the local (alice) q3p 
+    interface and will establish a direct route to 10.81.39.122 (bob) 
+    once the connection to the peer has been established.
+    
+    Any data sent and received on these ip addresses are information
+    theoretic secure encrypted and authenticated according to the Q3P 
+    protocol.
+
+* new "inject" option in q3pd link configuration
+
+    The "inject" option tells the q3pd to load the file into the 
+    working buffers as preshared secret (if present).
+    
+    E.g.:
+    
+        [link.alice_to_bob]
+        id = alice_to_bob
+        inject = file:///run/spool/q3pd/alice_to_bob/preshared.secret
+    
+    This will load the file /run/spool/q3pd/alice_to_bob/preshared.secret
+    at start of the Q3P node.
+    
 * random URLs now support "c-api:[seed]"
 
     The random class now support simple POSIX C rand() with 
     optional seed values.
-
-* new linear congruential random number generator with
-  "linear-congruential:[seed]"
+    
+* new linear congruential random number generator with "linear-congruential:[seed]"
 
     This random class uses a simple linear congruential engine to
     generate random numbers. It is designed to be used in testing
