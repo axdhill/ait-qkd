@@ -64,8 +64,17 @@ void json_output::dump_investigation_details(std::ostream & cOut, qkd::utility::
     
     std::time_t cTimestamp = std::chrono::system_clock::to_time_t(cInvestigation.timestamp());
     
+#if GCC_VERSION < 4
+    char sTime[128];
+    strftime(sTime, 128, "%F %T", std::localtime(&cTimestamp));    
+#endif    
+    
     cOut << "{ \"time\":\"" 
+#if GCC_VERSION >= 5    
             << std::put_time(std::localtime(&cTimestamp), "%F %T") 
+#else
+            << sTime
+#endif
             << "\", \"investigation_time\":"
             << std::chrono::duration_cast<std::chrono::milliseconds>(cInvestigation.duration()).count() 
             << " }";
