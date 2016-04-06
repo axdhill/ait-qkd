@@ -312,9 +312,13 @@ std::string rtattr_value_str(uint64_t nNetlinkMessageType, uint64_t nRoutingAttr
         case RTA_TABLE:
         case RTA_MARK:
         case RTA_MFC_STATS:
+            
+#if (LINUX_VERSION_CODE >= 0x040100)
         case RTA_VIA:
         case RTA_NEWDST:
         case RTA_PREF:
+#endif      
+            
         default:
             ss << "\"hex: " << qkd::utility::memory::wrap((qkd::utility::memory::value_t *)cValue, nSize).as_hex() << "\"";
         }
