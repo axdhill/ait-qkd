@@ -41,6 +41,7 @@
 #include <arpa/inet.h>
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
+#include <linux/version.h>
 #include <net/if.h>
 #include <sys/socket.h>
 
@@ -247,9 +248,13 @@ std::string rtattr_type_str(uint64_t nNetlinkMessageType, uint64_t nRoutingAttri
         case RTA_TABLE:     ss << "\"RTA_TABLE\""; break;
         case RTA_MARK:      ss << "\"RTA_MARK\""; break;
         case RTA_MFC_STATS: ss << "\"RTA_MFC_STATS\""; break;
+        
+#if (LINUX_VERSION_CODE >= 0x040100)
         case RTA_VIA:       ss << "\"RTA_VIA\""; break;
         case RTA_NEWDST:    ss << "\"RTA_NEWDST\""; break;
         case RTA_PREF:      ss << "\"RTA_PREF\""; break;
+#endif        
+        
         default:
             ss << "\"?unkown routing attribute type? (" << nRoutingAttributeType << ") for RTM_NEWROUTE | RTM_DELROUTE | RTM_GETROUTE\"";
         }
