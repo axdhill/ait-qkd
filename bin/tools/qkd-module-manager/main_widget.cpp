@@ -58,10 +58,8 @@ using namespace qkd::module_manager;
  */
 main_widget::main_widget(QMainWindow * cParent) : QFrame(cParent) {
     
-    // setup this widget
     setupUi(this);
     
-    // fix treeview
     QStringList cHeaderLabels;
     cHeaderLabels << QApplication::translate("main_widget", "ID", 0, QApplication::UnicodeUTF8);
     cHeaderLabels << QApplication::translate("main_widget", "DBus", 0, QApplication::UnicodeUTF8);
@@ -71,7 +69,6 @@ main_widget::main_widget(QMainWindow * cParent) : QFrame(cParent) {
     cHeaderLabels << QApplication::translate("main_widget", "Role", 0, QApplication::UnicodeUTF8);
     cTvModules->setHeaderLabels(cHeaderLabels);
     
-    // preload module icons
     m_cTypeIcon[(uint8_t)qkd::module::module_type::TYPE_PRESIFTING]             = qkd::widget::res::pixmap("module_presifting").scaledToHeight(22);
     m_cTypeIcon[(uint8_t)qkd::module::module_type::TYPE_SIFTING]                = qkd::widget::res::pixmap("module_sifting").scaledToHeight(22);
     m_cTypeIcon[(uint8_t)qkd::module::module_type::TYPE_ERROR_ESTIMATION]       = qkd::widget::res::pixmap("module_error_estimation").scaledToHeight(22);
@@ -81,17 +78,14 @@ main_widget::main_widget(QMainWindow * cParent) : QFrame(cParent) {
     m_cTypeIcon[(uint8_t)qkd::module::module_type::TYPE_KEYSTORE]               = qkd::widget::res::pixmap("module_keystore").scaledToHeight(22);
     m_cTypeIcon[(uint8_t)qkd::module::module_type::TYPE_OTHER]                  = qkd::widget::res::pixmap("module_other").scaledToHeight(22);
 
-    // preload role icons
     m_cRoleIcon[0] = qkd::widget::res::pixmap("alice").scaledToHeight(22);
     m_cRoleIcon[1] = qkd::widget::res::pixmap("bob").scaledToHeight(22);
     
-    // media buttons
     m_cPipelineStart = qkd::widget::res::pixmap("media_playback_start").scaledToHeight(22);
     m_cPipelineStop = qkd::widget::res::pixmap("media_playback_stop").scaledToHeight(22);
     cBtnPipelineStart->setIcon(m_cPipelineStart);
     cBtnPipelineStop->setIcon(m_cPipelineStop);
     
-    // connectors
     connect(cCbPipeline, SIGNAL(editTextChanged(const QString &)), SLOT(pipeline_changed(const QString &)));
     connect(cBtnPipeline, SIGNAL(clicked()), SLOT(select_pipeline_file()));
     connect(cBtnPipelineStart, SIGNAL(clicked()), SLOT(pipeline_start()));
@@ -99,7 +93,6 @@ main_widget::main_widget(QMainWindow * cParent) : QFrame(cParent) {
     connect(cBtnQuit, SIGNAL(clicked()), SIGNAL(quit()));
     connect(cTvModules, SIGNAL(currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)), SLOT(module_list_current_changed(QTreeWidgetItem*,QTreeWidgetItem*)));
     
-    // create timeout ticker
     QTimer * cTimer = new QTimer(this);
     connect(cTimer, SIGNAL(timeout()), SLOT(timeout()));
     cTimer->start(250);
@@ -120,10 +113,8 @@ main_widget::~main_widget() {
  */
 void main_widget::add_module_widget(std::string const & sDBus) {
     
-    // do not add twice
     if (m_cModuleFrame.find(sDBus) != m_cModuleFrame.end()) return;
     
-    // add the widget
     m_cModuleFrame[sDBus] = new qkd::widget::module_frame(cStModules, qkd::utility::dbus::qkd_dbus());
     connect(m_cModuleFrame[sDBus]->tab(), SIGNAL(currentChanged(int)), SLOT(module_tab_index(int)));
     cStModules->addWidget(m_cModuleFrame[sDBus]);
@@ -137,10 +128,8 @@ void main_widget::add_module_widget(std::string const & sDBus) {
  */
 void main_widget::load_settings(QSettings const & cSettings) {
     
-    // load splitter settings
     cSpMain->restoreState(cSettings.value("main_widget_splitter").toByteArray());
     
-    // load module list settings
     QByteArray cModuleListData = cSettings.value("main_widget_modules").toByteArray();
     QDataStream cStream(&cModuleListData, QIODevice::ReadOnly);
     
@@ -153,12 +142,10 @@ void main_widget::load_settings(QSettings const & cSettings) {
     QList<int> l;
     cStream >> l;
     
-    // iterate through list
     for (int i = 0; i < l.size(); ++i) {
         if (i < cTvModules->columnCount()) cTvModules->setColumnWidth(i, l.at(i));
     }
     
-    // Pipeline file
     cCbPipeline->addItems(cSettings.value("pipeline_file").toStringList());
 }
     
@@ -170,11 +157,7 @@ void main_widget::load_settings(QSettings const & cSettings) {
  * @param   cPrevious       old item
  */
 void main_widget::module_list_current_changed(QTreeWidgetItem * cCurrent, UNUSED QTreeWidgetItem * cPrevious) {
-    
-    // sanity check
     if (cCurrent == nullptr) return;
-    
-    // pick the dbus id of the module clicked
     show_module(cCurrent->text(1).toStdString());
 }
 
@@ -186,7 +169,6 @@ void main_widget::module_list_current_changed(QTreeWidgetItem * cCurrent, UNUSED
  */
 void main_widget::module_tab_index(int nIndex) {
 
-    // switch all modules
     for (auto iter : m_cModuleFrame) {
         QTabWidget * cTab = iter.second->tab();
         if ((cTab->count() <= nIndex) && (cTab->currentIndex() != nIndex)) {
@@ -212,7 +194,6 @@ void main_widget::pipeline_changed(QString const & sText) {
  */
 void main_widget::pipeline_start() {
     
-    // search for the qkd-pipeline command
     std::list<boost::filesystem::path> cSearchPaths = { "." };
     std::list<boost::filesystem::path> cPipelineCommands = qkd::utility::environment::find_files("qkd-pipeline", cSearchPaths, true, true, true, true);
     if (cPipelineCommands.size() == 0) {
@@ -220,7 +201,6 @@ void main_widget::pipeline_start() {
         return;
     }
     
-    // tell user which qkd-pipeline we use
     std::string sPipelineCommand = cPipelineCommands.front().string();
     qkd::utility::debug() << "using '" << sPipelineCommand << "' as pipeline command";
     
@@ -241,10 +221,8 @@ void main_widget::pipeline_stop() {
  */
 void main_widget::remove_module_widget(std::string const & sDBus) {
     
-    // do not remove twice
     if (m_cModuleFrame.find(sDBus) == m_cModuleFrame.end()) return;
     
-    // remove the widget
     cStModules->removeWidget(m_cModuleFrame[sDBus]);
     m_cModuleFrame.erase(sDBus);
 }
@@ -257,10 +235,8 @@ void main_widget::remove_module_widget(std::string const & sDBus) {
  */
 void main_widget::save_settings(QSettings & cSettings) const {
     
-    // save splitter settings
     cSettings.setValue("main_widget_splitter", cSpMain->saveState());
     
-    // save module list settings
     QByteArray cModuleListData;
     QDataStream cStream(&cModuleListData, QIODevice::WriteOnly);
     
@@ -272,7 +248,6 @@ void main_widget::save_settings(QSettings & cSettings) const {
     cStream << l;
     cSettings.setValue("main_widget_modules", cModuleListData);
     
-    // pipeline file
     QStringList cPipelineFiles;
     for (int i = 0; i < cCbPipeline->count(); ++i) cPipelineFiles << cCbPipeline->itemText(i);
     cSettings.setValue("pipeline_file", cPipelineFiles);
@@ -285,14 +260,12 @@ void main_widget::save_settings(QSettings & cSettings) const {
  */
 void main_widget::select_pipeline_file() {
     
-    // pop up file dialog
     QDir cDirectory = QDir::home();
     if (!cCbPipeline->currentText().isEmpty()) cDirectory = QDir(cCbPipeline->currentText()); 
 
     QString sFile = QFileDialog::getOpenFileName(this, tr("Open Pipeline Config File"), cDirectory.path());
     if (sFile.isEmpty()) return;
     
-    // insert file and make current
     cCbPipeline->addItem(sFile);
     cCbPipeline->setCurrentIndex(cCbPipeline->findText(sFile));
 }
@@ -324,16 +297,12 @@ void main_widget::timeout() {
     static uint64_t nUpdateCycle = 0;
     nUpdateCycle++;
 
-    // investigate the system
     qkd::utility::investigation cInvestigation = qkd::utility::investigation::investigate();
     
-    // walk over found modules
     for (auto const & cModulePair : cInvestigation.modules()) {
         
-        // for readability
         qkd::utility::properties const & cModule = cModulePair.second;
         
-        // locate tree widget item for module
         QTreeWidgetItem * cItem = nullptr;
         auto iter = m_cModuleTreeWidgetItems.find(cModule.at("dbus"));
         if (iter == m_cModuleTreeWidgetItems.end()) {
@@ -349,7 +318,6 @@ void main_widget::timeout() {
         uint8_t nTypeId = std::stoi(cModule.at("type"));
         uint8_t nRoleId = std::stoi(cModule.at("role"));
         
-        // prepare item data
         cItem->setText(0, QString::fromStdString(cModule.at("id")));
         cItem->setText(1, QString::fromStdString(cModule.at("dbus")));
         cItem->setText(2, QString::fromStdString(cModule.at("type_name")));
@@ -359,10 +327,8 @@ void main_widget::timeout() {
         cItem->setText(5, QString::fromStdString(cModule.at("role_name")));
         if (nRoleId < 2) cItem->setIcon(5, m_cRoleIcon[nRoleId]);
         
-        // set update cycle number
         m_cModuleUpdateCycle[cModule.at("dbus")] = nUpdateCycle;
         
-        // update the module
         update_module_widget(cModule);
     }
     
@@ -374,8 +340,6 @@ void main_widget::timeout() {
         if (cCycleData.second == nUpdateCycle) continue;
         cModulesToDelete.push_back(cCycleData.first);
     }
-    
-    // kill 'em
     for (auto const & sDBusAddress : cModulesToDelete) {
         
         remove_module_widget(sDBusAddress);
@@ -393,11 +357,7 @@ void main_widget::timeout() {
  */
 void main_widget::update_module_widget(qkd::utility::properties const & cModuleProperties) {
     
-    // grab the widget
     auto iter = m_cModuleFrame.find(cModuleProperties.at("dbus"));
     if (iter == m_cModuleFrame.end()) return;
-    
-    // update the module widget
-    // (*iter).second is of type qkd::widget::module_frame
     (*iter).second->update(cModuleProperties);
 }

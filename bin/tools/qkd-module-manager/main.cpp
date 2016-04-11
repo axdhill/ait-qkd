@@ -59,26 +59,20 @@
  */
 int main(int argc, char ** argv) {
     
-    // create the command line header
     std::string sApplication = std::string("qkd-module-manager - AIT QKD Module Manager V") + VERSION;
     std::string sDescription = std::string("\nVisually manage QKD modules.\n\nCopyright 2013-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS]";
     
-    // define program options
     boost::program_options::options_description cOptions(sApplication + "\n" + sDescription + "\n\n\t" + sSynopsis + "\n\nAllowed Options");
     cOptions.add_options()("debug,d", "enable debug output on stderr");
     cOptions.add_options()("help,h", "this page");
     cOptions.add_options()("version,v", "print version string");
     
-    // construct overall options
     boost::program_options::options_description cCmdLineOptions("Command Line");
     cCmdLineOptions.add(cOptions);
 
-    // option variable map
     boost::program_options::variables_map cVariableMap;
-    
     try {
-        // parse action
         boost::program_options::command_line_parser cParser(argc, argv);
         boost::program_options::store(cParser.options(cCmdLineOptions).run(), cVariableMap);
         boost::program_options::notify(cVariableMap);        
@@ -88,22 +82,17 @@ int main(int argc, char ** argv) {
         return 1;
     }
     
-    // check for "help" set
     if (cVariableMap.count("help")) {
         std::cout << cOptions << std::endl;
         return 0;
     }
-    
-    // check for "version" set
     if (cVariableMap.count("version")) {
         std::cout << sApplication << std::endl;
         return 0;
     }
     
-    // check for "debug" set
     if (cVariableMap.count("debug")) qkd::utility::debug::enabled() = true;
 
-    // start Qt
     QApplication cApplication(argc, argv);
     cApplication.setOrganizationName("AIT Austrian Institute of Technology GmbH");
     cApplication.setOrganizationDomain("ait.ac.at");
@@ -111,11 +100,9 @@ int main(int argc, char ** argv) {
     cApplication.setApplicationVersion(QKD_VERSION);
     cApplication.setStyleSheet("QFrame { padding: 0px; margin: 0px; }");
     
-    // init the main window
     qkd::module_manager::main_window cMainWindow;
     cMainWindow.show();
     
-    // go
     return cApplication.exec();
 }
-    
+   

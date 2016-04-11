@@ -75,13 +75,9 @@ main_window::main_window() : QMainWindow(), m_cMainWidget(nullptr) {
     cScrMain->setWidgetResizable(true);
     setCentralWidget(cScrMain);
     
-    // restore window state
     load_settings();
-    
-    // state that we are ok
     statusBar()->showMessage("ready");
     
-    // connectors
     connect(m_cMainWidget, SIGNAL(quit()), SLOT(quitApp()));
 }
 
@@ -91,7 +87,6 @@ main_window::main_window() : QMainWindow(), m_cMainWidget(nullptr) {
  */
 void main_window::center_window() {
     
-    // try to figure out, what's the proper minimal size
     QSize cMinimumSize = QSize(800, 600);
     QDesktopWidget* cDesktop = qApp->desktop();
     
@@ -100,7 +95,6 @@ void main_window::center_window() {
     int nX = (cDesktop->width() - nDefaultWidth) / 2;
     int nY = (cDesktop->height() - nDefaultHeight) / 2;
     
-    // ready to display
     resize(QSize(nDefaultWidth, nDefaultHeight));
     move(QPoint(nX, nY));
 }
@@ -122,13 +116,11 @@ void main_window::closeEvent(QCloseEvent* cEvent) {
  */
 void main_window::load_settings() {
     
-    // load our own state
     QSettings cSettings("AIT", "qkd-module-manager");
     if (cSettings.contains("geometry")) restoreGeometry(cSettings.value("geometry").toByteArray());
     else center_window();
     restoreState(cSettings.value("window_state").toByteArray());
     
-    // save child widget states
     m_cMainWidget->load_settings(cSettings);
 }
 
@@ -146,12 +138,10 @@ void main_window::quitApp() {
  */
 void main_window::save_settings() const {
     
-    // save our own state
     QSettings cSettings("AIT", "qkd-module-manager");
     cSettings.setValue("geometry", saveGeometry());
     cSettings.setValue("window_state", saveState());
     
-    // save child widget states
     m_cMainWidget->save_settings(cSettings);
 }
 
