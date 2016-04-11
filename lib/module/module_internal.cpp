@@ -109,9 +109,7 @@ void module::module_internal::add_stats_incoming(qkd::key::key const & cKey) {
     cStat.nKeysIncoming++;
     cStat.nKeyBitsIncoming += cKey.size() * 8;
     cStat.nDisclosedBitsIncoming += cKey.meta().nDisclosedBits;
-    cStat.cKeysIncomingRate << cStat.nKeysIncoming;
-    cStat.cKeyBitsIncomingRate << cStat.nKeyBitsIncoming;
-    cStat.cDisclosedBitsIncomingRate << cStat.nDisclosedBitsIncoming;
+    cStat.nErrorBitsIncoming += cKey.meta().nErrorRate * (cKey.size() * 8);
 }
 
 
@@ -127,9 +125,7 @@ void module::module_internal::add_stats_outgoing(qkd::key::key const & cKey) {
     cStat.nKeysOutgoing++;
     cStat.nKeyBitsOutgoing += cKey.size() * 8;
     cStat.nDisclosedBitsOutgoing += cKey.meta().nDisclosedBits;
-    cStat.cKeysOutgoingRate << cStat.nKeysOutgoing;
-    cStat.cKeyBitsOutgoingRate << cStat.nKeyBitsOutgoing;
-    cStat.cDisclosedBitsOutgoingRate << cStat.nDisclosedBitsOutgoing;
+    cStat.nErrorBitsOutgoing += cKey.meta().nErrorRate * (cKey.size() * 8);
 }
 
 

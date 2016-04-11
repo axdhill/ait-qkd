@@ -141,7 +141,8 @@ void json_output::dump_modules(std::ostream & cOut, std::map<std::string, qkd::u
                 "id", "dbus", "pipeline", "process_id", "type", "type_name", "start_time", "state", "state_name",
                 "role", "role_name", "url_pipe_in", "url_pipe_out", "url_listen", "url_peer", "idle", "random_url",
                 "keys_incoming", "keys_outgoing", "key_bits_incoming", "key_bits_outgoing", "disclosed_bits_incoming",
-                "disclosed_bits_outgoing", "debug", "description", "organisation", "process_image"};
+                "disclosed_bits_outgoing", "error_bits_incoming", "error_bits_outgoing", "debug", "description", 
+                "organisation", "process_image"};
 
     cOut << "\"modules\": [";
     dump_json_array(cOut, (m_bPrintModuleIO ? cFieldsIO : cFieldsFull), cModuleMap);

@@ -148,6 +148,8 @@ void tabular_output::dump_modules_full(std::ostream & cOut, const std::map<std::
             "key_bits_outgoing", 
             "disclosed_bits_incoming", 
             "disclosed_bits_outgoing", 
+            "error_bits_incoming", 
+            "error_bits_outgoing", 
             "debug", 
             "description", 
             "organisation", 
