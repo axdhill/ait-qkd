@@ -85,6 +85,7 @@ esac
 
 # ------------------------------------------------------------
 
+git show --pretty=fuller -s
 echo 'Setting up build folder...'
 mkdir build &> /dev/null
 (
