@@ -221,6 +221,8 @@ public:
         double m_nDisclosedBitsOutgoingRate;                /**< rate of disclosed bits outgoing */
         double m_nErrorBitsIncomingRate;                    /**< rate of error bits incoming */
         double m_nErrorBitsOutgoingRate;                    /**< rate of error bits outgoing */
+        
+        double m_nQBER;                                     /**< current QBER */
     
     } m_cRates;
     
@@ -275,13 +277,18 @@ module_frame::module_frame(QWidget * cParent, QDBusConnection cDBus) : QFrame(cP
 
     m_cUI->cLcdKeysIn = dynamic_cast<QLineEdit *>(qkd::widget::res::swap_widget(m_cUI->cLyTabKeysValues, m_cUI->cLcdKeysIn, new qkd::widget::lcd("0")));
     m_cUI->cLcdKeysInRate = dynamic_cast<QLineEdit *>(qkd::widget::res::swap_widget(m_cUI->cLyTabKeysValues, m_cUI->cLcdKeysInRate, new qkd::widget::lcd("0")));
+    m_cUI->cLcdKeysInRate->setAlignment((Qt::Alignment)(Qt::AlignVCenter + Qt::AlignRight));
     m_cUI->cLcdKeysOut = dynamic_cast<QLineEdit *>(qkd::widget::res::swap_widget(m_cUI->cLyTabKeysValues, m_cUI->cLcdKeysOut, new qkd::widget::lcd("0")));
     m_cUI->cLcdKeysOutRate = dynamic_cast<QLineEdit *>(qkd::widget::res::swap_widget(m_cUI->cLyTabKeysValues, m_cUI->cLcdKeysOutRate, new qkd::widget::lcd("0")));
+    m_cUI->cLcdKeysOutRate->setAlignment((Qt::Alignment)(Qt::AlignVCenter + Qt::AlignRight));
     m_cUI->cLcdBitsIn = dynamic_cast<QLineEdit *>(qkd::widget::res::swap_widget(m_cUI->cLyTabBitsValues, m_cUI->cLcdBitsIn, new qkd::widget::lcd("0")));
     m_cUI->cLcdBitsInRate = dynamic_cast<QLineEdit *>(qkd::widget::res::swap_widget(m_cUI->cLyTabBitsValues, m_cUI->cLcdBitsInRate, new qkd::widget::lcd("0")));
+    m_cUI->cLcdBitsInRate->setAlignment((Qt::Alignment)(Qt::AlignVCenter + Qt::AlignRight));
     m_cUI->cLcdBitsOut = dynamic_cast<QLineEdit *>(qkd::widget::res::swap_widget(m_cUI->cLyTabBitsValues, m_cUI->cLcdBitsOut, new qkd::widget::lcd("0")));
     m_cUI->cLcdBitsOutRate = dynamic_cast<QLineEdit *>(qkd::widget::res::swap_widget(m_cUI->cLyTabBitsValues, m_cUI->cLcdBitsOutRate, new qkd::widget::lcd("0")));
+    m_cUI->cLcdBitsOutRate->setAlignment((Qt::Alignment)(Qt::AlignVCenter + Qt::AlignRight));
     m_cUI->cLcdQBER = dynamic_cast<QLineEdit *>(qkd::widget::res::swap_widget(m_cUI->cLyTabQBERValue, m_cUI->cLcdQBER, new qkd::widget::lcd("0")));
+    m_cUI->cLcdQBER->setAlignment((Qt::Alignment)(Qt::AlignVCenter + Qt::AlignRight));
     
     m_cUI->cPlKeys = dynamic_cast<QwtPlot *>(qkd::widget::res::swap_widget(m_cUI->cLyTabKeys, m_cUI->cPlKeys, new qkd::widget::plot()));
     m_cUI->cPlBits = dynamic_cast<QwtPlot *>(qkd::widget::res::swap_widget(m_cUI->cLyTabBits, m_cUI->cPlBits, new qkd::widget::plot()));
@@ -626,17 +633,23 @@ void module_frame::update(qkd::utility::properties const & cProperties) {
         double nErrorBitsIncomingDiff = cNewValues.m_cData.m_nErrorBitsIncoming - d->m_cModuleValues.m_cData.m_nErrorBitsIncoming; 
         double nErrorBitsOutgoingDiff = cNewValues.m_cData.m_nErrorBitsOutgoing - d->m_cModuleValues.m_cData.m_nErrorBitsOutgoing; 
         
-        double nMilliSeconds = std::chrono::duration_cast<std::chrono::milliseconds>(cNewValues.m_cTimestamp - d->m_cModuleValues.m_cTimestamp).count();
-        nMilliSeconds /= 1000.0;
+        double nSeconds = std::chrono::duration_cast<std::chrono::milliseconds>(cNewValues.m_cTimestamp - d->m_cModuleValues.m_cTimestamp).count() / 1000.0;
         
-        d->m_cRates.m_nKeysIncomingRate = nKeysIncomingDiff / nMilliSeconds;
-        d->m_cRates.m_nKeysOutgoingRate = nKeysOutgoingDiff / nMilliSeconds;
-        d->m_cRates.m_nBitsIncomingRate = nBitsIncomingDiff / nMilliSeconds;
-        d->m_cRates.m_nBitsOutgoingRate = nBitsOutgoingDiff / nMilliSeconds;
-        d->m_cRates.m_nDisclosedBitsIncomingRate = nDisclosedBitsIncomingDiff / nMilliSeconds;
-        d->m_cRates.m_nDisclosedBitsOutgoingRate = nDisclosedBitsOutgoingDiff / nMilliSeconds;
-        d->m_cRates.m_nErrorBitsIncomingRate = nErrorBitsIncomingDiff / nMilliSeconds;
-        d->m_cRates.m_nErrorBitsOutgoingRate = nErrorBitsOutgoingDiff / nMilliSeconds;
+        d->m_cRates.m_nKeysIncomingRate = nKeysIncomingDiff / nSeconds;
+        d->m_cRates.m_nKeysOutgoingRate = nKeysOutgoingDiff / nSeconds;
+        d->m_cRates.m_nBitsIncomingRate = nBitsIncomingDiff / nSeconds;
+        d->m_cRates.m_nBitsOutgoingRate = nBitsOutgoingDiff / nSeconds;
+        d->m_cRates.m_nDisclosedBitsIncomingRate = nDisclosedBitsIncomingDiff / nSeconds;
+        d->m_cRates.m_nDisclosedBitsOutgoingRate = nDisclosedBitsOutgoingDiff / nSeconds;
+        d->m_cRates.m_nErrorBitsIncomingRate = nErrorBitsIncomingDiff / nSeconds;
+        d->m_cRates.m_nErrorBitsOutgoingRate = nErrorBitsOutgoingDiff / nSeconds;
+        
+        if (nBitsOutgoingDiff != 0.0) {
+            d->m_cRates.m_nQBER = (double)nErrorBitsOutgoingDiff / (double)nBitsOutgoingDiff;
+        }
+        else {
+            d->m_cRates.m_nQBER = 0.0;
+        }
         
         d->m_cModuleValues = cNewValues;
     }
@@ -651,12 +664,12 @@ void module_frame::update(qkd::utility::properties const & cProperties) {
         
     case qkd::module::module_state::STATE_READY:
         cLedStatus->set_state(qkd::widget::led::led_state::LED_STATE_GREEN);
-        cLedStatus->set_blinking(false);
+        cLedStatus->set_blinking(true);
         break;
         
     case qkd::module::module_state::STATE_RUNNING:
         cLedStatus->set_state(qkd::widget::led::led_state::LED_STATE_GREEN);
-        cLedStatus->set_blinking(true);
+        cLedStatus->set_blinking(false);
         break;
         
     case qkd::module::module_state::STATE_TERMINATING:
@@ -671,7 +684,7 @@ void module_frame::update(qkd::utility::properties const & cProperties) {
 
     case qkd::module::module_state::STATE_NEW:
     default:
-        cLedStatus->set_state(qkd::widget::led::led_state::LED_STATE_GREY);
+        cLedStatus->set_state(qkd::widget::led::led_state::LED_STATE_YELLOW);
         cLedStatus->set_blinking(false);
         break;
         
@@ -683,6 +696,8 @@ void module_frame::update(qkd::utility::properties const & cProperties) {
     update_tab_keys();
     update_tab_bits();
     update_tab_qber();
+    
+    refresh_ui();
 }
 
 
@@ -737,8 +752,8 @@ void module_frame::update_tab_keys() {
  */
 void module_frame::update_tab_qber() {
     
-    m_cUI->cLcdQBER->setText(QString::number(d->m_cRates.m_nErrorBitsOutgoingRate, 'f', 4));
-    plot_data_tick(d->m_cPlotQBER, d->m_cRates.m_nErrorBitsOutgoingRate, 0.0);
+    m_cUI->cLcdQBER->setText(QString::number(d->m_cRates.m_nQBER, 'f', 4));
+    plot_data_tick(d->m_cPlotQBER, d->m_cRates.m_nQBER, 0.0);
     
     double * nQBER = d->m_cPlotQBER.nIncoming + d->m_cPlotQBER.nIndex - PLOT_RANGE;
     d->m_cPlCrvQBER->setRawSamples(d->m_cPlotQBER.nTimeStamp, nQBER, PLOT_RANGE);
