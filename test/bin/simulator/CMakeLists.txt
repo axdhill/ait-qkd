@@ -1,11 +1,11 @@
 # ------------------------------------------------------------
 # CMakeLists.txt 
 # 
-# make: tests
+# make: test/bin/simulator
 #
 # Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
-# Copyright (C) 2012-2016 AIT Austrian Institute of Technology
+# Copyright (C) 2016 AIT Austrian Institute of Technology
 # AIT Austrian Institute of Technology GmbH
 # Donau-City-Strasse 1 | 1220 Vienna | Austria
 # http://www.ait.ac.at
@@ -29,11 +29,8 @@
 
 
 # ------------------------------------------------------------
-# go through the subs
+# test
 
-add_subdirectory(modules)
-add_subdirectory(q3pd)
-add_subdirectory(simulator)
-add_subdirectory(tools)
-
-
+# test scripts
+configure_file(pipe-end                         ${CMAKE_CURRENT_BINARY_DIR}/pipe-end                        @ONLY)
+configure_file(pipe-start                       ${CMAKE_CURRENT_BINARY_DIR}/pipe-start                      @ONLY)

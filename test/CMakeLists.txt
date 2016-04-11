@@ -42,6 +42,10 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test-data/q3p/alice.conf ${CMAKE_CURR
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test-data/q3p/bob.conf ${CMAKE_CURRENT_BINARY_DIR}/test-data//q3p/bob.conf @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test-data/q3pd-file-db-inject.conf ${CMAKE_CURRENT_BINARY_DIR}/test-data/q3pd-file-db-inject.conf @ONLY)
 
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test-data/simulator/alice.xml ${CMAKE_CURRENT_BINARY_DIR}/test-data/simulator/alice.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/test-data/simulator/bob.xml ${CMAKE_CURRENT_BINARY_DIR}/test-data/simulator/bob.xml @ONLY)
+
+
 # create a large shared-secret file: 1MB
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/test-data/shared-secret-very-long
     COMMAND dd if=/dev/urandom of=${CMAKE_CURRENT_BINARY_DIR}/test-data/shared-secret-very-long count=1000000 bs=1
