@@ -66,7 +66,6 @@ lcd::lcd(QString const & sText, QWidget * cParent) : QLineEdit(sText, cParent) {
  */
 void lcd::resizeEvent(UNUSED QResizeEvent * cEvent) {
     
-    // we resize our font to met the widgets height
     QMargins cMargins = textMargins();
     
     // fix the point size of the LCD font

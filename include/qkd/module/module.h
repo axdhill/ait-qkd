@@ -416,20 +416,9 @@ enum class module_type : uint8_t {
  * 
  *      disclosed_bits_outgoing          R              total number of disclosed bits the module sent so far in all keys
  * 
+ *      error_bits_incoming              R              total number of error bits the module received so far in all keys
  * 
- *      ---- rates are absolute gain values within the last second ----
- * 
- *      keys_incoming_rate               R              total number of keys incoming added in the last second
- * 
- *      keys_outgoing_rate               R              total number of keys outgoing added in the last second
- * 
- *      key_bits_incoming_rate           R              total number of key bits incoming added in the last second
- * 
- *      key_bits_outgoing_rate           R              total number of key bits outgoing added in the last second
- * 
- *      disclosed_bits_incoming_rate     R              total number of disclosed bits incoming added in the last second
- * 
- *      disclosed_bits_outgoing_rate     R              total number of disclosed bits outgoing added in the last second
+ *      error_bits_outgoing              R              total number of error bits the module sent so far in all keys
  * 
  * 
  * Methods of at.ac.ait.qkd.module
@@ -495,13 +484,8 @@ class module : public QObject {
     Q_PROPERTY(qulonglong key_bits_outgoing READ key_bits_outgoing)                             /**< total number of key bits the module sent so far */    
     Q_PROPERTY(qulonglong disclosed_bits_incoming READ disclosed_bits_incoming)                 /**< total number of disclosed bits the module received so far in all keys */    
     Q_PROPERTY(qulonglong disclosed_bits_outgoing READ disclosed_bits_outgoing)                 /**< total number of disclosed bits the module sent so far in all keys */    
-
-    Q_PROPERTY(qulonglong keys_incoming_rate READ keys_incoming_rate)                           /**< total number of keys the module received so far */    
-    Q_PROPERTY(qulonglong keys_outgoing_rate READ keys_outgoing_rate)                           /**< total number of keys the module sent so far */    
-    Q_PROPERTY(qulonglong key_bits_incoming_rate READ key_bits_incoming_rate)                   /**< total number of key bits the module received so far */    
-    Q_PROPERTY(qulonglong key_bits_outgoing_rate READ key_bits_outgoing_rate)                   /**< total number of key bits the module sent so far */    
-    Q_PROPERTY(qulonglong disclosed_bits_incoming_rate READ disclosed_bits_incoming_rate)       /**< total number of disclosed bits the module received so far in all keys */    
-    Q_PROPERTY(qulonglong disclosed_bits_outgoing_rate READ disclosed_bits_outgoing_rate)       /**< total number of disclosed bits the module sent so far in all keys */    
+    Q_PROPERTY(qulonglong error_bits_incoming READ error_bits_incoming)                         /**< total number of error bits the module received so far in all keys */    
+    Q_PROPERTY(qulonglong error_bits_outgoing READ error_bits_outgoing)                         /**< total number of error bits the module sent so far in all keys */    
 
     // friends
     friend class communicator;
@@ -532,13 +516,8 @@ public:
             nKeyBitsOutgoing = 0;
             nDisclosedBitsIncoming = 0;
             nDisclosedBitsOutgoing = 0;
-            
-            cKeysIncomingRate = qkd::utility::average_technique::create("time", 1000);
-            cKeysOutgoingRate = qkd::utility::average_technique::create("time", 1000);
-            cKeyBitsIncomingRate = qkd::utility::average_technique::create("time", 1000);
-            cKeyBitsOutgoingRate = qkd::utility::average_technique::create("time", 1000);
-            cDisclosedBitsIncomingRate = qkd::utility::average_technique::create("time", 1000);
-            cDisclosedBitsOutgoingRate = qkd::utility::average_technique::create("time", 1000);
+            nErrorBitsIncoming = 0;
+            nErrorBitsOutgoing = 0;
         };
         
         
@@ -553,14 +532,9 @@ public:
         uint64_t nKeyBitsOutgoing;                          /**< number of keys bits outgoing */
         uint64_t nDisclosedBitsIncoming;                    /**< total amount of disclosed bits published by previous modules */
         uint64_t nDisclosedBitsOutgoing;                    /**< total amount of disclosed bits published by previous modules AND the current one */
+        uint64_t nErrorBitsIncoming;                        /**< total amount of error bits detected by previous modules */
+        uint64_t nErrorBitsOutgoing;                        /**< total amount of error bits detected by previous modules AND the current one */
         
-        qkd::utility::average cKeysIncomingRate;            /**< calculate gain of keys incoming of the last second */
-        qkd::utility::average cKeysOutgoingRate;            /**< calculate gain of keys outgoing of the last second */
-        qkd::utility::average cKeyBitsIncomingRate;         /**< calculate gain of key bits incoming of the last second */
-        qkd::utility::average cKeyBitsOutgoingRate;         /**< calculate gain of key bits outgoing of the last second */
-        qkd::utility::average cDisclosedBitsIncomingRate;   /**< calculate gain of disclosed bits incoming of the last second */
-        qkd::utility::average cDisclosedBitsOutgoingRate;   /**< calculate gain of disclosed bits outgoing of the last second */
-
         
     private:
         
@@ -712,17 +686,6 @@ public:
     
     
     /**
-     * return gain of disclosed bits incoming of the last second 
-     * 
-     * @return  the gain of disclosed bits incoming of the last second 
-     */
-    inline qulonglong disclosed_bits_incoming_rate() const { 
-        std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
-        return statistics().cDisclosedBitsIncomingRate->slope(); 
-    }
-
-    
-    /**
      * return the number of disclosed bits in all keys sent so far
      * 
      * @return  the number of all disclosed bits in all keys sent so far
@@ -734,16 +697,27 @@ public:
     
     
     /**
-     * return gain of disclosed bits outgoing of the last second 
+     * return the number of error bits in all keys received so far
      * 
-     * @return  the gain of disclosed bits outgoing of the last second 
+     * @return  the number of all error bits in all keys received so far
      */
-    inline qulonglong disclosed_bits_outgoing_rate() const { 
+    inline qulonglong error_bits_incoming() const { 
         std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
-        return statistics().cDisclosedBitsOutgoingRate->slope(); 
+        return statistics().nErrorBitsIncoming; 
     }
     
-  
+    
+    /**
+     * return the number of error bits in all keys sent so far
+     * 
+     * @return  the number of all error bits in all keys sent so far
+     */
+    inline qulonglong error_bits_outgoing() const { 
+        std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
+        return statistics().nErrorBitsOutgoing; 
+    }
+    
+    
     /**
      * get the current state
      * 
@@ -924,17 +898,6 @@ public:
     
     
     /**
-     * return gain of key bits incoming of the last second 
-     * 
-     * @return  the gain of key bits incoming of the last second 
-     */
-    inline qulonglong key_bits_incoming_rate() const { 
-        std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
-        return statistics().cKeyBitsIncomingRate->slope(); 
-    }
-
-    
-    /**
      * return the number of all keys bits sent so far
      * 
      * @return  the number of all all keys bits sent so far
@@ -944,17 +907,6 @@ public:
         return statistics().nKeyBitsOutgoing; 
     }
     
-    
-    /**
-     * return gain of key bits outgoing of the last second 
-     * 
-     * @return  the gain of key bits outgoing of the last second 
-     */
-    inline qulonglong key_bits_outgoing_rate() const { 
-        std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
-        return statistics().cKeyBitsOutgoingRate->slope(); 
-    }
-
     
     /**
      * return the number of all keys received so far
@@ -968,17 +920,6 @@ public:
     
     
     /**
-     * return gain of keys incoming of the last second 
-     * 
-     * @return  the gain of keys incoming of the last second 
-     */
-    inline qulonglong keys_incoming_rate() const { 
-        std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
-        return statistics().cKeysIncomingRate->slope(); 
-    }
-
-    
-    /**
      * return the number of all keys sent so far
      * 
      * @return  the number of all keys sent so far
@@ -988,17 +929,6 @@ public:
         return statistics().nKeysOutgoing; 
     }
     
-    
-    /**
-     * return gain of keys outgoing of the last second 
-     * 
-     * @return  the gain of keys outgoing of the last second 
-     */
-    inline qulonglong keys_outgoing_rate() const { 
-        std::lock_guard<std::recursive_mutex> cLock(statistics().cMutex); 
-        return statistics().cKeysOutgoingRate->slope(); 
-    }
-
     
     /**
      * return the organisation/creator of the module

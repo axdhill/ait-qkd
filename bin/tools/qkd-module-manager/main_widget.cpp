@@ -290,10 +290,10 @@ void main_widget::show_module(std::string sDBus) {
 
 
 /**
- * make up system update
+ * make a system update
  */
 void main_widget::timeout() {
-    
+
     static uint64_t nUpdateCycle = 0;
     nUpdateCycle++;
 
@@ -307,7 +307,6 @@ void main_widget::timeout() {
         auto iter = m_cModuleTreeWidgetItems.find(cModule.at("dbus"));
         if (iter == m_cModuleTreeWidgetItems.end()) {
             
-            // new module
             cItem = new QTreeWidgetItem;
             cTvModules->addTopLevelItem(cItem);
             m_cModuleTreeWidgetItems[cModule.at("dbus")] = cItem;
@@ -331,7 +330,7 @@ void main_widget::timeout() {
         
         update_module_widget(cModule);
     }
-    
+
     // walk over update cycle and collect those not updated
     // --> they are not part of the system
     std::list<std::string> cModulesToDelete;

@@ -168,7 +168,7 @@ private slots:
     
     
     /**
-     * make up system update
+     * make a system update
      */
     void timeout();
     

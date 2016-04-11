@@ -192,7 +192,6 @@ void load_pixmaps() {
  */
 QWidget * res::swap_widget(QBoxLayout * cLayout, QWidget * cWidgetOld, QWidget * cWidgetNew) {
     
-    // sanity check
     if (!cWidgetOld) return nullptr;
     if (!cWidgetNew) return nullptr;
 

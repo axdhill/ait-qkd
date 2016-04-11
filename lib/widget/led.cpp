@@ -75,13 +75,8 @@ led::led(QString const & sText, QWidget * cParent) :
     m_sText(sText), 
     m_bTextVisible(true) {
  
-    // ensure the pixmaps are there, when we need em
     load_pixmaps();
-    
-    // for the visual: 16 px is minimum (lower is just plain ugly)
     setMinimumHeight(16);
-    
-    // set the last "good" blinking state
     m_cBlinkingLast = std::chrono::system_clock::now();
     
     QTimer * cTimer = new QTimer(this);
@@ -102,27 +97,19 @@ led::~led() {
  */
 void led::blink() {
     
-    // if we don't blink return
     if (!blinking()) return;
     
-    // evaluate in which blinking state we are
     std::chrono::system_clock::time_point cNow = std::chrono::system_clock::now();
     uint64_t nBlinkInterval = 1000 / blinking_hertz();
     uint64_t nSinceLast = std::chrono::duration_cast<std::chrono::milliseconds>(cNow - m_cBlinkingLast).count();
 
-    // nothing to do at all
     if (nSinceLast < nBlinkInterval) return;
     
-    // check how many blinks we've passed
     uint64_t nBlinks = nSinceLast / nBlinkInterval;
     
-    // set new "now" (but with proper timespan, not now + interval)
     m_cBlinkingLast = m_cBlinkingLast + std::chrono::milliseconds(nBlinks * nBlinkInterval);
-    
-    // an even number of blinks is ... no blink at all
     if (!(nBlinks & 0x00000001)) return;
     
-    // blink!
     m_bBlinkOn = !m_bBlinkOn;
     update();
 }
@@ -133,7 +120,6 @@ void led::blink() {
  */
 void led::load_pixmaps() const {
     
-    // don't reload
     if (g_cPixmaps.size() > 0) return;
     
     QPixmap cPixGreenSmall = res::pixmap("glass_button_green_small");
@@ -155,16 +141,13 @@ void led::load_pixmaps() const {
  */
 void led::paintEvent(QPaintEvent * cEvent) {
     
-    // parent painting
     QWidget::paintEvent(cEvent);
     
     led_state eState = state();
     if (blinking() && !m_bBlinkOn) eState = m_eBlinkingBackState;
     
-    // sanity check
     if (!g_cPixmaps.contains(eState)) return;
     
-    // get a painter and draw the pixmap and the text
     QPainter cPainter(this);
     QPixmap cPixmapScaled = g_cPixmaps[eState].scaledToHeight(size().height());
     cPainter.drawPixmap(0, 0, cPixmapScaled);
@@ -182,7 +165,6 @@ void led::paintEvent(QPaintEvent * cEvent) {
  */
 QSize led::sizeHint() const {
     
-    // sanity check
     if (!g_cPixmaps.contains(state())) return QSize(0, 0);
     
     QFontMetrics cFM(font());
@@ -195,5 +177,3 @@ QSize led::sizeHint() const {
     // same for height
     return QSize(cMargins.left() + cPixmapScaled.width() + 4 + cFontSize.width() + cMargins.right() + 4, cMargins.top() + std::max(cPixmapScaled.height(), cFontSize.height()) + cMargins.bottom() + 4);
 }
-
-
