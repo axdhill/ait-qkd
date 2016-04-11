@@ -87,84 +87,66 @@ using namespace qkd::widget;
 
 
 /**
- * common statistic I/O data set of a module
+ * holds all current absolute values
  */
-struct io_data {
+class module_values {
     
-    
-    /**
-     * holds all current absolute values
-     */
-    struct {
-    
-        double nKeysIncoming;               /**< total incoming keys */
-        double nKeysOutgoing;               /**< total outgoing keys */
-        double nBitsIncoming;               /**< total incoming bits */
-        double nBitsOutgoing;               /**< total outgoing bits */
-        double nErrorBitsIncoming;          /**< total error bits incoming */
-        double nErrorBitsOutgoing;          /**< total error bits outgoing */
-        double nDisclosedBitsIncoming;      /**< total error bits incoming */
-        double nDisclosedBitsOutgoing;      /**< total error bits outgoing */
-        
-        double nKeysIncomingRate;           /**< rate of incoming keys */
-        double nKeysOutgoingRate;           /**< rate of outgoing keys */
-        double nBitsIncomingRate;           /**< rate of incoming bits */
-        double nBitsOutgoingRate;           /**< rate of outgoing bits */
-        double nErrorBitsIncomingRate;      /**< rate of error bits incoming */
-        double nErrorBitsOutgoingRate;      /**< rate of error bits outgoing */
-        double nDisclosedBitsIncomingRate;  /**< rate of error bits incoming */
-        double nDisclosedBitsOutgoingRate;  /**< rate of error bits outgoing */
-        
-        double nQBER;                       /**< QBER */
-        
-    } cStat;
-    
-    
-    /**
-     * clear the data
-     */
-    void clear() {
-        memset(&cStat, 0, sizeof(cStat));
-    }
-    
-    
-    /**
-     * update the data set with a module's properties
-     *
-     * @param   cProperties     new properties of the module
-     */
-    void update(qkd::utility::properties const & cProperties) {
-        
-        double nLastBitsOut = cStat.nBitsOutgoing;
-        double nLastErrorBitsOut = cStat.nErrorBitsOutgoing;
-        
-        cStat.nKeysIncoming = std::stod(cProperties.at("keys_incoming"));
-        cStat.nKeysOutgoing = std::stod(cProperties.at("keys_outgoing"));
-        cStat.nBitsIncoming = std::stod(cProperties.at("key_bits_incoming"));
-        cStat.nBitsOutgoing = std::stod(cProperties.at("key_bits_outgoing"));
-        cStat.nErrorBitsIncoming = std::stod(cProperties.at("error_bits_incoming"));
-        cStat.nErrorBitsOutgoing = std::stod(cProperties.at("error_bits_outgoing"));
-        cStat.nDisclosedBitsIncoming = std::stod(cProperties.at("disclosed_bits_incoming"));
-        cStat.nDisclosedBitsOutgoing = std::stod(cProperties.at("disclosed_bits_outgoing"));
-        cStat.nKeysIncomingRate = std::stod(cProperties.at("keys_incoming_rate"));
-        cStat.nKeysOutgoingRate = std::stod(cProperties.at("keys_outgoing_rate"));
-        cStat.nBitsIncomingRate = std::stod(cProperties.at("key_bits_incoming_rate"));
-        cStat.nBitsOutgoingRate = std::stod(cProperties.at("key_bits_outgoing_rate"));
-        cStat.nErrorBitsIncomingRate = std::stod(cProperties.at("error_bits_incoming_rate"));
-        cStat.nErrorBitsOutgoingRate = std::stod(cProperties.at("error_bits_outgoing_rate"));
-        cStat.nDisclosedBitsIncomingRate = std::stod(cProperties.at("disclosed_bits_incoming_rate"));
-        cStat.nDisclosedBitsOutgoingRate = std::stod(cProperties.at("disclosed_bits_outgoing_rate"));
 
-        // calculate QBER
-        double nNewErrorBits = cStat.nErrorBitsOutgoing - nLastErrorBitsOut;
-        double nNewTotalBits = cStat.nBitsOutgoing - nLastBitsOut;
-        if (nNewTotalBits > 0.0) {
-            cStat.nQBER = nNewErrorBits / nNewTotalBits;
-        }
-        else cStat.nQBER = 0.0;
+public:
+    
+
+    std::chrono::system_clock::time_point m_cTimestamp;      /**< timepoint value aquisition */
+    
+    struct {
+        
+        uint64_t m_nKeysIncoming;                 /**< total incoming keys */
+        uint64_t m_nKeysOutgoing;                 /**< total outgoing keys */
+        uint64_t m_nBitsIncoming;                 /**< total incoming bits */
+        uint64_t m_nBitsOutgoing;                 /**< total outgoing bits */
+        uint64_t m_nDisclosedBitsIncoming;        /**< total disclosed bits incoming */
+        uint64_t m_nDisclosedBitsOutgoing;        /**< total disclosed bits outgoing */
+        uint64_t m_nErrorBitsIncoming;            /**< total error bits incoming */
+        uint64_t m_nErrorBitsOutgoing;            /**< total error bits outgoing */
+    
+    } m_cData;
+    
+
+    /**
+     * ctor
+     */
+    module_values() { memset(&m_cData, 0, sizeof(m_cData)); }
+    
+    
+    /**
+     * ctor
+     * 
+     * @param   cProperties         module properties
+     */
+    module_values(qkd::utility::properties const & cProperties) { 
+        
+        m_cTimestamp = std::chrono::system_clock::now();
+        
+        m_cData.m_nKeysIncoming = std::stoll(cProperties.at("keys_incoming"));
+        m_cData.m_nKeysOutgoing = std::stoll(cProperties.at("keys_outgoing"));
+        m_cData.m_nBitsIncoming = std::stoll(cProperties.at("key_bits_incoming"));
+        m_cData.m_nBitsOutgoing = std::stoll(cProperties.at("key_bits_outgoing"));
+        m_cData.m_nDisclosedBitsIncoming = std::stoll(cProperties.at("disclosed_bits_incoming"));
+        m_cData.m_nDisclosedBitsOutgoing = std::stoll(cProperties.at("disclosed_bits_outgoing"));
+        m_cData.m_nErrorBitsIncoming = std::stoll(cProperties.at("error_bits_incoming"));
+        m_cData.m_nErrorBitsOutgoing = std::stoll(cProperties.at("error_bits_outgoing"));
     }
     
+    
+    /**
+     * check if these are the initial values
+     * 
+     * @return  true, if these are the initial values
+     */
+    bool is_initial() const {
+        return m_cTimestamp.time_since_epoch().count() == 0;
+    }
 };
+
 
 
 /**
@@ -206,30 +188,51 @@ public:
         m_cPixRun   = qkd::widget::res::pixmap("media_playback_start");
         m_cPixStop  = qkd::widget::res::pixmap("media_playback_stop");
         
-        m_cIOData.clear();
+        m_cRates.m_nKeysIncomingRate = 0.0;
+        m_cRates.m_nKeysOutgoingRate = 0.0;
+        m_cRates.m_nBitsIncomingRate = 0.0;
+        m_cRates.m_nBitsOutgoingRate = 0.0;
+        m_cRates.m_nDisclosedBitsIncomingRate = 0.0;
+        m_cRates.m_nDisclosedBitsOutgoingRate = 0.0;
+        m_cRates.m_nErrorBitsIncomingRate = 0.0;
+        m_cRates.m_nErrorBitsOutgoingRate = 0.0;
     };
     
+    
     QDBusConnection m_cDBus;                                /**< DBus connection used */
-    std::chrono::system_clock::time_point m_cLastUpdate;    /**< timepoint last update */
     qkd::utility::properties m_cProperties;                 /**< recently set properties */
     
-    QPixmap m_cPixAlice;                /**< alice pixmap */
-    QPixmap m_cPixBob;                  /**< bob pixmap */
+    QPixmap m_cPixAlice;                                    /**< alice pixmap */
+    QPixmap m_cPixBob;                                      /**< bob pixmap */
     
-    QPixmap m_cPixPause;                /**< pause pixmap */
-    QPixmap m_cPixRun;                  /**< run pixmap */
-    QPixmap m_cPixStop;                 /**< stop pixmap */
+    QPixmap m_cPixPause;                                    /**< pause pixmap */
+    QPixmap m_cPixRun;                                      /**< run pixmap */
+    QPixmap m_cPixStop;                                     /**< stop pixmap */
     
-    io_data m_cIOData;                  /**< statistical current I/O data */
-    plot_data m_cPlotKeys;              /**< plot data for keys I/O */
-    plot_data m_cPlotBits;              /**< plot data for bits I/O */
-    plot_data m_cPlotQBER;              /**< plot data for QBER I/O */
+    module_values m_cModuleValues;                          /**< statistical current I/O data */
+
+    struct {
+        
+        double m_nKeysIncomingRate;                         /**< rate of incoming keys */
+        double m_nKeysOutgoingRate;                         /**< rate of outgoing keys */
+        double m_nBitsIncomingRate;                         /**< rate of incoming bits */
+        double m_nBitsOutgoingRate;                         /**< rate of outgoing bits */
+        double m_nDisclosedBitsIncomingRate;                /**< rate of disclosed bits incoming */
+        double m_nDisclosedBitsOutgoingRate;                /**< rate of disclosed bits outgoing */
+        double m_nErrorBitsIncomingRate;                    /**< rate of error bits incoming */
+        double m_nErrorBitsOutgoingRate;                    /**< rate of error bits outgoing */
     
-    QwtPlotCurve * m_cPlCrvKeysIn;      /**< plot curve for keys in */
-    QwtPlotCurve * m_cPlCrvKeysOut;     /**< plot curve for keys out */
-    QwtPlotCurve * m_cPlCrvBitsIn;      /**< plot curve for bits in */
-    QwtPlotCurve * m_cPlCrvBitsOut;     /**< plot curve for bits out */
-    QwtPlotCurve * m_cPlCrvQBER;        /**< plot curve for qber out */
+    } m_cRates;
+    
+    plot_data m_cPlotKeys;                                  /**< plot data for keys I/O */
+    plot_data m_cPlotBits;                                  /**< plot data for bits I/O */
+    plot_data m_cPlotQBER;                                  /**< plot data for QBER I/O */
+    
+    QwtPlotCurve * m_cPlCrvKeysIn;                          /**< plot curve for keys in */
+    QwtPlotCurve * m_cPlCrvKeysOut;                         /**< plot curve for keys out */
+    QwtPlotCurve * m_cPlCrvBitsIn;                          /**< plot curve for bits in */
+    QwtPlotCurve * m_cPlCrvBitsOut;                         /**< plot curve for bits out */
+    QwtPlotCurve * m_cPlCrvQBER;                            /**< plot curve for qber out */
 };
 
 
@@ -598,11 +601,44 @@ void module_frame::update(qkd::utility::properties const & cProperties) {
     
     d->m_cProperties = cProperties;
     
-    std::chrono::system_clock::time_point cNow = std::chrono::system_clock::now();
-    if (d->m_cLastUpdate.time_since_epoch().count() == 0) {
-        d->m_cLastUpdate = cNow;
-        refresh_ui();
+    module_values cNewValues;
+    
+    try {
+        cNewValues =  module_values(cProperties);
+    }
+    catch (std::exception const & e) {
+        qkd::utility::debug() << "Failed to read module's statistical data from DBus investigation: " << e.what();
         return;
+    }
+    
+    if (d->m_cModuleValues.is_initial()) {
+        d->m_cModuleValues = cNewValues;
+        memset(&d->m_cRates, 0, sizeof(d->m_cRates));
+    }
+    else {
+        
+        double nKeysIncomingDiff = cNewValues.m_cData.m_nKeysIncoming - d->m_cModuleValues.m_cData.m_nKeysIncoming; 
+        double nKeysOutgoingDiff = cNewValues.m_cData.m_nKeysOutgoing - d->m_cModuleValues.m_cData.m_nKeysOutgoing; 
+        double nBitsIncomingDiff = cNewValues.m_cData.m_nBitsIncoming - d->m_cModuleValues.m_cData.m_nBitsIncoming; 
+        double nBitsOutgoingDiff = cNewValues.m_cData.m_nBitsOutgoing - d->m_cModuleValues.m_cData.m_nBitsOutgoing; 
+        double nDisclosedBitsIncomingDiff = cNewValues.m_cData.m_nDisclosedBitsIncoming - d->m_cModuleValues.m_cData.m_nDisclosedBitsIncoming; 
+        double nDisclosedBitsOutgoingDiff = cNewValues.m_cData.m_nDisclosedBitsOutgoing - d->m_cModuleValues.m_cData.m_nDisclosedBitsOutgoing; 
+        double nErrorBitsIncomingDiff = cNewValues.m_cData.m_nErrorBitsIncoming - d->m_cModuleValues.m_cData.m_nErrorBitsIncoming; 
+        double nErrorBitsOutgoingDiff = cNewValues.m_cData.m_nErrorBitsOutgoing - d->m_cModuleValues.m_cData.m_nErrorBitsOutgoing; 
+        
+        double nMilliSeconds = std::chrono::duration_cast<std::chrono::milliseconds>(cNewValues.m_cTimestamp - d->m_cModuleValues.m_cTimestamp).count();
+        nMilliSeconds /= 1000.0;
+        
+        d->m_cRates.m_nKeysIncomingRate = nKeysIncomingDiff / nMilliSeconds;
+        d->m_cRates.m_nKeysOutgoingRate = nKeysOutgoingDiff / nMilliSeconds;
+        d->m_cRates.m_nBitsIncomingRate = nBitsIncomingDiff / nMilliSeconds;
+        d->m_cRates.m_nBitsOutgoingRate = nBitsOutgoingDiff / nMilliSeconds;
+        d->m_cRates.m_nDisclosedBitsIncomingRate = nDisclosedBitsIncomingDiff / nMilliSeconds;
+        d->m_cRates.m_nDisclosedBitsOutgoingRate = nDisclosedBitsOutgoingDiff / nMilliSeconds;
+        d->m_cRates.m_nErrorBitsIncomingRate = nErrorBitsIncomingDiff / nMilliSeconds;
+        d->m_cRates.m_nErrorBitsOutgoingRate = nErrorBitsOutgoingDiff / nMilliSeconds;
+        
+        d->m_cModuleValues = cNewValues;
     }
     
     std::string sState = d->m_cProperties.at("state_name");
@@ -640,11 +676,9 @@ void module_frame::update(qkd::utility::properties const & cProperties) {
         break;
         
     }
-    
+
     uint64_t nSeconds = std::time(nullptr) - std::stoll(d->m_cProperties.at("start_time"));
     m_cUI->cLbUptime->setText(QString("uptime: %1 sec").arg(nSeconds));
-    
-    d->m_cIOData.update(cProperties);
     
     update_tab_keys();
     update_tab_bits();
@@ -657,11 +691,11 @@ void module_frame::update(qkd::utility::properties const & cProperties) {
  */
 void module_frame::update_tab_bits() {
 
-    m_cUI->cLcdBitsIn->setText(QString::number((uint64_t)d->m_cIOData.cStat.nBitsIncoming));
-    m_cUI->cLcdBitsInRate->setText(QString::number(d->m_cIOData.cStat.nBitsIncomingRate, 'f', 2));
-    m_cUI->cLcdBitsOut->setText(QString::number((uint64_t)d->m_cIOData.cStat.nBitsOutgoing));
-    m_cUI->cLcdBitsOutRate->setText(QString::number(d->m_cIOData.cStat.nBitsOutgoingRate, 'f', 2));
-    plot_data_tick(d->m_cPlotBits, d->m_cIOData.cStat.nBitsIncomingRate, d->m_cIOData.cStat.nBitsOutgoingRate);
+    m_cUI->cLcdBitsIn->setText(QString::number(d->m_cModuleValues.m_cData.m_nBitsIncoming));
+    m_cUI->cLcdBitsInRate->setText(QString::number(d->m_cRates.m_nBitsIncomingRate, 'f', 2));
+    m_cUI->cLcdBitsOut->setText(QString::number(d->m_cModuleValues.m_cData.m_nBitsOutgoing));
+    m_cUI->cLcdBitsOutRate->setText(QString::number(d->m_cRates.m_nBitsOutgoingRate, 'f', 2));
+    plot_data_tick(d->m_cPlotBits, d->m_cRates.m_nBitsIncomingRate, d->m_cRates.m_nBitsOutgoingRate);
     
     double * nBitsPerSecondIncoming = d->m_cPlotBits.nIncoming + d->m_cPlotBits.nIndex - PLOT_RANGE;
     d->m_cPlCrvBitsIn->setRawSamples(d->m_cPlotBits.nTimeStamp, nBitsPerSecondIncoming, PLOT_RANGE);
@@ -680,11 +714,11 @@ void module_frame::update_tab_bits() {
  */
 void module_frame::update_tab_keys() {
     
-    m_cUI->cLcdKeysIn->setText(QString::number((uint64_t)d->m_cIOData.cStat.nKeysIncoming));
-    m_cUI->cLcdKeysInRate->setText(QString::number(d->m_cIOData.cStat.nKeysIncomingRate, 'f', 2));
-    m_cUI->cLcdKeysOut->setText(QString::number((uint64_t)d->m_cIOData.cStat.nKeysOutgoing));
-    m_cUI->cLcdKeysOutRate->setText(QString::number(d->m_cIOData.cStat.nKeysOutgoingRate, 'f', 2));
-    plot_data_tick(d->m_cPlotKeys, d->m_cIOData.cStat.nKeysIncomingRate, d->m_cIOData.cStat.nKeysOutgoingRate);
+    m_cUI->cLcdKeysIn->setText(QString::number(d->m_cModuleValues.m_cData.m_nKeysIncoming));
+    m_cUI->cLcdKeysInRate->setText(QString::number(d->m_cRates.m_nKeysIncomingRate, 'f', 2));
+    m_cUI->cLcdKeysOut->setText(QString::number(d->m_cModuleValues.m_cData.m_nKeysOutgoing));
+    m_cUI->cLcdKeysOutRate->setText(QString::number(d->m_cRates.m_nKeysOutgoingRate, 'f', 2));
+    plot_data_tick(d->m_cPlotKeys, d->m_cRates.m_nKeysIncomingRate, d->m_cRates.m_nKeysOutgoingRate);
 
     double * nKeysPerSecondIncoming = d->m_cPlotKeys.nIncoming + d->m_cPlotKeys.nIndex - PLOT_RANGE;
     d->m_cPlCrvKeysIn->setRawSamples(d->m_cPlotKeys.nTimeStamp, nKeysPerSecondIncoming, PLOT_RANGE);
@@ -703,8 +737,8 @@ void module_frame::update_tab_keys() {
  */
 void module_frame::update_tab_qber() {
     
-    m_cUI->cLcdQBER->setText(QString::number(d->m_cIOData.cStat.nQBER, 'f', 4));
-    plot_data_tick(d->m_cPlotQBER, d->m_cIOData.cStat.nQBER, 0.0);
+    m_cUI->cLcdQBER->setText(QString::number(d->m_cRates.m_nErrorBitsOutgoingRate, 'f', 4));
+    plot_data_tick(d->m_cPlotQBER, d->m_cRates.m_nErrorBitsOutgoingRate, 0.0);
     
     double * nQBER = d->m_cPlotQBER.nIncoming + d->m_cPlotQBER.nIndex - PLOT_RANGE;
     d->m_cPlCrvQBER->setRawSamples(d->m_cPlotQBER.nTimeStamp, nQBER, PLOT_RANGE);

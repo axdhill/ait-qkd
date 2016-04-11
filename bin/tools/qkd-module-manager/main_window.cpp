@@ -68,7 +68,6 @@ main_window::main_window() : QMainWindow(), m_cMainWidget(nullptr) {
     QPixmap cPixAITLogo = QPixmap(sDataPath + QDir::separator() + "ait_logo.png");
     if (!cPixAITLogo.isNull()) setWindowIcon(QIcon(cPixAITLogo));
     
-    // set central Widget
     QScrollArea * cScrMain = new QScrollArea(this);
     m_cMainWidget = new main_widget(this);
     cScrMain->setWidget(m_cMainWidget);
