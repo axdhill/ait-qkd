@@ -8,12 +8,6 @@
     than a bundle of modules grouped together
     by a name.
     
-    This is the definition of a pipeline.
-    
-    A pipeline is basically nothing more
-    than a bundle of modules grouped together
-    by a name.
-    
     The syntax is:
     
         <pipeline name="NAME" autoconnect>  ... defines a 
