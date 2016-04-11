@@ -125,7 +125,7 @@ struct io_data {
      */
     void clear() {
         memset(&cStat, 0, sizeof(cStat));
-    };
+    }
     
     
     /**
@@ -262,18 +262,14 @@ module_frame::module_frame(QWidget * cParent, QDBusConnection cDBus) : QFrame(cP
     plot_data_clear(d->m_cPlotBits);
     plot_data_clear(d->m_cPlotQBER);
     
-    // store dbus
     d->m_cDBus = cDBus;
     
-    // setup this widget
     m_cUI = new Ui::module_frame;
     m_cUI->setupUi(this);
     m_cUI->cLbStatus->setMinimumWidth(100);
     
-    // fix LED widget (swap widget for qkd::widget::led)
     m_cUI->cLedStatus = qkd::widget::res::swap_widget(m_cUI->cLyHeader, m_cUI->cLedStatus, new qkd::widget::led());
 
-    // fix LCD widgets (swap lineedit for qkd:widget::lcd)
     m_cUI->cLcdKeysIn = dynamic_cast<QLineEdit *>(qkd::widget::res::swap_widget(m_cUI->cLyTabKeysValues, m_cUI->cLcdKeysIn, new qkd::widget::lcd("0")));
     m_cUI->cLcdKeysInRate = dynamic_cast<QLineEdit *>(qkd::widget::res::swap_widget(m_cUI->cLyTabKeysValues, m_cUI->cLcdKeysInRate, new qkd::widget::lcd("0")));
     m_cUI->cLcdKeysOut = dynamic_cast<QLineEdit *>(qkd::widget::res::swap_widget(m_cUI->cLyTabKeysValues, m_cUI->cLcdKeysOut, new qkd::widget::lcd("0")));
@@ -284,12 +280,10 @@ module_frame::module_frame(QWidget * cParent, QDBusConnection cDBus) : QFrame(cP
     m_cUI->cLcdBitsOutRate = dynamic_cast<QLineEdit *>(qkd::widget::res::swap_widget(m_cUI->cLyTabBitsValues, m_cUI->cLcdBitsOutRate, new qkd::widget::lcd("0")));
     m_cUI->cLcdQBER = dynamic_cast<QLineEdit *>(qkd::widget::res::swap_widget(m_cUI->cLyTabQBERValue, m_cUI->cLcdQBER, new qkd::widget::lcd("0")));
     
-    // swap the plots
     m_cUI->cPlKeys = dynamic_cast<QwtPlot *>(qkd::widget::res::swap_widget(m_cUI->cLyTabKeys, m_cUI->cPlKeys, new qkd::widget::plot()));
     m_cUI->cPlBits = dynamic_cast<QwtPlot *>(qkd::widget::res::swap_widget(m_cUI->cLyTabBits, m_cUI->cPlBits, new qkd::widget::plot()));
     m_cUI->cPlQBER = dynamic_cast<QwtPlot *>(qkd::widget::res::swap_widget(m_cUI->cLyTabQBER, m_cUI->cPlQBER, new qkd::widget::plot()));
     
-    // fix the pixmaps
     QPixmap cPix;
     cPix = qkd::widget::res::pixmap("module_pipe_in").scaled(24, 24);
     m_cUI->cLbUrlPipeInIcon->setPixmap(cPix);
@@ -298,22 +292,18 @@ module_frame::module_frame(QWidget * cParent, QDBusConnection cDBus) : QFrame(cP
     cPix = qkd::widget::res::pixmap("module_pipe_out").scaled(24, 24);
     m_cUI->cLbUrlPipeOutIcon->setPixmap(cPix);
     
-    // initial icons
     m_cUI->cBtnResume->setIcon(d->m_cPixPause);
     m_cUI->cBtnStop->setIcon(d->m_cPixStop);
     
-    // setup plotter
     QBrush cBackgroundBrush(palette().color(QPalette::Base));
     m_cUI->cPlKeys->setCanvasBackground(cBackgroundBrush);
     m_cUI->cPlBits->setCanvasBackground(cBackgroundBrush);
     m_cUI->cPlQBER->setCanvasBackground(cBackgroundBrush);
     
-    // fix left axis width
     m_cUI->cPlKeys->axisWidget(QwtPlot::Axis::yLeft)->scaleDraw()->setMinimumExtent(m_cUI->cLbKeysIn->minimumWidth());
     m_cUI->cPlBits->axisWidget(QwtPlot::Axis::yLeft)->scaleDraw()->setMinimumExtent(m_cUI->cLbBitsIn->minimumWidth());
     m_cUI->cPlQBER->axisWidget(QwtPlot::Axis::yLeft)->scaleDraw()->setMinimumExtent(m_cUI->cLbQBER->minimumWidth());
 
-    // apply a nice grid
     QPen cPenMinorGridCharge = QPen(Qt::gray);
     cPenMinorGridCharge.setStyle(Qt::DotLine);
     
@@ -347,7 +337,6 @@ module_frame::module_frame(QWidget * cParent, QDBusConnection cDBus) : QFrame(cP
 #endif
     cPlGridQBER->attach(m_cUI->cPlQBER);
     
-    // apply curves
     QPen cPenIncoming = QPen(Qt::blue);
     cPenIncoming.setCapStyle(Qt::RoundCap);
     cPenIncoming.setJoinStyle(Qt::RoundJoin);
@@ -379,7 +368,6 @@ module_frame::module_frame(QWidget * cParent, QDBusConnection cDBus) : QFrame(cP
     d->m_cPlCrvQBER->setPen(cPenQBER);
     d->m_cPlCrvQBER->attach(m_cUI->cPlQBER);
     
-    // connections
     connect(m_cUI->cCkDebug, SIGNAL(stateChanged(int)), SLOT(apply_debug(int)));
     connect(m_cUI->cBtnHint, SIGNAL(clicked()), SLOT(apply_hint()));
     connect(m_cUI->cBtnPipeline, SIGNAL(clicked()), SLOT(apply_pipeline()));
@@ -407,7 +395,6 @@ module_frame::~module_frame() {
  */
 void module_frame::apply_debug(int nState) {
     
-    // apply new debug
     QString sDBusObject = QString::fromStdString(d->m_cProperties.at("dbus"));
     QDBusMessage cMessage = QDBusMessage::createMethodCall(sDBusObject, "/Module", "org.freedesktop.DBus.Properties", "Set");
     if (nState == Qt::Checked) {
@@ -425,7 +412,6 @@ void module_frame::apply_debug(int nState) {
  */
 void module_frame::apply_hint() {
     
-    // apply new hint on dbus
     QString sDBusObject = QString::fromStdString(d->m_cProperties.at("dbus"));
     QDBusMessage cMessage = QDBusMessage::createMethodCall(sDBusObject, "/Module", "org.freedesktop.DBus.Properties", "Set");
     cMessage << "at.ac.ait.qkd.module" << "hint" << QVariant::fromValue(QDBusVariant(m_cUI->cEdHint->text())); 
@@ -438,7 +424,6 @@ void module_frame::apply_hint() {
  */
 void module_frame::apply_pipeline() {
     
-    // apply new pipeline on dbus
     QString sDBusObject = QString::fromStdString(d->m_cProperties.at("dbus"));
     QDBusMessage cMessage = QDBusMessage::createMethodCall(sDBusObject, "/Module", "org.freedesktop.DBus.Properties", "Set");
     cMessage << "at.ac.ait.qkd.module" << "pipeline" << QVariant::fromValue(QDBusVariant(m_cUI->cEdPipeline->text())); 
@@ -451,7 +436,6 @@ void module_frame::apply_pipeline() {
  */
 void module_frame::apply_url_in() {
     
-    // apply new url in on dbus
     QString sDBusObject = QString::fromStdString(d->m_cProperties.at("dbus"));
     QDBusMessage cMessage = QDBusMessage::createMethodCall(sDBusObject, "/Module", "org.freedesktop.DBus.Properties", "Set");
     cMessage << "at.ac.ait.qkd.module" << "url_pipe_in" << QVariant::fromValue(QDBusVariant(m_cUI->cEdUrlPipeIn->text())); 
@@ -464,7 +448,6 @@ void module_frame::apply_url_in() {
  */
 void module_frame::apply_url_out() {
     
-    // apply new url out on dbus
     QString sDBusObject = QString::fromStdString(d->m_cProperties.at("dbus"));
     QDBusMessage cMessage = QDBusMessage::createMethodCall(sDBusObject, "/Module", "org.freedesktop.DBus.Properties", "Set");
     cMessage << "at.ac.ait.qkd.module" << "url_pipe_out" << QVariant::fromValue(QDBusVariant(m_cUI->cEdUrlPipeOut->text())); 
@@ -477,7 +460,6 @@ void module_frame::apply_url_out() {
  */
 void module_frame::apply_url_peer() {
     
-    // apply new url out on dbus
     QString sDBusObject = QString::fromStdString(d->m_cProperties.at("dbus"));
     QDBusMessage cMessage = QDBusMessage::createMethodCall(sDBusObject, "/Module", "org.freedesktop.DBus.Properties", "Set");
     if (d->m_cProperties.at("role") == "0") {
@@ -525,7 +507,6 @@ void module_frame::refresh_ui() {
     bool bAlice = d->m_cProperties.at("role") == "0";
     bool bDebug = d->m_cProperties.at("debug") == "true";
     
-    // only change UI values if property value is different
     test_and_set(m_cUI->cEdId,              d->m_cProperties.at("id"));
     test_and_set(m_cUI->cEdDBus,            d->m_cProperties.at("dbus"));
     test_and_set(m_cUI->cEdDescription,     d->m_cProperties.at("description"));
@@ -539,7 +520,6 @@ void module_frame::refresh_ui() {
     std::string sStartDateTime = QString("Unix epoch: %1 [%2]").arg(nStartDateTime).arg(cStartDateTime.toString(Qt::DefaultLocaleLongDate)).toStdString();
     test_and_set(m_cUI->cEdProcessStart,    sStartDateTime);
     
-    // role
     if (bAlice) {
         m_cUI->cLbRole->setPixmap(d->m_cPixAlice);
         m_cUI->cLbRoleName->setText("Alice");
@@ -549,11 +529,9 @@ void module_frame::refresh_ui() {
         m_cUI->cLbRoleName->setText("Bob");
     }
     
-    // debug
     if (bDebug) m_cUI->cCkDebug->setCheckState(Qt::Checked);
     else m_cUI->cCkDebug->setCheckState(Qt::Unchecked);
     
-    // urls
     test_and_set(m_cUI->cEdUrlPipeIn,       d->m_cProperties.at("url_pipe_in"));
     test_and_set(m_cUI->cEdUrlPipeOut,      d->m_cProperties.at("url_pipe_out"));
     if (bAlice) {
@@ -570,7 +548,6 @@ void module_frame::refresh_ui() {
  */
 void module_frame::pause() {
     
-    // call pause on DBus
     QString sDBusObject = QString::fromStdString(d->m_cProperties.at("dbus"));
     QDBusMessage cMessage = QDBusMessage::createMethodCall(sDBusObject, "/Module", "at.ac.ait.qkd.module", "pause");
     d->m_cDBus.call(cMessage, QDBus::NoBlock);
@@ -582,7 +559,6 @@ void module_frame::pause() {
  */
 void module_frame::resume() {
 
-    // call resume on DBus
     QString sDBusObject = QString::fromStdString(d->m_cProperties.at("dbus"));
     QDBusMessage cMessage = QDBusMessage::createMethodCall(sDBusObject, "/Module", "at.ac.ait.qkd.module", "resume");
     d->m_cDBus.call(cMessage, QDBus::NoBlock);
@@ -604,7 +580,6 @@ QTabWidget * module_frame::tab() {
  */
 void module_frame::terminate() {
     
-    // call terminate on DBus
     QString sDBusObject = QString::fromStdString(d->m_cProperties.at("dbus"));
     QDBusMessage cMessage = QDBusMessage::createMethodCall(sDBusObject, "/Module", "at.ac.ait.qkd.module", "terminate");
     d->m_cDBus.call(cMessage, QDBus::NoBlock);
@@ -621,20 +596,15 @@ void module_frame::terminate() {
  */
 void module_frame::update(qkd::utility::properties const & cProperties) {
     
-    // this is the new stuff
     d->m_cProperties = cProperties;
     
-    // first time call?
     std::chrono::system_clock::time_point cNow = std::chrono::system_clock::now();
     if (d->m_cLastUpdate.time_since_epoch().count() == 0) {
-        
-        // refresh properties initially
         d->m_cLastUpdate = cNow;
         refresh_ui();
         return;
     }
     
-    // set status
     std::string sState = d->m_cProperties.at("state_name");
     m_cUI->cLbStatus->setText(QString::fromStdString(sState));
     if (sState == "running") m_cUI->cBtnResume->setIcon(d->m_cPixPause);
@@ -671,14 +641,11 @@ void module_frame::update(qkd::utility::properties const & cProperties) {
         
     }
     
-    // uptime
     uint64_t nSeconds = std::time(nullptr) - std::stoll(d->m_cProperties.at("start_time"));
     m_cUI->cLbUptime->setText(QString("uptime: %1 sec").arg(nSeconds));
     
-    // stats
     d->m_cIOData.update(cProperties);
     
-    // update the plotting tabs
     update_tab_keys();
     update_tab_bits();
     update_tab_qber();
@@ -696,13 +663,11 @@ void module_frame::update_tab_bits() {
     m_cUI->cLcdBitsOutRate->setText(QString::number(d->m_cIOData.cStat.nBitsOutgoingRate, 'f', 2));
     plot_data_tick(d->m_cPlotBits, d->m_cIOData.cStat.nBitsIncomingRate, d->m_cIOData.cStat.nBitsOutgoingRate);
     
-    // replot
     double * nBitsPerSecondIncoming = d->m_cPlotBits.nIncoming + d->m_cPlotBits.nIndex - PLOT_RANGE;
     d->m_cPlCrvBitsIn->setRawSamples(d->m_cPlotBits.nTimeStamp, nBitsPerSecondIncoming, PLOT_RANGE);
     double * nBitsPerSecondOutgoing = d->m_cPlotBits.nOutgoing + d->m_cPlotBits.nIndex - PLOT_RANGE;
     d->m_cPlCrvBitsOut->setRawSamples(d->m_cPlotBits.nTimeStamp, nBitsPerSecondOutgoing, PLOT_RANGE);
     
-    // fix scaling
     QwtScaleEngine * cScaleEngine = m_cUI->cPlBits->axisScaleEngine(QwtPlot::Axis::yLeft);
     if ((cScaleEngine->lowerMargin() == 0.0) && (cScaleEngine->upperMargin() == 0.0)) cScaleEngine->setMargins(0.0, 1.0);
     
@@ -721,13 +686,11 @@ void module_frame::update_tab_keys() {
     m_cUI->cLcdKeysOutRate->setText(QString::number(d->m_cIOData.cStat.nKeysOutgoingRate, 'f', 2));
     plot_data_tick(d->m_cPlotKeys, d->m_cIOData.cStat.nKeysIncomingRate, d->m_cIOData.cStat.nKeysOutgoingRate);
 
-    // replot
     double * nKeysPerSecondIncoming = d->m_cPlotKeys.nIncoming + d->m_cPlotKeys.nIndex - PLOT_RANGE;
     d->m_cPlCrvKeysIn->setRawSamples(d->m_cPlotKeys.nTimeStamp, nKeysPerSecondIncoming, PLOT_RANGE);
     double * nKeysPerSecondOutgoing = d->m_cPlotKeys.nOutgoing + d->m_cPlotKeys.nIndex - PLOT_RANGE;
     d->m_cPlCrvKeysOut->setRawSamples(d->m_cPlotKeys.nTimeStamp, nKeysPerSecondOutgoing, PLOT_RANGE);
     
-    // fix scaling
     QwtScaleEngine * cScaleEngine = m_cUI->cPlKeys->axisScaleEngine(QwtPlot::Axis::yLeft);
     if ((cScaleEngine->lowerMargin() == 0.0) && (cScaleEngine->upperMargin() == 0.0)) cScaleEngine->setMargins(0.0, 1.0);
     
@@ -743,11 +706,9 @@ void module_frame::update_tab_qber() {
     m_cUI->cLcdQBER->setText(QString::number(d->m_cIOData.cStat.nQBER, 'f', 4));
     plot_data_tick(d->m_cPlotQBER, d->m_cIOData.cStat.nQBER, 0.0);
     
-    // replot
     double * nQBER = d->m_cPlotQBER.nIncoming + d->m_cPlotQBER.nIndex - PLOT_RANGE;
     d->m_cPlCrvQBER->setRawSamples(d->m_cPlotQBER.nTimeStamp, nQBER, PLOT_RANGE);
     
-    // fix scaling
     QwtScaleEngine * cScaleEngine = m_cUI->cPlQBER->axisScaleEngine(QwtPlot::Axis::yLeft);
     if ((cScaleEngine->lowerMargin() == 0.0) && (cScaleEngine->upperMargin() == 0.0)) cScaleEngine->setMargins(0.0, 0.01);
     
@@ -762,7 +723,6 @@ void module_frame::update_tab_qber() {
  */
 void plot_data_clear(plot_data & cPlotData) {
     
-    // clear plot data
     memset(cPlotData.nTimeStamp, 0, sizeof(double) * PLOT_RANGE);
     memset(cPlotData.nIncoming, 0, sizeof(double) * PLOT_RANGE * 2);
     memset(cPlotData.nOutgoing, 0, sizeof(double) * PLOT_RANGE * 2);
@@ -782,7 +742,6 @@ void plot_data_clear(plot_data & cPlotData) {
  */
 void plot_data_tick(plot_data & cPlotData, double nIncoming, double nOutgoing) {
     
-    // first plot?
     if (cPlotData.cTimestamp.time_since_epoch().count() == 0) {
     
         // new plot: first sketch
@@ -794,31 +753,25 @@ void plot_data_tick(plot_data & cPlotData, double nIncoming, double nOutgoing) {
         
     }
         
-    // take a step
     auto cCurrent = std::chrono::system_clock::now();
     auto nTimespan =  std::chrono::duration_cast<std::chrono::milliseconds>(cCurrent - cPlotData.cTimestamp).count();
         
-    // same place or some steps?
     unsigned long nStep = nTimespan / TIMEOUT_MSECS;
     cPlotData.nIndex += nStep;
 
-    // check if we have to reset the view
     while (cPlotData.nIndex >= 2 * PLOT_RANGE) {
         memcpy(cPlotData.nIncoming, cPlotData.nIncoming + PLOT_RANGE, PLOT_RANGE * sizeof(double));
         memcpy(cPlotData.nOutgoing, cPlotData.nOutgoing + PLOT_RANGE, PLOT_RANGE * sizeof(double));
         cPlotData.nIndex -= PLOT_RANGE;
     }
     
-    // apply new values
     if (!nStep) {
         
-        // if we didn't make a step --> add to last values
         cPlotData.nIncoming[cPlotData.nIndex] = nIncoming;
         cPlotData.nOutgoing[cPlotData.nIndex] = nOutgoing;
     }
     else {
         
-        // we did at least 1 step 
         for (unsigned long i = 0; i < nStep; i++) {
             unsigned nNext = (cPlotData.nIndex - i);
             cPlotData.nIncoming[nNext] = nIncoming;
@@ -826,7 +779,6 @@ void plot_data_tick(plot_data & cPlotData, double nIncoming, double nOutgoing) {
         }
     }
     
-    // remember
     cPlotData.cTimestamp = cCurrent;
 }
 
@@ -839,10 +791,8 @@ void plot_data_tick(plot_data & cPlotData, double nIncoming, double nOutgoing) {
  */
 void test_and_set(QLineEdit * cEd, std::string sText) {
     
-    // sanity check
     if (cEd == nullptr) return;
     
-    // only change when needed
     QString s = QString::fromStdString(sText);
     if (cEd->text() != s) {
         cEd->setText(s);
