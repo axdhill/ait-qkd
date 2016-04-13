@@ -103,6 +103,7 @@ public:
     std::atomic<bool> bProcessing;              /**< processing flag */
 
     std::atomic<bool> bDebugMessageFlow;        /**< debug message flow for send and recv packages */
+    std::atomic<bool> bDebugKeySync;            /**< debug key sync */
 
     
     qkd::module::stash * cStash;                /**< the module stash */

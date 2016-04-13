@@ -451,6 +451,15 @@ bool module::debug_message_flow() const {
     return d->bDebugMessageFlow;
 }
 
+/**
+ * check if we should print key sync issues on stderr.
+ *
+ * @return true, iff key sync debug messages are printed on stderr
+ */
+bool module::debug_key_sync() const {
+    return d->bDebugKeySync;
+}
+
 
 /**
  * this is the start method call
@@ -989,6 +998,15 @@ QString module::service_name() const {
  */
 void module::set_debug_message_flow(bool bDebug) {
     d->bDebugMessageFlow = bDebug;
+}
+
+/**
+ * set the debug key sync flag
+ *
+ * @param   bDebug      new debug value for key syncs
+ */
+void module::set_debug_key_sync(bool bDebug) {
+    d->bDebugKeySync = bDebug;
 }
 
 

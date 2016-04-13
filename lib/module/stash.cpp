@@ -155,12 +155,14 @@ qkd::key::key stash::pick_alice() {
     qkd::module::message cMessage(qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
     if (cKey.is_null()) {
         cMessage.data() << (uint32_t)sync_command::SYNC_COMMAND_NOPICK;
-        qkd::utility::debug() << "key-SYNC no key to pick";
+        if (m_cModule->debug_key_sync())
+            qkd::utility::debug() << "key-SYNC no key to pick";
     }
     else {
         cMessage.data() << (uint32_t)sync_command::SYNC_COMMAND_PICK;
         cMessage.data() << cKey.id();
-        qkd::utility::debug() << "key-SYNC pick key #" << cKey.id();
+        if (m_cModule->debug_key_sync())
+            qkd::utility::debug() << "key-SYNC pick key #" << cKey.id();
     }
 
     try {
@@ -244,7 +246,8 @@ qkd::key::key stash::pick_bob() {
         break;
         
     case sync_command::SYNC_COMMAND_NOPICK:
-        qkd::utility::debug() << "key-SYNC no key to pick";
+        if (m_cModule->debug_key_sync())
+            qkd::utility::debug() << "key-SYNC no key to pick";
         return qkd::key::key::null();
         
     default:
