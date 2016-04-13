@@ -67,6 +67,7 @@ int main(int argc, char ** argv) {
     cOptions.add_options()("config,c", boost::program_options::value<std::string>(), "configuration file URL");
     cOptions.add_options()("debug,d", "enable debug output on stderr");
     cOptions.add_options()("debug-message-flow", "enable message debug dump output on stderr");
+    cOptions.add_options()("debug-key-sync", "enable key sync debug messages on stderr");
     cOptions.add_options()("help,h", "this page");
     cOptions.add_options()("passes,p", boost::program_options::value<uint64_t>()->default_value(14), "number of cascade passes");
     cOptions.add_options()("run,r", "run immediately");
@@ -101,6 +102,7 @@ int main(int argc, char ** argv) {
     
     qkd_cascade cQKDCascade;
     cQKDCascade.set_debug_message_flow(cVariableMap.count("debug-message-flow") > 0);
+    cQKDCascade.set_debug_key_sync(cVariableMap.count("debug-key-sync") > 0);
     if (cVariableMap.count("bob")) {
         cQKDCascade.set_role((unsigned long)qkd::module::module_role::ROLE_BOB);
     }
