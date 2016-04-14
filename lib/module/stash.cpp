@@ -155,14 +155,12 @@ qkd::key::key stash::pick_alice() {
     qkd::module::message cMessage(qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
     if (cKey.is_null()) {
         cMessage.data() << (uint32_t)sync_command::SYNC_COMMAND_NOPICK;
-        if (m_cModule->debug_key_sync())
-            qkd::utility::debug() << "key-SYNC no key to pick";
+        if (m_cModule->debug_key_sync()) qkd::utility::debug() << "key-SYNC no key to pick";
     }
     else {
         cMessage.data() << (uint32_t)sync_command::SYNC_COMMAND_PICK;
         cMessage.data() << cKey.id();
-        if (m_cModule->debug_key_sync())
-            qkd::utility::debug() << "key-SYNC pick key #" << cKey.id();
+        if (m_cModule->debug_key_sync()) qkd::utility::debug() << "key-SYNC pick key #" << cKey.id();
     }
 
     try {
@@ -201,8 +199,7 @@ qkd::key::key stash::pick_alice() {
         break;
         
     case sync_command::SYNC_COMMAND_PICK_NACK:
-        if (m_cModule->debug_key_sync())
-            qkd::utility::debug() << "key-SYNC key pick rejected by peer";
+        if (m_cModule->debug_key_sync()) qkd::utility::debug() << "key-SYNC key pick rejected by peer";
         return qkd::key::key::null();
         
     default:
@@ -247,8 +244,7 @@ qkd::key::key stash::pick_bob() {
         break;
         
     case sync_command::SYNC_COMMAND_NOPICK:
-        if (m_cModule->debug_key_sync())
-            qkd::utility::debug() << "key-SYNC no key to pick";
+        if (m_cModule->debug_key_sync()) qkd::utility::debug() << "key-SYNC no key to pick";
         return qkd::key::key::null();
         
     default:
@@ -351,8 +347,7 @@ void stash::recv(qkd::module::message & cMessage) {
         m_cPeerStash.push_back(cKeyId);
     }
 
-    if (m_cModule->debug_key_sync())
-        debug_sync("key-SYNC recv", m_cPeerStash);
+    if (m_cModule->debug_key_sync()) debug_sync("key-SYNC recv", m_cPeerStash);
 }
 
 
@@ -389,8 +384,7 @@ void stash::send() {
     cMessage.data() << m_cStash.size();
     for (auto const & k : m_cStash) cMessage.data() << k.cKey.id();
 
-    if (m_cModule->debug_key_sync())
-        debug_sync("key-SYNC send", m_cStash);
+    if (m_cModule->debug_key_sync()) debug_sync("key-SYNC send", m_cStash);
     
     try {
         qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
