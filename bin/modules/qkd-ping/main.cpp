@@ -65,6 +65,7 @@ int main(int argc, char ** argv) {
     cOptions.add_options()("connect,c", boost::program_options::value<std::string>()->default_value("tcp://127.0.0.1:6789"), "connection string to connect to or listen on");
     cOptions.add_options()("count,t", boost::program_options::value<uint64_t>()->default_value(0), "number of roundtrips (0 = infinite)");
     cOptions.add_options()("debug-message-flow", "enable message debug dump output on stderr");
+    cOptions.add_options()("debug-key-sync", "enable key sync debug messages on stderr");
     cOptions.add_options()("debug,d", "enable debug output on stderr");
     cOptions.add_options()("help,h", "this page");
     cOptions.add_options()("payload,p", boost::program_options::value<uint64_t>()->default_value(1000), "number of bytes to send as payload");
@@ -101,6 +102,7 @@ int main(int argc, char ** argv) {
     
     qkd_ping cQKDPing;
     cQKDPing.set_debug_message_flow(cVariableMap.count("debug-message-flow") > 0);
+    cQKDPing.set_debug_key_sync(cVariableMap.count("debug-key-sync") > 0);
     cQKDPing.set_payload_size(cVariableMap["payload"].as<uint64_t>());
     cQKDPing.set_sleep_time(cVariableMap["sleep"].as<uint64_t>());
     if (cVariableMap.count("bob")) {
