@@ -65,6 +65,7 @@ int main(int argc, char ** argv) {
     cOptions.add_options()("config,c", boost::program_options::value<std::string>(), "configuration file URL");
     cOptions.add_options()("debug,d", "enable debug output on stderr");
     cOptions.add_options()("debug-message-flow", "enable message debug dump output on stderr");
+    cOptions.add_options()("debug-key-sync", "enable key sync debug messages on stderr");
     cOptions.add_options()("help,h", "this page");
     cOptions.add_options()("run,r", "run immediately");
     cOptions.add_options()("version,v", "print version string");
@@ -98,6 +99,7 @@ int main(int argc, char ** argv) {
     
     qkd_privacy_amplification cQKDPrivacyAmplification;
     cQKDPrivacyAmplification.set_debug_message_flow(cVariableMap.count("debug-message-flow") > 0);
+    cQKDPrivacyAmplification.set_debug_key_sync(cVariableMap.count("debug-key-sync") > 0);
     if (cVariableMap.count("bob")) {
         cQKDPrivacyAmplification.set_role((unsigned long)qkd::module::module_role::ROLE_BOB);
     }

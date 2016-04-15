@@ -45,7 +45,14 @@ Changes from 9.9999.6 to 9.9999.7
     
     Would there be some PACKAGE_FEDORA23 up ahead? Well, maybe.
     Probably... some day.
-    
+
+        
+* --debug-key-sync option added to several option.
+
+    This essentially introduces a flag that allows to turn key sync
+    debug messages on. They were not optional before but are now
+    suppressed by default and can be enabled with this new flag.
+
 
 * Dropping *_rate DBus properties from module.
 

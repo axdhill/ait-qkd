@@ -665,6 +665,13 @@ public:
      */
     bool debug_message_flow() const;
 
+    /**
+     * check if we should print key sync issues on stderr.
+     *
+     * @return true, iff key sync debug messages are printed on stderr
+     */
+    bool debug_key_sync() const;
+
 
     /**
      * return the description of the module
@@ -1064,6 +1071,14 @@ public:
      * @param   bDebug      new debug value for message particles
      */
     void set_debug_message_flow(bool bDebug);
+
+
+    /**
+     * set the debug key sync flag
+     *
+     * @param   bDebug      new debug value for key syncs
+     */
+    void set_debug_key_sync(bool bDebug);
 
 
     /**
