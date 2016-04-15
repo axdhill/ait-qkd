@@ -233,7 +233,7 @@ The AIT QKD Software can be downloaded via GIT\footnote{GIT is a version control
 The public available GIT repository is located at:
 
 \begin{center}
-\texttt{http://sqt.ait.ac.at/git/qkd-public.git}
+\texttt{https://git-service.ait.ac.at/quantum-cryptography/qkd.git}
 \end{center}
 
 Having git installed, to obtain the sources you open up a shell prompt and type:
@@ -241,7 +241,7 @@ Having git installed, to obtain the sources you open up a shell prompt and type:
 \begin{minipage}{0.9\textwidth}
 \bigskip
 \begin{verbatim}
-$ git clone http://sqt.ait.ac.at/git/qkd-public.git
+$ git clone https://git-service.ait.ac.at/quantum-cryptography/qkd.git
 \end{verbatim}
 \medskip
 \end{minipage}
@@ -267,9 +267,9 @@ Building the software is easy: step into the prepared build folder, invoke the c
 \begin{minipage}{0.9\textwidth}
 \bigskip
 \begin{verbatim}
-$ git clone http://sqt.ait.ac.at/git/qkd-public.git
-Cloning into 'qkd-public'...
-$ cd qkd-public/
+$ git clone https://git-service.ait.ac.at/quantum-cryptography/qkd.git
+Cloning into 'qkd'...
+$ cd qkd/
 $ ls -l
 total 192
 -rw-r--r--  1 dyle dyle 10725 Feb  5 15:49 CMakeLists.txt
@@ -302,7 +302,7 @@ The cmake command will fail if it does not find approbate software installments.
 \begin{itemize}
 
     \item gcc and g++ at least version 4.6.3
-    \item boost at least version 1.49
+    \item boost at least version 1.55
     \item OpenSSL
     \item UUID
     \item CMake
