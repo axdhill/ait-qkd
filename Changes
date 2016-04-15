@@ -5,6 +5,48 @@ This file holds the changes of the AIT QKD R10 throughout the versions
 Changes from 9.9999.6 to 9.9999.7
 ---------------------------------
 
+* Package creation for more than one distribution.
+
+    We offer now the package creation for more than one Linux
+    distribution. Currently we support Debian 8 ("jessie") and
+    optionally Ubuntu 15 ("vivid" and "wily"). Still, Debian 8 is
+    considered as reference machine, but since many users do
+    prefer Ubuntu based systems and Debian packages run into
+    dependency problems on recent Ubuntu installments, we give
+    this away as a bonus. =)
+    
+    This should resolve package dependencies, especially for 
+    the libboost-1.55.0 vs. libboost-1.58.0 cases.
+    
+    If you are on a modern Ubuntu distribution you might build
+    the Ubuntu package instead of the Debian one to rectify
+    missing dependencies dropped by the Ubuntu devs.
+    
+    In order to create packages in different flavors set the
+    PACKAGE_x options right.
+    
+        PACKAGE_DEBIAN8 .... build Debian 8 packages.
+        PACKAGE_UBUNTU15 ... build Ubuntu 15 packages.
+    
+    Best to do so is to install the cmake-curses-gui and then
+    
+        $ mkdir build
+        $ cd build
+        $ cmake ..
+        $ ccmake ..
+        
+        (hence the double 'c' at start in the last command)
+        
+    Due to limitations of the current cmake (v3.2.2) we can only
+    offer to build one distribution flavor at a time. So please select
+    only one of the PACKAGE_x options.
+    
+    In case more than one is defined the behavior is undefined.
+    
+    Would there be some PACKAGE_FEDORA23 up ahead? Well, maybe.
+    Probably... some day.
+    
+
 * Dropping *_rate DBus properties from module.
 
     The module does not publish *_rate for keys, keybits, and
