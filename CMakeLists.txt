@@ -395,8 +395,39 @@ install(DIRECTORY etc/q3p etc/qkd DESTINATION /etc)
 
 # ------------------------------------------------------------
 # packaging
+#
+# at least now (cmake-3.2.2) we cannot build multiple packages
+# inside a CMakeList.txt.
+#
+# Also calling cpack from the command line bears not the
+# configuration options needed (e.g. not 'include', 'message', etc...)
+#
+# Therefore we can only build stuff for one dedicated platform 
+# at a time ... =(
+# 
 
-set(CPACK_GENERATOR "DEB")
+option(PACKAGE_DEBIAN8      "Build Debian8 package"         ON)
+option(PACKAGE_UBUNTU15     "Build Ubuntu15 package"        OFF)
+set(PACKAGES_TO_BUILD 0)
+
+# only one package at a time allowed
+if (PACKAGE_DEBIAN8)
+    message(STATUS "Building debian8 packages")
+    MATH(EXPR PACKAGES_TO_BUILD "${PACKAGES_TO_BUILD} + 1")
+    set(PACKAGE_TARGET_SYSTEM "debian8")
+endif (PACKAGE_DEBIAN8)
+
+if (PACKAGE_UBUNTU15)
+    message(STATUS "Building ubuntu15 packages")
+    MATH(EXPR PACKAGES_TO_BUILD "${PACKAGES_TO_BUILD} + 1")
+    set(PACKAGE_TARGET_SYSTEM "ubuntu15")
+endif (PACKAGE_UBUNTU15)
+
+if (PACKAGES_TO_BUILD GREATER 1) 
+    message(WARNING "Can't build more package at the time. The last one counts: ${PACKAGE_TARGET_SYSTEM}")
+endif (PACKAGES_TO_BUILD GREATER 1) 
+
+message(STATUS "PACKAGE_TARGET_SYSTEM: ${PACKAGE_TARGET_SYSTEM}")
 
 set(CPACK_PACKAGE_NAME "qkd")
 set(CPACK_PACKAGE_DESCRIPTION "QKD next generation")
@@ -408,29 +439,75 @@ set(CPACK_PACKAGE_VERSION_MINOR "9999")
 set(CPACK_PACKAGE_VERSION_PATCH "7")
 set(CPACK_PROJECT_VERSION_STRING "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}" )
 
-set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}-${CMAKE_SYSTEM_PROCESSOR}")
-set(CPACK_SOURCE_IGNORE_FILES "/build/*;/.git/")
+# ---------- debian 8 (jessie) ----------
 
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.13), libgcc1 (>= 1:4.4), libgmp10, libboost-filesystem1.55.0, libboost-program-options1.55.0, libboost-system1.55.0, libzmq3, libqtgui4, libqtdbus4, libqt4-network, libqwt6, libcap2-bin, python3")
-set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cpack/deb/control/postinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/cpack/deb/control/postrm;${CMAKE_CURRENT_SOURCE_DIR}/cmake/cpack/deb/control/prerm;")
+if (${PACKAGE_TARGET_SYSTEM} STREQUAL "debian8")
 
-# debianization
-string(TOLOWER "${CPACK_PACKAGE_NAME}" CPACK_PACKAGE_NAME_LOWERCASE)
-find_program(DPKG_PROGRAM dpkg DOC "dpkg program of Debian-based systems")
-if (DPKG_PROGRAM)
-    # use dpkg to fix the package file name
-    execute_process(
-        COMMAND ${DPKG_PROGRAM} --print-architecture
-        OUTPUT_VARIABLE CPACK_DEBIAN_PACKAGE_ARCHITECTURE
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME_LOWERCASE}_${CPACK_PROJECT_VERSION_STRING}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
-    set(PACKAGE_ARCH ${CPACK_DEBIAN_PACKAGE_ARCHITECTURE})
-else (DPKG_PROGRAM)
-    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME_LOWERCASE}_${CPACK_PROJECT_VERSION_STRING}_${CMAKE_SYSTEM_NAME}")
-    set(PACKAGE_ARCH ${CMAKE_HOST_SYSTEM_PROCESSOR})
-endif (DPKG_PROGRAM)
+    message(STATUS "Package creation set to 'debian8'")
 
-include(CPack)
+    set(CPACK_GENERATOR "DEB")
+
+    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}-${CMAKE_SYSTEM_PROCESSOR}")
+    set(CPACK_SOURCE_IGNORE_FILES "/build/*;/.git/")
+
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.13), libgcc1 (>= 1:4.4), libgmp10, libboost-filesystem1.55.0, libboost-program-options1.55.0, libboost-system1.55.0, libzmq3, libqtgui4, libqtdbus4, libqt4-network, libqwt6, libcap2-bin, python3")
+    set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cpack/deb/control/postinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/cpack/deb/control/postrm;${CMAKE_CURRENT_SOURCE_DIR}/cmake/cpack/deb/control/prerm;")
+
+    # debianization
+    string(TOLOWER "${CPACK_PACKAGE_NAME}" CPACK_PACKAGE_NAME_LOWERCASE)
+    find_program(DPKG_PROGRAM dpkg DOC "dpkg program of Debian-based systems")
+    if (DPKG_PROGRAM)
+        # use dpkg to fix the package file name
+        execute_process(
+            COMMAND ${DPKG_PROGRAM} --print-architecture
+            OUTPUT_VARIABLE CPACK_DEBIAN_PACKAGE_ARCHITECTURE
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME_LOWERCASE}_${CPACK_PROJECT_VERSION_STRING}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
+        set(PACKAGE_ARCH ${CPACK_DEBIAN_PACKAGE_ARCHITECTURE})
+    else (DPKG_PROGRAM)
+        set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME_LOWERCASE}_${CPACK_PROJECT_VERSION_STRING}_${CMAKE_SYSTEM_NAME}")
+        set(PACKAGE_ARCH ${CMAKE_HOST_SYSTEM_PROCESSOR})
+    endif (DPKG_PROGRAM)
+
+    include(CPack)
+
+endif (${PACKAGE_TARGET_SYSTEM} STREQUAL "debian8")
+
+
+# ---------- ubuntu 15 (vivid and wily) ----------
+
+if (${PACKAGE_TARGET_SYSTEM} STREQUAL "ubuntu15")
+
+    message(STATUS "Package creation set to 'ubuntu15'")
+    
+    set(CPACK_GENERATOR "DEB")
+
+    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}-0ubuntu15_${CMAKE_SYSTEM_PROCESSOR}")
+    set(CPACK_SOURCE_IGNORE_FILES "/build/*;/.git/")
+
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.13), libgcc1 (>= 1:4.4), libgmp10, libboost-filesystem1.58.0, libboost-program-options1.58.0, libboost-system1.58.0, libzmq3, libqtgui4, libqtdbus4, libqt4-network, libqwt6, libcap2-bin, python3")
+    set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cpack/deb/control/postinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/cpack/deb/control/postrm;${CMAKE_CURRENT_SOURCE_DIR}/cmake/cpack/deb/control/prerm;")
+
+    # debianization
+    string(TOLOWER "${CPACK_PACKAGE_NAME}" CPACK_PACKAGE_NAME_LOWERCASE)
+    find_program(DPKG_PROGRAM dpkg DOC "dpkg program of Debian-based systems")
+    if (DPKG_PROGRAM)
+        # use dpkg to fix the package file name
+        execute_process(
+            COMMAND ${DPKG_PROGRAM} --print-architecture
+            OUTPUT_VARIABLE CPACK_DEBIAN_PACKAGE_ARCHITECTURE
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME_LOWERCASE}_${CPACK_PROJECT_VERSION_STRING}-0ubuntu15_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
+        set(PACKAGE_ARCH ${CPACK_DEBIAN_PACKAGE_ARCHITECTURE})
+    else (DPKG_PROGRAM)
+        set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME_LOWERCASE}_${CPACK_PROJECT_VERSION_STRING}-0ubuntu15_${CMAKE_SYSTEM_NAME}")
+        set(PACKAGE_ARCH ${CMAKE_HOST_SYSTEM_PROCESSOR})
+    endif (DPKG_PROGRAM)
+
+    include(CPack)
+
+endif (${PACKAGE_TARGET_SYSTEM} STREQUAL "ubuntu15")
 
 
