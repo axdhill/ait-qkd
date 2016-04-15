@@ -427,8 +427,6 @@ if (PACKAGES_TO_BUILD GREATER 1)
     message(WARNING "Can't build more package at the time. The last one counts: ${PACKAGE_TARGET_SYSTEM}")
 endif (PACKAGES_TO_BUILD GREATER 1) 
 
-message(STATUS "PACKAGE_TARGET_SYSTEM: ${PACKAGE_TARGET_SYSTEM}")
-
 set(CPACK_PACKAGE_NAME "qkd")
 set(CPACK_PACKAGE_DESCRIPTION "QKD next generation")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "This is the AIT SQT QKD Software - R10")
