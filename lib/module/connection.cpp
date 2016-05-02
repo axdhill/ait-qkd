@@ -32,6 +32,7 @@
 // incs
 
 #include <algorithm>
+#include <iostream>
 
 // boost
 #include <boost/tokenizer.hpp>
