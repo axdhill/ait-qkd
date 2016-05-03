@@ -164,6 +164,9 @@ function test_init() {
     fi
     rm * &> /dev/null
     
+    # most pipeline configs use ipc://tmp/qkd
+    mkdir -p /tmp/qkd &> /dev/null
+    
     ulimit -c unlimited
     echo 
     echo "---- test hint ----"
