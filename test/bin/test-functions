@@ -125,6 +125,7 @@ function test_init() {
         ln -f -s modules/qkd-reorder/qkd-reorder;
         ln -f -s modules/qkd-tee/qkd-tee;
         ln -f -s modules/qkd-statistics/qkd-statistics;
+        ln -f -s modules/qkd-sync/qkd-sync;
         ln -f -s modules/qkd-throttle/qkd-throttle;
         
         ln -f -s qkd-gui/qkd-gui qg
