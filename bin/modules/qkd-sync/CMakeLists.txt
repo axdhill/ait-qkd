@@ -1,7 +1,7 @@
 # ------------------------------------------------------------
 # CMakeLists.txt 
 # 
-# make: qkd/bin/modules
+# make: qkd/bin/modules/qkd-sync
 #
 # Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
@@ -29,23 +29,29 @@
 
 
 # ------------------------------------------------------------
-# go through the subs
+# qkd-sync
 
-add_subdirectory(qkd-auth)
-add_subdirectory(qkd-cascade)
-add_subdirectory(qkd-cat)
-add_subdirectory(qkd-confirmation)
-add_subdirectory(qkd-debug)
-add_subdirectory(qkd-dekey)
-add_subdirectory(qkd-drop)
-add_subdirectory(qkd-enkey)
-add_subdirectory(qkd-error-estimation)
-add_subdirectory(qkd-ping)
-add_subdirectory(qkd-privacy-amplification)
-add_subdirectory(qkd-reorder)
-add_subdirectory(qkd-resize)
-add_subdirectory(qkd-sifting-bb84)
-add_subdirectory(qkd-statistics)
-add_subdirectory(qkd-sync)
-add_subdirectory(qkd-tee)
-add_subdirectory(qkd-throttle)
+# additional includes
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+# sources
+set(QKD_RESIZE_SRC
+    main.cpp
+    qkd-sync.cpp
+)
+
+# Qt MOC
+QT4_GENERATE_MOC(qkd-sync.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-sync.moc.cpp) 
+set(QKD_RESIZE_MOC
+    qkd-sync.moc.cpp
+)
+
+# bin definition
+add_executable(qkd-sync ${QKD_RESIZE_SRC} ${QKD_RESIZE_MOC} ${QKD_RESIZE_DBUS_SRC})
+
+# linkage
+target_link_libraries(qkd-sync ${CMAKE_REQUIRED_LIBRARIES})
+
+# install
+install(TARGETS qkd-sync RUNTIME DESTINATION bin COMPONENT modules)
+
