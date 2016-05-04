@@ -64,13 +64,15 @@ public:
      * ctor
      */
     qkd_privacy_amplification_data() : 
+        eCalculationProcedure(calculation_procedure::CALCULATE_SECURITY_BITS), 
         nReductionRate(1.0),
         nSecurityBits(0) {};
     
-    std::recursive_mutex cPropertyMutex;    /**< property mutex */
+    std::recursive_mutex cPropertyMutex;            /**< property mutex */
     
-    double nReductionRate;                  /**< reduction rate of the key */
-    uint64_t nSecurityBits;                 /**< security bits introduced into PA */
+    calculation_procedure eCalculationProcedure;    /**< current calculation procedure */
+    double nReductionRate;                          /**< reduction rate of the key */
+    uint64_t nSecurityBits;                         /**< security bits introduced into PA */
     
 };
 
@@ -96,6 +98,7 @@ qkd_privacy_amplification::qkd_privacy_amplification() :
     d = std::shared_ptr<qkd_privacy_amplification::qkd_privacy_amplification_data>(
             new qkd_privacy_amplification::qkd_privacy_amplification_data());
     
+    set_security_bits(100);
     new PrivacyamplificationAdaptor(this);
 }
 
@@ -132,6 +135,20 @@ void qkd_privacy_amplification::apply_config(UNUSED std::string const & sURL, qk
 
 
 /**
+ * get the current calculation procedure
+ * 
+ *  0 ==> work on security bits
+ *  1 ==> work on reduction rate
+ *
+ * @return  the current calculate procedure
+ */
+qulonglong qkd_privacy_amplification::calculation() const {
+    std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
+    return d->eCalculationProcedure;
+}
+
+
+/**
  * module work
  * 
  * @param   cKey                    will be set to the loaded key from the file
@@ -148,6 +165,7 @@ bool qkd_privacy_amplification::process(qkd::key::key & cKey,
     uint64_t nSecurityBits = security_bits();
     uint64_t nSizeOfSeedKey = nKeyBits;
     double nReductionRate = reduction_rate();
+    calculation_procedure eCalculationProcedure = (calculation_procedure)calculation();
     
     if ((nSecurityBits == 0) && (nReductionRate == 1.0)) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " 
@@ -156,11 +174,42 @@ bool qkd_privacy_amplification::process(qkd::key::key & cKey,
     }
     
     uint64_t nSizeOfShiftKey = nKeyBits;
-    if (nReductionRate != 1.0) {
-        nSizeOfShiftKey = std::floor((double)nSizeOfShiftKey * reduction_rate());
-    }
-    if (nSecurityBits > 0) {
-        nSizeOfShiftKey = std::floor((double)nSizeOfShiftKey * tau(cKey.meta().nErrorRate) - nDisclosedBits - nSecurityBits);
+    switch (eCalculationProcedure) {
+        
+    case CALCULATE_REDUCTION_RATE:
+        
+        if (nReductionRate != 1.0) {
+            nSizeOfShiftKey = std::floor((double)nSizeOfShiftKey * reduction_rate());
+        }
+        break;
+        
+    case CALCULATE_SECURITY_BITS:
+        
+        if ((nDisclosedBits + nSecurityBits) >= nKeyBits) {
+            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " 
+                    << "security bits plus discarded bits greater or equal to key size. This will render a key of 0 size.";
+            nSizeOfShiftKey = 0;
+        }
+        else {
+            
+            nSizeOfShiftKey = std::floor((double)nSizeOfShiftKey * tau(cKey.meta().nErrorRate) - nDisclosedBits - nSecurityBits);
+            
+            // if keybits * tau - disclosed - security_bits render negatively, this
+            // would yield a very hight number since the result is unsigned
+            // the condition below is a security measure
+            if (nSizeOfShiftKey > nKeyBits) {
+                qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " 
+                        << "calculated key size is bigger than input size, dropping key.";
+                return false;
+            }
+        }
+        
+        break;
+        
+    default:
+        
+        qkd::utility::syslog::crit() << "unknown calculation procedure for final key size, dropping key!";
+        return false;
     }
     
     nSizeOfSeedKey = (nSizeOfSeedKey / 8) * 8;
@@ -281,6 +330,7 @@ void qkd_privacy_amplification::set_reduction_rate(double nRate) {
     
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     d->nReductionRate = nRate;
+    d->eCalculationProcedure = calculation_procedure::CALCULATE_REDUCTION_RATE;
 }
 
 
@@ -292,6 +342,7 @@ void qkd_privacy_amplification::set_reduction_rate(double nRate) {
 void qkd_privacy_amplification::set_security_bits(qulonglong nBits) {
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     d->nSecurityBits = nBits;
+    d->eCalculationProcedure = calculation_procedure::CALCULATE_SECURITY_BITS;
 }
 
 
