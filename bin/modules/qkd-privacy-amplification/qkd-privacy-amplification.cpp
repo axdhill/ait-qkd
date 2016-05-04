@@ -47,7 +47,7 @@
 #define MODULE_DESCRIPTION      "This is the qkd-privacy-amplification QKD Module."
 #define MODULE_ORGANISATION     "(C)opyright 2012-2016 AIT Austrian Institute of Technology, http://www.ait.ac.at"
 
-#define DEFAULT_SECURITY_BITS   100
+
 // ------------------------------------------------------------
 // decl
 
@@ -65,7 +65,7 @@ public:
      */
     qkd_privacy_amplification_data() : 
         nReductionRate(1.0),
-        nSecurityBits(DEFAULT_SECURITY_BITS) {};
+        nSecurityBits(0) {};
     
     std::recursive_mutex cPropertyMutex;    /**< property mutex */
     
@@ -87,15 +87,15 @@ double tau(double nErrorRate);
 /**
  * ctor
  */
-qkd_privacy_amplification::qkd_privacy_amplification() : qkd::module::module("privacy-amplification", qkd::module::module_type::TYPE_PRIVACY_AMPLIFICATION, MODULE_DESCRIPTION, MODULE_ORGANISATION) {
+qkd_privacy_amplification::qkd_privacy_amplification() : 
+        qkd::module::module("privacy-amplification", 
+                            qkd::module::module_type::TYPE_PRIVACY_AMPLIFICATION, 
+                            MODULE_DESCRIPTION, 
+                            MODULE_ORGANISATION) {
 
-    d = std::shared_ptr<qkd_privacy_amplification::qkd_privacy_amplification_data>(new qkd_privacy_amplification::qkd_privacy_amplification_data());
+    d = std::shared_ptr<qkd_privacy_amplification::qkd_privacy_amplification_data>(
+            new qkd_privacy_amplification::qkd_privacy_amplification_data());
     
-    // apply default values
-    set_reduction_rate(1.0);
-    set_security_bits(100);
-    
-    // enforce DBus registration
     new PrivacyamplificationAdaptor(this);
 }
 
@@ -108,18 +108,14 @@ qkd_privacy_amplification::qkd_privacy_amplification() : qkd::module::module("pr
  */
 void qkd_privacy_amplification::apply_config(UNUSED std::string const & sURL, qkd::utility::properties const & cConfig) {
     
-    // delve into the given config
     for (auto const & cEntry : cConfig) {
         
-        // grab any key which is intended for us
         if (!is_config_key(cEntry.first)) continue;
         
-        // ignore standard config keys: they should have been applied already
         if (is_standard_config_key(cEntry.first)) continue;
         
         std::string sKey = cEntry.first.substr(config_prefix().size());
         
-        // module specific config here
         if (sKey == "reduction_rate") {
             set_reduction_rate(qkd::utility::atof(cEntry.second));
         }
@@ -128,7 +124,8 @@ void qkd_privacy_amplification::apply_config(UNUSED std::string const & sURL, qk
             set_security_bits(std::stoull(cEntry.second.c_str()));
         }
         else {
-            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "found unknown key: \"" << cEntry.first << "\" - don't know how to handle this.";
+            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " 
+                    << "found unknown key: \"" << cEntry.first << "\" - don't know how to handle this.";
         }
     }
 }
@@ -142,43 +139,47 @@ void qkd_privacy_amplification::apply_config(UNUSED std::string const & sURL, qk
  * @param   cOutgoingContext        outgoing crypto context
  * @return  always true
  */
-bool qkd_privacy_amplification::process(qkd::key::key & cKey, UNUSED qkd::crypto::crypto_context & cIncomingContext, UNUSED qkd::crypto::crypto_context & cOutgoingContext) {
+bool qkd_privacy_amplification::process(qkd::key::key & cKey, 
+                                        UNUSED qkd::crypto::crypto_context & cIncomingContext, 
+                                        UNUSED qkd::crypto::crypto_context & cOutgoingContext) {
 
-    // get size of seed and shift key
     uint64_t nKeyBits = cKey.data().size() * 8;
     uint64_t const nDisclosedBits = cKey.meta().nDisclosedBits;
     uint64_t nSecurityBits = security_bits();
     uint64_t nSizeOfSeedKey = nKeyBits;
     double nReductionRate = reduction_rate();
     
-    // check if we should apply either reduction rate or security bits
-    if ((nSecurityBits != 0) && (nReductionRate != 1.0)) {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "security bits AND reduction rate set - which to apply? please choose one! confused ...";
+    if ((nSecurityBits == 0) && (nReductionRate == 1.0)) {
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " 
+                << "security bits is 0 AND reduction rate is 1.0 - final key size is the same as input size. "
+                << "Is this intended?";
     }
     
-    // this is the size of the final key
     uint64_t nSizeOfShiftKey = nKeyBits;
+    if (nReductionRate != 1.0) {
+        nSizeOfShiftKey = std::floor((double)nSizeOfShiftKey * reduction_rate());
+    }
+    if (nSecurityBits > 0) {
+        nSizeOfShiftKey = std::floor((double)nSizeOfShiftKey * tau(cKey.meta().nErrorRate) - nDisclosedBits - nSecurityBits);
+    }
     
-    // apply security bits?
-    if (nSecurityBits > 0) nSizeOfShiftKey = std::floor((double)nSizeOfShiftKey * tau(cKey.meta().nErrorRate) - nDisclosedBits - nSecurityBits);
-    
-    // apply reduction rate?
-    if (nReductionRate != 1.0) nSizeOfShiftKey = std::floor((double)nSizeOfShiftKey * reduction_rate());
-
-    // align to pack size in bytes
     nSizeOfSeedKey = (nSizeOfSeedKey / 8) * 8;
     if ((int64_t)nSizeOfShiftKey <= 0) {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "privacy amplification will reduce key size to a value <= 0 - key discarded.";
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " 
+                << "privacy amplification will reduce key size to a value <= 0 - key discarded.";
         return false;
     }
 
-    // some user output to let 'em know what we are up to
-    qkd::utility::debug() << "running privacy amplification on key " << cKey.id() << " size (bits) = " << nKeyBits << " error rate = " << cKey.meta().nErrorRate << " disclosed bits = " << nDisclosedBits << " size of reduced key = " << nSizeOfShiftKey;
+    qkd::utility::debug() 
+            << "running privacy amplification on key " << cKey.id() 
+            << " size (bits) = " << nKeyBits 
+            << " error rate = " << cKey.meta().nErrorRate 
+            << " disclosed bits = " << nDisclosedBits 
+            << " size of reduced key = " << nSizeOfShiftKey;
     
     qkd::utility::memory cSeed(nSizeOfSeedKey / 8);
     qkd::utility::memory cShift(nSizeOfShiftKey / 8);
     
-    // alice generates random values and sends them to bob
     if (is_alice()) {
 
         random() >> cSeed;
@@ -190,7 +191,8 @@ bool qkd_privacy_amplification::process(qkd::key::key & cKey, UNUSED qkd::crypto
             send(cMessage, cOutgoingContext);
         }
         catch (std::runtime_error const & cRuntimeError) {
-            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to send message: " << cRuntimeError.what();
+            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
+                    << "failed to send message: " << cRuntimeError.what();
             return false;
         }
         
@@ -202,7 +204,8 @@ bool qkd_privacy_amplification::process(qkd::key::key & cKey, UNUSED qkd::crypto
             if (!recv(cMessage, cIncomingContext, qkd::module::message_type::MESSAGE_TYPE_DATA)) return false;
         }
         catch (std::runtime_error const & cRuntimeError) {
-            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to receive message: " << cRuntimeError.what();
+            qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
+                    << "failed to receive message: " << cRuntimeError.what();
             return false;
         }
         cMessage.data() >> cSeed;
@@ -210,18 +213,17 @@ bool qkd_privacy_amplification::process(qkd::key::key & cKey, UNUSED qkd::crypto
         
         // verify what we have
         if ((cSeed.size() != nSizeOfSeedKey / 8) || (cShift.size() != nSizeOfShiftKey / 8)) {
-            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "alice sent us seed and/or shift values with unexpected sizes";
+            qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " 
+                    << "alice sent us seed and/or shift values with unexpected sizes";
             return false;
         }
     }
     
-    // run the privacy amplification
     bool bPrivacyAmplification = perform(cKey, cKey, cSeed, cShift);
     if (!bPrivacyAmplification) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "privacy amplification failed";
     }
     
-    // fix meta data on result key
     cKey.meta().eKeyState = qkd::key::key_state::KEY_STATE_AMPLIFIED;
     
     return bPrivacyAmplification;
@@ -239,8 +241,6 @@ bool qkd_privacy_amplification::process(qkd::key::key & cKey, UNUSED qkd::crypto
  * @return  the reduction rate
  */
 double qkd_privacy_amplification::reduction_rate() const {
-    
-    // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     return d->nReductionRate;
 }
@@ -252,8 +252,6 @@ double qkd_privacy_amplification::reduction_rate() const {
  * @return  number of security bits introduced into privacy amplification
  */
 qulonglong qkd_privacy_amplification::security_bits() const {
-    
-    // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     return d->nSecurityBits;
 }
@@ -271,16 +269,16 @@ qulonglong qkd_privacy_amplification::security_bits() const {
  */
 void qkd_privacy_amplification::set_reduction_rate(double nRate) {
     
-    // sanity check
     if ((nRate < 0.0) || (nRate > 1.0)) {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "refusing to set reduction rate to an invalid value: " << nRate;
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " 
+                << "refusing to set reduction rate to an invalid value: " << nRate;
         return;
     }
     if (nRate == 0.0) {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "reduction rate is 0.0: no final key will be produced - is this intended?";
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " 
+                << "reduction rate is 0.0: no final key will be produced - is this intended?";
     }
     
-    // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     d->nReductionRate = nRate;
 }
@@ -292,8 +290,6 @@ void qkd_privacy_amplification::set_reduction_rate(double nRate) {
  * @param   nBits       the new number of security bits 
  */
 void qkd_privacy_amplification::set_security_bits(qulonglong nBits) {
-    
-    // get exclusive access to properties
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     d->nSecurityBits = nBits;
 }
@@ -426,5 +422,3 @@ double tau(double nErrorRate) {
     
     return 1 - (-nErrorRate * std::log2(nErrorRate) - (1 - nErrorRate) * log2(1 - nErrorRate));
 }
-
-
