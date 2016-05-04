@@ -44,6 +44,16 @@
 
 
 /**
+ * how do we calculate the final key size
+ */
+enum calculation_procedure : uint8_t {
+    
+    CALCULATE_SECURITY_BITS = 0,        /**< do calculation with security bits */
+    CALCULATE_REDUCTION_RATE = 1,       /**< do calculation based on reduction rate */
+};
+
+
+/**
  * The qkd-privacy-amplification runs the QKD privacy amplification
  * to reduce Eve's knowledge by the information leaked from
  * the public discussion of the QKD postprocessing
@@ -65,6 +75,7 @@ class qkd_privacy_amplification : public qkd::module::module {
     Q_OBJECT
     Q_CLASSINFO("D-Bus Interface", "at.ac.ait.qkd.privacyamplification")
 
+    Q_PROPERTY(qulonglong calculation READ calculation)                                     /**< get current calculate procedure */
     Q_PROPERTY(double reduction_rate READ reduction_rate WRITE set_reduction_rate)          /**< get/set reduction rate */
     Q_PROPERTY(qulonglong security_bits READ security_bits WRITE set_security_bits)         /**< get/set number of security bits */
 
@@ -76,6 +87,17 @@ public:
      * ctor
      */
     qkd_privacy_amplification();
+    
+    
+    /**
+     * get the current calculation procedure
+     * 
+     *  0 ==> work on security bits
+     *  1 ==> work on reduction rate
+     *
+     * @return  the current calculate procedure
+     */
+    qulonglong calculation() const;
     
     
     /**
