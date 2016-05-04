@@ -45,7 +45,7 @@ rm -rf cat_keys.* &> /dev/null
 KEYS_TO_PROCESS="1000"
 ${TEST_BASE}/bin/qkd-key-gen --silent --size 1000 --keys ${KEYS_TO_PROCESS} --rate 0.03 cat_keys
 
-PIPELINE_CONFIG="${TEST_BASE}/test/test-data/qkd-sync"
+PIPELINE_CONFIG="${TEST_BASE}/test/test-data/modules/qkd-sync"
 
 ( ${TEST_BASE}/bin/qkd-cat --debug --run --config "${PIPELINE_CONFIG}/pipeline-cat.conf" 2> cat.alice.debug ) &
 ( ${TEST_BASE}/bin/qkd-cat --debug --bob --run --config "${PIPELINE_CONFIG}/pipeline-cat.conf" 2> cat.bob.debug ) &
