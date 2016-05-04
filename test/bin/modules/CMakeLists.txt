@@ -53,7 +53,12 @@ configure_file(test-mod-resize-exact-small      ${CMAKE_CURRENT_BINARY_DIR}/test
 configure_file(test-mod-resize-exact-big        ${CMAKE_CURRENT_BINARY_DIR}/test-mod-resize-exact-big       @ONLY)
 configure_file(test-mod-drop                    ${CMAKE_CURRENT_BINARY_DIR}/test-mod-drop                   @ONLY)
 configure_file(test-mod-reorder                 ${CMAKE_CURRENT_BINARY_DIR}/test-mod-reorder                @ONLY)
-configure_file(test-mod-privacy-amplification   ${CMAKE_CURRENT_BINARY_DIR}/test-mod-privacy-amplification  @ONLY)
+configure_file(test-mod-privacy-amplification-reduction-rate    
+    ${CMAKE_CURRENT_BINARY_DIR}/test-mod-privacy-amplification-reduction-rate  
+    @ONLY)
+configure_file(test-mod-privacy-amplification-security-bits     
+    ${CMAKE_CURRENT_BINARY_DIR}/test-mod-privacy-amplification-security-bits    
+    @ONLY)
 configure_file(test-mod-auth                    ${CMAKE_CURRENT_BINARY_DIR}/test-mod-auth                   @ONLY)
 configure_file(test-mod-enkey                   ${CMAKE_CURRENT_BINARY_DIR}/test-mod-enkey                  @ONLY)
 configure_file(test-mod-dekey                   ${CMAKE_CURRENT_BINARY_DIR}/test-mod-dekey                  @ONLY)
@@ -95,7 +100,10 @@ add_test(mod-resize-exact-small                 ${CMAKE_CURRENT_BINARY_DIR}/test
 add_test(mod-resize-exact-big                   ${CMAKE_CURRENT_BINARY_DIR}/test-mod-resize-exact-big)
 add_test(mod-drop                               ${CMAKE_CURRENT_BINARY_DIR}/test-mod-drop)
 add_test(mod-reorder                            ${CMAKE_CURRENT_BINARY_DIR}/test-mod-reorder)
-add_test(mod-privacy-amplification              ${CMAKE_CURRENT_BINARY_DIR}/test-mod-privacy-amplification)
+add_test(mod-privacy-amplification-reduction-rate   
+    ${CMAKE_CURRENT_BINARY_DIR}/test-mod-privacy-amplification-reduction-rate)
+add_test(mod-privacy-amplification-security-bits    
+    ${CMAKE_CURRENT_BINARY_DIR}/test-mod-privacy-amplification-security-bits)
 add_test(mod-auth                               ${CMAKE_CURRENT_BINARY_DIR}/test-mod-auth)
 add_test(mod-enkey                              ${CMAKE_CURRENT_BINARY_DIR}/test-mod-enkey)
 add_test(mod-dekey                              ${CMAKE_CURRENT_BINARY_DIR}/test-mod-dekey)

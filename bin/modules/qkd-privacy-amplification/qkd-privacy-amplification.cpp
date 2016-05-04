@@ -33,6 +33,7 @@
 // incs
 
 // ait
+#include <qkd/utility/atof.h>
 #include <qkd/utility/syslog.h>
 
 #include "ntt.h"
@@ -120,7 +121,7 @@ void qkd_privacy_amplification::apply_config(UNUSED std::string const & sURL, qk
         
         // module specific config here
         if (sKey == "reduction_rate") {
-            set_reduction_rate(std::stod(cEntry.second.c_str()));
+            set_reduction_rate(qkd::utility::atof(cEntry.second));
         }
         else
         if (sKey == "security_bits") {

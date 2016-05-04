@@ -41,8 +41,8 @@ test_init "$(basename $0).d"
 rm -rf cat_keys.* &> /dev/null
 
 # truncate previous debug out
-echo -n > privacy_amplification_debug.alice
-echo -n > privacy_amplification_debug.bob
+echo -n > privacy_amplification.alice.debug
+echo -n > privacy_amplification.bob.debug
 
 KEYS_TO_PROCESS="10"                
 ${TEST_BASE}/bin/qkd-key-gen --silent --size 16384 --keys ${KEYS_TO_PROCESS} --rate 0.05 --errorbits --disclosed 0.40 cat_keys
@@ -51,12 +51,12 @@ cat ${TEST_BASE}/test/test-data/pipeline.conf | grep -v "^cat.alice.url_pipe_out
 echo "cat.alice.url_pipe_out = ipc:///tmp/qkd/privacy-amplification.alice.in" >> privacy-amplification.config
 echo "cat.bob.url_pipe_out = ipc:///tmp/qkd/privacy-amplification.bob.in" >> privacy-amplification.config
 
-PIPELINE_CONFIG="privacy-amplification.config"
+PIPELINE_CONFIG="${TEST_BASE}/test/test-data/modules/qkd-privacy-amplification/pipeline-security-bits.conf"
 
-( ${TEST_BASE}/bin/qkd-cat --run --config ${PIPELINE_CONFIG} --file "cat_keys.alice" ) &
-( ${TEST_BASE}/bin/qkd-cat --bob --run --config ${PIPELINE_CONFIG} --file "cat_keys.alice" ) &
-( ${TEST_BASE}/bin/qkd-privacy-amplification --debug --run --config ${PIPELINE_CONFIG} 1> privacy_amplification_keys.alice 2>> privacy_amplification_debug.alice ) &
-( ${TEST_BASE}/bin/qkd-privacy-amplification --debug --bob --run --config ${PIPELINE_CONFIG} 1> privacy_amplification_keys.bob 2>> privacy_amplification_debug.bob ) &
+( ${TEST_BASE}/bin/qkd-cat --debug --run --config ${PIPELINE_CONFIG} 2>> cat.alice.debug ) &
+( ${TEST_BASE}/bin/qkd-cat --debug --bob --run --config ${PIPELINE_CONFIG} 2>> cat.bob.debug ) &
+( ${TEST_BASE}/bin/qkd-privacy-amplification --debug --run --config ${PIPELINE_CONFIG} 1> privacy_amplification_keys.alice 2>> privacy_amplification.alice.debug ) &
+( ${TEST_BASE}/bin/qkd-privacy-amplification --debug --bob --run --config ${PIPELINE_CONFIG} 1> privacy_amplification_keys.bob 2>> privacy_amplification.bob.debug ) &
 
 while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module.privacy-amplification | wc -l)" = "0" ]; do
     echo "waiting for the pipeline to ignite ..."
@@ -84,4 +84,3 @@ echo "privacy amplification keys - ok"
 test_cleanup
 
 echo "=== TEST SUCCESS ==="
-
