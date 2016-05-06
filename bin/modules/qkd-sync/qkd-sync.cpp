@@ -64,12 +64,14 @@ qkd_sync::qkd_sync() : qkd::module::module("sync", qkd::module::module_type::TYP
  * @param   cOutgoingContext        outgoing crypto context
  * @return  true, if the key is to be pushed to the output pipe
  */
-bool qkd_sync::process(UNUSED qkd::key::key & cKey, UNUSED qkd::crypto::crypto_context & cIncomingContext, UNUSED qkd::crypto::crypto_context & cOutgoingContext) {
+bool qkd_sync::process(UNUSED qkd::key::key & cKey, 
+                       UNUSED qkd::crypto::crypto_context & cIncomingContext, 
+                       UNUSED qkd::crypto::crypto_context & cOutgoingContext) {
     
     // ensure we are talking about the same stuff with the peer
     if (!is_synchronizing()) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " 
-                << "you deliberately turned off key synchronizing in resizing - but this is essential for this module: dropping key";
+                << "you deliberately turned off key synchronizing in resizing - this is essential: dropping key";
         return false;
     }
     

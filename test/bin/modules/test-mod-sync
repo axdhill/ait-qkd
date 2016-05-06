@@ -42,7 +42,7 @@ test_init "$(basename $0).d"
 rm -rf cat_keys.* &> /dev/null
 
 # create keys
-KEYS_TO_PROCESS="1000"
+KEYS_TO_PROCESS="100"
 ${TEST_BASE}/bin/qkd-key-gen --silent --size 1000 --keys ${KEYS_TO_PROCESS} --rate 0.03 cat_keys
 
 PIPELINE_CONFIG="${TEST_BASE}/test/test-data/modules/qkd-sync"
@@ -51,8 +51,23 @@ PIPELINE_CONFIG="${TEST_BASE}/test/test-data/modules/qkd-sync"
 ( ${TEST_BASE}/bin/qkd-cat --debug --bob --run --config "${PIPELINE_CONFIG}/pipeline-cat.conf" 2> cat.bob.debug ) &
 ( ${TEST_BASE}/bin/qkd-sync --debug --run --config "${PIPELINE_CONFIG}/pipeline-sync.1.conf" 2> sync.1.alice.debug) &
 ( ${TEST_BASE}/bin/qkd-sync --debug --bob --run --config "${PIPELINE_CONFIG}/pipeline-sync.1.conf" 2> sync.1.bob.debug) &
-( ${TEST_BASE}/bin/qkd-reorder --debug --run --config "${PIPELINE_CONFIG}/pipeline-reorder.conf" 2> reorder.alice.debug ) &
-( ${TEST_BASE}/bin/qkd-reorder --debug --bob --run --config "${PIPELINE_CONFIG}/pipeline-reorder.conf" 2> reorder.bob.debug) &
+( ${TEST_BASE}/bin/qkd-reorder --debug --run --config "${PIPELINE_CONFIG}/pipeline-reorder.1.conf" 2> reorder.1.alice.debug ) &
+( ${TEST_BASE}/bin/qkd-reorder --debug --bob --run --config "${PIPELINE_CONFIG}/pipeline-reorder.1.conf" 2> reorder.1.bob.debug) &
+
+( ${TEST_BASE}/bin/qkd-reorder --debug --run --config "${PIPELINE_CONFIG}/pipeline-reorder.2.1.conf" 2> reorder.2.1.alice.debug ) &
+( ${TEST_BASE}/bin/qkd-reorder --debug --bob --run --config "${PIPELINE_CONFIG}/pipeline-reorder.2.2.conf" 2> reorder.2.1.bob.debug) &
+( ${TEST_BASE}/bin/qkd-reorder --debug --run --config "${PIPELINE_CONFIG}/pipeline-reorder.2.2.conf" 2> reorder.2.2.alice.debug ) &
+( ${TEST_BASE}/bin/qkd-reorder --debug --bob --run --config "${PIPELINE_CONFIG}/pipeline-reorder.2.2.conf" 2> reorder.2.2.bob.debug) &
+
+( ${TEST_BASE}/bin/qkd-reorder --debug --run --config "${PIPELINE_CONFIG}/pipeline-reorder.2.3.conf" 2> reorder.2.3.alice.debug ) &
+( ${TEST_BASE}/bin/qkd-reorder --debug --bob --run --config "${PIPELINE_CONFIG}/pipeline-reorder.2.2.conf" 2> reorder.2.3.bob.debug) &
+( ${TEST_BASE}/bin/qkd-reorder --debug --run --config "${PIPELINE_CONFIG}/pipeline-reorder.2.4.conf" 2> reorder.2.4.alice.debug ) &
+( ${TEST_BASE}/bin/qkd-reorder --debug --bob --run --config "${PIPELINE_CONFIG}/pipeline-reorder.2.2.conf" 2> reorder.2.4.bob.debug) &
+
+( ${TEST_BASE}/bin/qkd-sync --debug --run --config "${PIPELINE_CONFIG}/pipeline-sync.2.conf" 2> sync.2.alice.debug) &
+( ${TEST_BASE}/bin/qkd-sync --debug --bob --run --config "${PIPELINE_CONFIG}/pipeline-sync.2.conf" 2> sync.2.bob.debug) &
+( ${TEST_BASE}/bin/qkd-tee --debug --run --config "${PIPELINE_CONFIG}/pipeline-tee.conf" 1> /dev/null 2> tee.alice.debug) &
+( ${TEST_BASE}/bin/qkd-tee --debug --bob --run --config "${PIPELINE_CONFIG}/pipeline-tee.conf" 1> /dev/null 2> tee.bob.debug) &
 
 exit 1
 
