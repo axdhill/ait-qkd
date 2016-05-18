@@ -238,6 +238,20 @@ static void write_current_pid(boost::filesystem::path const & cPath);
 // ------------------------------------------------------------
 // code
 
+/**
+ * prints the module definition in a human-readable format to the target output stream
+ *
+ * @param   cTarget             the stream to write to
+ * @param   cModuleDefinition   the module definition to print
+ */
+void print_module_details(std::ostream& cTarget, const module_definition& cModuleDefinition) {
+    cTarget << "Module '" << cModuleDefinition.sPath << "'," << std::endl
+    << "\twith configuration: '" << cModuleDefinition.sConfiguration << "'" << std::endl
+    << "\tdbus name: '" << cModuleDefinition.sDBusServiceName << "'" << std::endl
+    << "\tlogging path: '" << cModuleDefinition.sLog << "'" << std::endl
+    << "\t" << (cModuleDefinition.bAlice ? "(alice)" : "(bob)") << std::endl;
+}
+
 
 /**
  * autoconnect listened modules
@@ -815,18 +829,28 @@ int start() {
     for (auto & cModule : g_cPipeline.cModules) {
         
         // try to locate the executable
-        boost::filesystem::path cExecutable = qkd::utility::environment::find_executable(cModule.sPath);
+        boost::filesystem::path cExecutable;
+        try {
+            cExecutable = qkd::utility::environment::find_executable(cModule.sPath);
+        } catch (const boost::filesystem::filesystem_error& filesystem_error) {
+            print_module_details(std::cerr, cModule);
+            std::cerr << "Exception was thrown while trying to locate executable "
+                      << cModule.sPath << std::endl
+                      << filesystem_error.what() << std::endl;
+            exit(1);
+        }
+
         if (!cExecutable.string().size()) {
-            std::cerr << "module: '" 
-                    << cModule.sPath 
-                    << "' - error: failed to locate executable '" 
-                    << cModule.sPath << "'" 
-                    << std::endl;
+            std::cerr << "module: '"
+                      << cModule.sPath
+                      << "' - error: failed to locate executable '"
+                      << cModule.sPath << "'"
+                      << std::endl;
             continue;
         }
 
         cModule.sPath = cExecutable.string();
-        
+
         // write current pid into pid file 
         boost::filesystem::path cPIDFileName = qkd::utility::environment::temp_path() / "qkd-pipeline.autoconnect.module.pid";
 
@@ -847,20 +871,37 @@ int start() {
             }
             else {
 
-                // write actual PID into tmp file to be read
-                // by the qkd-pipeline tool again to find DBus service name
-                // of current module
-                write_current_pid(cPIDFileName);
+                try {
+                    // write actual PID into tmp file to be read
+                    // by the qkd-pipeline tool again to find DBus service name
+                    // of current module
+                    write_current_pid(cPIDFileName);
+                } catch (const boost::filesystem::filesystem_error& filesystem_error) {
+                    print_module_details(std::cerr, cModule);
+                    std::cerr << "Exception was thrown while trying to write the module's PID to a file." << std::endl
+                              << "The path to the PID file was: " << cPIDFileName.string() << std::endl
+                              << filesystem_error.what() << std::endl;
+                    exit(1);
+                }
 
                 // redirect to log file
                 if (g_cPipeline.sLogFolder.size() && cModule.sLog.size()) {
-                    boost::filesystem::path cLogFile(g_cPipeline.sLogFolder);
-                    cLogFile /= boost::filesystem::path(cModule.sLog);
-                    if (!freopen(cLogFile.string().c_str(), "a+", stderr)) {
-                        std::cerr << "module: '" 
-                                << cModule.sPath 
-                                << "' - error: failed to redirect stderr." 
-                                << std::endl;
+                    try {
+                        boost::filesystem::path cLogFile(g_cPipeline.sLogFolder);
+                        cLogFile /= boost::filesystem::path(cModule.sLog);
+                        if (!freopen(cLogFile.string().c_str(), "a+", stderr)) {
+                            std::cerr << "module: '"
+                            << cModule.sPath
+                            << "' - error: failed to redirect stderr."
+                            << std::endl;
+                        }
+                    } catch (const boost::filesystem::filesystem_error& filesystem_error) {
+                        print_module_details(std::cerr, cModule);
+                        std::cerr << "Exception was thrown while trying to redirect logging data to a file" << std::endl
+                                  << "The path to the log file was: " << cModule.sLog << std::endl
+                                  << "The log folder is: " << g_cPipeline.sLogFolder << std::endl
+                                  << filesystem_error.what() << std::endl;
+                        exit(1);
                     }
                 }
                 
@@ -1081,4 +1122,3 @@ void write_current_pid(boost::filesystem::path const & cPath) {
     cPIDFile.flush();
     cPIDFile.close();
 }
-
