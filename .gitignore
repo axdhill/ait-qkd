@@ -7,3 +7,9 @@ build/*
 # ignores IntelliJ-based IDE project files
 .idea
 
+# ignore intermediate LaTeX files generated for the handbook
+doc/handbook/*.aux
+doc/handbook/*.log
+doc/handbook/*.out
+doc/handbook/*.synctex.gz
+doc/handbook/*.toc
