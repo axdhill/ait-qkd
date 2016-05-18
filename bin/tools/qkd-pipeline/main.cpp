@@ -891,9 +891,9 @@ int start() {
                         cLogFile /= boost::filesystem::path(cModule.sLog);
                         if (!freopen(cLogFile.string().c_str(), "a+", stderr)) {
                             std::cerr << "module: '"
-                            << cModule.sPath
-                            << "' - error: failed to redirect stderr."
-                            << std::endl;
+                                      << cModule.sPath
+                                      << "' - error: failed to redirect stderr (" << strerror(errno) << ")"
+                                      << std::endl;
                         }
                     } catch (const boost::filesystem::filesystem_error& filesystem_error) {
                         print_module_details(std::cerr, cModule);
