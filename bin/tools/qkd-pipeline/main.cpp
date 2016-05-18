@@ -859,7 +859,7 @@ int start() {
                     if (!freopen(cLogFile.string().c_str(), "a+", stderr)) {
                         std::cerr << "module: '" 
                                 << cModule.sPath 
-                                << "' - error: failed to redirect stderr." 
+                                << "' - error: failed to redirect stderr (" << strerror(errno) << ")"
                                 << std::endl;
                     }
                 }
