@@ -52,7 +52,7 @@ int main(int argc, char ** argv) {
     
     // init the module
     my_module MyModule;
-    MyModule.set_urls("", "stdout://", "", "");
+    MyModule.set_urls("stdin://", "stdout://", "", "");
     MyModule.start_later();
     
     // run
