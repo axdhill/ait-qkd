@@ -35,6 +35,8 @@
 // ------------------------------------------------------------
 // incs
 
+#include <iostream>
+
 // get Qt
 #include <QtCore/QCoreApplication>
 
