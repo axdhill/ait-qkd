@@ -33,6 +33,8 @@
 // ------------------------------------------------------------
 // incs
 
+#include <iostream>
+
 // the module
 #include "my_module.h"
 
@@ -61,7 +63,7 @@ bool my_module::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cInc
     // get the number of bits set in the key
     // by converting the key data to a bigint
     // which enables sophisticated bit operations
-    
+
     qkd::utility::bigint bi = qkd::utility::bigint(cKey.data());
     
     // create my MD5 hashsum
@@ -88,7 +90,6 @@ bool my_module::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cInc
         
         // extract bob's answer
         msg.data() >> md5_checksum_peer;
-
     }
     
     // ... as bob

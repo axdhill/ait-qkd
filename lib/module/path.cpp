@@ -375,7 +375,7 @@ bool path::set_timeout_outgoing(int nTimeout) {
  * @param   sIPCHint            proper file name to use for IPC paths (if ipc:// is ambiguous)
  */
 void path::set_url(std::string sURL, bool bServer, int nSocketType, int nTimeout, int nHighWaterMark,  std::string sIPCHint) {
-    
+
     if (sURL.find(';') != std::string::npos) {
         throw std::invalid_argument("given URL '" + sURL + "' contains illegal char ';'");
     }
