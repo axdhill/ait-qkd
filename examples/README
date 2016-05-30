@@ -266,14 +266,22 @@ The examples as created as a series, going from a very basic simple demo to more
 
     This extends module 4 by DBus features: give the last calculated local MD5 checksum value on demand. Once you compiled the sources and started both pipelines like in the module-4 example you can query the modules system-wide for their latest local calculated MD5 checksum.
     
-        First, look at the DBus where our modules are:
-    
+        If you have a running qkd-dbus, then you'll likely have QKD_DBUS_SESSION_ADDRESS environment variable set.
+        
+        $ env | grep QKD
+        QKD_DBUS_SESSION_ADDRESS=unix:path=/run/dbus/qkd_bus_socket
+        
+        If so, then the example modules will register their services on this dedicated DBus. In order to access this special DBus via the qdbus system utility, one has to set the DBUS_SESSION_BUS_ADDRESS environment variable to the path the of QKD DBus instance.
+
+        $ export DBUS_SESSION_BUS_ADDRESS="${QKD_DBUS_SESSION_ADDRESS}"
+        
+        Examine now, where the modules are listened on the DBus:
+            
         $ qdbus | grep -i my-module
          at.ac.ait.qkd.module.my-module-21346
          at.ac.ait.qkd.module.my-module-21352
 
-                 
-        Then query the latest MD5 checksum:
+        Then you may able to query the latest MD5 checksum:
         
         $ qdbus at.ac.ait.qkd.module.my-module-21346 /Module last_md5
         15cb51d2a0f66ff2ef5b1eefc697cf6b

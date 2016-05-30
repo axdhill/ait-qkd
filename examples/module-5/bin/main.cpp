@@ -59,11 +59,11 @@ int main(int argc, char ** argv) {
     bool alice = !((argc == 2) && (strcmp(argv[1], "-b") == 0));
     if (alice) {
         MyModule.set_role(0);
-        MyModule.set_urls("stdin://", "stdout://", "", "tcp://*:23017");
+        MyModule.set_urls("stdin://", "stdout://", "", "tcp://127.0.0.1:23017");
     }
     else {
         MyModule.set_role(1);
-        MyModule.set_urls("stdin://", "stdout://", "tcp://*:23017", "");
+        MyModule.set_urls("stdin://", "stdout://", "tcp://127.0.0.1:23017", "");
     }
     
     // launch the module, once all subsystems are on
