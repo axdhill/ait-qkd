@@ -59,10 +59,12 @@
 // ait
 #include <qkd/crypto/context.h>
 #include <qkd/crypto/engine.h>
-#include <qkd/module/module.h>
+#include <qkd/exception/connection_error.h>
 #include <qkd/utility/dbus.h>
 #include <qkd/utility/debug.h>
 #include <qkd/utility/syslog.h>
+
+#include <qkd/module/module.h>
 
 // DBus integration
 #include "module_dbus.h"
@@ -299,7 +301,7 @@ qkd::module::connection const & qkd::module::module::connection(qkd::module::con
         
     }
     
-    throw std::out_of_range("no connection known for this connection type");
+    throw qkd::exception::connection_error("no connection known for this connection type");
 }
 
 

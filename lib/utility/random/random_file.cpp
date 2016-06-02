@@ -71,7 +71,7 @@ void random_file::get(char * cBuffer, uint64_t nSize) {
         m_cFileInStream.read(cBuffer + nRead, nSize - nRead);
         long nCurrentRead = m_cFileInStream.gcount();
         if (nCurrentRead == 0) {
-            throw random_get_unknown();
+            throw qkd::exception::randomengine_error("failed to read from random number file");
         }
         
         nRead += nCurrentRead;
@@ -86,6 +86,6 @@ void random_file::init() {
     
     m_cFileInStream.open(m_sFileName, std::ios::in | std::ios::binary);
     if (!m_cFileInStream.is_open()) {
-        throw random_init_error();
+        throw qkd::exception::randomengine_error("failed to open random number file");
     }
 }

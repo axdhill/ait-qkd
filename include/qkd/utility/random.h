@@ -42,6 +42,7 @@
 #include <inttypes.h>
 
 // ait
+#include <qkd/exception/randomengine_error.h>
 #include <qkd/utility/memory.h>
 
 
@@ -156,48 +157,6 @@ public:
         get((char*)&i, sizeof(i));
         return i;
     }
-
-
-    /**
-     * exception type thrown for unknown reasons when accessing data from the random source
-     */
-    class random_get_unknown : public std::exception { 
-    public: 
-        
-        /**
-         * exception description 
-         * @return  a human readable exception description
-         */
-        const char * what() const noexcept { return "unknown error while accessing random source data"; }
-    };
-    
-
-    /**
-     * exception type thrown on init errors
-     */
-    class random_init_error : public std::exception { 
-    public: 
-
-        /**
-         * exception description 
-         * @return  a human readable exception description
-         */
-        const char * what() const noexcept { return "error during init of random source"; } 
-    };
-
-
-    /**
-     * exception type thrown for unknown random url schemes
-     */
-    class random_url_scheme_unknown : public std::exception { 
-    public: 
-
-        /**
-         * exception description 
-         * @return  a human readable exception description
-         */
-        const char * what() const noexcept { return "unknown random url scheme"; }
-    };
 
 
     /**
@@ -405,7 +364,7 @@ private:
      * @param   nSize       size of buffer in bytes
      */
     virtual void get(UNUSED char * cBuffer, UNUSED uint64_t nSize) { 
-        throw random_get_unknown();
+        throw qkd::exception::randomengine_error("failed to provide implementation for random data retrieval");
     };
     
 };

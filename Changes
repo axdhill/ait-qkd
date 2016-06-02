@@ -5,6 +5,36 @@ This file holds the changes of the AIT QKD R10 throughout the versions
 Changes from 9.9999.6 to 9.9999.7
 ---------------------------------
 
+* new exception concept
+
+	We've implemented a new cleaner exception concept.
+	
+	include/qkd/exception contains now new classes to better
+	react on problems within the code.
+
+	There are currently:
+
+	connection_error	errors on module's connection 
+						mismanagement
+	db_error			errors within the keystore
+						database
+	network_error		errors occuring during network
+						send/recv calls 
+	protocol_error		errors on internal protcols used
+	randomengine_error	errors when dealing with the
+						random engine sources
+
+	Note, that also C++ standard exceptions like
+	std::invalid_argument, std::out_of_range, std::logic_error,
+	and std::runtime_error (when aprobiate) are thrown as well.
+
+	However, this will group the most common known exceptions
+	which occur inside the libqkd.
+
+	IMPORTANT: this will break implementations expecting certain,
+			   old exception class names!
+
+
 * Package creation for more than one distribution.
 
     We offer now the package creation for more than one Linux

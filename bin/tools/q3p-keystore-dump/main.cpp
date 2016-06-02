@@ -41,6 +41,7 @@
 #include <QtCore/QString>
 
 // ait
+#include <qkd/exception/db_error.h>
 #include <qkd/key/key.h>
 #include <qkd/q3p/db.h>
 #include <qkd/utility/environment.h>
@@ -84,12 +85,8 @@ void dump(QString sURL) {
         // open the DB
         cDB = qkd::q3p::db::open(sURL);
     }
-    catch (qkd::q3p::db::db_url_scheme_unknown & cDBUrlSchemeUnknown) {
-        std::cerr << "failed to open key DB - unknown URL scheme: \"" << sURL.toStdString() << "\"" << std::endl;
-        return;
-    }
-    catch (qkd::q3p::db::db_init_error & cDBInitError) {
-        std::cerr << "failed to open key DB - init error: \"" << sURL.toStdString() << "\"" << std::endl;
+    catch (qkd::exception::db_error const & cException) {
+        std::cerr << "failed to open key DB - " << cException.what() << " url: \"" << sURL.toStdString() << "\"" << std::endl;
         return;
     }
     

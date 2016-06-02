@@ -107,12 +107,16 @@ void random_hmac_sha::get(char * cBuffer, uint64_t nSize) {
  */
 void random_hmac_sha::init() {
     
-    if (m_sHMACSHA.substr(0, std::string("hmac-sha").length()) != "hmac-sha") throw random_init_error();
+    if (m_sHMACSHA.substr(0, std::string("hmac-sha").length()) != "hmac-sha") {
+        throw qkd::exception::randomengine_error("wrong url syntax on init of hmac-sha random engine");
+    }
     
     // get the tokens
     std::vector<std::string> sTokenScheme;
     boost::split(sTokenScheme, m_sHMACSHA, boost::is_any_of(":"));
-    if (sTokenScheme.size() != 2) throw random_init_error();
+    if (sTokenScheme.size() != 2) {
+        throw qkd::exception::randomengine_error("invalid url syntax for hmac-sha random engine scheme");
+    }
     
     // parse the second token --> key
     qkd::utility::memory cKey = qkd::utility::memory::from_hex(sTokenScheme[1]);
@@ -138,7 +142,6 @@ void random_hmac_sha::init() {
         break;
 
     default:
-        // unknown key size ==> unknown hmac-sha algorithm
-        throw random_init_error();
+        throw qkd::exception::randomengine_error("unknown key size yields unknown hmac-sha algorithm");
     }
 }

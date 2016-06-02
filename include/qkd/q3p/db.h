@@ -138,38 +138,7 @@ class db : public QObject {
     
 public:    
     
- 
-    /**
-     * exception type thrown on init errors
-     */
-    class db_init_error : public std::exception { 
-        
-    public: 
 
-        /**
-         * exception description 
-         * @return  a human readable exception description
-         */
-        const char * what() const noexcept { return "error during init of q3p database"; } 
-    };
-
-
-
-    /**
-     * exception type thrown for unknown DB url schemes
-     */
-    class db_url_scheme_unknown : public std::exception { 
-        
-    public: 
-
-        /**
-         * exception description 
-         * @return  a human readable exception description
-         */
-        const char * what() const noexcept { return "unknown database url scheme"; } 
-    };
-    
-   
     /**
      * dtor
      */

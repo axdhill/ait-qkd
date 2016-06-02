@@ -41,6 +41,7 @@
 #include <QtNetwork/QTcpSocket>
 
 // ait
+#include <qkd/exception/db_error.h>
 #include <qkd/key/key.h>
 #include <qkd/key/key_ring.h>
 #include <qkd/crypto/association.h>
@@ -1419,12 +1420,8 @@ void engine_instance::open_db(QString sURL) {
     try {
         d->m_cCommonStoreDB = qkd::q3p::db::open(sURL);
     }
-    catch (qkd::q3p::db::db_url_scheme_unknown & cDBUrlSchemeUnknown) {
-        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to open key DB - unknown URL scheme: \"" + sURL.toStdString() + "\"";
-        return;
-    }
-    catch (qkd::q3p::db::db_init_error & cDBInitError) {
-        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to open key DB - init error: \"" + sURL.toStdString() + "\"";
+    catch (qkd::exception::db_error const & cException) {
+        qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << cException.what() << " - url: " << sURL.toStdString() + "\"";
         return;
     }
     

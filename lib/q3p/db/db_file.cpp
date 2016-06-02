@@ -38,6 +38,7 @@
 #include <sys/mman.h>
 
 // ait
+#include <qkd/exception/db_error.h>
 #include <qkd/q3p/db.h>
 #include <qkd/utility/syslog.h>
 
@@ -118,20 +119,20 @@ void db_file::init(QString sURL) {
     if (m_nFD == -1) {
         std::string sError = strerror(errno);
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed opening file DB at \"" << sURL.toStdString() << "\": " << sError;
-        throw qkd::q3p::db::db_init_error();
+        throw qkd::exception::db_error("failed to open keystore DB file");
     }
     
     if (ftruncate(m_nFD, file_size(*this))) {
         std::string sError = strerror(errno);
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to map file DB at \"" << sURL.toStdString() << "\": " << sError;
-        throw qkd::q3p::db::db_init_error();
+        throw qkd::exception::db_error("failed to resize keystore DB file");
     }
     
     void * cData = mmap(nullptr, file_size(*this), PROT_READ | PROT_WRITE, MAP_SHARED, m_nFD, 0);
     if (cData == (void *)-1) {
         std::string sError = strerror(errno);
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to map file DB at \"" << sURL.toStdString() << "\": " << sError;
-        throw qkd::q3p::db::db_init_error();
+        throw qkd::exception::db_error("failed to memory map keystore DB file");
     }
     
     meta() = (unsigned char *)cData;
