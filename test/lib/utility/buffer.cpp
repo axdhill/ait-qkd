@@ -81,7 +81,7 @@ int test() {
     cMemory[500] = 234;
     cMemory[999] = 1;
     
-    // srteam into buffer
+    // stream into buffer
     cBuffer << c;
     cBuffer << uc;
     assert(cBuffer.size() == 2);

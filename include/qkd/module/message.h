@@ -64,8 +64,11 @@ enum class message_type : uint32_t {
     
 
 /**
- * This class represents a single QKD Module Message
+ * This class represents a single QKD Module Message sent between QKD modules across the network.
  *
+ * Every message exchanged between modules is bound to a specific key. This is necessary to ensure
+ * that both modules on each side of the wire talk about the very same key when doing post processing.
+ * 
  * A QKD Module message has an id and associated data. Also it notes
  * the timestamp of the last send or receive action, so one can 
  * calculate its age().
@@ -88,9 +91,11 @@ public:
     /**
      * ctor
      * 
+     * @param   nKeyId      the key id the message is bound to
      * @param   eType       type of message
      */
-    message(qkd::module::message_type eType = qkd::module::message_type::MESSAGE_TYPE_DATA);
+    explicit message(qkd::key::key_id nKeyId = 0, 
+                     qkd::module::message_type eType = qkd::module::message_type::MESSAGE_TYPE_DATA);
     
 
     /**
@@ -129,6 +134,14 @@ public:
     inline uint64_t id() const { return be32toh(m_cHeader.nId); }
     
     
+    /**
+     * message key id bound to
+     * 
+     * @return  the key id the message is bound to
+     */
+    inline qkd::key::key_id key_id() const { return m_cHeader.nKeyId; }
+    
+
     /**
      * give a debug string
      * 
@@ -176,8 +189,9 @@ private:
      */
     struct header {
         
-        uint32_t nId;                                                         /**< message id */
-        message_type eType = qkd::module::message_type::MESSAGE_TYPE_DATA;    /**< type of the message */
+        uint32_t nId;                                                           /**< message id */
+        qkd::key::key_id nKeyId;                                                /**< message key bound to */
+        message_type eType = qkd::module::message_type::MESSAGE_TYPE_DATA;      /**< type of the message */
         
     } m_cHeader;
 

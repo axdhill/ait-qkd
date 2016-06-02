@@ -57,10 +57,12 @@ uint32_t qkd::module::message::m_nLastId = 0;
 /**
  * ctor
  * 
+ * @param   nKeyId      the key id the message is bound to
  * @param   eType       type of message
  */
-message::message(qkd::module::message_type eType) {
+message::message(qkd::key::key_id nKeyId, qkd::module::message_type eType) {
     m_cHeader.nId = 0;
+    m_cHeader.nKeyId = nKeyId;
     m_cHeader.eType = eType;
 }
 
@@ -73,9 +75,10 @@ message::message(qkd::module::message_type eType) {
  */
 std::string message::string(std::string const & sIndent) const {
     
-    boost::format cLineFormatter = boost::format("<%10u><%-8s><%10u><%08x>\n%s");
+    boost::format cLineFormatter = boost::format("<%10u><%10u><%-8s><%10u><%08x>\n%s");
 
     cLineFormatter % id();
+    cLineFormatter % m_cHeader.nKeyId;
     
     switch (type()) {
         

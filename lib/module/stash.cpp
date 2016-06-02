@@ -152,7 +152,7 @@ qkd::key::key stash::pick_alice() {
     
     qkd::key::key cKey = choose();
 
-    qkd::module::message cMessage(qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
+    qkd::module::message cMessage(0, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
     if (cKey.is_null()) {
         cMessage.data() << (uint32_t)sync_command::SYNC_COMMAND_NOPICK;
         if (m_cModule->debug_key_sync()) qkd::utility::debug() << "key-SYNC no key to pick";
@@ -258,7 +258,7 @@ qkd::key::key stash::pick_bob() {
             m_cStash.end(), 
             [&](stashed_key const & cKeyStash) { return (cKeyStash.cKey.id() == nKeyId); });
     
-    cMessage = qkd::module::message(qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
+    cMessage = qkd::module::message(0, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
     if (iter != m_cStash.end()) {
         cMessage.data() << (uint32_t)sync_command::SYNC_COMMAND_PICK_ACK;
     }
@@ -379,7 +379,7 @@ void stash::remove(qkd::key::key_id nKeyId) {
  */
 void stash::send() {
     
-    qkd::module::message cMessage(qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
+    qkd::module::message cMessage(0, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
     cMessage.data() << (uint32_t)sync_command::SYNC_COMMAND_LIST;
     cMessage.data() << m_cStash.size();
     for (auto const & k : m_cStash) cMessage.data() << k.cKey.id();
