@@ -279,7 +279,7 @@ bool qkd_sifting_bb84::process_alice(qkd::key::key & cKey,
     cMessage.data() << (uint64_t)rawkey_length();
 
     try {
-        send(cMessage, cOutgoingContext);
+        send(cKey.id(), cMessage, cOutgoingContext);
     }
     catch (std::runtime_error const & cRuntimeError) {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
@@ -291,7 +291,7 @@ bool qkd_sifting_bb84::process_alice(qkd::key::key & cKey,
 
     cMessage = qkd::module::message();
     try {
-        if (!recv(cMessage, cIncomingContext)) return false;
+        if (!recv(cKey.id(), cMessage, cIncomingContext)) return false;
     }
     catch (std::runtime_error const & cRuntimeError) {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
@@ -320,7 +320,7 @@ bool qkd_sifting_bb84::process_alice(qkd::key::key & cKey,
     cMessage = qkd::module::message();
     cMessage.data() << cBases;
     try {
-        send(cMessage, cOutgoingContext);
+        send(cKey.id(), cMessage, cOutgoingContext);
     }
     catch (std::runtime_error const & cRuntimeError) {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
@@ -380,7 +380,7 @@ bool qkd_sifting_bb84::process_bob(qkd::key::key & cKey,
     qkd::module::message cMessage;
 
     try {
-        if (!recv(cMessage, cIncomingContext)) return false;
+        if (!recv(cKey.id(), cMessage, cIncomingContext)) return false;
     }
     catch (std::runtime_error const & cRuntimeError) {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
@@ -409,7 +409,7 @@ bool qkd_sifting_bb84::process_bob(qkd::key::key & cKey,
     cMessage = qkd::module::message();
     cMessage.data() << cBases;
     try {
-        send(cMessage, cOutgoingContext);
+        send(cKey.id(), cMessage, cOutgoingContext);
     }
     catch (std::runtime_error const & cRuntimeError) {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
@@ -418,7 +418,7 @@ bool qkd_sifting_bb84::process_bob(qkd::key::key & cKey,
     }
     
     try {
-        if (!recv(cMessage, cIncomingContext)) return false;
+        if (!recv(cKey.id(), cMessage, cIncomingContext)) return false;
     }
     catch (std::runtime_error const & cRuntimeError) {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 

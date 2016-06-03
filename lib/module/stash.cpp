@@ -167,7 +167,7 @@ qkd::key::key stash::pick_alice() {
 
     try {
         qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
-        m_cModule->send(cMessage, cCryptoContext);
+        m_cModule->send(0, cMessage, cCryptoContext);
     }
     catch (std::runtime_error & cException) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
@@ -180,7 +180,7 @@ qkd::key::key stash::pick_alice() {
     cMessage = qkd::module::message();
     try {
         qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
-        m_cModule->recv(cMessage, cCryptoContext, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
+        m_cModule->recv(0, cMessage, cCryptoContext, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
     }
     catch (qkd::exception::network_error & cException) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
@@ -226,7 +226,7 @@ qkd::key::key stash::pick_bob() {
     qkd::module::message cMessage;
     try {
         qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
-        m_cModule->recv(cMessage, cCryptoContext, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
+        m_cModule->recv(0, cMessage, cCryptoContext, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
     }
     catch (std::runtime_error & cException) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
@@ -270,7 +270,7 @@ qkd::key::key stash::pick_bob() {
     
     try {
         qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
-        m_cModule->send(cMessage, cCryptoContext);
+        m_cModule->send(0, cMessage, cCryptoContext);
     }
     catch (std::runtime_error & cException) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
@@ -390,7 +390,7 @@ void stash::send() {
     
     try {
         qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
-        m_cModule->send(cMessage, cCryptoContext);
+        m_cModule->send(0, cMessage, cCryptoContext);
     }
     catch (std::runtime_error & cException) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
@@ -414,7 +414,7 @@ void stash::sync() {
         try {
             qkd::module::message cMessage;
             qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
-            if (m_cModule->recv(cMessage, cCryptoContext, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC)) {
+            if (m_cModule->recv(0, cMessage, cCryptoContext, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC)) {
                 recv(cMessage);
             }
         }

@@ -139,6 +139,14 @@ public:
      * 
      * @return  the key id the message is bound to
      */
+    inline qkd::key::key_id & key_id() { return m_cHeader.nKeyId; }
+    
+
+    /**
+     * message key id bound to
+     * 
+     * @return  the key id the message is bound to
+     */
     inline qkd::key::key_id key_id() const { return m_cHeader.nKeyId; }
     
 

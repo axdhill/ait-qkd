@@ -242,7 +242,7 @@ bool qkd_error_estimation::process_alice(qkd::key::key & cKey, qkd::crypto::cryp
     for (auto i : cPositionsDisclosed) cMessage.data() << i;
     cMessage.data() << cPublicLocal.memory();
     try {
-        send(cMessage, cOutgoingContext);
+        send(cKey.id(), cMessage, cOutgoingContext);
     }
     catch (std::runtime_error const & cRuntimeError) {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to send message: " << cRuntimeError.what();
@@ -252,7 +252,7 @@ bool qkd_error_estimation::process_alice(qkd::key::key & cKey, qkd::crypto::cryp
     // read from peer
     cMessage = qkd::module::message();
     try {
-        if (!recv(cMessage, cIncomingContext)) return false;
+        if (!recv(cKey.id(), cMessage, cIncomingContext)) return false;
     }
     catch (std::runtime_error const & cRuntimeError) {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to receive message: " << cRuntimeError.what();
@@ -315,7 +315,7 @@ bool qkd_error_estimation::process_bob(qkd::key::key & cKey, qkd::crypto::crypto
     // read from peer
     qkd::module::message cMessage;
     try {
-        if (!recv(cMessage, cIncomingContext)) return false;
+        if (!recv(cKey.id(), cMessage, cIncomingContext)) return false;
     }
     catch (std::runtime_error const & cRuntimeError) {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to receive message: " << cRuntimeError.what();
@@ -359,7 +359,7 @@ bool qkd_error_estimation::process_bob(qkd::key::key & cKey, qkd::crypto::crypto
     cMessage = qkd::module::message();
     cMessage.data() << cPublicLocal.memory();
     try {
-        send(cMessage, cOutgoingContext);
+        send(cKey.id(), cMessage, cOutgoingContext);
     }
     catch (std::runtime_error const & cRuntimeError) {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to send message: " << cRuntimeError.what();

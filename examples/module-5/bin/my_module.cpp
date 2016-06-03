@@ -95,10 +95,10 @@ bool my_module::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cInc
         // send our md5 checksum to bob
         qkd::module::message msg;
         msg.data() << md5_checksum;
-        send(msg, cOutgoingContext);
+        send(cKey.id(), msg, cOutgoingContext);
         
         // get bob's answer (right into the same message object)
-        recv(msg, cIncomingContext);
+        recv(cKey.id(), msg, cIncomingContext);
         
         // extract bob's answer
         msg.data() >> md5_checksum_peer;
@@ -110,13 +110,13 @@ bool my_module::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cInc
         
         // receive alice's md5 checksum
         qkd::module::message msg;
-        recv(msg, cIncomingContext);
+        recv(cKey.id(), msg, cIncomingContext);
         msg.data() >> md5_checksum_peer;
         
         // reinit the message object
         msg = qkd::module::message();
         msg.data() << md5_checksum;
-        send(msg, cOutgoingContext);
+        send(cKey.id(), msg, cOutgoingContext);
     }
     
     // remember the last MD5 checksum

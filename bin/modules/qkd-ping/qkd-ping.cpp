@@ -139,7 +139,7 @@ void qkd_ping::process_alice() {
 
     qkd::crypto::crypto_context cIncomingContext = qkd::crypto::context::null_context();
     qkd::crypto::crypto_context cOutgoingConetxt = qkd::crypto::context::null_context();
-    qkd::module::communicator cModuleComm = comm(cIncomingContext, cOutgoingConetxt);
+    qkd::module::communicator cModuleComm = communicator(0, cIncomingContext, cOutgoingConetxt);
 
     // real work here...
     if (!ping_alice(cModuleComm, nPackageSize)) return;
@@ -186,7 +186,7 @@ void qkd_ping::process_bob() {
     // try (and test) the module_communicator facade instance
     qkd::crypto::crypto_context cIncomingContext = qkd::crypto::context::null_context();
     qkd::crypto::crypto_context cOutgoingConetxt = qkd::crypto::context::null_context();
-    qkd::module::communicator cModuleComm = comm(cIncomingContext, cOutgoingConetxt);
+    qkd::module::communicator cModuleComm = communicator(0, cIncomingContext, cOutgoingConetxt);
 
     // real work here...
     if (!ping_bob(cModuleComm, nPackageSize)) return;

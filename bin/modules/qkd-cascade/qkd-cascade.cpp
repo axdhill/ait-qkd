@@ -299,12 +299,12 @@ bool qkd_cascade::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cI
 
             qkd::utility::buffer cSendBuffer;
             cSendBuffer << nSeed;
-            comm(cIncomingContext, cOutgoingContext) << cSendBuffer;
+            communicator(cKey.id(), cIncomingContext, cOutgoingContext) << cSendBuffer;
         }
         else {
 
             qkd::utility::buffer cRecvBuffer;
-            comm(cIncomingContext, cOutgoingContext) >> cRecvBuffer;
+            communicator(cKey.id(), cIncomingContext, cOutgoingContext) >> cRecvBuffer;
             cRecvBuffer.reset();
             cRecvBuffer >> nSeed;
         }
@@ -368,7 +368,11 @@ bool qkd_cascade::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cI
 
     	// for all steps: add "parity-checks", i.e. parity infos to list of checks
         try {
-            cFrame.add_checker(new parity_checker(cFrame, perm, inv_perm, cCategories, comm(cIncomingContext, cOutgoingContext)));
+            cFrame.add_checker(new parity_checker(cFrame, 
+                                                  perm, 
+                                                  inv_perm, 
+                                                  cCategories, 
+                                                  communicator(cKey.id(), cIncomingContext, cOutgoingContext)));
         }
         catch (std::exception & e) {
             qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " 

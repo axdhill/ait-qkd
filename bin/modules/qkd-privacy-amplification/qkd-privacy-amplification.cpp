@@ -237,7 +237,7 @@ bool qkd_privacy_amplification::process(qkd::key::key & cKey,
         cMessage.data() << cSeed;
         cMessage.data() << cShift;
         try {
-            send(cMessage, cOutgoingContext);
+            send(cKey.id(), cMessage, cOutgoingContext);
         }
         catch (std::runtime_error const & cRuntimeError) {
             qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
@@ -250,7 +250,7 @@ bool qkd_privacy_amplification::process(qkd::key::key & cKey,
         
         qkd::module::message cMessage;
         try {
-            if (!recv(cMessage, cIncomingContext, qkd::module::message_type::MESSAGE_TYPE_DATA)) return false;
+            if (!recv(cKey.id(), cMessage, cIncomingContext, qkd::module::message_type::MESSAGE_TYPE_DATA)) return false;
         }
         catch (std::runtime_error const & cRuntimeError) {
             qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " 
