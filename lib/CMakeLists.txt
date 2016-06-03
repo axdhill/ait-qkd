@@ -37,6 +37,13 @@ include_directories(${CMAKE_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR})
 # define the sources
 set(QKD_SRC 
 
+    # exceptions (compilation just checks basic valid defintion)
+    exception/connection_error.cpp
+    exception/db_error.cpp
+    exception/network_error.cpp
+    exception/protocol_error.cpp
+    exception/randomengine_error.cpp
+
     # basic QKD key
     key/key.cpp
     key/key_ring.cpp

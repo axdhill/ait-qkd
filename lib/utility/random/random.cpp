@@ -145,7 +145,7 @@ qkd::utility::random random_source::create(std::string sURL) {
         return std::shared_ptr<random_source>(new qkd::utility::random_congruential(sURL));
     }
 
-    throw random_url_scheme_unknown();
+    throw qkd::exception::randomengine_error("unknown random url scheme");
 }
 
 

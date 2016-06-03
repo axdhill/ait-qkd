@@ -62,7 +62,7 @@ using namespace qkd::module;
  * @return  true, if we have received a message
  */
 bool communicator::recv(qkd::module::message & cMessage, qkd::module::message_type eType) { 
-    return m_cModule->recv(cMessage, m_cIncomingContext, eType);
+    return m_cModule->recv(m_nKeyId, cMessage, m_cIncomingContext, eType);
 }
 
 
@@ -82,7 +82,7 @@ bool communicator::recv(qkd::module::message & cMessage, qkd::module::message_ty
  * @returns true, if the message has been sent
  */
 bool communicator::send(qkd::module::message & cMessage) { 
-    return m_cModule->send(cMessage, m_cOutgoingContext); 
+    return m_cModule->send(m_nKeyId, cMessage, m_cOutgoingContext); 
 }       
 
 

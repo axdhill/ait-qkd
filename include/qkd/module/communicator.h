@@ -37,6 +37,7 @@
 
 // ait
 #include <qkd/crypto/context.h>
+#include <qkd/exception/network_error.h>
 #include <qkd/module/message.h>
 #include <qkd/utility/buffer.h>
 #include <qkd/utility/memory.h>
@@ -108,13 +109,16 @@ private:
      * ctor
      *
      * @param   cModule             the owning module
+     * @param   nKeyId              the current key we are working on
      * @param   cIncomingContext    the incoming auth context
      * @param   cOutgoingContext    the outgoing auth context
      */
     communicator(module * cModule, 
-            qkd::crypto::crypto_context & cIncomingContext, 
-            qkd::crypto::crypto_context & cOutgoingContext) : 
+                 qkd::key::key_id nKeyId,
+                 qkd::crypto::crypto_context & cIncomingContext, 
+                 qkd::crypto::crypto_context & cOutgoingContext) : 
                     m_cModule(cModule), 
+                    m_nKeyId(nKeyId), 
                     m_cIncomingContext(cIncomingContext), 
                     m_cOutgoingContext(cOutgoingContext) {};
 
@@ -136,7 +140,7 @@ public:
             cMessage.data() >> cBuffer; 
             return true; 
         } 
-        return false; 
+        throw qkd::exception::network_error("failed to receive message"); 
     }
 
 
@@ -154,7 +158,7 @@ public:
             cMessage.data() >> cMemory; 
             return true; 
         } 
-        return false; 
+        throw qkd::exception::network_error("failed to receive message"); 
     }
 
 
@@ -168,7 +172,9 @@ public:
      *
      * @param   cMessage        message to receive
      */
-    inline void operator>>(qkd::module::message & cMessage) {  if (!recv(cMessage)) throw std::runtime_error("failed to receive message"); }
+    inline void operator>>(qkd::module::message & cMessage) {  
+        if (!recv(cMessage)) throw qkd::exception::network_error("failed to receive message"); 
+    }
 
 
     /**
@@ -184,7 +190,7 @@ public:
     inline void operator<<(qkd::utility::buffer const & cBuffer) { 
         qkd::module::message cMessage; 
         cMessage.data() << cBuffer; 
-        if (!send(cMessage)) throw std::runtime_error("failed to send message"); 
+        if (!send(cMessage)) throw qkd::exception::network_error("failed to send message"); 
     }
 
 
@@ -199,7 +205,7 @@ public:
     inline void operator<<(qkd::utility::memory const & cMemory) { 
         qkd::module::message cMessage; 
         cMessage.data() << cMemory; 
-        send(cMessage); 
+        if (!send(cMessage)) throw qkd::exception::network_error("failed to send message");
     }
 
 
@@ -211,9 +217,19 @@ public:
      * @param   cMessage        message to send
      * @return  true for success
      */
-    inline void operator<<(qkd::module::message & cMessage) { send(cMessage); }
+    inline void operator<<(qkd::module::message & cMessage) { 
+        if (!send(cMessage)) throw qkd::exception::network_error("failed to send message");
+    }
 
 
+    /**
+     * return the key id this communicator is bound to
+     * 
+     * @return  the key id used for send/recv to the peer module
+     */
+    qkd::key::key_id key_id() const { return m_nKeyId; }
+    
+    
     /**
      * get the internal module
      *
@@ -239,7 +255,8 @@ public:
      * @param   eType               message type to receive
      * @return  true, if we have received a message, false otherwise
      */
-    bool recv(qkd::module::message & cMessage, qkd::module::message_type eType = qkd::module::message_type::MESSAGE_TYPE_DATA);
+    bool recv(qkd::module::message & cMessage, 
+              qkd::module::message_type eType = qkd::module::message_type::MESSAGE_TYPE_DATA);
 
 
     /**
@@ -262,8 +279,8 @@ public:
 
 private:
 
-
     module * m_cModule;                                         /**< module wrapped */
+    qkd::key::key_id m_nKeyId;                                  /**< the key id this communicator instance is bound to */
     qkd::crypto::crypto_context & m_cIncomingContext;           /**< incoming auth context */
     qkd::crypto::crypto_context & m_cOutgoingContext;           /**< outgoing auth context */
 

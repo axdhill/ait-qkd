@@ -32,9 +32,11 @@
 
 
 #if defined(__GNUC__) || defined(__GNUCPP__)
-#   define UNUSED   __attribute__((unused))
+#   define UNUSED           __attribute__((unused))
+#   define DEPRECATED       __attribute__((deprecated))
 #else
 #   define UNUSED
+#   define DEPRECATED
 #endif
 
 

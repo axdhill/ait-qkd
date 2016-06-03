@@ -59,10 +59,13 @@
 // ait
 #include <qkd/crypto/context.h>
 #include <qkd/crypto/engine.h>
-#include <qkd/module/module.h>
+#include <qkd/exception/connection_error.h>
+#include <qkd/exception/protocol_error.h>
 #include <qkd/utility/dbus.h>
 #include <qkd/utility/debug.h>
 #include <qkd/utility/syslog.h>
+
+#include <qkd/module/module.h>
 
 // DBus integration
 #include "module_dbus.h"
@@ -299,7 +302,7 @@ qkd::module::connection const & qkd::module::module::connection(qkd::module::con
         
     }
     
-    throw std::out_of_range("no connection known for this connection type");
+    throw qkd::exception::connection_error("no connection known for this connection type");
 }
 
 
@@ -764,6 +767,7 @@ bool module::read(qkd::key::key & cKey) {
  * Internally the recv_internal method is called and the actual receive
  * is performed. 
  * 
+ * @deprecated
  * @param   cMessage            this will receive the message
  * @param   cAuthContext        the authentication context involved
  * @param   eType               message type to receive
@@ -772,9 +776,46 @@ bool module::read(qkd::key::key & cKey) {
 bool module::recv(qkd::module::message & cMessage, 
         qkd::crypto::crypto_context & cAuthContext, 
         qkd::module::message_type eType) {
+
+    return recv(0, cMessage, cAuthContext, eType);
+}
+
+
+/**
+ * read a message from the peer module
+ * 
+ * this call is blocking
+ * 
+ * Every message's data recveived from the peer must be associated with the current key
+ * we are working on. Therefore the given key id will be compared with the message's key id.
+ * On mismatch a qkd::exception::protocol_error will be thrown.
+ * 
+ * The given message object will be deleted with delete before assigning new values.
+ * Therefore if message receive has been successful the message is not NULL
+ * 
+ * This call waits explicitly for the next message been of type eType. If this
+ * is NOT the case a exception is thrown.
+ * 
+ * Internally the recv_internal method is called and the actual receive
+ * is performed. 
+ * 
+ * @param   cMessage            this will receive the message
+ * @param   cAuthContext        the authentication context involved
+ * @param   eType               message type to receive
+ * @return  true, if we have received a message, false else
+ */
+bool module::recv(qkd::key::key_id nKeyId,
+                  qkd::module::message & cMessage, 
+                  qkd::crypto::crypto_context & cAuthContext, 
+                  qkd::module::message_type eType) {
     
     if (!recv_internal(cMessage)) return false;
     if (eType == cMessage.type()) {
+        
+        if (nKeyId != cMessage.key_id()) {
+            throw qkd::exception::protocol_error("key id mismatch in received message, we might operate on different keys");
+        }
+        
         cAuthContext << cMessage.data();
         cMessage.data().set_position(0);
         return true;
@@ -946,16 +987,49 @@ void module::run() {
  * 
  * Sending might fail on interrupt.
  *
+ * @deprecated
  * @param   cMessage            the message to send
  * @param   cAuthContext        the authentication context involved
  * @returns true, if successfully sent
  */
 bool module::send(qkd::module::message & cMessage, qkd::crypto::crypto_context & cAuthContext, int nPath) {
+    return send(0, cMessage, cAuthContext, nPath);
+}
+
+
+/**
+ * send a message to the peer module
+ * 
+ * this call is blocking
+ * 
+ * Every message sent to the remote peer module requires a key id. This
+ * is necessary in order to ensure that the data of messages received are 
+ * dealing with the very same key the module is currently working upon.
+ * 
+ * Note: this function takes ownership of the message's data sent! 
+ * Afterwards the message's data will be void
+ *
+ * Sending might fail on interrupt.
+ * 
+ * The path index holds the number of the path to choose. 
+ * On -1 the next suitable path(s) are taken.
+ * 
+ * @param   nKeyId              the key id the message is bound to
+ * @param   cMessage            the message to send
+ * @param   cAuthContext        the authentication context involved
+ * @param   nPath               path index to send
+ * @returns true, if successfully sent
+ */
+bool module::send(qkd::key::key_id nKeyId, 
+                  qkd::module::message & cMessage, 
+                  qkd::crypto::crypto_context & cAuthContext, 
+                  int nPath) {
     
     qkd::module::connection * cCon = nullptr;
     if (is_alice()) cCon = d->cConPeer;
     if (is_bob()) cCon = d->cConListen;
     
+    cMessage.key_id() = nKeyId;
     if (!cCon->send_message(cMessage, nPath)) return false;
     d->debug_message(true, cMessage);
     

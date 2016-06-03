@@ -1,0 +1,99 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-mod-sync
+# 
+# This is a test file.
+#
+# TEST: test the QKD SYNC facility
+#
+# Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
+#
+# Copyright (C) 2016 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+echo $$
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+
+# ------------------------------------------------------------
+
+test_init "$(basename $0).d"
+rm -rf cat_keys.* &> /dev/null
+
+# create keys
+KEYS_TO_PROCESS="100"
+${TEST_BASE}/bin/qkd-key-gen --silent --size 1000 --keys ${KEYS_TO_PROCESS} --rate 0.03 cat_keys
+
+PIPELINE_CONFIG="${TEST_BASE}/test/test-data/modules/qkd-sync"
+
+( ${TEST_BASE}/bin/qkd-cat --debug --run --config "${PIPELINE_CONFIG}/pipeline-cat.conf" 2> cat.alice.debug ) &
+( ${TEST_BASE}/bin/qkd-cat --debug --bob --run --config "${PIPELINE_CONFIG}/pipeline-cat.conf" 2> cat.bob.debug ) &
+( ${TEST_BASE}/bin/qkd-sync --debug --run --config "${PIPELINE_CONFIG}/pipeline-sync.1.conf" 2> sync.1.alice.debug) &
+( ${TEST_BASE}/bin/qkd-sync --debug --bob --run --config "${PIPELINE_CONFIG}/pipeline-sync.1.conf" 2> sync.1.bob.debug) &
+( ${TEST_BASE}/bin/qkd-reorder --debug --run --config "${PIPELINE_CONFIG}/pipeline-reorder.1.conf" 2> reorder.1.alice.debug ) &
+( ${TEST_BASE}/bin/qkd-reorder --debug --bob --run --config "${PIPELINE_CONFIG}/pipeline-reorder.1.conf" 2> reorder.1.bob.debug) &
+
+( ${TEST_BASE}/bin/qkd-reorder --debug --run --config "${PIPELINE_CONFIG}/pipeline-reorder.2.1.conf" 2> reorder.2.1.alice.debug ) &
+( ${TEST_BASE}/bin/qkd-reorder --debug --bob --run --config "${PIPELINE_CONFIG}/pipeline-reorder.2.2.conf" 2> reorder.2.1.bob.debug) &
+( ${TEST_BASE}/bin/qkd-reorder --debug --run --config "${PIPELINE_CONFIG}/pipeline-reorder.2.2.conf" 2> reorder.2.2.alice.debug ) &
+( ${TEST_BASE}/bin/qkd-reorder --debug --bob --run --config "${PIPELINE_CONFIG}/pipeline-reorder.2.2.conf" 2> reorder.2.2.bob.debug) &
+
+( ${TEST_BASE}/bin/qkd-reorder --debug --run --config "${PIPELINE_CONFIG}/pipeline-reorder.2.3.conf" 2> reorder.2.3.alice.debug ) &
+( ${TEST_BASE}/bin/qkd-reorder --debug --bob --run --config "${PIPELINE_CONFIG}/pipeline-reorder.2.2.conf" 2> reorder.2.3.bob.debug) &
+( ${TEST_BASE}/bin/qkd-reorder --debug --run --config "${PIPELINE_CONFIG}/pipeline-reorder.2.4.conf" 2> reorder.2.4.alice.debug ) &
+( ${TEST_BASE}/bin/qkd-reorder --debug --bob --run --config "${PIPELINE_CONFIG}/pipeline-reorder.2.2.conf" 2> reorder.2.4.bob.debug) &
+
+( ${TEST_BASE}/bin/qkd-sync --debug --run --config "${PIPELINE_CONFIG}/pipeline-sync.2.conf" 2> sync.2.alice.debug) &
+( ${TEST_BASE}/bin/qkd-sync --debug --bob --run --config "${PIPELINE_CONFIG}/pipeline-sync.2.conf" 2> sync.2.bob.debug) &
+( ${TEST_BASE}/bin/qkd-tee --debug --run --config "${PIPELINE_CONFIG}/pipeline-tee.conf" 1> /dev/null 2> tee.alice.debug) &
+( ${TEST_BASE}/bin/qkd-tee --debug --bob --run --config "${PIPELINE_CONFIG}/pipeline-tee.conf" 1> /dev/null 2> tee.bob.debug) &
+
+exit 1
+
+while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module.cascade | wc -l)" = "0" ]; do
+    echo "waiting for the pipeline to ignite ..."
+    sleep 0
+done
+wait_idle
+echo "got keys"
+
+test_cleanup
+
+# check how many 
+if [ ! -s cascade_keys.alice ]; then
+    echo "alice has not pushed keys"
+    exit 1
+fi
+if [ ! -s cascade_keys.bob ]; then
+    echo "bob has not pushed keys"
+    exit 1
+fi
+diff -q cascade_keys.alice cascade_keys.bob
+if [ "$?" != "0" ]; then
+    echo "cascade created different results - failed"
+    exit 1
+fi
+echo "cascade corrected keys - ok"
+
+echo "=== TEST SUCCESS ==="

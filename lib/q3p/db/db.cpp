@@ -32,6 +32,7 @@
 // incs
 
 // ait
+#include <qkd/exception/db_error.h>
 #include <qkd/q3p/db.h>
 
 #include "db_file.h"
@@ -79,6 +80,6 @@ key_db db::open(QString sURL) {
         return cKeyDB;
     }
     
-    throw db_url_scheme_unknown();
+    throw qkd::exception::db_error("unknown database url scheme");
 }
 

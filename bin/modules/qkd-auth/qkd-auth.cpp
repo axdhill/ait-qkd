@@ -241,7 +241,7 @@ bool qkd_auth::authenticate(qkd::key::key & cKey,
     
     try {
         qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
-        send(cMessage, cCryptoContext);
+        send(cKey.id(), cMessage, cCryptoContext);
     }
     catch (std::runtime_error const & cRuntimeError) {
         qkd::utility::syslog::crit() << __FILENAME__ 
@@ -273,7 +273,7 @@ bool qkd_auth::authenticate(qkd::key::key & cKey,
     qkd::utility::memory cPeerTagOutgoing;
     try {
         qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
-        if (!recv(cMessage, cCryptoContext)) return false;
+        if (!recv(cKey.id(), cMessage, cCryptoContext)) return false;
     }
     catch (std::runtime_error const & cRuntimeError) {
         qkd::utility::syslog::crit() 

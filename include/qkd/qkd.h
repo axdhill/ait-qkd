@@ -35,6 +35,13 @@
 // ------------------------------------------------------------
 // incs
 
+// exceptions
+#include <qkd/exception/connection_error.h>
+#include <qkd/exception/db_error.h>
+#include <qkd/exception/network_error.h>
+#include <qkd/exception/protocol_error.h>
+#include <qkd/exception/randomengine_error.h>
+
 // QKD utility stuff
 #include <qkd/utility/atof.h>
 #include <qkd/utility/average.h>

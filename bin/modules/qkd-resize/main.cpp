@@ -95,23 +95,23 @@ int main(int argc, char ** argv) {
     
     if (cVariableMap.count("debug")) qkd::utility::debug::enabled() = true;
     
-    qkd_resize cQKDBuffer;
-    cQKDBuffer.set_debug_message_flow(cVariableMap.count("debug-message-flow") > 0);
-    cQKDBuffer.set_debug_key_sync(cVariableMap.count("debug-key-sync") > 0);
+    qkd_resize cQKDResize;
+    cQKDResize.set_debug_message_flow(cVariableMap.count("debug-message-flow") > 0);
+    cQKDResize.set_debug_key_sync(cVariableMap.count("debug-key-sync") > 0);
     if (cVariableMap.count("bob")) {
-        cQKDBuffer.set_role((unsigned long)qkd::module::module_role::ROLE_BOB);
+        cQKDResize.set_role((unsigned long)qkd::module::module_role::ROLE_BOB);
     }
     else {
-        cQKDBuffer.set_role((unsigned long)qkd::module::module_role::ROLE_ALICE);
+        cQKDResize.set_role((unsigned long)qkd::module::module_role::ROLE_ALICE);
     }
     if (cVariableMap.count("config")) {
-        cQKDBuffer.configure(QString::fromStdString(cVariableMap["config"].as<std::string>()), true);
+        cQKDResize.configure(QString::fromStdString(cVariableMap["config"].as<std::string>()), true);
     }
-    if (cVariableMap.count("run")) cQKDBuffer.start_later();
+    if (cVariableMap.count("run")) cQKDResize.start_later();
     
-    cApp.connect(&cQKDBuffer, SIGNAL(terminated()), SLOT(quit()));
+    cApp.connect(&cQKDResize, SIGNAL(terminated()), SLOT(quit()));
     int nAppExit = cApp.exec();
-    cQKDBuffer.join();
+    cQKDResize.join();
     
     return nAppExit;
 }

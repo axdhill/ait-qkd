@@ -196,7 +196,7 @@ bool qkd_confirmation::process_alice(qkd::key::key & cKey, qkd::crypto::crypto_c
     
     // send to bob
     try {
-        send(cMessage, cOutgoingContext);
+        send(cKey.id(), cMessage, cOutgoingContext);
     }
     catch (std::runtime_error const & cRuntimeError) {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to send message: " << cRuntimeError.what();
@@ -205,7 +205,7 @@ bool qkd_confirmation::process_alice(qkd::key::key & cKey, qkd::crypto::crypto_c
     
     // recv from bob's parities
     try {
-        if (!recv(cMessage, cIncomingContext, qkd::module::message_type::MESSAGE_TYPE_DATA)) return false;
+        if (!recv(cKey.id(), cMessage, cIncomingContext, qkd::module::message_type::MESSAGE_TYPE_DATA)) return false;
     }
     catch (std::runtime_error const & cRuntimeError) {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to receive message: " << cRuntimeError.what();
@@ -256,7 +256,7 @@ bool qkd_confirmation::process_bob(qkd::key::key & cKey, qkd::crypto::crypto_con
     
     // recv data from alice
     try {
-        if (!recv(cMessage, cIncomingContext, qkd::module::message_type::MESSAGE_TYPE_DATA)) return false;
+        if (!recv(cKey.id(), cMessage, cIncomingContext, qkd::module::message_type::MESSAGE_TYPE_DATA)) return false;
     }
     catch (std::runtime_error const & cRuntimeError) {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to receive message: " << cRuntimeError.what();
@@ -303,7 +303,7 @@ bool qkd_confirmation::process_bob(qkd::key::key & cKey, qkd::crypto::crypto_con
     for (auto bParity : cParities) cMessage.data() << bParity;
     
     try {
-        send(cMessage, cOutgoingContext);
+        send(cKey.id(), cMessage, cOutgoingContext);
     }
     catch (std::runtime_error const & cRuntimeError) {
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed to send message: " << cRuntimeError.what();

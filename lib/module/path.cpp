@@ -34,6 +34,7 @@
 // Qt
 #include <QtCore/QUrl>
 
+#include <qkd/exception/network_error.h>
 #include <qkd/utility/environment.h>
 #include <qkd/utility/syslog.h>
 
@@ -70,7 +71,9 @@ public:
      */
     zmq_init() {
         g_cZMQContext = zmq_ctx_new();
-        if (g_cZMQContext == nullptr) throw std::runtime_error("unable to create 0MQ context");
+        if (g_cZMQContext == nullptr) {
+            throw qkd::exception::network_error("unable to create 0MQ context");
+        }
     }
     
     
@@ -125,7 +128,7 @@ boost::filesystem::path path::create_ipc_socket(std::string sIPCSocketFileName) 
                     
             std::stringstream ss;
             ss << "unable to create IPC socket file folder '" << cIPCPath.string() << "'";
-            throw std::runtime_error(ss.str());
+            throw qkd::exception::network_error(ss.str());
         }
     }
     
@@ -280,32 +283,32 @@ void path::prepare(int nHighWaterMark, int nTimeout) {
         reset();
         std::stringstream ss;
         ss << "failed to set high water mark on socket: " << strerror(zmq_errno());
-        throw std::runtime_error(ss.str());
+        throw qkd::exception::network_error(ss.str());
     }
     if (zmq_setsockopt(m_cSocket, ZMQ_SNDHWM, &nHighWaterMark, sizeof(nHighWaterMark)) == -1) {
         reset();
         std::stringstream ss;
         ss << "failed to set high water mark on socket: " << strerror(zmq_errno());
-        throw std::runtime_error(ss.str());
+        throw qkd::exception::network_error(ss.str());
     }
     if (!set_timeout_incoming(nTimeout)) {
         reset();
         std::stringstream ss;
         ss << "failed to set receive timeout on socket: " << strerror(zmq_errno());
-        throw std::runtime_error(ss.str());
+        throw qkd::exception::network_error(ss.str());
     }
     if (!set_timeout_outgoing(nTimeout)) {
         reset();
         std::stringstream ss;
         ss << "failed to set send timeout on socket: " << strerror(zmq_errno());
-        throw std::runtime_error(ss.str());
+        throw qkd::exception::network_error(ss.str());
     }
 
     int nLinger = 0;
     if (zmq_setsockopt(m_cSocket, ZMQ_LINGER, &nLinger, sizeof(nLinger)) == -1) {
         std::stringstream ss;
         ss << "failed to set linger on socket: " << strerror(zmq_errno());
-        throw std::runtime_error(ss.str());
+        throw qkd::exception::network_error(ss.str());
     }
 }
 
@@ -472,7 +475,7 @@ void path::setup(bool bServer, int nSocketType, int nTimeout, int nHighWaterMark
         if (zmq_bind(m_cSocket, m_sURL.c_str()) == -1) {
             std::stringstream ss;
             ss << "url: '" << m_sURL << "' - failed to bind socket: " << strerror(zmq_errno());
-            throw std::runtime_error(ss.str());
+            throw qkd::exception::network_error(ss.str());
         }
         
     }
@@ -480,7 +483,7 @@ void path::setup(bool bServer, int nSocketType, int nTimeout, int nHighWaterMark
         if (zmq_connect(m_cSocket, m_sURL.c_str()) == -1) {
             std::stringstream ss;
             ss << "url: '" << m_sURL << "' - failed to connect socket: " << strerror(zmq_errno());
-            throw std::runtime_error(ss.str());
+            throw qkd::exception::network_error(ss.str());
         }
     }
 }

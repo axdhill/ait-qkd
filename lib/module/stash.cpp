@@ -33,6 +33,8 @@
 
 #include <algorithm>
 
+#include <qkd/exception/network_error.h>
+#include <qkd/exception/protocol_error.h>
 #include <qkd/module/module.h>
 #include <qkd/utility/debug.h>
 #include <qkd/utility/syslog.h>
@@ -152,7 +154,7 @@ qkd::key::key stash::pick_alice() {
     
     qkd::key::key cKey = choose();
 
-    qkd::module::message cMessage(qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
+    qkd::module::message cMessage(0, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
     if (cKey.is_null()) {
         cMessage.data() << (uint32_t)sync_command::SYNC_COMMAND_NOPICK;
         if (m_cModule->debug_key_sync()) qkd::utility::debug() << "key-SYNC no key to pick";
@@ -165,7 +167,7 @@ qkd::key::key stash::pick_alice() {
 
     try {
         qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
-        m_cModule->send(cMessage, cCryptoContext);
+        m_cModule->send(0, cMessage, cCryptoContext);
     }
     catch (std::runtime_error & cException) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
@@ -178,16 +180,16 @@ qkd::key::key stash::pick_alice() {
     cMessage = qkd::module::message();
     try {
         qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
-        m_cModule->recv(cMessage, cCryptoContext, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
+        m_cModule->recv(0, cMessage, cCryptoContext, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
     }
-    catch (std::runtime_error & cException) {
+    catch (qkd::exception::network_error & cException) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
                 << ": failed to receive acknowledge of key to pick: " << cException.what();
         return qkd::key::key::null();
     }
     
     if (cMessage.type() != qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC) {
-        throw std::runtime_error("received a non-sync message during key sync pick");
+        throw qkd::exception::protocol_error("received a non-sync message during key sync pick");
     }
     
     uint32_t nCmdSync = 0;
@@ -203,7 +205,7 @@ qkd::key::key stash::pick_alice() {
         return qkd::key::key::null();
         
     default:
-        throw std::runtime_error("received a invalid answer for key pick assignment");
+        throw qkd::exception::protocol_error("received a invalid answer for key pick assignment");
     }
     
     remove(cKey.id());
@@ -224,7 +226,7 @@ qkd::key::key stash::pick_bob() {
     qkd::module::message cMessage;
     try {
         qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
-        m_cModule->recv(cMessage, cCryptoContext, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
+        m_cModule->recv(0, cMessage, cCryptoContext, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
     }
     catch (std::runtime_error & cException) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
@@ -233,7 +235,7 @@ qkd::key::key stash::pick_bob() {
     }
     
     if (cMessage.type() != qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC) {
-        throw std::runtime_error("accidentally received a non-sync message when waiting for key to pick");
+        throw qkd::exception::protocol_error("accidentally received a non-sync message when waiting for key to pick");
     }
     
     uint32_t nCmdSync;
@@ -248,7 +250,7 @@ qkd::key::key stash::pick_bob() {
         return qkd::key::key::null();
         
     default:
-        throw std::runtime_error("key sync message does not contain pick command");
+        throw qkd::exception::protocol_error("key sync message does not contain pick command");
     }
     
     qkd::key::key_id nKeyId;
@@ -258,7 +260,7 @@ qkd::key::key stash::pick_bob() {
             m_cStash.end(), 
             [&](stashed_key const & cKeyStash) { return (cKeyStash.cKey.id() == nKeyId); });
     
-    cMessage = qkd::module::message(qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
+    cMessage = qkd::module::message(0, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
     if (iter != m_cStash.end()) {
         cMessage.data() << (uint32_t)sync_command::SYNC_COMMAND_PICK_ACK;
     }
@@ -268,7 +270,7 @@ qkd::key::key stash::pick_bob() {
     
     try {
         qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
-        m_cModule->send(cMessage, cCryptoContext);
+        m_cModule->send(0, cMessage, cCryptoContext);
     }
     catch (std::runtime_error & cException) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
@@ -327,7 +329,7 @@ void stash::push(qkd::key::key & cKey) {
 void stash::recv(qkd::module::message & cMessage) {
     
     if (cMessage.type() != qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC) {
-        throw std::runtime_error("accidentally tried to sync keys based on a non-sync message");
+        throw qkd::exception::protocol_error("accidentally tried to sync keys based on a non-sync message");
     }
 
     m_cPeerStash.clear();
@@ -335,7 +337,7 @@ void stash::recv(qkd::module::message & cMessage) {
     uint32_t nSyncCmd;
     cMessage.data() >> nSyncCmd;
     if ((sync_command)nSyncCmd != sync_command::SYNC_COMMAND_LIST) {
-        throw std::runtime_error("sync list expected, but other command received");
+        throw qkd::exception::protocol_error("sync list expected, but other command received");
     }
     
     uint64_t nPeerStashKeys = 0;
@@ -379,7 +381,7 @@ void stash::remove(qkd::key::key_id nKeyId) {
  */
 void stash::send() {
     
-    qkd::module::message cMessage(qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
+    qkd::module::message cMessage(0, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC);
     cMessage.data() << (uint32_t)sync_command::SYNC_COMMAND_LIST;
     cMessage.data() << m_cStash.size();
     for (auto const & k : m_cStash) cMessage.data() << k.cKey.id();
@@ -388,7 +390,7 @@ void stash::send() {
     
     try {
         qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
-        m_cModule->send(cMessage, cCryptoContext);
+        m_cModule->send(0, cMessage, cCryptoContext);
     }
     catch (std::runtime_error & cException) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
@@ -412,7 +414,7 @@ void stash::sync() {
         try {
             qkd::module::message cMessage;
             qkd::crypto::crypto_context cCryptoContext = qkd::crypto::context::null_context();
-            if (m_cModule->recv(cMessage, cCryptoContext, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC)) {
+            if (m_cModule->recv(0, cMessage, cCryptoContext, qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC)) {
                 recv(cMessage);
             }
         }

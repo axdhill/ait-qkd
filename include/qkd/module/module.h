@@ -48,6 +48,7 @@
 #include <QtDBus/QtDBus>
 
 // ait
+#include <qkd/common_macros.h>
 #include <qkd/key/key.h>
 #include <qkd/module/communicator.h>
 #include <qkd/module/connection.h>
@@ -590,12 +591,15 @@ public:
      * returns a facade object to module's internal send/recv methods
      * to be used anywhere
      *
+     * @param   nKeyId                  key id to bound the communicator to
      * @param   cIncomingContext        the incoming auth context
      * @param   cOutgoingContext        the outgoing auth context
      * @return  a module communication object
      */
-    communicator comm(qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext) { 
-        return communicator(this, cIncomingContext, cOutgoingContext); 
+    typename qkd::module::communicator communicator(qkd::key::key_id nKeyId,
+                                                    qkd::crypto::crypto_context & cIncomingContext, 
+                                                    qkd::crypto::crypto_context & cOutgoingContext) { 
+        return qkd::module::communicator(this, nKeyId, cIncomingContext, cOutgoingContext); 
     }
     
     
@@ -1493,14 +1497,45 @@ protected:
      * Internally the recv_internal method is called and the actual receive
      * is performed. 
      * 
+     * @deprecated
      * @param   cMessage            this will receive the message
      * @param   cAuthContext        the authentication context involved
      * @param   eType               message type to receive
      * @return  true, if we have received a message, false else
      */
     virtual bool recv(qkd::module::message & cMessage, 
-            qkd::crypto::crypto_context & cAuthContext, 
-            qkd::module::message_type eType = qkd::module::message_type::MESSAGE_TYPE_DATA);
+                      qkd::crypto::crypto_context & cAuthContext, 
+                      qkd::module::message_type eType = qkd::module::message_type::MESSAGE_TYPE_DATA) DEPRECATED;
+
+    
+    /**
+     * read a message from the peer module
+     * 
+     * this call is blocking
+     * 
+     * Every message's data recveived from the peer must be associated with the current key
+     * we are working on. Therefore the given key id will be compared with the message's key id.
+     * On mismatch a qkd::exception::protocol_error will be thrown.
+     * 
+     * The given message object will be deleted with delete before assigning new values.
+     * Therefore if message receive has been successful the message is not NULL
+     * 
+     * This call waits explicitly for the next message been of type eType. If this
+     * is NOT the case a exception is thrown.
+     * 
+     * Internally the recv_internal method is called and the actual receive
+     * is performed. 
+     * 
+     * @param   nKeyId              the key id we are currently working on
+     * @param   cMessage            this will receive the message
+     * @param   cAuthContext        the authentication context involved
+     * @param   eType               message type to receive
+     * @return  true, if we have received a message, false else
+     */
+    virtual bool recv(qkd::key::key_id nKeyId,
+                      qkd::module::message & cMessage, 
+                      qkd::crypto::crypto_context & cAuthContext, 
+                      qkd::module::message_type eType = qkd::module::message_type::MESSAGE_TYPE_DATA);
 
     
     /**
@@ -1527,13 +1562,45 @@ protected:
      * 
      * The path index holds the number of the path to choose. 
      * On -1 the next suitable path(s) are taken.
-     *
+     * 
+     * @deprecated
      * @param   cMessage            the message to send
      * @param   cAuthContext        the authentication context involved
      * @param   nPath               path index to send
      * @returns true, if successfully sent
      */
-    virtual bool send(qkd::module::message & cMessage, qkd::crypto::crypto_context & cAuthContext, int nPath = -1);
+    virtual bool send(qkd::module::message & cMessage, 
+                      qkd::crypto::crypto_context & cAuthContext, 
+                      int nPath = -1) DEPRECATED;
+
+    
+    /**
+     * send a message to the peer module
+     * 
+     * this call is blocking
+     * 
+     * Every message sent to the remote peer module requires a key id. This
+     * is necessary in order to ensure that the data of messages received are 
+     * dealing with the very same key the module is currently working upon.
+     * 
+     * Note: this function takes ownership of the message's data sent! 
+     * Afterwards the message's data will be void
+     *
+     * Sending might fail on interrupt.
+     * 
+     * The path index holds the number of the path to choose. 
+     * On -1 the next suitable path(s) are taken.
+     * 
+     * @param   nKeyId              the key id the message is bound to
+     * @param   cMessage            the message to send
+     * @param   cAuthContext        the authentication context involved
+     * @param   nPath               path index to send
+     * @returns true, if successfully sent
+     */
+    virtual bool send(qkd::key::key_id nKeyId, 
+                      qkd::module::message & cMessage, 
+                      qkd::crypto::crypto_context & cAuthContext, 
+                      int nPath = -1);
 
     
     /**

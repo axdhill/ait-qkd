@@ -47,14 +47,10 @@ echo -n > bb84_debug.bob
 KEYS_TO_PROCESS="1000"
 ${TEST_BASE}/bin/qkd-key-gen --silent --size 2048 --keys ${KEYS_TO_PROCESS} --quantum --rate 0.05 cat_keys
 
-cat ${TEST_BASE}/test/test-data/pipeline.conf | grep -v "^cat.alice.url_pipe_out" | grep -v "^cat.bob.url_pipe_out" > bb84.config
-echo "cat.alice.url_pipe_out = ipc:///tmp/qkd/bb84.alice.in" >> bb84.config
-echo "cat.bob.url_pipe_out = ipc:///tmp/qkd/bb84.bob.in" >> bb84.config
+PIPELINE_CONFIG="${TEST_BASE}/test/test-data/modules/qkd-sifting-bb84/pipeline.conf"
 
-PIPELINE_CONFIG="bb84.config"
-
-( ${TEST_BASE}/bin/qkd-cat --run --config ${PIPELINE_CONFIG} --file "cat_keys.alice" ) &
-( ${TEST_BASE}/bin/qkd-cat --bob --run --config ${PIPELINE_CONFIG} --file "cat_keys.bob" ) &
+( ${TEST_BASE}/bin/qkd-cat --debug --run --config ${PIPELINE_CONFIG} 2>> cat_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-cat --debug --bob --run --config ${PIPELINE_CONFIG} 2>> cat_debug.alice ) &
 ( ${TEST_BASE}/bin/qkd-sifting-bb84 --debug --run --config ${PIPELINE_CONFIG} 1> bb84_keys.alice 2>> bb84_debug.alice ) &
 ( ${TEST_BASE}/bin/qkd-sifting-bb84 --debug --bob --run --config ${PIPELINE_CONFIG} 1> bb84_keys.bob 2>> bb84_debug.bob ) &
 

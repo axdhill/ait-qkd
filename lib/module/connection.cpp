@@ -41,12 +41,15 @@
 #include <QtCore/QString>
 #include <QtCore/QUrl>
 
+#include <qkd/exception/connection_error.h>
+#include <qkd/exception/network_error.h>
 #include <qkd/utility/buffer.h>
 #include <qkd/utility/debug.h>
 #include <qkd/utility/environment.h>
 #include <qkd/utility/syslog.h>
 
 #include <qkd/module/connection.h>
+
 
 using namespace qkd::module;
 
@@ -175,7 +178,7 @@ std::list<path_ptr> connection::get_next_paths() {
         break;
     
     default:
-        throw std::runtime_error("cannot deduce paths for next action on current connection");
+        throw qkd::exception::connection_error("cannot deduce paths for next action on current connection");
     }
     
     return res;
@@ -191,7 +194,7 @@ std::list<path_ptr> connection::get_next_paths() {
 bool connection::read_key(qkd::key::key & cKey) {
 
     if (m_eType != connection_type::PIPE_IN) {
-        throw std::runtime_error("tried to read key on a non-pipe-in connection");
+        throw qkd::exception::connection_error("tried to read key on a non-pipe-in connection");
     }
     
     // empty in/out key
@@ -253,7 +256,7 @@ bool connection::read_key(qkd::module::path & cPath, qkd::key::key & cKey) {
 
         std::stringstream ss;
         ss << "failed reading key: " << strerror(zmq_errno());
-        throw std::runtime_error(ss.str());
+        throw qkd::exception::network_error(ss.str());
     }
 
     qkd::utility::buffer cData = qkd::utility::buffer(qkd::utility::memory::wrap((unsigned char *)m.data(), m.size()));
@@ -272,7 +275,7 @@ bool connection::read_key(qkd::module::path & cPath, qkd::key::key & cKey) {
  * Therefore if message receive has been successful the message is not NULL
  * 
  * This call waits explicitly for the next message been of type eType. If this
- * is NOT the case a exception is thrown.
+ * is NOT the case an exception is thrown.
  * 
  * @param   cMessage            this will receive the message
  * @return  true, if we have received a message
@@ -325,7 +328,7 @@ bool connection::recv_message(qkd::module::path & cPath, qkd::module::message & 
     
     if (cPath.is_void()) return false;
     if (cPath.is_stdin()) {
-        throw std::runtime_error("don't know how to read a message from stdin");
+        throw qkd::exception::connection_error("don't know how to read a message from stdin");
     }
 
     // --> get the message header    
@@ -341,12 +344,12 @@ bool connection::recv_message(qkd::module::path & cPath, qkd::module::message & 
 
             std::stringstream ss;
             ss << "failed reading message header from peer: " << strerror(zmq_errno());
-            throw std::runtime_error(ss.str());
+            throw qkd::exception::network_error(ss.str());
         }
         
     } while (nReadHeader <= 0);
     if (!cMsgHeader.more() || (cMsgHeader.size() != sizeof(cMessage.m_cHeader))) {
-        throw std::runtime_error("received invalid message header");
+        throw qkd::exception::network_error("received invalid message header");
     }
     memcpy(&(cMessage.m_cHeader), (unsigned char *)cMsgHeader.data(), sizeof(cMessage.m_cHeader));
 
@@ -363,7 +366,7 @@ bool connection::recv_message(qkd::module::path & cPath, qkd::module::message & 
 
             std::stringstream ss;
             ss << "failed reading message data from peer: " << strerror(zmq_errno());
-            throw std::runtime_error(ss.str());
+            throw qkd::exception::network_error(ss.str());
         }
         
     } while (nReadData <= 0);
@@ -407,7 +410,7 @@ bool connection::send_message(qkd::module::message & cMessage, int nPath) {
         cPaths = get_next_paths();
     }
     else {
-        if (static_cast<size_t>(nPath) >= m_cPaths.size()) throw std::out_of_range("path index out of range");
+        if (static_cast<size_t>(nPath) >= m_cPaths.size()) throw qkd::exception::connection_error("path index out of range");
         cPaths.push_back(m_cPaths[nPath]);
     }
     
@@ -440,7 +443,7 @@ bool connection::send_message(qkd::module::path & cPath, qkd::module::message & 
     
     if (cPath.is_void()) return false;
     if (cPath.is_stdout()) {
-        throw std::runtime_error("don't know how to send a message on stdout");
+        throw qkd::exception::connection_error("don't know how to send a qkd peer module message on stdout");
     }
     
     cMessage.m_cHeader.nId = htobe32(++qkd::module::message::m_nLastId);
@@ -456,7 +459,7 @@ bool connection::send_message(qkd::module::path & cPath, qkd::module::message & 
 
         std::stringstream ss;
         ss << "failed sending message header to peer: " << strerror(zmq_errno());
-        throw std::runtime_error(ss.str());
+        throw qkd::exception::network_error(ss.str());
     }
 
     int nSentData = cPath.send(cMessage.data().get(), cMessage.data().size());
@@ -468,7 +471,7 @@ bool connection::send_message(qkd::module::path & cPath, qkd::module::message & 
         }
         std::stringstream ss;
         ss << "failed sending message data to peer: " << strerror(zmq_errno());
-        throw std::runtime_error(ss.str());
+        throw qkd::exception::network_error(ss.str());
     }
 
     return true;
@@ -532,7 +535,7 @@ std::string connection::urls_string() const {
 bool connection::write_key(qkd::key::key const & cKey, int nPath) {
     
     if (m_eType != connection_type::PIPE_OUT) {
-        throw std::runtime_error("tried to write key to a non-pipe-out connection");
+        throw qkd::exception::connection_error("tried to write key to a non-pipe-out connection");
     }
     
     std::list<path_ptr> cPaths;
@@ -540,7 +543,7 @@ bool connection::write_key(qkd::key::key const & cKey, int nPath) {
         cPaths = get_next_paths();
     }
     else {
-        if (static_cast<size_t>(nPath) >= m_cPaths.size()) throw std::out_of_range("path index out of range");
+        if (static_cast<size_t>(nPath) >= m_cPaths.size()) throw qkd::exception::connection_error("path index out of range");
         cPaths.push_back(m_cPaths[nPath]);
     }
     if (cPaths.empty()) return true;
@@ -595,7 +598,7 @@ bool connection::write_key(qkd::module::path & cPath, qkd::key::key const & cKey
 
             std::stringstream ss;
             ss << "failed writing key to next module: " << strerror(zmq_errno());
-            throw std::runtime_error(ss.str());
+            throw qkd::exception::network_error(ss.str());
         }
         
     } while (nWritten <= 0);

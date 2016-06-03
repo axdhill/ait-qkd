@@ -97,12 +97,16 @@ void random_cbc_aes::get(char * cBuffer, uint64_t nSize) {
  */
 void random_cbc_aes::init() {
     
-    if (m_sCBCAES.substr(0, std::string("cbc-aes").length()) != "cbc-aes") throw random_init_error();
+    if (m_sCBCAES.substr(0, std::string("cbc-aes").length()) != "cbc-aes") {
+        throw qkd::exception::randomengine_error("wrong url syntax on init of cbc-aes random engine");
+    }
     
     // get the tokens
     std::vector<std::string> sTokenScheme;
     boost::split(sTokenScheme, m_sCBCAES, boost::is_any_of(":"));
-    if (sTokenScheme.size() != 2) throw random_init_error();
+    if (sTokenScheme.size() != 2) {
+        throw qkd::exception::randomengine_error("invalid url syntax for cbc-aes random engine scheme");
+    }
     
     // parse the second token --> key
     qkd::utility::memory cKey = qkd::utility::memory::from_hex(sTokenScheme[1]);
@@ -128,12 +132,11 @@ void random_cbc_aes::init() {
         break;
         
     case 256 / 8:
-        EVP_EncryptInit(&m_cCipherContext, EVP_aes_128_cbc(), cKey.get(), cIV.get());
+        EVP_EncryptInit(&m_cCipherContext, EVP_aes_256_cbc(), cKey.get(), cIV.get());
         m_sCBCAES = "cbc-aes-256";
         break;
 
     default:
-        // unknown key size ==> unknown cbc-aes algorithm
-        throw random_init_error();
+        throw qkd::exception::randomengine_error("unknown key size yields unknown cbc-aes algorithm");
     }
 }
