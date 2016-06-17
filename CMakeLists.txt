@@ -408,6 +408,7 @@ install(DIRECTORY etc/q3p etc/qkd DESTINATION /etc)
 
 option(PACKAGE_DEBIAN8      "Build Debian8 package"         ON)
 option(PACKAGE_UBUNTU15     "Build Ubuntu15 package"        OFF)
+option(PACKAGE_UBUNTU16     "Build Ubuntu16 package"        OFF)
 set(PACKAGES_TO_BUILD 0)
 
 # only one package at a time allowed
@@ -422,6 +423,12 @@ if (PACKAGE_UBUNTU15)
     MATH(EXPR PACKAGES_TO_BUILD "${PACKAGES_TO_BUILD} + 1")
     set(PACKAGE_TARGET_SYSTEM "ubuntu15")
 endif (PACKAGE_UBUNTU15)
+
+if (PACKAGE_UBUNTU16)
+    message(STATUS "Building ubuntu16 packages")
+    MATH(EXPR PACKAGES_TO_BUILD "${PACKAGES_TO_BUILD} + 1")
+    set(PACKAGE_TARGET_SYSTEM "ubuntu16")
+endif (PACKAGE_UBUNTU16)
 
 if (PACKAGES_TO_BUILD GREATER 1) 
     message(WARNING "Can't build more package at the time. The last one counts: ${PACKAGE_TARGET_SYSTEM}")
@@ -508,4 +515,39 @@ if (${PACKAGE_TARGET_SYSTEM} STREQUAL "ubuntu15")
 
 endif (${PACKAGE_TARGET_SYSTEM} STREQUAL "ubuntu15")
 
+
+# ---------- ubuntu 16 (xenial) ----------
+
+if (${PACKAGE_TARGET_SYSTEM} STREQUAL "ubuntu16")
+
+    message(STATUS "Package creation set to 'ubuntu16'")
+    
+    set(CPACK_GENERATOR "DEB")
+
+    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}-0ubuntu16_${CMAKE_SYSTEM_PROCESSOR}")
+    set(CPACK_SOURCE_IGNORE_FILES "/build/*;/.git/")
+
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.13), libgcc1 (>= 1:4.4), libgmp10, libboost-filesystem1.58.0, libboost-program-options1.58.0, libboost-system1.58.0, libzmq5, libqtgui4, libqtdbus4, libqt4-network, libqwt6abi1, libcap2-bin, python3")
+    set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cpack/deb/control/postinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/cpack/deb/control/postrm;${CMAKE_CURRENT_SOURCE_DIR}/cmake/cpack/deb/control/prerm;")
+
+    # debianization
+    string(TOLOWER "${CPACK_PACKAGE_NAME}" CPACK_PACKAGE_NAME_LOWERCASE)
+    find_program(DPKG_PROGRAM dpkg DOC "dpkg program of Debian-based systems")
+    if (DPKG_PROGRAM)
+        # use dpkg to fix the package file name
+        execute_process(
+            COMMAND ${DPKG_PROGRAM} --print-architecture
+            OUTPUT_VARIABLE CPACK_DEBIAN_PACKAGE_ARCHITECTURE
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME_LOWERCASE}_${CPACK_PROJECT_VERSION_STRING}-0ubuntu16_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
+        set(PACKAGE_ARCH ${CPACK_DEBIAN_PACKAGE_ARCHITECTURE})
+    else (DPKG_PROGRAM)
+        set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME_LOWERCASE}_${CPACK_PROJECT_VERSION_STRING}-0ubuntu16_${CMAKE_SYSTEM_NAME}")
+        set(PACKAGE_ARCH ${CMAKE_HOST_SYSTEM_PROCESSOR})
+    endif (DPKG_PROGRAM)
+
+    include(CPack)
+
+endif (${PACKAGE_TARGET_SYSTEM} STREQUAL "ubuntu16")
 
