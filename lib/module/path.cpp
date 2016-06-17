@@ -447,8 +447,8 @@ void path::set_url(std::string sURL, bool bServer, int nSocketType, int nTimeout
 /**
  * setup the path
  * 
- * @param   bServer         rather use "bind()" for socket and not "connect()"
- * @param   nSocketType     the ZMQ socket type
+ * @param   bServer             rather use "bind()" for socket and not "connect()"
+ * @param   nSocketType         the ZMQ socket type
  * @param   nTimeout            the timeout in milliseconds for actions on this path
  * @param   nHighWaterMark      the number of messages in transit for this path
  */

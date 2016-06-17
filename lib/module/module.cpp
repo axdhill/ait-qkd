@@ -851,9 +851,6 @@ bool module::recv(qkd::key::key_id nKeyId,
  * The given message object will be deleted with delete before assigning new values.
  * Therefore if message receive has been successful the message is not NULL
  * 
- * This call waits explicitly for the next message been of type eType. If this
- * is NOT the case a exception is thrown.
- * 
  * @param   cMessage            this will receive the message
  * @return  true, if we have received a message
  */

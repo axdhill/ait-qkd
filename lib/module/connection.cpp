@@ -55,6 +55,60 @@ using namespace qkd::module;
 
 
 // ------------------------------------------------------------
+// decl
+
+
+/**
+ * internal used connection object details
+ */
+class qkd::module::connection::connection_internal {
+    
+    
+public:
+    
+    
+    /**
+     * ctor
+     * 
+     * @param   cConnection         the parent connection
+     * @param   eType               connection type
+     */
+    connection_internal(qkd::module::connection * cConnection, connection_type eType) : 
+    
+            m_eType(eType), 
+            m_eSocketSendMode(socket_send_mode::ROUND_ROBIN), 
+            m_nCurrentPathIndex(0),
+            m_cConnection(cConnection) {
+                
+        if (!m_cConnection) {
+            throw std::invalid_argument("Invalid parent connection object for internal connection object.");
+        }
+    }
+
+
+    
+    connection_type m_eType;                                    /**< connection type */
+    enum socket_send_mode m_eSocketSendMode;                    /**< outgoing mode */
+    
+    std::vector<path_ptr> m_cPaths;                             /**< the paths we use */
+    unsigned int m_nCurrentPathIndex;                           /**< current path index */
+    
+    std::deque<qkd::key::key> m_cKeysInStock;                   /**< read keys not yet delivered */
+    std::deque<qkd::module::message> m_cMessagesInStock;        /**< read messages not yet delivered */
+
+        
+private:
+    
+    
+    /**
+     * the parent connection
+     */
+    qkd::module::connection * m_cConnection;
+    
+};
+
+
+// ------------------------------------------------------------
 // code
 
 
@@ -63,7 +117,11 @@ using namespace qkd::module;
  * 
  * @param   eType           type of the connection
  */
-connection::connection(connection_type eType) : m_eType(eType), m_eSocketAccess(socket_access::ROUND_ROBIN), m_nCurrentPathIndex(0) {
+connection::connection(connection_type eType)  {
+
+    d = std::shared_ptr<qkd::module::connection::connection_internal>(
+        new qkd::module::connection::connection_internal(this, eType)
+    );
 }
 
 
@@ -73,7 +131,6 @@ connection::connection(connection_type eType) : m_eType(eType), m_eSocketAccess(
 connection::~connection() {
     reset();
 }
-
 
 
 /**
@@ -90,8 +147,8 @@ bool connection::add(std::string sURL, int nHighWaterMark, std::string sIPCPrefi
     
     // try to work on an already added instance
     path_ptr cPath;
-    auto cFound = std::find_if(m_cPaths.begin(), m_cPaths.end(), [&](path_ptr & p) { return (p->url() == sURL); });
-    if (cFound != m_cPaths.end()) {
+    auto cFound = std::find_if(d->m_cPaths.begin(), d->m_cPaths.end(), [&](path_ptr & p) { return (p->url() == sURL); });
+    if (cFound != d->m_cPaths.end()) {
         cPath = *cFound;
     }
     else {
@@ -108,7 +165,7 @@ bool connection::add(std::string sURL, int nHighWaterMark, std::string sIPCPrefi
         if (!sIPCSuffix.empty()) ss << "." << sIPCSuffix;
         
         int nTimeout = -1;
-        if ((m_eType == connection_type::PIPE_IN) || (m_eType == connection_type::PIPE_OUT)) nTimeout = 1000;
+        if ((d->m_eType == connection_type::PIPE_IN) || (d->m_eType == connection_type::PIPE_OUT)) nTimeout = 1000;
         
         // this creates the real socket/path/connection underneath
         cPath->set_url(sURL, zmq_socket_server(), zmq_socket_type(), nTimeout, nHighWaterMark, ss.str());
@@ -121,7 +178,7 @@ bool connection::add(std::string sURL, int nHighWaterMark, std::string sIPCPrefi
 
     // stdin:// on pipe out is not allowed
     if (cPath->is_stdin()) {    
-        if (m_eType == connection_type::PIPE_OUT) {
+        if (d->m_eType == connection_type::PIPE_OUT) {
             qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
                     << ": url can't be 'stdin' for this connection";
             return false;
@@ -130,14 +187,14 @@ bool connection::add(std::string sURL, int nHighWaterMark, std::string sIPCPrefi
     
     // stdout:// on pipe in is not allowed
     if (cPath->is_stdout()) {
-        if (m_eType == connection_type::PIPE_IN) {
+        if (d->m_eType == connection_type::PIPE_IN) {
             qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
                     << ": url can't be 'stdout' for this connection";
             return false;
         }
     }
     
-    if (cFound == m_cPaths.end()) m_cPaths.push_back(cPath);
+    if (cFound == d->m_cPaths.end()) d->m_cPaths.push_back(cPath);
     
     return true;
 }
@@ -150,31 +207,31 @@ bool connection::add(std::string sURL, int nHighWaterMark, std::string sIPCPrefi
  */
 void connection::clear() {
     reset();
-    m_cPaths.clear();
-    m_nCurrentPathIndex = 0;
+    d->m_cPaths.clear();
+    d->m_nCurrentPathIndex = 0;
 }
 
 
 /**
- * get the next paths to work on
+ * get the next paths to send on
  * 
- * @return  a list of current paths to work on
+ * @return  a list of current paths to send next message to
  */
 std::list<path_ptr> connection::get_next_paths() {
     
     std::list<path_ptr> res;
-    if (m_cPaths.empty()) return res;
+    if (d->m_cPaths.empty()) return res;
         
-    switch (m_eSocketAccess) {
+    switch (d->m_eSocketSendMode) {
         
-    case socket_access::ROUND_ROBIN:
-        res.push_back(m_cPaths[m_nCurrentPathIndex % m_cPaths.size()]);
-        m_nCurrentPathIndex++;
+    case socket_send_mode::ROUND_ROBIN:
+        res.push_back(d->m_cPaths[d->m_nCurrentPathIndex % d->m_cPaths.size()]);
+        d->m_nCurrentPathIndex++;
         break;
         
     // TODO: case socket_access::BEST_EFFORT:
-    case socket_access::ALL:
-        for (auto p : m_cPaths) res.push_back(p);
+    case socket_send_mode::ALL:
+        for (auto p : d->m_cPaths) res.push_back(p);
         break;
     
     default:
@@ -186,6 +243,26 @@ std::list<path_ptr> connection::get_next_paths() {
 
 
 /**
+ * check if this connection is void (for all paths)
+ * 
+ * @return  true, if we ain't got a single valid path not void
+ */
+bool connection::is_void() const { 
+    return std::all_of(d->m_cPaths.cbegin(), d->m_cPaths.cend(), [](path_ptr const & p) { return p->is_void(); }); 
+}
+
+
+/**
+ * return the paths
+ * 
+ * @return  the paths of this connection
+ */
+std::vector<path_ptr> const & connection::paths() const { 
+    return d->m_cPaths; 
+}
+
+
+/**
  * get a next key from PIPE_IN
  * 
  * @param   cKey        this will receive the next key
@@ -193,7 +270,7 @@ std::list<path_ptr> connection::get_next_paths() {
  */
 bool connection::read_key(qkd::key::key & cKey) {
 
-    if (m_eType != connection_type::PIPE_IN) {
+    if (d->m_eType != connection_type::PIPE_IN) {
         throw qkd::exception::connection_error("tried to read key on a non-pipe-in connection");
     }
     
@@ -201,9 +278,9 @@ bool connection::read_key(qkd::key::key & cKey) {
     cKey = qkd::key::key();
     
     // hand out keys we already have read
-    if (m_cKeysInStock.size() > 0) {
-        cKey = m_cKeysInStock.front();
-        m_cKeysInStock.pop_front();
+    if (d->m_cKeysInStock.size() > 0) {
+        cKey = d->m_cKeysInStock.front();
+        d->m_cKeysInStock.pop_front();
         return true;
     }
     
@@ -222,7 +299,7 @@ bool connection::read_key(qkd::key::key & cKey) {
         qkd::key::key cReadKey;
         if (read_key(*p.get(), cReadKey)) {
             if (cKey.is_null()) cKey = cReadKey;
-            else m_cKeysInStock.push_back(cReadKey);
+            else d->m_cKeysInStock.push_back(cReadKey);
         }
     }
     
@@ -282,13 +359,13 @@ bool connection::read_key(qkd::module::path & cPath, qkd::key::key & cKey) {
  */
 bool connection::recv_message(qkd::module::message & cMessage) {
 
-    // empty in/out key
+    // empty in/out message
     cMessage = qkd::module::message();
     
-    // hand out keys we already have read
-    if (m_cMessagesInStock.size() > 0) {
-        cMessage = m_cMessagesInStock.front();
-        m_cMessagesInStock.pop_front();
+    // hand out message we already have read
+    if (d->m_cMessagesInStock.size() > 0) {
+        cMessage = d->m_cMessagesInStock.front();
+        d->m_cMessagesInStock.pop_front();
         return true;
     }
     
@@ -309,7 +386,7 @@ bool connection::recv_message(qkd::module::message & cMessage) {
                 cMessage = cReadMessage;
                 bMessageSet = true;
             }
-            else m_cMessagesInStock.push_back(cReadMessage);
+            else d->m_cMessagesInStock.push_back(cReadMessage);
         }
     }
     
@@ -343,13 +420,13 @@ bool connection::recv_message(qkd::module::path & cPath, qkd::module::message & 
             if (zmq_errno() == EINTR) return false;
 
             std::stringstream ss;
-            ss << "failed reading message header from peer: " << strerror(zmq_errno());
+            ss << "Failed reading message header from peer: " << strerror(zmq_errno());
             throw qkd::exception::network_error(ss.str());
         }
         
     } while (nReadHeader <= 0);
     if (!cMsgHeader.more() || (cMsgHeader.size() != sizeof(cMessage.m_cHeader))) {
-        throw qkd::exception::network_error("received invalid message header");
+        throw qkd::exception::network_error("Received invalid message header");
     }
     memcpy(&(cMessage.m_cHeader), (unsigned char *)cMsgHeader.data(), sizeof(cMessage.m_cHeader));
 
@@ -365,7 +442,7 @@ bool connection::recv_message(qkd::module::path & cPath, qkd::module::message & 
             if (zmq_errno() == EINTR) return false;
 
             std::stringstream ss;
-            ss << "failed reading message data from peer: " << strerror(zmq_errno());
+            ss << "Failed reading message data from peer: " << strerror(zmq_errno());
             throw qkd::exception::network_error(ss.str());
         }
         
@@ -382,7 +459,7 @@ bool connection::recv_message(qkd::module::path & cPath, qkd::module::message & 
  * resets the connection to an empty void state
  */
 void connection::reset() {
-    for (auto & cPath: m_cPaths) cPath->reset();
+    for (auto & cPath: d->m_cPaths) cPath->reset();
 }
 
 
@@ -410,8 +487,10 @@ bool connection::send_message(qkd::module::message & cMessage, int nPath) {
         cPaths = get_next_paths();
     }
     else {
-        if (static_cast<size_t>(nPath) >= m_cPaths.size()) throw qkd::exception::connection_error("path index out of range");
-        cPaths.push_back(m_cPaths[nPath]);
+        if (static_cast<size_t>(nPath) >= d->m_cPaths.size()) {
+            throw qkd::exception::connection_error("path index out of range");
+        }
+        cPaths.push_back(d->m_cPaths[nPath]);
     }
     
     if (cPaths.empty()) return false;
@@ -501,7 +580,7 @@ std::list<std::string> connection::split_urls(std::string sURLs) {
  */
 std::list<std::string> connection::urls() const {
     std::list<std::string> res;
-    for (auto & cPath : m_cPaths) { res.push_back(cPath->url()); };
+    for (auto & cPath : d->m_cPaths) { res.push_back(cPath->url()); };
     return res;
 }
 
@@ -534,7 +613,7 @@ std::string connection::urls_string() const {
  */
 bool connection::write_key(qkd::key::key const & cKey, int nPath) {
     
-    if (m_eType != connection_type::PIPE_OUT) {
+    if (d->m_eType != connection_type::PIPE_OUT) {
         throw qkd::exception::connection_error("tried to write key to a non-pipe-out connection");
     }
     
@@ -543,8 +622,10 @@ bool connection::write_key(qkd::key::key const & cKey, int nPath) {
         cPaths = get_next_paths();
     }
     else {
-        if (static_cast<size_t>(nPath) >= m_cPaths.size()) throw qkd::exception::connection_error("path index out of range");
-        cPaths.push_back(m_cPaths[nPath]);
+        if (static_cast<size_t>(nPath) >= d->m_cPaths.size()) {
+            throw qkd::exception::connection_error("path index out of range");
+        }
+        cPaths.push_back(d->m_cPaths[nPath]);
     }
     if (cPaths.empty()) return true;
     if (std::all_of(cPaths.begin(), cPaths.end(), [](path_ptr & p) { return p->is_void(); })) return true;
@@ -614,7 +695,7 @@ bool connection::write_key(qkd::module::path & cPath, qkd::key::key const & cKey
  */
 bool connection::zmq_socket_server() const {
     
-    switch (m_eType) {
+    switch (d->m_eType) {
         
     case connection_type::LISTEN:
     case connection_type::PIPE_IN:
@@ -638,7 +719,7 @@ bool connection::zmq_socket_server() const {
  */
 int connection::zmq_socket_type() const {
     
-    switch (m_eType) {
+    switch (d->m_eType) {
         
     case connection_type::LISTEN:
         return ZMQ_DEALER;
