@@ -863,6 +863,10 @@ bool module::recv_internal(qkd::module::message & cMessage) {
     if (is_alice()) cCon = d->cConPeer;
     if (is_bob()) cCon = d->cConListen;
     
+    if (!cCon) {
+        throw std::logic_error("Cannot determine where to receive from (not alice neither bob).");
+    }
+    
     if (!cCon->recv_message(cMessage)) return false;
     if (is_dying_state()) return false;
 
@@ -1350,6 +1354,7 @@ qulonglong module::state() const {
  * @return  the human readable module state name 
  */
 QString module::state_name(module_state eState) {
+    
     switch (eState) {
         case module_state::STATE_NEW: return "new";
         case module_state::STATE_READY: return "ready";
