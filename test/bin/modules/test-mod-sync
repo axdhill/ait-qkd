@@ -42,58 +42,64 @@ test_init "$(basename $0).d"
 rm -rf cat_keys.* &> /dev/null
 
 # create keys
-KEYS_TO_PROCESS="100"
+KEYS_TO_PROCESS="1000"
 ${TEST_BASE}/bin/qkd-key-gen --silent --size 1000 --keys ${KEYS_TO_PROCESS} --rate 0.03 cat_keys
 
 PIPELINE_CONFIG="${TEST_BASE}/test/test-data/modules/qkd-sync"
 
+# alice pipeline
 ( ${TEST_BASE}/bin/qkd-cat --debug --run --config "${PIPELINE_CONFIG}/pipeline-cat.conf" 2> cat.alice.debug ) &
-( ${TEST_BASE}/bin/qkd-cat --debug --bob --run --config "${PIPELINE_CONFIG}/pipeline-cat.conf" 2> cat.bob.debug ) &
 ( ${TEST_BASE}/bin/qkd-sync --debug --run --config "${PIPELINE_CONFIG}/pipeline-sync.1.conf" 2> sync.1.alice.debug) &
-( ${TEST_BASE}/bin/qkd-sync --debug --bob --run --config "${PIPELINE_CONFIG}/pipeline-sync.1.conf" 2> sync.1.bob.debug) &
-( ${TEST_BASE}/bin/qkd-reorder --debug --run --config "${PIPELINE_CONFIG}/pipeline-reorder.1.conf" 2> reorder.1.alice.debug ) &
-( ${TEST_BASE}/bin/qkd-reorder --debug --bob --run --config "${PIPELINE_CONFIG}/pipeline-reorder.1.conf" 2> reorder.1.bob.debug) &
-
 ( ${TEST_BASE}/bin/qkd-reorder --debug --run --config "${PIPELINE_CONFIG}/pipeline-reorder.2.1.conf" 2> reorder.2.1.alice.debug ) &
-( ${TEST_BASE}/bin/qkd-reorder --debug --bob --run --config "${PIPELINE_CONFIG}/pipeline-reorder.2.2.conf" 2> reorder.2.1.bob.debug) &
 ( ${TEST_BASE}/bin/qkd-reorder --debug --run --config "${PIPELINE_CONFIG}/pipeline-reorder.2.2.conf" 2> reorder.2.2.alice.debug ) &
-( ${TEST_BASE}/bin/qkd-reorder --debug --bob --run --config "${PIPELINE_CONFIG}/pipeline-reorder.2.2.conf" 2> reorder.2.2.bob.debug) &
-
-( ${TEST_BASE}/bin/qkd-reorder --debug --run --config "${PIPELINE_CONFIG}/pipeline-reorder.2.3.conf" 2> reorder.2.3.alice.debug ) &
-( ${TEST_BASE}/bin/qkd-reorder --debug --bob --run --config "${PIPELINE_CONFIG}/pipeline-reorder.2.2.conf" 2> reorder.2.3.bob.debug) &
-( ${TEST_BASE}/bin/qkd-reorder --debug --run --config "${PIPELINE_CONFIG}/pipeline-reorder.2.4.conf" 2> reorder.2.4.alice.debug ) &
-( ${TEST_BASE}/bin/qkd-reorder --debug --bob --run --config "${PIPELINE_CONFIG}/pipeline-reorder.2.2.conf" 2> reorder.2.4.bob.debug) &
-
 ( ${TEST_BASE}/bin/qkd-sync --debug --run --config "${PIPELINE_CONFIG}/pipeline-sync.2.conf" 2> sync.2.alice.debug) &
-( ${TEST_BASE}/bin/qkd-sync --debug --bob --run --config "${PIPELINE_CONFIG}/pipeline-sync.2.conf" 2> sync.2.bob.debug) &
 ( ${TEST_BASE}/bin/qkd-tee --debug --run --config "${PIPELINE_CONFIG}/pipeline-tee.conf" 1> /dev/null 2> tee.alice.debug) &
-( ${TEST_BASE}/bin/qkd-tee --debug --bob --run --config "${PIPELINE_CONFIG}/pipeline-tee.conf" 1> /dev/null 2> tee.bob.debug) &
 
-exit 1
+# bob pipeline
+( ${TEST_BASE}/bin/qkd-cat --debug --run --bob --config "${PIPELINE_CONFIG}/pipeline-cat.conf" 2> cat.bob.debug ) &
+( ${TEST_BASE}/bin/qkd-sync --debug --run --bob --config "${PIPELINE_CONFIG}/pipeline-sync.1.conf" 2> sync.1.bob.debug) &
+( ${TEST_BASE}/bin/qkd-reorder --debug --run --bob --config "${PIPELINE_CONFIG}/pipeline-reorder.2.1.conf" 2> reorder.2.1.bob.debug ) &
+( ${TEST_BASE}/bin/qkd-reorder --debug --run --bob --config "${PIPELINE_CONFIG}/pipeline-reorder.2.2.conf" 2> reorder.2.2.bob.debug ) &
+( ${TEST_BASE}/bin/qkd-sync --debug --run --bob --config "${PIPELINE_CONFIG}/pipeline-sync.2.conf" 2> sync.2.bob.debug) &
+( ${TEST_BASE}/bin/qkd-tee --debug --run --bob --config "${PIPELINE_CONFIG}/pipeline-tee.conf" 1> /dev/null 2> tee.bob.debug) &
 
-while [ "$(${TEST_BASE}/bin/qkd-view | grep at.ac.ait.qkd.module.cascade | wc -l)" = "0" ]; do
-    echo "waiting for the pipeline to ignite ..."
-    sleep 0
-done
+sleep 1
+
 wait_idle
-echo "got keys"
-
+pkill qkd
 test_cleanup
 
-# check how many 
-if [ ! -s cascade_keys.alice ]; then
-    echo "alice has not pushed keys"
+for f in reorder.2.*.debug; do
+    grep ^key-PULL ${f} | cut -d ' ' -f4 | sed 's/^0*//g' > ${f}.PULLED
+done
+for f in reorder.2.*.debug; do
+    grep ^key-PUSH ${f} | cut -d ' ' -f4 | sed 's/^0*//g' > ${f}.PUSHED
+done
+for f in sync.2.*.debug; do
+    grep ^key-PULL ${f} | cut -d ' ' -f4 | sed 's/^0*//g' > ${f}.PULLED
+done
+for f in sync.2.*.debug; do
+    grep ^key-PUSH ${f} | cut -d ' ' -f4 | sed 's/^0*//g' > ${f}.PUSHED
+done
+for f in tee.*.debug; do
+    grep ^key-PULL ${f} | cut -d ' ' -f4 | sed 's/^0*//g' > ${f}.PULLED
+done
+for f in tee.*.debug; do
+    grep ^key-PUSH ${f} | cut -d ' ' -f4 | sed 's/^0*//g' > ${f}.PUSHED
+done
+
+# the main test
+diff -q sync.2.alice.debug.PULLED sync.2.bob.debug.PULLED &> /dev/null
+if [ "$?" = "0" ]; then
+    echo "reorder do not shuffle keys - test useless"
     exit 1
 fi
-if [ ! -s cascade_keys.bob ]; then
-    echo "bob has not pushed keys"
-    exit 1
-fi
-diff -q cascade_keys.alice cascade_keys.bob
+diff sync.2.alice.debug.PUSHED sync.2.alice.debug.PUSHED
 if [ "$?" != "0" ]; then
-    echo "cascade created different results - failed"
-    exit 1
+    echo "2nd sync pushed different keys on both sides. Failed."
+    exit
 fi
-echo "cascade corrected keys - ok"
+
+echo "key syncing works - ok"
 
 echo "=== TEST SUCCESS ==="

@@ -108,7 +108,7 @@ add_test(mod-auth                               ${CMAKE_CURRENT_BINARY_DIR}/test
 add_test(mod-enkey                              ${CMAKE_CURRENT_BINARY_DIR}/test-mod-enkey)
 add_test(mod-dekey                              ${CMAKE_CURRENT_BINARY_DIR}/test-mod-dekey)
 add_test(mod-statistics                         ${CMAKE_CURRENT_BINARY_DIR}/test-mod-statistics)
-# TODO: add_test(mod-sync                               ${CMAKE_CURRENT_BINARY_DIR}/test-mod-sync)
+add_test(mod-sync                               ${CMAKE_CURRENT_BINARY_DIR}/test-mod-sync)
 add_test(full-pipeline                          ${CMAKE_CURRENT_BINARY_DIR}/test-full-pipeline)
 add_test(disruptive-drop                        ${CMAKE_CURRENT_BINARY_DIR}/test-disruptive-drop)
 add_test(disruptive-reorder                     ${CMAKE_CURRENT_BINARY_DIR}/test-disruptive-reorder)

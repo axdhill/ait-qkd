@@ -235,7 +235,7 @@ qkd::key::key stash::pick_bob() {
     }
     
     if (cMessage.type() != qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC) {
-        throw qkd::exception::protocol_error("accidentally received a non-sync message when waiting for key to pick");
+        throw qkd::exception::protocol_error("Accidentally received a non-sync message when waiting for key to pick");
     }
     
     uint32_t nCmdSync;
@@ -250,7 +250,7 @@ qkd::key::key stash::pick_bob() {
         return qkd::key::key::null();
         
     default:
-        throw qkd::exception::protocol_error("key sync message does not contain pick command");
+        throw qkd::exception::protocol_error("Key sync message does not contain pick command");
     }
     
     qkd::key::key_id nKeyId;
@@ -329,7 +329,7 @@ void stash::push(qkd::key::key & cKey) {
 void stash::recv(qkd::module::message & cMessage) {
     
     if (cMessage.type() != qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC) {
-        throw qkd::exception::protocol_error("accidentally tried to sync keys based on a non-sync message");
+        throw qkd::exception::protocol_error("Accidentally tried to sync keys based on a non-sync message");
     }
 
     m_cPeerStash.clear();
@@ -337,7 +337,7 @@ void stash::recv(qkd::module::message & cMessage) {
     uint32_t nSyncCmd;
     cMessage.data() >> nSyncCmd;
     if ((sync_command)nSyncCmd != sync_command::SYNC_COMMAND_LIST) {
-        throw qkd::exception::protocol_error("sync list expected, but other command received");
+        throw qkd::exception::protocol_error("Sync list expected, but other command received");
     }
     
     uint64_t nPeerStashKeys = 0;

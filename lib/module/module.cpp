@@ -857,7 +857,7 @@ bool module::recv(qkd::key::key_id nKeyId,
         return true;
     }
     
-    qkd::utility::debug() << "received a QKD message for message type " 
+    qkd::utility::debug() << "Received a QKD message for message type " 
             << static_cast<uint32_t>(cMessage.type()) 
             << " when expecting " 
             << static_cast<uint32_t>(eType);    
@@ -868,8 +868,10 @@ bool module::recv(qkd::key::key_id nKeyId,
         // waited for data but received sync:
         // our module worker wants some data, 
         // but our peer sent us a sync
-        d->cStash->send();
-        d->cStash->recv(cMessage);
+        try {
+            d->cStash->recv(cMessage);
+        }
+        catch (...) {}
     }
     
     return false;
@@ -1580,8 +1582,14 @@ void module::work() {
         // get a key
         qkd::key::key cKey = qkd::key::key::null();
         if (is_synchronizing()) {
-            synchronize();
-            cKey = d->cStash->pick();
+            try {
+                synchronize();
+                cKey = d->cStash->pick();
+            }
+            catch (std::exception const & e) {
+                qkd::utility::debug() << "Caugth exception while key-sync: " << e.what();
+                cKey = qkd::key::key::null();
+            }
         }
         if (!cKey.is_null()) {
             qkd::utility::debug() << "key #" << cKey.id() << " is present at peer - picked";
