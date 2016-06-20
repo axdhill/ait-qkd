@@ -182,8 +182,8 @@ public:
      * @param   cMessage    message itself
      */
     void debug_message(bool bSent, qkd::module::message const & cMessage);
-
-
+    
+    
     /**
      * get the current module state
      * 

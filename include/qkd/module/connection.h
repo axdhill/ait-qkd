@@ -68,7 +68,7 @@ enum class connection_type : uint8_t {
 /**
  * different ways to touch the sockets we manage
  */
-enum class socket_access : uint8_t {
+enum class socket_send_mode : uint8_t {
     
     ROUND_ROBIN,        /**< send/recv messages on a single socket, but use round robin */
     ALL                 /**< use all available sockets to send/recv the same message */
@@ -142,7 +142,7 @@ public:
      * 
      * @return  true, if we ain't got a single valid path not void
      */
-    bool is_void() const { return std::all_of(m_cPaths.cbegin(), m_cPaths.cend(), [](path_ptr const & p) { return p->is_void(); }); }
+    bool is_void() const;
     
     
     /**
@@ -150,7 +150,7 @@ public:
      * 
      * @return  the paths of this connection
      */
-    std::vector<path_ptr> const & paths() const { return m_cPaths; }
+    std::vector<path_ptr> const & paths() const;
     
     
     /**
@@ -169,9 +169,6 @@ public:
      * 
      * The given message object will be deleted with delete before assigning new values.
      * Therefore if message receive has been successful the message is not NULL
-     * 
-     * This call waits explicitly for the next message been of type eType. If this
-     * is NOT the case a exception is thrown.
      * 
      * @param   cMessage            this will receive the message
      * @return  true, if we have received a message
@@ -247,9 +244,9 @@ private:
     
     
     /**
-     * get the next paths to work on
+     * get the next paths to send on
      * 
-     * @return  a list of current paths to work on
+     * @return  a list of current paths to send next message to
      */
     std::list<path_ptr> get_next_paths();
     
@@ -265,15 +262,15 @@ private:
     
     
     /**
-     * read a message from a path
-     *
-     * @param   cPath       the path to read
-     * @param   cMessage    the message to be received
-     * @return  true, if cMessage is received
+     * receive a message from a path
+     * 
+     * @param   cPath       the path to receive from
+     * @param   cMessage    the message to receive
+     * @return  true, if we read a key
      */
     bool recv_message(qkd::module::path & cPath, qkd::module::message & cMessage);
     
-        
+    
     /**
      * send a message on a path
      * 
@@ -309,16 +306,10 @@ private:
      */
     int zmq_socket_type() const;
     
-    
-    connection_type m_eType;                                    /**< connection type */
-    enum socket_access m_eSocketAccess;                         /**< outgoing mode */
-    
-    std::vector<path_ptr> m_cPaths;                             /**< the paths we use */
-    unsigned int m_nCurrentPathIndex;                           /**< current path index */
-    
-    std::deque<qkd::key::key> m_cKeysInStock;                   /**< read keys not yet delivered */
-    std::deque<qkd::module::message> m_cMessagesInStock;        /**< read messages not yet delivered */
-        
+   
+    // pimpl
+    class connection_internal;
+    std::shared_ptr<connection_internal> d;
 };
 
 
