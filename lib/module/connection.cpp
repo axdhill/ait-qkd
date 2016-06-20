@@ -94,7 +94,6 @@ public:
     unsigned int m_nCurrentPathIndex;                           /**< current path index */
     
     std::deque<qkd::key::key> m_cKeysInStock;                   /**< read keys not yet delivered */
-    std::deque<qkd::module::message> m_cMessagesInStock;        /**< read messages not yet delivered */
 
         
 private:
@@ -172,7 +171,7 @@ bool connection::add(std::string sURL, int nHighWaterMark, std::string sIPCPrefi
     }
     catch (std::exception & e) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
-                << ": unable to set url - " << e.what();
+                << ": Unable to set url - " << e.what();
         return false;
     }
 
@@ -180,7 +179,7 @@ bool connection::add(std::string sURL, int nHighWaterMark, std::string sIPCPrefi
     if (cPath->is_stdin()) {    
         if (d->m_eType == connection_type::PIPE_OUT) {
             qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
-                    << ": url can't be 'stdin' for this connection";
+                    << ": Url can't be 'stdin' for this connection";
             return false;
         }
     }
@@ -189,12 +188,19 @@ bool connection::add(std::string sURL, int nHighWaterMark, std::string sIPCPrefi
     if (cPath->is_stdout()) {
         if (d->m_eType == connection_type::PIPE_IN) {
             qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
-                    << ": url can't be 'stdout' for this connection";
+                    << ": Url can't be 'stdout' for this connection";
             return false;
         }
     }
     
-    if (cFound == d->m_cPaths.end()) d->m_cPaths.push_back(cPath);
+    // on LISTEN und PEER only one single connection is allowed
+    if ((d->m_eType == connection_type::LISTEN) || (d->m_eType == connection_type::PEER)) {
+        d->m_cPaths.clear();
+        d->m_cPaths.push_back(cPath);
+    }
+    else {
+        if (cFound == d->m_cPaths.end()) d->m_cPaths.push_back(cPath);
+    }
     
     return true;
 }
@@ -359,53 +365,34 @@ bool connection::read_key(qkd::module::path & cPath, qkd::key::key & cKey) {
  */
 bool connection::recv_message(qkd::module::message & cMessage) {
 
-    // empty in/out message
+    if ((d->m_eType != connection_type::LISTEN) && (d->m_eType != connection_type::PEER)) {
+        throw qkd::exception::connection_error("Not a listen nor a peer connection to receive message from.");
+    }
+    if (d->m_cPaths.size() > 1) {
+        throw qkd::exception::connection_error("More than 1 path to peer (only 1 allowed).");
+    }
+    
     cMessage = qkd::module::message();
-    
-    // hand out message we already have read
-    if (d->m_cMessagesInStock.size() > 0) {
-        cMessage = d->m_cMessagesInStock.front();
-        d->m_cMessagesInStock.pop_front();
-        return true;
+    if (d->m_cPaths.size() == 0) {
+        return false;
     }
     
-    std::list<path_ptr> cPaths = get_next_paths();
-    if (cPaths.empty()) return false;
-    if (std::all_of(cPaths.begin(), cPaths.end(), [](path_ptr & p) { return p->is_void(); })) return false;
-    
-    // iterate over all sockets
-    // NOTE: this should be zmq_poll, however this does not properly work
-    //       if we have several different polls and send/recv sockets 
-    //       in the process
-    bool bMessageSet = false;
-    for (auto & p : cPaths) {
-        
-        qkd::module::message cReadMessage;
-        if (recv_message(*p.get(), cReadMessage)) {
-            if (!bMessageSet) {
-                cMessage = cReadMessage;
-                bMessageSet = true;
-            }
-            else d->m_cMessagesInStock.push_back(cReadMessage);
-        }
-    }
-    
-    return bMessageSet;
-}    
-    
+    return recv_message(*(d->m_cPaths.front()), cMessage);
+}
+
 
 /**
- * read a message from a path
- *
- * @param   cPath       the path to read
- * @param   cMessage    the message to be received
- * @return  true, if cMessage is received
+ * receive a message from a path
+ * 
+ * @param   cPath       the path to receive from
+ * @param   cMessage    the message to receive
+ * @return  true, if we read a key
  */
 bool connection::recv_message(qkd::module::path & cPath, qkd::module::message & cMessage) {
     
     if (cPath.is_void()) return false;
     if (cPath.is_stdin()) {
-        throw qkd::exception::connection_error("don't know how to read a message from stdin");
+        throw qkd::exception::connection_error("Don't know how to read a message from stdin");
     }
 
     // --> get the message header    
@@ -453,8 +440,8 @@ bool connection::recv_message(qkd::module::path & cPath, qkd::module::message & 
     
     return true;
 }
-    
-        
+
+
 /**
  * resets the connection to an empty void state
  */

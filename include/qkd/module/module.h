@@ -1523,9 +1523,6 @@ protected:
      * This call waits explicitly for the next message been of type eType. If this
      * is NOT the case a exception is thrown.
      * 
-     * Internally the recv_internal method is called and the actual receive
-     * is performed. 
-     * 
      * @param   nKeyId              the key id we are currently working on
      * @param   cMessage            this will receive the message
      * @param   cAuthContext        the authentication context involved
@@ -1747,26 +1744,6 @@ private:
     }
     
     
-    /**
-     * read a message from the peer module internal private version
-     *
-     * this is called by the protected recv method and stuffs the received
-     * messages into queues depending on their message type.
-     * 
-     * this call is blocking
-     * 
-     * The given message object will be deleted with delete before assigning new values.
-     * Therefore if message receive has been successful the message is not NULL
-     * 
-     * This call waits explicitly for the next message been of type eType. If this
-     * is NOT the case a exception is thrown.
-     * 
-     * @param   cMessage            this will receive the message
-     * @return  true, if we have received a message
-     */
-    bool recv_internal(qkd::module::message & cMessage);
-
-
     /**
      * this is the entry point of the main thread worker
      */

@@ -799,6 +799,7 @@ bool module::recv(qkd::module::message & cMessage,
  * Internally the recv_internal method is called and the actual receive
  * is performed. 
  * 
+ * @param   nKeyId              the key id we are currently working on
  * @param   cMessage            this will receive the message
  * @param   cAuthContext        the authentication context involved
  * @param   eType               message type to receive
@@ -809,11 +810,46 @@ bool module::recv(qkd::key::key_id nKeyId,
                   qkd::crypto::crypto_context & cAuthContext, 
                   qkd::module::message_type eType) {
     
-    if (!recv_internal(cMessage)) return false;
+    qkd::module::connection * cCon = nullptr;
+    if (is_alice()) cCon = d->cConPeer;
+    if (is_bob()) cCon = d->cConListen;
+    if (!cCon) {
+        throw std::logic_error("Cannot determine where to receive from (nor alice neither bob).");
+    }
+    
+    if (!cCon->recv_message(cMessage)) {
+        return false;
+    }
+    if (is_dying_state()) return false;
+
+    cMessage.m_cTimeStamp = std::chrono::high_resolution_clock::now();
+    d->debug_message(false, cMessage);
+    
+//     bool bMessageReceived = false;
+//     switch (eType) {
+//         
+//     case qkd::module::message_type::MESSAGE_TYPE_DATA:
+//         if (d->cMessageQueues.cMessagesData.size()) {
+//             cMessage = d->cMessageQueues.cMessagesData.front();
+//             d->cMessageQueues.cMessagesData.pop();
+//             bMessageReceived = true;
+//         }
+//         break;
+//         
+//     case qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC:
+//         if (d->cMessageQueues.cMessagesKeySync.size()) {
+//             cMessage = d->cMessageQueues.cMessagesKeySync.front();
+//             d->cMessageQueues.cMessagesKeySync.pop();
+//             bMessageReceived = true;
+//         }
+//         break;
+//     }
+//     if (!bMessageReceived) return false;
+    
     if (eType == cMessage.type()) {
         
         if (nKeyId != cMessage.key_id()) {
-            throw qkd::exception::protocol_error("key id mismatch in received message, we might operate on different keys");
+            throw qkd::exception::protocol_error("Key id mismatch in received message, we might operate on different keys");
         }
         
         cAuthContext << cMessage.data();
@@ -837,40 +873,6 @@ bool module::recv(qkd::key::key_id nKeyId,
     }
     
     return false;
-}
-
-
-/**
- * read a message from the peer module internal private version
- *
- * this is called by the protected recv method and stuffs the received
- * messages into queues depending on their message type.
- * 
- * this call is blocking
- * 
- * The given message object will be deleted with delete before assigning new values.
- * Therefore if message receive has been successful the message is not NULL
- * 
- * @param   cMessage            this will receive the message
- * @return  true, if we have received a message
- */
-bool module::recv_internal(qkd::module::message & cMessage) {
-
-    qkd::module::connection * cCon = nullptr;
-    if (is_alice()) cCon = d->cConPeer;
-    if (is_bob()) cCon = d->cConListen;
-    
-    if (!cCon) {
-        throw std::logic_error("Cannot determine where to receive from (not alice neither bob).");
-    }
-    
-    if (!cCon->recv_message(cMessage)) return false;
-    if (is_dying_state()) return false;
-
-    cMessage.m_cTimeStamp = std::chrono::high_resolution_clock::now();
-    d->debug_message(false, cMessage);
-  
-    return true;
 }
 
 

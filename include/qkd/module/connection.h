@@ -262,15 +262,15 @@ private:
     
     
     /**
-     * read a message from a path
-     *
-     * @param   cPath       the path to read
-     * @param   cMessage    the message to be received
-     * @return  true, if cMessage is received
+     * receive a message from a path
+     * 
+     * @param   cPath       the path to receive from
+     * @param   cMessage    the message to receive
+     * @return  true, if we read a key
      */
     bool recv_message(qkd::module::path & cPath, qkd::module::message & cMessage);
     
-        
+    
     /**
      * send a message on a path
      * 
