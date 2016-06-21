@@ -825,27 +825,6 @@ bool module::recv(qkd::key::key_id nKeyId,
     cMessage.m_cTimeStamp = std::chrono::high_resolution_clock::now();
     d->debug_message(false, cMessage);
     
-//     bool bMessageReceived = false;
-//     switch (eType) {
-//         
-//     case qkd::module::message_type::MESSAGE_TYPE_DATA:
-//         if (d->cMessageQueues.cMessagesData.size()) {
-//             cMessage = d->cMessageQueues.cMessagesData.front();
-//             d->cMessageQueues.cMessagesData.pop();
-//             bMessageReceived = true;
-//         }
-//         break;
-//         
-//     case qkd::module::message_type::MESSAGE_TYPE_KEY_SYNC:
-//         if (d->cMessageQueues.cMessagesKeySync.size()) {
-//             cMessage = d->cMessageQueues.cMessagesKeySync.front();
-//             d->cMessageQueues.cMessagesKeySync.pop();
-//             bMessageReceived = true;
-//         }
-//         break;
-//     }
-//     if (!bMessageReceived) return false;
-    
     if (eType == cMessage.type()) {
         
         if (nKeyId != cMessage.key_id()) {
