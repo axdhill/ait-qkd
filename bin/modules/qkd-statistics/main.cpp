@@ -41,6 +41,7 @@
 #include <boost/program_options.hpp>
 
 // ait
+#include <qkd/version.h>
 #include "qkd-statistics.h"
 
 
@@ -59,7 +60,7 @@ int main(int argc, char ** argv) {
     
     QCoreApplication cApp(argc, argv);
     
-    std::string sApplication = std::string("qkd-statistics - AIT QKD Module 'statistics' V") + VERSION;
+    std::string sApplication = std::string("qkd-statistics - AIT QKD Module 'statistics' V") + qkd::version();
     std::string sDescription = std::string("\nThis is an AIT QKD module.\n\nIt takes keys from a previous module and places some statistic data into a file..\n\nCopyright 2015-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS]";
     

@@ -39,6 +39,7 @@
 
 // ait
 #include <qkd/key/key.h>
+#include <qkd/version.h>
 
 
 // ------------------------------------------------------------
@@ -146,7 +147,7 @@ int dump_short(std::istream & cIn, std::ostream & cOut) {
 int main(int argc, char ** argv) {
     
     // create the command line header
-    std::string sApplication = std::string("qkd-key-dump - AIT QKD Key Dump Tool V") + VERSION;
+    std::string sApplication = std::string("qkd-key-dump - AIT QKD Key Dump Tool V") + qkd::version();
     std::string sDescription = std::string("\nThis tools let you dump the content of a key file in human readable output.\n\nCopyright 2012-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS] [FILE]";
     

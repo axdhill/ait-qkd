@@ -41,6 +41,7 @@
 #include <boost/program_options.hpp>
 
 // ait
+#include <qkd/version.h>
 #include "qkd-dekey.h"
 
 
@@ -59,7 +60,7 @@ int main(int argc, char ** argv) {
     
     QCoreApplication cApp(argc, argv);
     
-    std::string sApplication = std::string("qkd-dekey - AIT QKD Module 'dekey' V") + VERSION;
+    std::string sApplication = std::string("qkd-dekey - AIT QKD Module 'dekey' V") + qkd::version();
     std::string sDescription = std::string("\nThis is an AIT QKD module.\n\nIt takes keys from a previous module and removes key headers up to naked raw key data.\n\nCopyright 2012-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS]";
     

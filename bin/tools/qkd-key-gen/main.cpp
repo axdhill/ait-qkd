@@ -41,6 +41,7 @@
 #include <qkd/key/key.h>
 #include <qkd/utility/bigint.h>
 #include <qkd/utility/random.h>
+#include <qkd/version.h>
 
 
 // ------------------------------------------------------------
@@ -58,7 +59,17 @@ public:
     /**
      * ctor
      */
-    config() : nKeys(0), nId(0), nSize(0), bRandomizeSize(false), nStandardDeviation(0.0), nRate(0.0), bExact(false), bZero(false), bSetErrorBits(false), nDisclosedRate(0.0), bQuantumTables(false) {};
+    config() : nKeys(0), 
+            nId(0), 
+            nSize(0), 
+            bRandomizeSize(false), 
+            nStandardDeviation(0.0), 
+            nRate(0.0), 
+            bExact(false), 
+            bZero(false), 
+            bSetErrorBits(false), 
+            nDisclosedRate(0.0), 
+            bQuantumTables(false) {};
     
     std::string sFile;              /**< file name */
     std::string sRandomSource;      /**< random source */
@@ -516,7 +527,7 @@ int generate(config const & cConfig) {
 int main(int argc, char ** argv) {
     
     // create the command line header
-    std::string sApplication = std::string("qkd-key-gen - AIT QKD Test Key Generator Tool V") + VERSION;
+    std::string sApplication = std::string("qkd-key-gen - AIT QKD Test Key Generator Tool V") + qkd::version();
     std::string sDescription = std::string("\nThis lets one create a pair of key files to feed a pipeline with.\nThese are keys for testing ONLY.\n\nCopyright 2012-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS] FILE";
     

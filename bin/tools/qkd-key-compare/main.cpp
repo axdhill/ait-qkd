@@ -42,6 +42,7 @@
 #include <qkd/key/key.h>
 #include <qkd/utility/bigint.h>
 #include <qkd/common_macros.h>
+#include <qkd/version.h>
 
 
 // ------------------------------------------------------------
@@ -292,7 +293,7 @@ bool fast_forward(compare_config & cConfig, std::ostream & cStreamOut) {
  */
 int main(int argc, char ** argv) {
     
-    std::string sApplication = std::string("qkd-key-compare - AIT QKD Key Compare Tool V") + VERSION;
+    std::string sApplication = std::string("qkd-key-compare - AIT QKD Key Compare Tool V") + qkd::version();
     std::string sDescription = std::string("\nThis tools let you compare the content of two key files and writes a human readable result.\n\nCopyright 2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS] KEY-FILE1 KEY-FILE2";
     

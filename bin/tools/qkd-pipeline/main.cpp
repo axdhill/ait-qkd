@@ -58,6 +58,7 @@
 #include <qkd/utility/dbus.h>
 #include <qkd/utility/environment.h>
 #include <qkd/utility/investigation.h>
+#include <qkd/version.h>
 
 
 // ------------------------------------------------------------
@@ -450,7 +451,7 @@ void get_pipeline_pipes(std::string & sURLPipeIn, std::string & sURLPipeOut) {
  */
 int main(int argc, char ** argv) {
     
-    std::string sApplication = std::string("qkd-pipeline - AIT QKD Key Pipeline Tool V") + VERSION;
+    std::string sApplication = std::string("qkd-pipeline - AIT QKD Key Pipeline Tool V") + qkd::version();
     std::string sDescription = std::string("\nThis tool lets you start/stop/restart a full QKD pipeline.\n\nCopyright 2013-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS] COMMAND PIPELINE-CONFIG";
     

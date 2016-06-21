@@ -37,14 +37,25 @@
 #   define UNUSED
 #endif
 
+#include <iostream>
+
 // include the all-in-one header
 #include <qkd/qkd.h>
 
 
 int test() {
+    
     qkd_version_9_9999();
     qkd_version_9_9999_1();
     qkd_version_9_9999_2();
+    qkd_version_9_9999_3();
+    qkd_version_9_9999_4();
+    qkd_version_9_9999_5();
+    qkd_version_9_9999_6();
+    qkd_version_9_9999_7();
+    
+    std::cout << qkd::version() << std::endl;
+    
     return 0;
 }
 

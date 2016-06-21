@@ -38,6 +38,7 @@
 #include <boost/program_options.hpp>
 
 // ait 
+#include <qkd/version.h>
 #include "qkd-auth.h"
 
 
@@ -56,7 +57,7 @@ int main(int argc, char ** argv) {
     
     QCoreApplication cApp(argc, argv);
     
-    std::string sApplication = std::string("qkd-auth - AIT QKD Module 'Authentication' V") + VERSION;
+    std::string sApplication = std::string("qkd-auth - AIT QKD Module 'Authentication' V") + qkd::version();
     std::string sDescription = std::string("\nThis is an AIT QKD module.\n\nThis module provides authentication facilities to a QKD keystream.\n\nCopyright 2012-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS]";
     

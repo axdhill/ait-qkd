@@ -35,6 +35,7 @@ include(CheckIncludeFileCXX)
 include(CheckIncludeFiles)
 include(CheckLibraryExists)
 include(FindPkgConfig)
+include(FindGit)
 
 # enable tests
 ENABLE_TESTING()
@@ -45,6 +46,35 @@ ENABLE_TESTING()
 
 set(VERSION "9.9999.7")
 add_definitions(-DVERSION=\"${VERSION}\")
+
+# grab current git branch details
+if (GIT_EXECUTABLE) 
+
+    execute_process(
+        COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE GIT_BRANCH
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+
+    execute_process(
+      COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
+      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+      OUTPUT_VARIABLE GIT_COMMIT_HASH
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    
+    execute_process(
+      COMMAND ${GIT_EXECUTABLE} diff --quiet
+      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+      RESULT_VARIABLE GIT_CHANGE
+    )
+    
+    add_definitions("-DGIT_BRANCH=\"${GIT_BRANCH}\"")
+    add_definitions("-DGIT_COMMIT_HASH=\"${GIT_COMMIT_HASH}\"")
+    add_definitions("-DGIT_CHANGE=${GIT_CHANGE}")
+    
+endif (GIT_EXECUTABLE)
 
 add_definitions(-D_GNU_SOURCE)
 add_definitions(-D_DEFAULT_SOURCE)

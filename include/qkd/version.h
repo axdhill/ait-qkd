@@ -36,6 +36,7 @@
 // incs
 
 #include <inttypes.h>
+#include <string>
 
 
 // ------------------------------------------------------------
@@ -135,6 +136,29 @@ uint32_t qkd_version_9_9999_6();
  */
 uint32_t qkd_version_9_9999_7();
 
+
+namespace qkd {
+   
+    
+/**
+ * returns a version string including the git branch, commit and change
+ * 
+ * ... if git was located on the system
+ * 
+ * The returned string should look like
+ * 
+ *      9.9999.7 (develop: 3f86ba8615af7d05316733d58a3c472b88fe9f83 *)
+ * 
+ * Meaning: this is version 9.9999.7 at the branch "develop" with the
+ * git commit 3f86ba8615af7d05316733d58a3c472b88fe9f83 as HEAD. The
+ * final '*' indicates that the current working directory has changed.
+ * 
+ * @return  a string holding the current QKD version (including GIT infos)
+ */
+std::string version();
+    
+    
+}
 
 
 #endif

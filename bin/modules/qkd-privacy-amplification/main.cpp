@@ -38,6 +38,7 @@
 #include <boost/program_options.hpp>
 
 // ait
+#include <qkd/version.h>
 #include "qkd-privacy-amplification.h"
 
 
@@ -56,7 +57,7 @@ int main(int argc, char ** argv) {
     
     QCoreApplication cApp(argc, argv);
     
-    std::string sApplication = std::string("qkd-privacy-amplification - AIT QKD Module 'Privacy Amplification' V") + VERSION;
+    std::string sApplication = std::string("qkd-privacy-amplification - AIT QKD Module 'Privacy Amplification' V") + qkd::version();
     std::string sDescription = std::string("\nThis is an AIT QKD module.\n\nThis module provides privacy-amplification facilities to a QKD keystream.\n\nCopyright 2012-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS]";
     

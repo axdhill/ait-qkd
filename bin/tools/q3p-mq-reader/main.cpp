@@ -44,6 +44,7 @@
 // ait
 #include <qkd/utility/dbus.h>
 #include <qkd/utility/memory.h>
+#include <qkd/version.h>
 
 
 // ------------------------------------------------------------
@@ -154,7 +155,7 @@ void dump(QString sMQ, bool bHexOutput, uint64_t nMessages) {
 int main(int argc, char ** argv) {
     
     // create the command line header
-    std::string sApplication = std::string("q3p-mq-reader - AIT Q3P Message Queue Reader Tool V") + VERSION;
+    std::string sApplication = std::string("q3p-mq-reader - AIT Q3P Message Queue Reader Tool V") + qkd::version();
     std::string sDescription = std::string("\nThis extracts keys from a Q3P message queue.\n\nCopyright 2012-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS] [MQ]";
     

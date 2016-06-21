@@ -39,6 +39,7 @@
 #include <boost/program_options.hpp>
 
 // ait
+#include <qkd/version.h>
 #include "qkd-enkey.h"
 
 
@@ -59,7 +60,7 @@ int main(int argc, char ** argv) {
     QCoreApplication cApp(argc, argv);
     
     // create the command line header
-    std::string sApplication = std::string("qkd-enkey - AIT QKD Module 'enkey' V") + VERSION;
+    std::string sApplication = std::string("qkd-enkey - AIT QKD Module 'enkey' V") + qkd::version();
     std::string sDescription = std::string("\nThis is an AIT QKD module.\n\nIt takes a file as input consisting of keys and feeds this as input of a QKD pipeline.\n\nCopyright 2012-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS]";
     

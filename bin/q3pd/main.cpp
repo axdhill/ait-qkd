@@ -56,7 +56,7 @@
  */
 int main(int argc, char ** argv) {
     
-    std::string sApplication = std::string("q3pd - AIT Q3P Node V") + VERSION;
+    std::string sApplication = std::string("q3pd - AIT Q3P Node V") + qkd::version();
     std::string sDescription = std::string("\nThis is a Q3P node daemon.\n\nCopyright 2012-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS] ID";
     

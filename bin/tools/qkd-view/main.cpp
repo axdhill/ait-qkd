@@ -42,6 +42,7 @@
 // ait
 #include <qkd/utility/debug.h>
 #include <qkd/utility/investigation.h>
+#include <qkd/version.h>
 
 #include "output_format.h"
 
@@ -61,7 +62,7 @@ int main(int argc, char ** argv) {
     
     QCoreApplication cApp(argc, argv);
     
-    std::string sApplication = std::string("qkd-view - AIT QKD System View V") + VERSION;
+    std::string sApplication = std::string("qkd-view - AIT QKD System View V") + qkd::version();
     std::string sDescription = std::string("\nThis shows the current QKD system.\nThe values of the found nodes, links and modules are separated by tabs.\n\nCopyright 2012-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS]";
     

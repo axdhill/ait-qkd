@@ -37,6 +37,7 @@
 
 #include <boost/program_options.hpp>
 
+#include <qkd/version.h>
 #include "qkd-sifting-bb84.h"
 
 
@@ -55,7 +56,7 @@ int main(int argc, char ** argv) {
     
     QCoreApplication cApp(argc, argv);
     
-    std::string sApplication = std::string("qkd-sifting-bb84 - AIT QKD Module 'Sifting BB84' V") + VERSION;
+    std::string sApplication = std::string("qkd-sifting-bb84 - AIT QKD Module 'Sifting BB84' V") + qkd::version();
     std::string sDescription = std::string("\nThis is an AIT QKD module.\n\nThis runs the well known BB84 protocol.\n\nCopyright 2012-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS]";
     

@@ -42,6 +42,7 @@
 // ait
 #include <qkd/version.h>
 #include <qkd/utility/debug.h>
+#include <qkd/version.h>
 
 #include "main_window.h"
 
@@ -59,7 +60,7 @@
  */
 int main(int argc, char ** argv) {
     
-    std::string sApplication = std::string("qkd-module-manager - AIT QKD Module Manager V") + VERSION;
+    std::string sApplication = std::string("qkd-module-manager - AIT QKD Module Manager V") + qkd::version();
     std::string sDescription = std::string("\nVisually manage QKD modules.\n\nCopyright 2013-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS]";
     

@@ -42,6 +42,7 @@
 #include <boost/program_options.hpp>
 
 // ait
+#include <qkd/version.h>
 #include "qkd-tee.h"
 
 
@@ -60,7 +61,7 @@ int main(int argc, char ** argv) {
     
     QCoreApplication cApp(argc, argv);
     
-    std::string sApplication = std::string("qkd-tee - AIT QKD Module 'tee' V") + VERSION;
+    std::string sApplication = std::string("qkd-tee - AIT QKD Module 'tee' V") + qkd::version();
     std::string sDescription = std::string("\nThis is an AIT QKD module.\n\nIt dumps a copy of the bypassing keys in a file.\n\nCopyright 2012-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS]";
     

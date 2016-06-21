@@ -38,6 +38,7 @@
 #include <boost/program_options.hpp>
 
 // ait
+#include <qkd/version.h>
 #include "qkd-throttle.h"
 
 
@@ -56,7 +57,7 @@ int main(int argc, char ** argv) {
     
     QCoreApplication cApp(argc, argv);
     
-    std::string sApplication = std::string("qkd-throttle - AIT QKD Module 'throttle' V") + VERSION;
+    std::string sApplication = std::string("qkd-throttle - AIT QKD Module 'throttle' V") + qkd::version();
     std::string sDescription = std::string("\nThis is an AIT QKD module.\n\nIt slows down the bypassing stream of keys.\n\nCopyright 2012-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS]";
     

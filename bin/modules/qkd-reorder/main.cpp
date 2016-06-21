@@ -36,6 +36,7 @@
 #include <boost/program_options.hpp>
 
 // ait
+#include <qkd/version.h>
 #include "qkd-reorder.h"
 
 
@@ -54,7 +55,7 @@ int main(int argc, char ** argv) {
     
     QCoreApplication cApp(argc, argv);
     
-    std::string sApplication = std::string("qkd-reorder - AIT QKD Module 'reorder' V") + VERSION;
+    std::string sApplication = std::string("qkd-reorder - AIT QKD Module 'reorder' V") + qkd::version();
     std::string sDescription = std::string("\nThis is an AIT QKD module.\n\nThis module randomly reorders keys sequence when forwarding (for testing purpose).\n\nCopyright 2013-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS]";
     

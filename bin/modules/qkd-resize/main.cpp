@@ -36,6 +36,7 @@
 #include <boost/program_options.hpp>
 
 // ait
+#include <qkd/version.h>
 #include "qkd-resize.h"
 
 
@@ -54,7 +55,7 @@ int main(int argc, char ** argv) {
     
     QCoreApplication cApp(argc, argv);
     
-    std::string sApplication = std::string("qkd-resize - AIT QKD Module 'resize' V") + VERSION;
+    std::string sApplication = std::string("qkd-resize - AIT QKD Module 'resize' V") + qkd::version();
     std::string sDescription = std::string("\nThis is an AIT QKD module.\n\nThis module runs the resize the keys in the bypassing keystream.\n\nCopyright 2012-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS]";
     

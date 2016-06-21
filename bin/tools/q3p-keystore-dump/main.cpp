@@ -45,6 +45,7 @@
 #include <qkd/key/key.h>
 #include <qkd/q3p/db.h>
 #include <qkd/utility/environment.h>
+#include <qkd/version.h>
 
 
 // ------------------------------------------------------------
@@ -167,7 +168,7 @@ void dump(QString sURL) {
 int main(int argc, char ** argv) {
     
     // create the command line header
-    std::string sApplication = std::string("q3p-keystore-dump - AIT Q3P KeyStore Dump Tool V") + VERSION;
+    std::string sApplication = std::string("q3p-keystore-dump - AIT Q3P KeyStore Dump Tool V") + qkd::version();
     std::string sDescription = std::string("\nThis prints the content of an AIT Q3P KeyStore.\n\nCopyright 2012-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS] URL";
     
