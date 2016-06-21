@@ -82,9 +82,11 @@ ${TEST_BASE}/bin/qkd-view | grep cat | awk '{ print $3; }' | while read MODULE_C
     qkd_qdbus ${MODULE_CAT} /Module run 
     qkd_qdbus ${MODULE_CAT} /Module resume
 done
-sleep 0
+sleep 3
 
 wait_idle 
+test_cleanup
+
 echo "module work done"
 
 # check results
@@ -137,7 +139,5 @@ if [ "$?" != "0" ]; then
     echo "WOHA! Parallelized result differs from intended input. =(  - failed"
     exit 1
 fi
-
-test_cleanup
 
 echo "=== TEST SUCCESS ==="
