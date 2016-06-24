@@ -64,6 +64,8 @@ enum calculation_procedure : uint8_t {
  * 
  *      -name-                  -read/write-    -description-
  * 
+ *      calculation                  R          current calculation procedure
+ * 
  *      reduction_rate              R/W         reduction of key: 0.0 => no final key, 1.0 => no reduction
  * 
  *      security_bits               R/W         number of security bits introduced into privacy amplification
