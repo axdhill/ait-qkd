@@ -81,11 +81,11 @@ class module;
  *  
  * then somewhere in the module's process code
  *
- *      bool mymodule::process(....) {
+ *      bool mymodule::process(qkd::key::key k, ....) {
  *
  *          ...
  *          // get communicator instance
- *          qkd::module::communicator comm = communicator(in_auth, out_auth);
+ *          qkd::module::communicator comm = communicator(k.id(), in_auth, out_auth);
  *
  *          // talk to peer
  *          foo(comm);
