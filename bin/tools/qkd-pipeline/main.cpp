@@ -245,7 +245,7 @@ static void write_current_pid(boost::filesystem::path const & cPath);
  * @param   cTarget             the stream to write to
  * @param   cModuleDefinition   the module definition to print
  */
-void print_module_details(std::ostream& cTarget, const module_definition& cModuleDefinition) {
+void print_module_details(std::ostream & cTarget, const module_definition & cModuleDefinition) {
     cTarget << "Module '" << cModuleDefinition.sPath << "'," << std::endl
             << "\twith configuration: '" << cModuleDefinition.sConfiguration << "'" << std::endl
             << "\tdbus name: '" << cModuleDefinition.sDBusServiceName << "'" << std::endl
@@ -833,7 +833,7 @@ int start() {
         boost::filesystem::path cExecutable;
         try {
             cExecutable = qkd::utility::environment::find_executable(cModule.sPath);
-        } catch (const boost::filesystem::filesystem_error& filesystem_error) {
+        } catch (const boost::filesystem::filesystem_error & filesystem_error) {
             print_module_details(std::cerr, cModule);
             std::cerr << "Exception was thrown while trying to locate executable "
                       << cModule.sPath << std::endl
@@ -877,7 +877,7 @@ int start() {
                     // by the qkd-pipeline tool again to find DBus service name
                     // of current module
                     write_current_pid(cPIDFileName);
-                } catch (const boost::filesystem::filesystem_error& filesystem_error) {
+                } catch (const boost::filesystem::filesystem_error & filesystem_error) {
                     print_module_details(std::cerr, cModule);
                     std::cerr << "Exception was thrown while trying to write the module's PID to a file." << std::endl
                               << "The path to the PID file was: " << cPIDFileName.string() << std::endl
