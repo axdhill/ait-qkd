@@ -47,6 +47,7 @@ The whole project compiles in one single step, meaning no subprojects. This resu
     |   |   +-- qkd-resize                                      resize incoming keys to a minimum or to an exact key size
     |   |   +-- qkd-sifting-bb84                                BB84 module
     |   |   +-- qkd-statistics                                  writes statistic data of bypassing keystream to a file
+    |   |   +-- qkd-sync                                        enforces key synchronization                            
     |   |   +-- qkd-tee                                         fork keystream to stderr and the next module
     |   |   +-- qkd-throttle                                    throttle key stream on bits or keys per second (development module)
     |   +-- q3pd                                            The Q3P node

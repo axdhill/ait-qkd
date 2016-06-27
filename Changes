@@ -5,6 +5,12 @@ This file holds the changes of the AIT QKD R10 throughout the versions
 Changes from 9.9999.6 to 9.9999.7
 ---------------------------------
 
+* new module: qkd-sync
+
+    The new module qkd-sync does simply key synchronization. It
+    does not alter the key but may come handy when developing heavy
+    parallel QKD pipelines.
+
 * module peer-to-peer send/recv require key id now
 
     The module's methods recv and send do now require a key-id
