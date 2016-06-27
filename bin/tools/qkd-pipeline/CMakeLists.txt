@@ -34,6 +34,8 @@
 # sources
 set(QKD_KEY_GEN_SRC
     main.cpp
+    module.cpp
+    pipeline.cpp
 )
 
 # bin definition
