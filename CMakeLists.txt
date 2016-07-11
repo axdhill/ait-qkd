@@ -44,7 +44,7 @@ ENABLE_TESTING()
 # ------------------------------------------------------------
 # set global compiler flags
 
-set(VERSION "9.9999.7")
+set(VERSION "9.9999.8")
 add_definitions(-DVERSION=\"${VERSION}\")
 
 # grab current git branch details
@@ -471,7 +471,7 @@ set(CPACK_PACKAGE_CONTACT "Oliver Maurhart <oliver.maurhart@ait.ac.at>")
 set(CPACK_PACKAGE_VENDOR "AIT")
 set(CPACK_PACKAGE_VERSION_MAJOR "9")
 set(CPACK_PACKAGE_VERSION_MINOR "9999")
-set(CPACK_PACKAGE_VERSION_PATCH "7")
+set(CPACK_PACKAGE_VERSION_PATCH "8")
 set(CPACK_PROJECT_VERSION_STRING "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}" )
 
 # ---------- debian 8 (jessie) ----------

@@ -149,6 +149,19 @@ uint32_t qkd_version_9_9999_7() {
 
 
 /**
+ * version check for 9.9999.8
+ *
+ * any compiler and linker may link against the qkd library
+ * requesting this function to ensure availability
+ *
+ * @return  value, representing the version
+ */
+uint32_t qkd_version_9_9999_8() {
+    return MAKE_VERSION(9, 9999, 8);
+}
+
+
+/**
  * returns a version string including the git branch, commit and change
  * 
  * ... if git was located on the system
