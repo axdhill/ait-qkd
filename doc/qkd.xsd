@@ -32,17 +32,17 @@
     
     <xs:complexType name="generalMetaType">
         <xs:sequence>
-            <xs:element name="bits" type="xs:integer"/>
-            <xs:element name="disclosed" type="xs:integer"/>
+            <xs:element name="bits" type="xs:nonNegativeInteger"/>
+            <xs:element name="disclosed" type="xs:nonNegativeInteger"/>
             <xs:element name="state" type="stateTypes"/>
             <xs:element name="qber" type="xs:decimal"/>
-            <xs:any maxOccurs="unbounded" minOccurs="0" processContents="skip"/>
+            <xs:any maxOccurs="unbounded" minOccurs="0" processContents="lax"/>
         </xs:sequence>
     </xs:complexType>
     
     <xs:complexType name="moduleMetaType">
         <xs:sequence>
-            <xs:any maxOccurs="unbounded" minOccurs="0" processContents="skip"/>
+            <xs:any maxOccurs="unbounded" minOccurs="0" processContents="lax"/>
         </xs:sequence>
         <xs:attribute name="id" type="xs:string" use="required"/>
         <xs:attribute name="type" type="moduleTypes" use="required"/>
