@@ -270,14 +270,16 @@ engine_instance::~engine_instance() {
  */
 bool engine_instance::accept(qkd::key::key const & cKey) const {
     
-    if (cKey.meta().eKeyState == qkd::key::key_state::KEY_STATE_DISCLOSED) {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "received key #" << cKey.id() << " has state: DISCLOSED. unacceptable. discarded.";
+    if (cKey.state() == qkd::key::key_state::KEY_STATE_DISCLOSED) {
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " 
+                << "received key #" << cKey.id() << " has state: DISCLOSED. unacceptable. discarded.";
         return false;
     }
     
     // if the key has not been authenticated, then we should state a warning
-    if (cKey.meta().eKeyState != qkd::key::key_state::KEY_STATE_AUTHENTICATED) {
-        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "received key #" << cKey.id() << " not in state: AUTHENTICATED. warning: unauthenticated keys bear a security risk!";
+    if (cKey.state() != qkd::key::key_state::KEY_STATE_AUTHENTICATED) {
+        qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " 
+                << "received key #" << cKey.id() << " not in state: AUTHENTICATED. warning: unauthenticated keys bear a security risk!";
         return false;
     }
     

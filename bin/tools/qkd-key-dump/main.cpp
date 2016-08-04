@@ -43,13 +43,6 @@
 
 
 // ------------------------------------------------------------
-// fwd
-
-
-int dump(std::istream & cIn, std::ostream & cOut);
-
-
-// ------------------------------------------------------------
 // code
 
 
@@ -76,14 +69,14 @@ int dump(std::istream & cIn, std::ostream & cOut) {
         std::stringstream ss;
         
         uint64_t nBits = cKey.size() * 8;
-        double nDisclosedBitsRate = (double)cKey.meta().nDisclosedBits / (double)nBits;
+        double nDisclosedBitsRate = (double)cKey.disclosed() / (double)nBits;
         
         ss << "key #" << cKey.id() << "\n";
         ss << "\tbits:                \t" << nBits << "\n";
-        ss << "\tdisclosed bits:      \t" << cKey.meta().nDisclosedBits << " (" << boost::format("%05.2f") % (nDisclosedBitsRate * 100.0) << "%)\n";
-        ss << "\terror rate:          \t" << cKey.meta().nErrorRate << "\n";
-        ss << "\tauth-scheme-incoming:\t" << cKey.meta().sCryptoSchemeIncoming << "\n";
-        ss << "\tauth-scheme-outgoing:\t" << cKey.meta().sCryptoSchemeOutgoing << "\n";
+        ss << "\tdisclosed bits:      \t" << cKey.disclosed() << " (" << boost::format("%05.2f") % (nDisclosedBitsRate * 100.0) << "%)\n";
+        ss << "\terror rate:          \t" << cKey.qber() << "\n";
+        ss << "\tauth-scheme-incoming:\t" << cKey.crypto_scheme_incoming() << "\n";
+        ss << "\tauth-scheme-outgoing:\t" << cKey.crypto_scheme_outgoing() << "\n";
         ss << "\tstate:               \t" << cKey.state_string() << "\n";
         
         // checksum
@@ -100,6 +93,33 @@ int dump(std::istream & cIn, std::ostream & cOut) {
 }
 
     
+/**
+ * key dump loop metadata version
+ * 
+ * @param   cIn         input stream
+ * @param   cOut        output stream
+ * @return  0 = success, else failure
+ */
+int dump_metadata(std::istream & cIn, std::ostream & cOut) {
+    
+    // loop until we are eof
+    while (!cIn.eof()) {
+
+        // read key
+        qkd::key::key cKey;
+        cIn >> cKey;
+        
+        // check if valid
+        if (cKey == qkd::key::key::null()) continue;
+        
+        cOut << "key# " << cKey.id() << std::endl;
+        cOut << cKey.metadata_xml(true) << "\n" << std::endl;
+    }
+    
+    return 0;
+}
+
+
 /**
  * key dump loop short version
  * 
@@ -130,7 +150,7 @@ int dump_short(std::istream & cIn, std::ostream & cOut) {
         }
         
         uint64_t nBits = cKey.size() * 8;
-        cOut << boost::format(sFormat) % cKey.id() % nBits % cKey.meta().nDisclosedBits % cKey.meta().nErrorRate % cKey.state_string() % cKey.data().crc32();
+        cOut << boost::format(sFormat) % cKey.id() % nBits % cKey.disclosed() % cKey.qber() % cKey.state_string() % cKey.data().crc32();
     }
     
     return 0;
@@ -157,6 +177,7 @@ int main(int argc, char ** argv) {
     cOptions.add_options()("input-file,i", boost::program_options::value<std::string>(), "input file");
     cOptions.add_options()("output-file,o", boost::program_options::value<std::string>(), "output file (if omitted stdout is used)");
     cOptions.add_options()("short,s", "short version omitting data itself");
+    cOptions.add_options()("metadata,m", "print full XML metadata of each key");
     cOptions.add_options()("version,v", "print version string");
     
     // final arguments
@@ -197,8 +218,12 @@ int main(int argc, char ** argv) {
         return 0;
     }
 
-    // short?
     bool bShort = (cVariableMap.count("short") > 0);
+    bool bMetadata = (cVariableMap.count("metadata") > 0);
+    if (bShort && bMetadata) {
+        std::cerr << "please choose either --short or --metadata" << std::endl;
+        return 1;
+    }
     
     std::ifstream cInFile;
     std::ofstream cOutFile;
@@ -221,10 +246,12 @@ int main(int argc, char ** argv) {
         }
     }
     
-    // on with it
     if (bShort) {
         return dump_short((cInFile.is_open() ? cInFile : std::cin), (cOutFile.is_open() ? cOutFile : std::cout));
     }
-
+    if (bMetadata) {
+        return dump_metadata((cInFile.is_open() ? cInFile : std::cin), (cOutFile.is_open() ? cOutFile : std::cout));
+    }
+    
     return dump((cInFile.is_open() ? cInFile : std::cin), (cOutFile.is_open() ? cOutFile : std::cout));
 }

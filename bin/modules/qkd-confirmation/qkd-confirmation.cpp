@@ -148,7 +148,7 @@ qulonglong qkd_confirmation::confirmed_keys() const {
 bool qkd_confirmation::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cIncomingContext, qkd::crypto::crypto_context & cOutgoingContext) {
     
     // we pass on disclosed keys as-is
-    if (cKey.meta().eKeyState == qkd::key::key_state::KEY_STATE_DISCLOSED) return true;
+    if (cKey.state() == qkd::key::key_state::KEY_STATE_DISCLOSED) return true;
 
     if (is_alice()) return process_alice(cKey, cIncomingContext, cOutgoingContext);
     if (is_bob()) return process_bob(cKey, cIncomingContext, cOutgoingContext);
@@ -229,7 +229,7 @@ bool qkd_confirmation::process_alice(qkd::key::key & cKey, qkd::crypto::crypto_c
         qkd::utility::syslog::info() << "confirmation for key " << cKey.id() << " failed";
     }
     else {
-        cKey.meta().eKeyState = qkd::key::key_state::KEY_STATE_CONFIRMED;
+        cKey.set_state(qkd::key::key_state::KEY_STATE_CONFIRMED);
         d->nConfirmedKeys++;
         qkd::utility::debug() << "confirmation for key " << cKey.id() << " ok";
     }
@@ -316,7 +316,7 @@ bool qkd_confirmation::process_bob(qkd::key::key & cKey, qkd::crypto::crypto_con
         qkd::utility::syslog::info() << "confirmation for key " << cKey.id() << " failed";
     }
     else {
-        cKey.meta().eKeyState = qkd::key::key_state::KEY_STATE_CONFIRMED;
+        cKey.set_state(qkd::key::key_state::KEY_STATE_CONFIRMED);
         d->nConfirmedKeys++;
         qkd::utility::debug() << "confirmation for key " << cKey.id() << " ok";
     }

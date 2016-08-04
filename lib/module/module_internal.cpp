@@ -108,8 +108,8 @@ void module::module_internal::add_stats_incoming(qkd::key::key const & cKey) {
 
     cStat.nKeysIncoming++;
     cStat.nKeyBitsIncoming += cKey.size() * 8;
-    cStat.nDisclosedBitsIncoming += cKey.meta().nDisclosedBits;
-    cStat.nErrorBitsIncoming += cKey.meta().nErrorRate * (cKey.size() * 8);
+    cStat.nDisclosedBitsIncoming += cKey.disclosed();
+    cStat.nErrorBitsIncoming += cKey.qber() * (cKey.size() * 8);
 }
 
 
@@ -124,8 +124,8 @@ void module::module_internal::add_stats_outgoing(qkd::key::key const & cKey) {
 
     cStat.nKeysOutgoing++;
     cStat.nKeyBitsOutgoing += cKey.size() * 8;
-    cStat.nDisclosedBitsOutgoing += cKey.meta().nDisclosedBits;
-    cStat.nErrorBitsOutgoing += cKey.meta().nErrorRate * (cKey.size() * 8);
+    cStat.nDisclosedBitsOutgoing += cKey.disclosed();
+    cStat.nErrorBitsOutgoing += cKey.qber() * (cKey.size() * 8);
 }
 
 
@@ -192,8 +192,8 @@ void module::module_internal::debug_key_pull(qkd::key::key const & cKey) {
     cLineFormatter % cTimePoint.count();
     cLineFormatter % cKey.id();
     cLineFormatter % (cKey.size() * 8);
-    cLineFormatter % cKey.meta().nErrorRate;
-    cLineFormatter % cKey.meta().nDisclosedBits;
+    cLineFormatter % cKey.qber();
+    cLineFormatter % cKey.disclosed();
     cLineFormatter % cKey.data().crc32();
     cLineFormatter % cKey.state_string();
     
@@ -215,8 +215,8 @@ void module::module_internal::debug_key_push(qkd::key::key const & cKey) {
     cLineFormatter % cTimePoint.count();
     cLineFormatter % cKey.id();
     cLineFormatter % (cKey.size() * 8);
-    cLineFormatter % cKey.meta().nErrorRate;
-    cLineFormatter % cKey.meta().nDisclosedBits;
+    cLineFormatter % cKey.qber();
+    cLineFormatter % cKey.disclosed();
     cLineFormatter % cKey.data().crc32();
     cLineFormatter % cKey.state_string();
     auto cNanoSeconds =  std::chrono::duration_cast<std::chrono::nanoseconds>(cKey.dwell());

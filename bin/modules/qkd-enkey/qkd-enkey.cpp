@@ -278,7 +278,7 @@ bool qkd_enkey::process(qkd::key::key & cKey, UNUSED qkd::crypto::crypto_context
     // create the key
     d->nKeyId = qkd::key::key::counter().inc();
     cKey = qkd::key::key(d->nKeyId, cBlob);
-    cKey.meta().eKeyState = qkd::key::key_state::KEY_STATE_OTHER;
+    cKey.set_state(qkd::key::key_state::KEY_STATE_OTHER);
     
     return true;
 }

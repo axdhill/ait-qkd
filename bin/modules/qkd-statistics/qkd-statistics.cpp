@@ -216,8 +216,8 @@ void qkd_statistics::qkd_statistics_data::write_statistics(qkd::key::key const &
             boost::format("%015ums %010u %010u %6.4f %010u      %-13s %7.5f %012u %018u %12.0f %14.0f");
 
     double nShannonEfficiency = qkd::utility::shannon_efficiency(
-            cKey.meta().nErrorRate, 
-            (double)cKey.meta().nDisclosedBits / (cKey.size() * 8.0));
+            cKey.qber(), 
+            (double)cKey.disclosed() / (cKey.size() * 8.0));
 
     nKeysOutgoing += 1;
     nKeyBitsOutgoing += cKey.size() * 8;
@@ -231,8 +231,8 @@ void qkd_statistics::qkd_statistics_data::write_statistics(qkd::key::key const &
     cLineFormatter % cTimePoint.count();
     cLineFormatter % cKey.id();
     cLineFormatter % (cKey.size() * 8);
-    cLineFormatter % cKey.meta().nErrorRate;
-    cLineFormatter % cKey.meta().nDisclosedBits;
+    cLineFormatter % cKey.qber();
+    cLineFormatter % cKey.disclosed();
     cLineFormatter % cKey.state_string();
     cLineFormatter % nShannonEfficiency;
     cLineFormatter % nKeysOutgoing;

@@ -203,8 +203,8 @@ int compare(compare_config & cConfig, std::ostream & cStreamOut) {
         std::string sFormat = "%010lu %08lu %08lu      %7.4f     %-13s %8s - %010lu %08lu %08lu      %7.4f     %-13s %8s - %010lu %7.4f\n";
         boost::format cFormat(sFormat);
         cFormat 
-            % cKey1.id() % (cKey1.size() * 8) % cKey1.meta().nDisclosedBits % cKey1.meta().nErrorRate % cKey1.state_string() % cKey1.data().crc32()
-            % cKey2.id() % (cKey2.size() * 8) % cKey2.meta().nDisclosedBits % cKey2.meta().nErrorRate % cKey2.state_string() % cKey2.data().crc32()
+            % cKey1.id() % (cKey1.size() * 8) % cKey1.disclosed() % cKey1.qber() % cKey1.state_string() % cKey1.data().crc32()
+            % cKey2.id() % (cKey2.size() * 8) % cKey2.disclosed() % cKey2.qber() % cKey2.state_string() % cKey2.data().crc32()
             % cResult.nBitsDiffer % cResult.nBitsDifferRate;
         cStreamOut << cFormat.str();
         

@@ -133,7 +133,7 @@ module::~module() {}
  */
 bool module::accept(qkd::key::key const & cKey) const {
     
-    if (cKey.meta().eKeyState == qkd::key::key_state::KEY_STATE_DISCLOSED) {
+    if (cKey.state() == qkd::key::key_state::KEY_STATE_DISCLOSED) {
         qkd::utility::syslog::info() << "key #" << cKey.id() << " has state: DISCLOSED. processing canceled";
         return false;
     }
@@ -154,6 +154,87 @@ void module::apply_config(UNUSED std::string const & sURL, UNUSED qkd::utility::
     // configuration key->value pairs
     // overwrite this method in derived classed
     // to use configuration files correctly
+}
+
+
+/**
+ * add the module's data to a key's metadata on incoming
+ * 
+ * This method is invoked for every new key entering the
+ * module's space.
+ * 
+ * @param   cKey                the new key
+ */
+void module::add_metadata_in(qkd::key::key & cKey) const {
+    
+    cKey.metadata_modules().put("module", "");
+    boost::property_tree::ptree & cPT = cKey.metadata_current_module();
+    
+    cPT.put("<xmlattr>.id", id().toLongLong());
+    cPT.put("<xmlattr>.type", type_name().toStdString());
+    cPT.put("key.incoming.bits", cKey.data().size() * 8);
+    cPT.put("key.incoming.state", static_cast<int>(cKey.state()));
+    cPT.put("key.incoming.state_name", cKey.state_string());
+    cPT.put("key.incoming.qber", cKey.qber());
+    cPT.put("key.incoming.disclosed", cKey.disclosed());
+    
+    // call virtual to let derived classes add their stuff
+    add_metadata_in(cPT, cKey);
+}
+
+
+/**
+ * add the module's data to a key's metadata on incoming
+ * 
+ * This method is invoked for every new key entering the
+ * module's space.
+ * 
+ * Overwrite this to add your own module's metadata to the key!
+ * 
+ * @param   cPropertyTree       the key's current module data
+ * @param   cKey                the new key
+ */
+void module::add_metadata_in(UNUSED boost::property_tree::ptree & cPropertyTree, UNUSED qkd::key::key const & cKey) const {
+    // empty function: derived classes should add their optional stuff here
+}
+
+
+/**
+ * add the module's data to a key's metadata on outgoing
+ * 
+ * This method is invoked for every new key leaving the
+ * module's space.
+ * 
+ * @param   cKey                the new key
+ */
+void module::add_metadata_out(qkd::key::key & cKey) const {
+    
+    boost::property_tree::ptree & cPT = cKey.metadata_current_module();
+    
+    cPT.put("key.outgoing.bits", cKey.data().size() * 8);
+    cPT.put("key.outgoing.state", static_cast<int>(cKey.state()));
+    cPT.put("key.outgoing.state_name", cKey.state_string());
+    cPT.put("key.outgoing.qber", cKey.qber());
+    cPT.put("key.outgoing.disclosed", cKey.disclosed());
+    
+    // call virtual to let derived classes add their stuff
+    add_metadata_out(cPT, cKey);
+}
+
+
+/**
+ * add the module's data to a key's metadata on outgoing
+ * 
+ * This method is invoked for every key leaving the
+ * module's space.
+ * 
+ * Overwrite this to add your own module's metadata to the key!
+ * 
+ * @param   cPropertyTree       the key's current module data
+ * @param   cKey                the new key
+ */
+void module::add_metadata_out(UNUSED boost::property_tree::ptree & cPropertyTree, UNUSED qkd::key::key const & cKey) const {
+    // empty function: derived classes should add their optional stuff here
 }
 
 
@@ -742,11 +823,18 @@ bool module::read(qkd::key::key & cKey) {
         return false;
     }
     
+    add_metadata_in(cKey);
+    
     // do not add stat if we received on a void connection
     if (d->cConPipeIn->is_void()) return true;
     
     d->add_stats_incoming(cKey);
-    cKey.meta().cTimestampRead = std::chrono::high_resolution_clock::now();
+    
+    // we fix the birth of the key here, since we want to
+    // measure the processing time of the module more accurately
+    // this here then denotes the precise time when the key
+    // has entered the module's process space
+    cKey.birth() = std::chrono::high_resolution_clock::now();
     if (qkd::utility::debug::enabled()) d->debug_key_pull(cKey);
 
     return true;
@@ -1602,8 +1690,8 @@ void module::work() {
         qkd::crypto::crypto_context cIncomingContext = qkd::crypto::context::null_context();
         qkd::crypto::crypto_context cOutgoingContext = qkd::crypto::context::null_context();
         try {
-            if (!cKey.meta().sCryptoSchemeIncoming.empty()) {
-                qkd::crypto::scheme cScheme(cKey.meta().sCryptoSchemeIncoming);
+            if (!cKey.crypto_scheme_incoming().empty()) {
+                qkd::crypto::scheme cScheme(cKey.crypto_scheme_incoming());
                 cIncomingContext = qkd::crypto::engine::create(cScheme);
             }
         }
@@ -1612,8 +1700,8 @@ void module::work() {
                     << ": failed to create incoming crypto context for key";
         }
         try {
-            if (!cKey.meta().sCryptoSchemeOutgoing.empty()) {
-                qkd::crypto::scheme cScheme(cKey.meta().sCryptoSchemeOutgoing);
+            if (!cKey.crypto_scheme_outgoing().empty()) {
+                qkd::crypto::scheme cScheme(cKey.crypto_scheme_outgoing());
                 cOutgoingContext = qkd::crypto::engine::create(cScheme);
             }
         }
@@ -1635,10 +1723,10 @@ void module::work() {
         for (auto & w : cWorkload) {
             if (w.bForward) {
                 
-                w.cKey.meta().sCryptoSchemeIncoming = w.cIncomingContext->scheme().str();
-                w.cKey.meta().sCryptoSchemeOutgoing = w.cOutgoingContext->scheme().str();
-                if (w.cKey.meta().sCryptoSchemeIncoming == "null") w.cKey.meta().sCryptoSchemeIncoming = "";
-                if (w.cKey.meta().sCryptoSchemeOutgoing == "null") w.cKey.meta().sCryptoSchemeOutgoing = "";
+                w.cKey.crypto_scheme_incoming() = w.cIncomingContext->scheme().str();
+                w.cKey.crypto_scheme_outgoing() = w.cOutgoingContext->scheme().str();
+                if (w.cKey.crypto_scheme_incoming() == "null") w.cKey.crypto_scheme_incoming() = "";
+                if (w.cKey.crypto_scheme_outgoing() == "null") w.cKey.crypto_scheme_outgoing() = "";
 
                 bool bWrittenToNextModule = false;
                 do {
@@ -1699,7 +1787,7 @@ void module::work() {
  * @param   cKey        key to pass to the next module
  * @return  true, if writing was successful
  */
-bool module::write(qkd::key::key const & cKey, int nPath) {
+bool module::write(qkd::key::key & cKey, int nPath) {
 
     if (!d->cConPipeOut->write_key(cKey, nPath)) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
@@ -1707,6 +1795,7 @@ bool module::write(qkd::key::key const & cKey, int nPath) {
         return false;
     }
     
+    add_metadata_out(cKey);
     d->add_stats_outgoing(cKey);
     if (qkd::utility::debug::enabled()) d->debug_key_push(cKey);
     

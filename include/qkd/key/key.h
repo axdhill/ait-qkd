@@ -41,6 +41,8 @@
 
 #include <inttypes.h>
 
+#include <boost/property_tree/ptree.hpp>
+
 // ait
 #include <qkd/utility/buffer.h>
 
@@ -90,7 +92,9 @@ enum class key_state : uint8_t {
     KEY_STATE_AMPLIFIED,            /**< this is a privacy amplified key */
     KEY_STATE_AUTHENTICATED,        /**< this is an authenticated key */
 
-    KEY_STATE_DISCLOSED             /**< this key has been disclosed */
+    KEY_STATE_DISCLOSED,            /**< this key has been disclosed */
+    
+    KEY_STATE_NEW = 99              /**< this is a new key */
 };
 
 
@@ -258,6 +262,7 @@ public:
     };
     
     
+#if 0
     /**
      * additional information for the key
      */
@@ -329,12 +334,13 @@ public:
         void write(std::ostream & cStream) const;
         
     };
-
+#endif
+    
 
     /**
      * ctor
      */
-    key() : m_nId(0), m_cData(0) {}
+    key();
     
     
     /**
@@ -344,7 +350,7 @@ public:
      * 
      * @param   rhs     right hand side
      */
-    key(key const & rhs) : m_nId(rhs.m_nId), m_cData(rhs.m_cData), m_cMeta(rhs.m_cMeta) {}
+    key(key const & rhs);
 
 
     /**
@@ -355,7 +361,7 @@ public:
      * @param   nId         ID of the key
      * @param   cMemory     memory holding the key bits
      */
-    explicit key(key_id nId, qkd::utility::memory & cMemory) : m_nId(nId), m_cData(cMemory) {}
+    explicit key(key_id nId, qkd::utility::memory & cMemory);
     
     
     /**
@@ -366,7 +372,7 @@ public:
      * @param   nId         ID of the key
      * @param   cMemory     memory holding the key bits
      */
-    explicit key(key_id nId, qkd::utility::memory const & cMemory) : m_nId(nId), m_cData(cMemory.clone()) {}
+    explicit key(key_id nId, qkd::utility::memory const & cMemory);
     
     
     /**
@@ -454,11 +460,57 @@ public:
     
     
     /**
+     * return the birth of the key inside the current process
+     * 
+     * The birth is a time point when the key has been created or
+     * read by the current process
+     * 
+     * @return  time point of birth of key
+     */
+    std::chrono::high_resolution_clock::time_point birth() const { return m_cTimestampRead; }
+    
+    
+    /**
+     * return the birth of the key inside the current process
+     * 
+     * The birth is a time point when the key has been created or
+     * read by the current process
+     * 
+     * @return  time point of birth of key
+     */
+    std::chrono::high_resolution_clock::time_point & birth() { return m_cTimestampRead; }
+    
+    
+    /**
      * access the key id counter
      * 
      * @return  the class wide key_id_counter
      */
     static key_id_counter & counter();
+    
+    
+    /**
+     * the current crypto scheme used for this key
+     * 
+     * The crypto scheme string holds the algorithm, init-key
+     * and current state of all incoiming messages from the peer 
+     * bound to this key (see qkd/crypto/scheme.h)
+     * 
+     * @return  a string holding the current crypto scheme for incoming
+     */
+    std::string crypto_scheme_incoming() const { return m_cMetaData.get<std::string>("key.general.crypto.incoming"); }
+    
+    
+    /**
+     * the current crypto scheme used for this key
+     * 
+     * The crypto scheme string holds the algorithm, init-key
+     * and current state of all outgoing messages from the peer 
+     * bound to this key (see qkd/crypto/scheme.h)
+     * 
+     * @return  a string holding the current crypto scheme for outgoing
+     */
+    std::string crypto_scheme_outgoing() const { return m_cMetaData.get<std::string>("key.general.crypto.outgoing"); }
     
     
     /**
@@ -478,12 +530,23 @@ public:
     
     
     /**
+     * the number of disclosed information bits of this key
+     * 
+     * Returns the number of disclosed information bits which
+     * have been leaked during key reconciliation
+     * 
+     * @return  the number of disclosed information bits
+     */
+    uint64_t disclosed() const { return m_cMetaData.get<uint64_t>("key.general.disclosed"); }
+    
+    
+    /**
      * return the timespan how long the key is in the current process
      * 
      * @return  the duration of the key in the current process
      */
     inline std::chrono::high_resolution_clock::duration dwell() const { 
-        return (std::chrono::high_resolution_clock::now() - m_cMeta.cTimestampRead); 
+        return (std::chrono::high_resolution_clock::now() - m_cTimestampRead); 
     }
    
 
@@ -527,19 +590,63 @@ public:
     
     
     /**
-     * get meta data of the key
+     * get metadata of the key
      * 
-     * @return  the meta object
+     * beware: any incausiuous manpiulation of the 'general'
+     * part of the key may lead to uninspected behavior.
+     * 
+     * @return  the metadata property tree
      */
-    inline meta_data & meta() { return m_cMeta; }
+    inline boost::property_tree::ptree & metadata() { return m_cMetaData; }
     
     
     /**
-     * get meta data of the key
+     * get metadata of the key
      * 
-     * @return  the meta object
+     * @return  the metadata property tree
      */
-    inline meta_data const & meta() const { return m_cMeta; }
+    inline boost::property_tree::ptree const & metadata() const { return m_cMetaData; }
+    
+    
+    /**
+     * get current module section of the key's metadata
+     * 
+     * @return  the metadata property tree for the key's current module
+     */
+    boost::property_tree::ptree & metadata_current_module() { return metadata_modules().rbegin()->second; }
+    
+    
+    /**
+     * get current module section of the key's metadata
+     * 
+     * @return  the metadata property tree for the key's current module
+     */
+    boost::property_tree::ptree const & metadata_current_module() const { return metadata_modules().rbegin()->second; }
+    
+    
+    /**
+     * get modules metadata of the key
+     * 
+     * @return  the metadata property tree for the key's modules
+     */
+    boost::property_tree::ptree & metadata_modules() { return m_cMetaData.find("key.modules")->second; }
+    
+    
+    /**
+     * get modules metadata of the key
+     * 
+     * @return  the metadata property tree for the key's modules
+     */
+    boost::property_tree::ptree const & metadata_modules() const { return m_cMetaData.find("key.modules")->second; }
+    
+    
+    /**
+     * get metadata of the key as XML
+     * 
+     * @param   bPretty     pretty formatting enabled or not
+     * @return  the metadata as XML
+     */
+    std::string metadata_xml(bool bPretty = false) const;
     
     
     /**
@@ -551,6 +658,16 @@ public:
         static qkd::key::key cNullKey; 
         return cNullKey; 
     }
+    
+    
+    /**
+     * get the key's QBER
+     * 
+     * this returns the quantum bit error rate associated this this key
+     * 
+     * @return  the key's QBER
+     */
+    inline double qber() const { return m_cMetaData.get<double>("key.general.qber"); }
     
     
     /**
@@ -588,13 +705,61 @@ public:
 
 
     /**
+     * sets the current crypto scheme used for this key
+     * 
+     * The crypto scheme string holds the algorithm, init-key
+     * and current state of all incoming messages from the peer 
+     * bound to this key (see qkd/crypto/scheme.h)
+     * 
+     * @param   sScheme     a string holding the new current crypto scheme for incoming
+     */
+    void set_crypto_scheme_incoming(std::string sScheme);
+    
+    
+    /**
+     * sets the current crypto scheme used for this key
+     * 
+     * The crypto scheme string holds the algorithm, init-key
+     * and current state of all outgoing messages from the peer 
+     * bound to this key (see qkd/crypto/scheme.h)
+     * 
+     * @param   sScheme     a string holding the new current crypto scheme for outgoing
+     */
+    void set_crypto_scheme_outgoing(std::string sScheme);
+    
+    
+    /**
+     * sets the number of disclosed information bits of this key
+     * 
+     * @param   nDisclosed  the new number of disclosed information bits
+     */
+    void set_disclosed(uint64_t nDisclosed);
+    
+    
+    /**
      * set a new key id
      * 
      * @param   nId         the new key id
      */
-    inline void set_id(key_id nId) { m_nId = nId; }
+    void set_id(key_id nId) { m_nId = nId; }
 
 
+    /**
+     * set the key's QBER
+     * 
+     * @param   nQBER       the new key's QBER
+     */
+    void set_qber(double nQBER);
+    
+    
+    /**
+     * set the key's state
+     * 
+     * @param   eKeyState   the new key state
+     */
+    void set_state(key_state eKeyState);
+    
+    
     /**
      * size of key measured in bytes
      * 
@@ -604,11 +769,19 @@ public:
     
     
     /**
+     * get the key's state
+     * 
+     * @return  current state of the key
+     */
+    inline key_state state() const { return static_cast<key_state>(m_cMetaData.get<int>("key.general.state")); }
+    
+    
+    /**
      * give a stringified state
      * 
      * @return  a string holding the key state
      */
-    inline std::string state_string() const { return state_string(meta().eKeyState); }
+    inline std::string state_string() const { return state_string(state()); }
     
 
     /**
@@ -640,6 +813,12 @@ private:
     
     
     /**
+     * inits the meta data
+     */
+    void init_metadata();
+    
+    
+    /**
      * key id
      */
     key_id m_nId;
@@ -654,7 +833,13 @@ private:
     /**
      * meta data
      */
-    meta_data m_cMeta;
+    boost::property_tree::ptree m_cMetaData;
+    
+    
+    /**
+     * timestamp when this key has come into the current process via a read action
+     */
+    std::chrono::high_resolution_clock::time_point m_cTimestampRead;     
     
 };
 

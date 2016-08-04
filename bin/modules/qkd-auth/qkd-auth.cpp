@@ -526,7 +526,7 @@ bool qkd_auth::process(qkd::key::key & cKey,
  */
 void qkd_auth::refill_local_keystores(qkd::key::key & cKey) {
 
-    if (cKey.meta().eKeyState == qkd::key::key_state::KEY_STATE_AMPLIFIED) {
+    if (cKey.state() == qkd::key::key_state::KEY_STATE_AMPLIFIED) {
         
         // alice starts filling incoming, bob starts filling outgoing
         

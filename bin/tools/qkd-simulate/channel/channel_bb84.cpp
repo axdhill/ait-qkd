@@ -98,9 +98,9 @@ measurement channel_bb84::measure_internal() {
         
         // setup final key pair
         cMeasurement->key_alice() = qkd::key::key(m_nKeyId, qkd::utility::memory(alice()->event_table_size()));
-        cMeasurement->key_alice().meta().eKeyState = qkd::key::key_state::KEY_STATE_RAW;
+        cMeasurement->key_alice().set_state(qkd::key::key_state::KEY_STATE_RAW);
         cMeasurement->key_bob() = qkd::key::key(m_nKeyId, qkd::utility::memory(bob()->event_table_size()));
-        cMeasurement->key_bob().meta().eKeyState = qkd::key::key_state::KEY_STATE_RAW;
+        cMeasurement->key_bob().set_state(qkd::key::key_state::KEY_STATE_RAW);
 
         unsigned char * buffer_alice = alice()->get_buffer();
         unsigned char * buffer_bob = bob()->get_buffer();

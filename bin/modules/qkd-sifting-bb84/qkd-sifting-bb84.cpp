@@ -352,7 +352,7 @@ bool qkd_sifting_bb84::process_alice(qkd::key::key & cKey,
         cKeyBits.resize(d->nCurrentPosition / 8);
         cKey = qkd::key::key(d->nKeyId, cKeyBits);
         
-        cKey.meta().eKeyState = qkd::key::key_state::KEY_STATE_SIFTED;
+        cKey.set_state(qkd::key::key_state::KEY_STATE_SIFTED);
         d->nKeyId = qkd::key::key::counter().inc();
         d->cBits = qkd::utility::bigint(d->nRawKeyLength);
         d->nCurrentPosition = 0;
@@ -451,7 +451,7 @@ bool qkd_sifting_bb84::process_bob(qkd::key::key & cKey,
         cKeyBits.resize(d->nCurrentPosition / 8);
         cKey = qkd::key::key(d->nKeyId, cKeyBits);
         
-        cKey.meta().eKeyState = qkd::key::key_state::KEY_STATE_SIFTED;
+        cKey.set_state(qkd::key::key_state::KEY_STATE_SIFTED);
         d->nKeyId = qkd::key::key::counter().inc();
         d->cBits = qkd::utility::bigint(d->nRawKeyLength);
         d->nCurrentPosition = 0;

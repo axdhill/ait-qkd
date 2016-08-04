@@ -429,19 +429,19 @@ bool qkd_cascade::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cI
     } 
 
     // fix key meta data
-    cKey.meta().nDisclosedBits = cFrame.transmitted_parities();
-    cKey.meta().nErrorRate = (double)cFrame.corrected_bits().size() / ((double)cKey.size() * 8);
-    cKey.meta().eKeyState = qkd::key::key_state::KEY_STATE_CORRECTED;
+    cKey.set_disclosed(cFrame.transmitted_parities());
+    cKey.set_qber((double)cFrame.corrected_bits().size() / ((double)cKey.size() * 8));
+    cKey.set_state(qkd::key::key_state::KEY_STATE_CORRECTED);
 
     // output efficiency values
     if (qkd::utility::debug::enabled()) {
-        double nDisclosedRate = (double)cKey.meta().nDisclosedBits / ((double)cKey.size() * 8);
+        double nDisclosedRate = (double)cKey.disclosed() / ((double)cKey.size() * 8);
         qkd::utility::debug() 
             << "cascade done: " 
             << "errors = " << cFrame.corrected_bits().size() << "/" << cKey.size() * 8
-            << ", error rate = " << cKey.meta().nErrorRate 
-            << ", disclosed = " << cKey.meta().nDisclosedBits << "/" << cKey.size() * 8 
-            << ", efficiency = " << qkd::utility::shannon_efficiency(cKey.meta().nErrorRate, nDisclosedRate);
+            << ", error rate = " << cKey.qber()
+            << ", disclosed = " << cKey.disclosed() << "/" << cKey.size() * 8 
+            << ", efficiency = " << qkd::utility::shannon_efficiency(cKey.qber(), nDisclosedRate);
     }
 
     return true;

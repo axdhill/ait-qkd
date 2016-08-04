@@ -61,6 +61,9 @@ int test() {
     
     // check bits 0x8318c013
     qkd::key::key cKey(1, qkd::utility::memory::from_hex("8318c013"));
+    
+    // TODO: check metadata
+    assert(0);
 
     assert(cKey.get_bit( 0) == true);      // 3 
     assert(cKey.get_bit( 1) == true);
@@ -191,9 +194,9 @@ int test() {
     std::string sTempFileName(sTempNameTemplate);
 
     cKeyA = qkd::key::key(13, cMemoryA);
-    cKeyA.meta().nDisclosedBits = 65;
-    cKeyA.meta().sCryptoSchemeIncoming = "evhash-96:053f37b4f59af505c42ba169:64ac81010f6382824d1440e2";
-    cKeyA.meta().sCryptoSchemeOutgoing = "evhash-96:44bc9c0137fae9190b76d4b3:0319ff9b6df7a7ede957428d";
+    cKeyA.set_disclosed(65);
+    cKeyA.set_crypto_scheme_incoming("evhash-96:053f37b4f59af505c42ba169:64ac81010f6382824d1440e2");
+    cKeyA.set_crypto_scheme_outgoing("evhash-96:44bc9c0137fae9190b76d4b3:0319ff9b6df7a7ede957428d");
     std::ofstream cFileOut(sTempFileName, std::ios::out | std::ios::binary | std::ios::trunc);
     assert(cFileOut.is_open());
     cFileOut << cKeyA;
@@ -206,9 +209,9 @@ int test() {
     cFileIn.close();
     
     assert(cKeyA == cKeyB);
-    assert(cKeyB.meta().nDisclosedBits == 65);
-    assert(cKeyB.meta().sCryptoSchemeIncoming == "evhash-96:053f37b4f59af505c42ba169:64ac81010f6382824d1440e2");
-    assert(cKeyB.meta().sCryptoSchemeOutgoing == "evhash-96:44bc9c0137fae9190b76d4b3:0319ff9b6df7a7ede957428d");
+    assert(cKeyB.disclosed() == 65);
+    assert(cKeyB.crypto_scheme_incoming() == "evhash-96:053f37b4f59af505c42ba169:64ac81010f6382824d1440e2");
+    assert(cKeyB.crypto_scheme_outgoing() == "evhash-96:44bc9c0137fae9190b76d4b3:0319ff9b6df7a7ede957428d");
     
     // retry with buffers
     memcpy(sTempNameTemplate, "key_test_XXXXXX", strlen("key_test_XXXXXX"));

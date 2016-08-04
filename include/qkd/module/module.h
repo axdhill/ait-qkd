@@ -43,6 +43,12 @@
 
 #include <inttypes.h>
 
+// TODO: Qt < 5.0 has decent troubles parsing boost stuff --> Parse error at "BOOST_JOIN"
+//       drop this once we gone to a more recent Qt version
+#ifndef Q_MOC_RUN
+#include <boost/property_tree/ptree.hpp>
+#endif
+
 // Qt
 #include <QtCore/QObject>
 #include <QtDBus/QtDBus>
@@ -1424,6 +1430,34 @@ protected:
     
     
     /**
+     * add the module's data to a key's metadata on incoming
+     * 
+     * This method is invoked for every new key entering the
+     * module's space.
+     * 
+     * Overwrite this to add your own module's metadata to the key!
+     * 
+     * @param   cPropertyTree       the key's current module data
+     * @param   cKey                the new key
+     */
+    virtual void add_metadata_in(boost::property_tree::ptree & cPropertyTree, qkd::key::key const & cKey) const;
+    
+    
+    /**
+     * add the module's data to a key's metadata on outgoing
+     * 
+     * This method is invoked for every key leaving the
+     * module's space.
+     * 
+     * Overwrite this to add your own module's metadata to the key!
+     * 
+     * @param   cPropertyTree       the key's current module data
+     * @param   cKey                the new key
+     */
+    virtual void add_metadata_out(boost::property_tree::ptree & cPropertyTree, qkd::key::key const & cKey) const;
+    
+    
+    /**
      * apply the loaded key value map to the module
      * 
      * @param   sURL            URL of config file loaded
@@ -1632,7 +1666,7 @@ protected:
      * @param   nPath       path number to write
      * @return  true, if writing was successful
      */
-    virtual bool write(qkd::key::key const & cKey, int nPath = -1);
+    virtual bool write(qkd::key::key & cKey, int nPath = -1);
 
     
 signals:
@@ -1698,6 +1732,28 @@ private slots:
     
     
 private:
+    
+    
+    /**
+     * add the module's data to a key's metadata when incoming
+     * 
+     * This method is invoked for every new key entering the
+     * module's space.
+     * 
+     * @param   cKey                the new key
+     */
+    void add_metadata_in(qkd::key::key & cKey) const;
+    
+    
+    /**
+     * add the module's data to a key's metadata when outgoing
+     * 
+     * This method is invoked for every key leaving the
+     * module's space.
+     * 
+     * @param   cKey                the new key
+     */
+    void add_metadata_out(qkd::key::key & cKey) const;
     
     
     /**

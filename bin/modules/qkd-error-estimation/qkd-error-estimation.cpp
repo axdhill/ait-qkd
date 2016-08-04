@@ -266,17 +266,21 @@ bool qkd_error_estimation::process_alice(qkd::key::key & cKey, qkd::crypto::cryp
     
     qkd::utility::bigint cErrors = cPublicLocal ^ cPublicPeer;
     uint64_t nErrorsDetected = cErrors.bits_set();
-    cKey.meta().nErrorRate = (double)nErrorsDetected / (double)cPositionsDisclosed.size();
+    cKey.set_qber((double)nErrorsDetected / (double)cPositionsDisclosed.size());
     
     // set new detected value
     {
         std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
-        d->cAvgError << cKey.meta().nErrorRate;
-        d->nLastError = cKey.meta().nErrorRate;
+        d->cAvgError << cKey.qber();
+        d->nLastError = cKey.qber();
     }
     
     // tell user
-    qkd::utility::debug() << "key #" << cKey.id() << ", disclosed bits = " << cPositionsDisclosed.size() << ", errors detected = " << nErrorsDetected << ", error rate = " << cKey.meta().nErrorRate;
+    qkd::utility::debug() 
+            << "key #" << cKey.id() 
+            << ", disclosed bits = " << cPositionsDisclosed.size() 
+            << ", errors detected = " << nErrorsDetected 
+            << ", error rate = " << cKey.qber();
     
     // modify key: extract discarded keybits
     qkd::utility::bigint cNewKeyBigint(nBits - cPositionsDisclosed.size());
@@ -369,17 +373,21 @@ bool qkd_error_estimation::process_bob(qkd::key::key & cKey, qkd::crypto::crypto
     // calculate error
     qkd::utility::bigint cErrors = cPublicLocal ^ cPublicPeer;
     uint64_t nErrorsDetected = cErrors.bits_set();
-    cKey.meta().nErrorRate = (double)nErrorsDetected / (double)cPositionsDisclosed.size();
+    cKey.set_qber((double)nErrorsDetected / (double)cPositionsDisclosed.size());
 
     // set new detected value
     {
         std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
-        d->cAvgError << cKey.meta().nErrorRate;
-        d->nLastError = cKey.meta().nErrorRate;
+        d->cAvgError << cKey.qber();
+        d->nLastError = cKey.qber();
     }
     
     // tell user
-    qkd::utility::debug() << "key #" << cKey.id() << ", disclosed bits = " << cPositionsDisclosed.size() << ", errors detected = " << nErrorsDetected << ", error rate = " << cKey.meta().nErrorRate;
+    qkd::utility::debug() 
+            << "key #" << cKey.id() 
+            << ", disclosed bits = " << cPositionsDisclosed.size() 
+            << ", errors detected = " << nErrorsDetected 
+            << ", error rate = " << cKey.qber();
     
     // modify key: extract discarded keybits
     qkd::utility::bigint cNewKeyBigint(nBits - cPositionsDisclosed.size());

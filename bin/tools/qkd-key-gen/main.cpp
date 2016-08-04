@@ -253,7 +253,7 @@ qkd::key::key disturb(qkd::key::key const & cKey, config const & cConfig, uint64
     }
 
     // get the state
-    cResultKey.meta().eKeyState = cKey.meta().eKeyState;
+    cResultKey.set_state(cKey.state());
     
     return cResultKey;
 }
@@ -397,7 +397,7 @@ qkd::key::key disturb_exact(qkd::key::key const & cKey, config const & cConfig, 
     if (!cConfig.bQuantumTables) cResultKey = qkd::key::key(cKey.id(), cBI.memory());
 
     // get the state
-    cResultKey.meta().eKeyState = cKey.meta().eKeyState;
+    cResultKey.set_state(cKey.state());
     
     // create the key with the same id but from the bigint
     return cResultKey;
@@ -495,16 +495,16 @@ int generate(config const & cConfig) {
         
         // check for setting error bits
         if (cConfig.bSetErrorBits) {
-            cKeyAlice.meta().nErrorRate = (double)nErrorBits / (double)(cKeyAlice.data().size() * 8);
-            cKeyBob.meta().nErrorRate = (double)nErrorBits / (double)(cKeyBob.data().size() * 8);
+            cKeyAlice.set_qber((double)nErrorBits / (double)(cKeyAlice.data().size() * 8));
+            cKeyBob.set_qber((double)nErrorBits / (double)(cKeyBob.data().size() * 8));
         }
         
         // set disclosed bits
         double nDisclosedRate = cConfig.nDisclosedRate;
         if (nDisclosedRate < 0.0) nDisclosedRate = 0.0;
         if (nDisclosedRate > 1.0) nDisclosedRate = 1.0;
-        cKeyAlice.meta().nDisclosedBits = cKeyAlice.size() * 8 * nDisclosedRate;
-        cKeyBob.meta().nDisclosedBits = cKeyBob.size() * 8 * nDisclosedRate;
+        cKeyAlice.set_disclosed(cKeyAlice.size() * 8 * nDisclosedRate);
+        cKeyBob.set_disclosed(cKeyBob.size() * 8 * nDisclosedRate);
         
         // write to file
         cFileAlice << cKeyAlice;

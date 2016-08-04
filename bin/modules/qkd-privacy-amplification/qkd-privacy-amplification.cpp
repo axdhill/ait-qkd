@@ -161,7 +161,7 @@ bool qkd_privacy_amplification::process(qkd::key::key & cKey,
                                         UNUSED qkd::crypto::crypto_context & cOutgoingContext) {
 
     uint64_t nKeyBits = cKey.data().size() * 8;
-    uint64_t const nDisclosedBits = cKey.meta().nDisclosedBits;
+    uint64_t const nDisclosedBits = cKey.disclosed();
     uint64_t nSecurityBits = security_bits();
     uint64_t nSizeOfSeedKey = nKeyBits;
     double nReductionRate = reduction_rate();
@@ -192,7 +192,7 @@ bool qkd_privacy_amplification::process(qkd::key::key & cKey,
         }
         else {
             
-            nSizeOfShiftKey = std::floor((double)nSizeOfShiftKey * tau(cKey.meta().nErrorRate) - nDisclosedBits - nSecurityBits);
+            nSizeOfShiftKey = std::floor((double)nSizeOfShiftKey * tau(cKey.qber()) - nDisclosedBits - nSecurityBits);
             
             // if keybits * tau - disclosed - security_bits render negatively, this
             // would yield a very hight number since the result is unsigned
@@ -222,7 +222,7 @@ bool qkd_privacy_amplification::process(qkd::key::key & cKey,
     qkd::utility::debug() 
             << "running privacy amplification on key " << cKey.id() 
             << " size (bits) = " << nKeyBits 
-            << " error rate = " << cKey.meta().nErrorRate 
+            << " error rate = " << cKey.qber() 
             << " disclosed bits = " << nDisclosedBits 
             << " size of reduced key = " << nSizeOfShiftKey;
     
@@ -273,7 +273,7 @@ bool qkd_privacy_amplification::process(qkd::key::key & cKey,
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ << ": " << "privacy amplification failed";
     }
     
-    cKey.meta().eKeyState = qkd::key::key_state::KEY_STATE_AMPLIFIED;
+    cKey.set_state(qkd::key::key_state::KEY_STATE_AMPLIFIED);
     
     return bPrivacyAmplification;
 }
@@ -445,7 +445,7 @@ bool perform(qkd::key::key & cKey, qkd::key::key const & cInput, qkd::utility::b
     for (uint64_t i = 0; i < cShift.bits(); i++) cBI.set(i, (nToeplitz[i] & 0x1) != 0);
     
     // the final key
-    cKey.meta() = cInput.meta();
+    cKey.metadata() = cInput.metadata();
     cKey.data() = cBI.memory();
     
     // clean up the mod arrays
