@@ -102,117 +102,11 @@ qkd::key::key::key_id_counter & qkd::key::key::counter() {
 }
 
 
-// /**
-//  * read from a buffer
-//  * 
-//  * @param   cBuffer     the buffer to read from
-//  */
-// void qkd::key::key::meta_data::read(qkd::utility::buffer & cBuffer) {
-//     
-//     cBuffer >> (uint8_t&)eKeyState;
-//     cBuffer >> nDisclosedBits;
-//     cBuffer >> nErrorRate;
-//     
-//     cBuffer >> sCryptoSchemeIncoming;
-//     cBuffer >> sCryptoSchemeOutgoing;
-//     
-// }
-// 
-// 
-// /**
-//  * read from stream
-//  * 
-//  * @param   cStream     the stream to read from
-//  */
-// void qkd::key::key::meta_data::read(std::istream & cStream) { 
-//     
-//     uint8_t nKeyState = 0;
-//     cStream.read((char *)&nKeyState, sizeof(nKeyState));
-//     this->eKeyState = static_cast<qkd::key::key_state>(nKeyState);
-//     
-//     // read disclosed bits
-//     uint64_t nDisclosedBits = 0;
-//     cStream.read((char *)&nDisclosedBits, sizeof(nDisclosedBits));
-//     this->nDisclosedBits = be64toh(nDisclosedBits);
-//     
-//     // read error rate
-//     cStream.read((char *)&(this->nErrorRate), sizeof(this->nErrorRate));
-//     
-//     // read the incoming crypto scheme string
-//     uint64_t nIncomingSchemeLength = 0;
-//     cStream.read((char *)&nIncomingSchemeLength, sizeof(nIncomingSchemeLength));
-//     nIncomingSchemeLength = be64toh(nIncomingSchemeLength);
-//     if (nIncomingSchemeLength) {
-//         char * sIncomingScheme = new char[nIncomingSchemeLength + 1];
-//         cStream.read(sIncomingScheme, nIncomingSchemeLength);
-//         sIncomingScheme[nIncomingSchemeLength] = 0;
-//         this->sCryptoSchemeIncoming = sIncomingScheme;
-//         delete [] sIncomingScheme;
-//     }
-//     else this->sCryptoSchemeIncoming = std::string();
-// 
-//     // read the outgoing crypto scheme string
-//     uint64_t nOutgoingSchemeLength = 0;
-//     cStream.read((char *)&nOutgoingSchemeLength, sizeof(nOutgoingSchemeLength));
-//     nOutgoingSchemeLength = be64toh(nOutgoingSchemeLength);
-//     if (nOutgoingSchemeLength) {
-//         char * sOutgoingScheme = new char[nOutgoingSchemeLength + 1];
-//         cStream.read(sOutgoingScheme, nOutgoingSchemeLength);
-//         sOutgoingScheme[nOutgoingSchemeLength] = 0;
-//         this->sCryptoSchemeOutgoing = sOutgoingScheme;
-//         delete [] sOutgoingScheme;
-//     }
-//     else this->sCryptoSchemeOutgoing = std::string();
-// }
-// 
-// 
-// /**
-//  * write to a buffer
-//  * 
-//  * @param   cBuffer     the buffer to write to
-//  */
-// void qkd::key::key::meta_data::write(qkd::utility::buffer & cBuffer) const {
-//     cBuffer << (uint8_t)eKeyState;
-//     cBuffer << nDisclosedBits;
-//     cBuffer << nErrorRate;
-//     cBuffer << sCryptoSchemeIncoming;
-//     cBuffer << sCryptoSchemeOutgoing;
-// }
-// 
-// 
-// /**
-//  * write to stream
-//  * 
-//  * @param   cStream     the stream to write to
-//  */
-// void qkd::key::key::meta_data::write(std::ostream & cStream) const { 
-//     
-//     // write key state
-//     cStream.write((char*)&(this->eKeyState), sizeof(this->eKeyState));
-//     
-//     // write disclosed bits
-//     uint64_t nDisclosedBits = htobe64(this->nDisclosedBits);
-//     cStream.write((char *)&nDisclosedBits, sizeof(nDisclosedBits));
-// 
-//     // write error rate
-//     cStream.write((char *)&(this->nErrorRate), sizeof(this->nErrorRate));
-//     
-//     // write crypto scheme strings
-//     uint64_t nIncomingSchemeLength = htobe64(this->sCryptoSchemeIncoming.length());
-//     cStream.write((char *)&nIncomingSchemeLength, sizeof(nIncomingSchemeLength));
-//     if (nIncomingSchemeLength) cStream.write(this->sCryptoSchemeIncoming.c_str(), this->sCryptoSchemeIncoming.length());
-//     
-//     uint64_t nOutgoingSchemeLength = htobe64(this->sCryptoSchemeOutgoing.length());
-//     cStream.write((char *)&nOutgoingSchemeLength, sizeof(nOutgoingSchemeLength));
-//     if (nOutgoingSchemeLength) cStream.write(this->sCryptoSchemeOutgoing.c_str(), this->sCryptoSchemeOutgoing.length());
-// }
-
-
 /**
  * inits the meta data
  */
 void qkd::key::key::init_metadata() {
-    m_cMetaData.put("key.<xmlattr>.id=", m_nId);
+    m_cMetaData.put("key.<xmlattr>.id", m_nId);
     m_cMetaData.put("key.general.state", static_cast<int>(qkd::key::key_state::KEY_STATE_NEW));
     m_cMetaData.put("key.general.state_name", state_string(qkd::key::key_state::KEY_STATE_NEW));
     m_cMetaData.put("key.general.crypto.incoming", "");
@@ -231,18 +125,9 @@ void qkd::key::key::init_metadata() {
  * @return  the metadata as XML
  */
 std::string qkd::key::key::metadata_xml(bool bPretty) const {
-    
     std::stringstream ss;
-    try {
-        std::stringstream ss;
-        boost::property_tree::xml_writer_settings<std::string> cSettings(' ', (bPretty ? 4 : 0));
-        boost::property_tree::write_xml(ss, m_cMetaData, cSettings);
-    }
-    catch (std::exception const & e) {
-        qkd::utility::debug() << "Failed to create key's XML metadata as string: " << e.what();
-        throw std::runtime_error(e.what());
-    }
-    
+    boost::property_tree::xml_writer_settings<std::string> cSettings(' ', (bPretty ? 4 : 0));
+    boost::property_tree::write_xml(ss, m_cMetaData, cSettings);
     return ss.str();
 }
 
@@ -288,16 +173,18 @@ void qkd::key::key::read(std::istream & cStream) {
     cStream.read((char*)&nId, sizeof(nId));
     m_nId = be32toh(nId);
     
-    try {
-        
-        // TODO: read XML string from stream
-        throw std::runtime_error("Not implemented yet!");
-        
-    }
-    catch (std::exception const & e) {
-        qkd::utility::debug() << "Failed to parse key's XML metadata: " << e.what();
-        throw std::runtime_error(e.what());
-    }
+    uint64_t n = 0;
+    cStream.read((char *)&n, sizeof(n));
+    uint64_t nSize = be64toh(n);
+    char * d = new char[nSize]; 
+    cStream.read(d, nSize);
+    std::string s(d, nSize); 
+    
+    std::istringstream xmlInputStream(s);
+    boost::property_tree::ptree cXML;
+    boost::property_tree::read_xml(xmlInputStream, m_cMetaData, boost::property_tree::xml_parser::trim_whitespace);
+    
+    delete [] d; 
     
     cStream >> m_cData; 
 }
@@ -444,17 +331,11 @@ void qkd::key::key::write(std::ostream & cStream) const {
     
     key_id nId = htobe32(id());
     cStream.write((char*)&nId, sizeof(nId));
-    
-    try {
-        
-        // TODO: write XML string to stream
-        throw std::runtime_error("Not implemented yet!");
-        
-    }
-    catch (std::exception const & e) {
-        qkd::utility::debug() << "Failed to write key's XML metadata: " << e.what();
-        throw std::runtime_error(e.what());
-    }
+
+    std::string s = metadata_xml(false);
+    uint64_t n = htobe64(s.size());
+    cStream.write((char *)&n, sizeof(n));
+    cStream << s;
     
     cStream << m_cData; 
 }

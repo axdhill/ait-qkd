@@ -61,9 +61,22 @@ int test() {
     
     // check bits 0x8318c013
     qkd::key::key cKey(1, qkd::utility::memory::from_hex("8318c013"));
-    
-    // TODO: check metadata
-    assert(0);
+    assert(cKey.metadata_xml(true) == std::string("\
+<?xml version=\"1.0\" encoding=\"utf-8\"?>\n\
+<key id=\"1\">\n\
+    <general>\n\
+        <state>99</state>\n\
+        <state_name>new</state_name>\n\
+        <crypto>\n\
+            <incoming/>\n\
+            <outgoing/>\n\
+        </crypto>\n\
+        <bits>32</bits>\n\
+        <qber>0</qber>\n\
+        <disclosed>0</disclosed>\n\
+    </general>\n\
+    <modules/>\n\
+</key>\n"));
 
     assert(cKey.get_bit( 0) == true);      // 3 
     assert(cKey.get_bit( 1) == true);
@@ -161,7 +174,6 @@ int test() {
 
     assert(cKey.data().as_hex() == "4b988103");
 
-
     qkd::utility::memory cMemoryA = qkd::utility::memory::from_hex("8318c0138a4be932090df");
     qkd::utility::memory cMemoryB;
     qkd::utility::memory const cMemoryC = cMemoryA;
@@ -170,7 +182,6 @@ int test() {
     qkd::key::key cKeyA;
     qkd::key::key cKeyB(1, cMemoryA);
     assert(cKeyB.size() == 11);
-
    
     // memory checks
     cMemoryB = cKeyB.data();
@@ -187,7 +198,7 @@ int test() {
     cKeyA = cKeyB;
     cKeyB = foo();
     cKeyA = qkd::key::key(foo());
-    
+
     // save and read
     char sTempNameTemplate[] = "key_test_XXXXXX";
     close(mkstemp(sTempNameTemplate));
@@ -212,6 +223,8 @@ int test() {
     assert(cKeyB.disclosed() == 65);
     assert(cKeyB.crypto_scheme_incoming() == "evhash-96:053f37b4f59af505c42ba169:64ac81010f6382824d1440e2");
     assert(cKeyB.crypto_scheme_outgoing() == "evhash-96:44bc9c0137fae9190b76d4b3:0319ff9b6df7a7ede957428d");
+    assert(cKeyA.metadata_xml(false) == cKeyB.metadata_xml(false));
+    assert(memcmp(cKeyA.data().get(), cKeyB.data().get(), cKeyA.data().size()) == 0);
     
     // retry with buffers
     memcpy(sTempNameTemplate, "key_test_XXXXXX", strlen("key_test_XXXXXX"));
@@ -235,6 +248,11 @@ int test() {
     qkd::key::key cKeyC;
     cBufferB >> cKeyC;
     assert(cKeyA == cKeyC);
+    assert(cKeyC.disclosed() == 65);
+    assert(cKeyC.crypto_scheme_incoming() == "evhash-96:053f37b4f59af505c42ba169:64ac81010f6382824d1440e2");
+    assert(cKeyC.crypto_scheme_outgoing() == "evhash-96:44bc9c0137fae9190b76d4b3:0319ff9b6df7a7ede957428d");
+    assert(cKeyA.metadata_xml(false) == cKeyC.metadata_xml(false));
+    assert(memcmp(cKeyA.data().get(), cKeyC.data().get(), cKeyA.data().size()) == 0);
 
     // grow a key
     cKeyA = qkd::key::key(1, qkd::utility::memory(0));
