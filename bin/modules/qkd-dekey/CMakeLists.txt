@@ -41,14 +41,14 @@ set(QKD_DEKEY_SRC
 )
 
 # Qt MOC
-QT4_GENERATE_MOC(qkd-dekey.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-dekey.moc.cpp) 
+QT5_GENERATE_MOC(qkd-dekey.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-dekey.moc.cpp) 
 set(QKD_DEKEY_MOC
     qkd-dekey.moc.cpp
 )
 
 # DBus Integration
-QT4_GENERATE_DBUS_INTERFACE(qkd-dekey.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-dekey.xml)
-QT4_ADD_DBUS_ADAPTOR(QKD_DEKEY_DBUS_SRC
+QT5_GENERATE_DBUS_INTERFACE(qkd-dekey.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-dekey.xml)
+QT5_ADD_DBUS_ADAPTOR(QKD_DEKEY_DBUS_SRC
     ${CMAKE_CURRENT_BINARY_DIR}/qkd-dekey.xml 
     ${CMAKE_CURRENT_SOURCE_DIR}/qkd-dekey.h 
     qkd_dekey

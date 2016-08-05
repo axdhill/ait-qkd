@@ -37,7 +37,7 @@
 
 // Qt
 #include <QtCore/QSize>
-#include <QtGui/QWidget>
+#include <QtWidgets/QWidget>
 
 // Qwt
 #if defined(__GNUC__) and not defined(__clang__)

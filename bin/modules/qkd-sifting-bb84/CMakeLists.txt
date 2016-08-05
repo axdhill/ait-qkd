@@ -41,15 +41,15 @@ set(QKD_SIFTING_BB84_SRC
 )
 
 # Qt MOC
-QT4_GENERATE_MOC(qkd-sifting-bb84.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-sifting-bb84.moc.cpp) 
-set(QKD_SIFTING_BB84_MOC
-    qkd-sifting-bb84.moc.cpp
+QT5_GENERATE_MOC(qkd-sifting-bb85.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-sifting-bb85.moc.cpp) 
+set(QKD_SIFTING_BB85_MOC
+    qkd-sifting-bb85.moc.cpp
 )
 
 # DBus Integration
-QT4_GENERATE_DBUS_INTERFACE(qkd-sifting-bb84.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-sifting-bb84.xml)
-QT4_ADD_DBUS_ADAPTOR(QKD_SIFTING_BB84_DBUS_SRC
-    ${CMAKE_CURRENT_BINARY_DIR}/qkd-sifting-bb84.xml 
+QT5_GENERATE_DBUS_INTERFACE(qkd-sifting-bb85.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-sifting-bb85.xml)
+QT5_ADD_DBUS_ADAPTOR(QKD_SIFTING_BB85_DBUS_SRC
+    ${CMAKE_CURRENT_BINARY_DIR}/qkd-sifting-bb85.xml 
     ${CMAKE_CURRENT_SOURCE_DIR}/qkd-sifting-bb84.h 
     qkd_sifting_bb84
     qkd_sifting_bb84_dbus)

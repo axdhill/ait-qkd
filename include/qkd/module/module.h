@@ -43,11 +43,7 @@
 
 #include <inttypes.h>
 
-// TODO: Qt < 5.0 has decent troubles parsing boost stuff --> Parse error at "BOOST_JOIN"
-//       drop this once we gone to a more recent Qt version
-#ifndef Q_MOC_RUN
 #include <boost/property_tree/ptree.hpp>
-#endif
 
 // Qt
 #include <QtCore/QObject>

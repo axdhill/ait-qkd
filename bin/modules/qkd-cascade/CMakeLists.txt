@@ -44,7 +44,7 @@ set(QKD_CASCACDE_SRC
 )
 
 # Qt MOC
-QT4_GENERATE_MOC(qkd-cascade.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-cascade.moc.cpp) 
+QT5_GENERATE_MOC(qkd-cascade.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-cascade.moc.cpp) 
 set(QKD_CASCACDE_MOC
     qkd-cascade.moc.cpp
 )

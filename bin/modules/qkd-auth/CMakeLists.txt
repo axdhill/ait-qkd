@@ -41,14 +41,14 @@ set(QKD_AUTH_SRC
 )
 
 # Qt MOC
-QT4_GENERATE_MOC(qkd-auth.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-auth.moc.cpp) 
+QT5_GENERATE_MOC(qkd-auth.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-auth.moc.cpp) 
 set(QKD_AUTH_MOC
     qkd-auth.moc.cpp
 )
 
 # DBus Integration
-QT4_GENERATE_DBUS_INTERFACE(qkd-auth.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-auth.xml)
-QT4_ADD_DBUS_ADAPTOR(QKD_AUTH_DBUS_SRC
+QT5_GENERATE_DBUS_INTERFACE(qkd-auth.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-auth.xml)
+QT5_ADD_DBUS_ADAPTOR(QKD_AUTH_DBUS_SRC
     ${CMAKE_CURRENT_BINARY_DIR}/qkd-auth.xml 
     ${CMAKE_CURRENT_SOURCE_DIR}/qkd-auth.h 
     qkd_auth

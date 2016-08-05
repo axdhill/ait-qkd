@@ -41,14 +41,14 @@ set(QKD_DROP_SRC
 )
 
 # Qt MOC
-QT4_GENERATE_MOC(qkd-drop.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-drop.moc.cpp) 
+QT5_GENERATE_MOC(qkd-drop.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-drop.moc.cpp) 
 set(QKD_DROP_MOC
     qkd-drop.moc.cpp
 )
 
 # DBus Integration
-QT4_GENERATE_DBUS_INTERFACE(qkd-drop.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-drop.xml)
-QT4_ADD_DBUS_ADAPTOR(QKD_DROP_DBUS_SRC
+QT5_GENERATE_DBUS_INTERFACE(qkd-drop.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-drop.xml)
+QT5_ADD_DBUS_ADAPTOR(QKD_DROP_DBUS_SRC
     ${CMAKE_CURRENT_BINARY_DIR}/qkd-drop.xml 
     ${CMAKE_CURRENT_SOURCE_DIR}/qkd-drop.h 
     qkd_drop

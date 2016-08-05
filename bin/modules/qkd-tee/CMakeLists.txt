@@ -41,14 +41,14 @@ set(QKD_TEE_SRC
 )
 
 # Qt MOC
-QT4_GENERATE_MOC(qkd-tee.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-tee.moc.cpp) 
+QT5_GENERATE_MOC(qkd-tee.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-tee.moc.cpp) 
 set(QKD_TEE_MOC
     qkd-tee.moc.cpp
 )
 
 # DBus Integration
-QT4_GENERATE_DBUS_INTERFACE(qkd-tee.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-tee.xml)
-QT4_ADD_DBUS_ADAPTOR(QKD_TEE_DBUS_SRC
+QT5_GENERATE_DBUS_INTERFACE(qkd-tee.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-tee.xml)
+QT5_ADD_DBUS_ADAPTOR(QKD_TEE_DBUS_SRC
     ${CMAKE_CURRENT_BINARY_DIR}/qkd-tee.xml 
     ${CMAKE_CURRENT_SOURCE_DIR}/qkd-tee.h 
     qkd_tee

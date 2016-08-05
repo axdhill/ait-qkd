@@ -41,14 +41,14 @@ set(QKD_REORDER_SRC
 )
 
 # Qt MOC
-QT4_GENERATE_MOC(qkd-reorder.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-reorder.moc.cpp) 
+QT5_GENERATE_MOC(qkd-reorder.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-reorder.moc.cpp) 
 set(QKD_REORDER_MOC
     qkd-reorder.moc.cpp
 )
 
 # DBus Integration
-QT4_GENERATE_DBUS_INTERFACE(qkd-reorder.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-reorder.xml)
-QT4_ADD_DBUS_ADAPTOR(QKD_REORDER_DBUS_SRC
+QT5_GENERATE_DBUS_INTERFACE(qkd-reorder.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-reorder.xml)
+QT5_ADD_DBUS_ADAPTOR(QKD_REORDER_DBUS_SRC
     ${CMAKE_CURRENT_BINARY_DIR}/qkd-reorder.xml 
     ${CMAKE_CURRENT_SOURCE_DIR}/qkd-reorder.h 
     qkd_reorder

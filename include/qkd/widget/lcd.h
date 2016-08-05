@@ -36,7 +36,7 @@
 // incs
 
 // Qt
-#include <QtGui/QLineEdit>
+#include <QtWidgets/QLineEdit>
 
 
 // ------------------------------------------------------------

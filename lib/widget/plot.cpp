@@ -32,7 +32,7 @@
 // include
 
 // Qt
-#include <QtGui/QApplication>
+#include <QtWidgets/QApplication>
 
 #if defined(__GNUC__) and not defined(__clang__)
 #pragma GCC diagnostic push

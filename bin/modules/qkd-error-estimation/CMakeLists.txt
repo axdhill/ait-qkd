@@ -41,14 +41,14 @@ set(QKD_ERROR_ESTIMATION_SRC
 )
 
 # Qt MOC
-QT4_GENERATE_MOC(qkd-error-estimation.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-error-estimation.moc.cpp) 
+QT5_GENERATE_MOC(qkd-error-estimation.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-error-estimation.moc.cpp) 
 set(QKD_ERROR_ESTIMATION_MOC
     qkd-error-estimation.moc.cpp
 )
 
 # DBus Integration
-QT4_GENERATE_DBUS_INTERFACE(qkd-error-estimation.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-error-estimation.xml)
-QT4_ADD_DBUS_ADAPTOR(QKD_ERROR_ESTIMATION_DBUS_SRC
+QT5_GENERATE_DBUS_INTERFACE(qkd-error-estimation.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-error-estimation.xml)
+QT5_ADD_DBUS_ADAPTOR(QKD_ERROR_ESTIMATION_DBUS_SRC
     ${CMAKE_CURRENT_BINARY_DIR}/qkd-error-estimation.xml 
     ${CMAKE_CURRENT_SOURCE_DIR}/qkd-error-estimation.h 
     qkd_error_estimation

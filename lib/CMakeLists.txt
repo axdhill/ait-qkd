@@ -196,32 +196,32 @@ set(QKD_SRC
 )
 
 # Qt UIC
-QT4_WRAP_UI(${CMAKE_CURRENT_BINARY_DIR}/ui_module_frame.h widget/module_frame.ui)
+QT5_WRAP_UI(${CMAKE_CURRENT_BINARY_DIR}/ui_module_frame.h widget/module_frame.ui)
 set(QKD_UIC
     ui_module_frame.h
 )
 
 
 # Qt MOC
-QT4_GENERATE_MOC(${CMAKE_SOURCE_DIR}/lib/q3p/engine/protocol/data.h         ${CMAKE_CURRENT_BINARY_DIR}/q3p_engine_protocol_data.moc.cpp) 
-QT4_GENERATE_MOC(${CMAKE_SOURCE_DIR}/lib/q3p/engine/protocol/handshake.h    ${CMAKE_CURRENT_BINARY_DIR}/q3p_engine_protocol_handshake.moc.cpp) 
-QT4_GENERATE_MOC(${CMAKE_SOURCE_DIR}/lib/q3p/engine/protocol/key_move.h     ${CMAKE_CURRENT_BINARY_DIR}/q3p_engine_protocol_key_move.moc.cpp) 
-QT4_GENERATE_MOC(${CMAKE_SOURCE_DIR}/lib/q3p/engine/protocol/load.h         ${CMAKE_CURRENT_BINARY_DIR}/q3p_engine_protocol_load.moc.cpp) 
-QT4_GENERATE_MOC(${CMAKE_SOURCE_DIR}/lib/q3p/engine/protocol/load_request.h ${CMAKE_CURRENT_BINARY_DIR}/q3p_engine_protocol_load_request.moc.cpp) 
-QT4_GENERATE_MOC(${CMAKE_SOURCE_DIR}/lib/q3p/engine/protocol/protocol.h     ${CMAKE_CURRENT_BINARY_DIR}/q3p_engine_protocol_protocol.moc.cpp) 
-QT4_GENERATE_MOC(${CMAKE_SOURCE_DIR}/lib/q3p/engine/protocol/store.h        ${CMAKE_CURRENT_BINARY_DIR}/q3p_engine_protocol_store.moc.cpp) 
-QT4_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/q3p/db.h                   ${CMAKE_CURRENT_BINARY_DIR}/q3p_db.moc.cpp) 
-QT4_GENERATE_MOC(${CMAKE_SOURCE_DIR}/lib/q3p/db/db_file.h                   ${CMAKE_CURRENT_BINARY_DIR}/q3p_db_file.moc.cpp) 
-QT4_GENERATE_MOC(${CMAKE_SOURCE_DIR}/lib/q3p/db/db_null.h                   ${CMAKE_CURRENT_BINARY_DIR}/q3p_db_null.moc.cpp) 
-QT4_GENERATE_MOC(${CMAKE_SOURCE_DIR}/lib/q3p/db/db_ram.h                    ${CMAKE_CURRENT_BINARY_DIR}/q3p_db_ram.moc.cpp) 
-QT4_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/q3p/engine.h               ${CMAKE_CURRENT_BINARY_DIR}/q3p_engine.moc.cpp) 
-QT4_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/q3p/mq.h                   ${CMAKE_CURRENT_BINARY_DIR}/q3p_mq.moc.cpp) 
-QT4_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/q3p/nic.h                  ${CMAKE_CURRENT_BINARY_DIR}/q3p_nic.moc.cpp) 
-QT4_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/module/module.h            ${CMAKE_CURRENT_BINARY_DIR}/qkd_module.moc.cpp) 
-QT4_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/widget/lcd.h               ${CMAKE_CURRENT_BINARY_DIR}/qkd_widget_lcd.moc.cpp) 
-QT4_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/widget/led.h               ${CMAKE_CURRENT_BINARY_DIR}/qkd_widget_led.moc.cpp) 
-QT4_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/widget/module_frame.h      ${CMAKE_CURRENT_BINARY_DIR}/qkd_widget_module_frame.moc.cpp) 
-QT4_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/widget/plot.h              ${CMAKE_CURRENT_BINARY_DIR}/qkd_widget_plot.moc.cpp) 
+QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/lib/q3p/engine/protocol/data.h         ${CMAKE_CURRENT_BINARY_DIR}/q3p_engine_protocol_data.moc.cpp) 
+QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/lib/q3p/engine/protocol/handshake.h    ${CMAKE_CURRENT_BINARY_DIR}/q3p_engine_protocol_handshake.moc.cpp) 
+QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/lib/q3p/engine/protocol/key_move.h     ${CMAKE_CURRENT_BINARY_DIR}/q3p_engine_protocol_key_move.moc.cpp) 
+QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/lib/q3p/engine/protocol/load.h         ${CMAKE_CURRENT_BINARY_DIR}/q3p_engine_protocol_load.moc.cpp) 
+QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/lib/q3p/engine/protocol/load_request.h ${CMAKE_CURRENT_BINARY_DIR}/q3p_engine_protocol_load_request.moc.cpp) 
+QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/lib/q3p/engine/protocol/protocol.h     ${CMAKE_CURRENT_BINARY_DIR}/q3p_engine_protocol_protocol.moc.cpp) 
+QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/lib/q3p/engine/protocol/store.h        ${CMAKE_CURRENT_BINARY_DIR}/q3p_engine_protocol_store.moc.cpp) 
+QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/q3p/db.h                   ${CMAKE_CURRENT_BINARY_DIR}/q3p_db.moc.cpp) 
+QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/lib/q3p/db/db_file.h                   ${CMAKE_CURRENT_BINARY_DIR}/q3p_db_file.moc.cpp) 
+QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/lib/q3p/db/db_null.h                   ${CMAKE_CURRENT_BINARY_DIR}/q3p_db_null.moc.cpp) 
+QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/lib/q3p/db/db_ram.h                    ${CMAKE_CURRENT_BINARY_DIR}/q3p_db_ram.moc.cpp) 
+QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/q3p/engine.h               ${CMAKE_CURRENT_BINARY_DIR}/q3p_engine.moc.cpp) 
+QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/q3p/mq.h                   ${CMAKE_CURRENT_BINARY_DIR}/q3p_mq.moc.cpp) 
+QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/q3p/nic.h                  ${CMAKE_CURRENT_BINARY_DIR}/q3p_nic.moc.cpp) 
+QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/module/module.h            ${CMAKE_CURRENT_BINARY_DIR}/qkd_module.moc.cpp) 
+QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/widget/lcd.h               ${CMAKE_CURRENT_BINARY_DIR}/qkd_widget_lcd.moc.cpp) 
+QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/widget/led.h               ${CMAKE_CURRENT_BINARY_DIR}/qkd_widget_led.moc.cpp) 
+QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/widget/module_frame.h      ${CMAKE_CURRENT_BINARY_DIR}/qkd_widget_module_frame.moc.cpp) 
+QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/widget/plot.h              ${CMAKE_CURRENT_BINARY_DIR}/qkd_widget_plot.moc.cpp) 
 set(QKD_MOC
     
     q3p_engine_protocol_data.moc.cpp
@@ -251,32 +251,32 @@ set(QKD_MOC
 
 
 # DBus Integration
-QT4_GENERATE_DBUS_INTERFACE(${CMAKE_SOURCE_DIR}/include/qkd/q3p/db.h            ${CMAKE_CURRENT_BINARY_DIR}/db.xml)
-QT4_GENERATE_DBUS_INTERFACE(${CMAKE_SOURCE_DIR}/include/qkd/module/module.h     ${CMAKE_CURRENT_BINARY_DIR}/module.xml)
-QT4_GENERATE_DBUS_INTERFACE(${CMAKE_SOURCE_DIR}/include/qkd/q3p/engine.h        ${CMAKE_CURRENT_BINARY_DIR}/engine.xml)
-QT4_GENERATE_DBUS_INTERFACE(${CMAKE_SOURCE_DIR}/include/qkd/q3p/mq.h            ${CMAKE_CURRENT_BINARY_DIR}/mq.xml)
-QT4_GENERATE_DBUS_INTERFACE(${CMAKE_SOURCE_DIR}/include/qkd/q3p/nic.h           ${CMAKE_CURRENT_BINARY_DIR}/nic.xml)
-QT4_ADD_DBUS_ADAPTOR(DB_DBUS_SRC 
+QT5_GENERATE_DBUS_INTERFACE(${CMAKE_SOURCE_DIR}/include/qkd/q3p/db.h            ${CMAKE_CURRENT_BINARY_DIR}/db.xml)
+QT5_GENERATE_DBUS_INTERFACE(${CMAKE_SOURCE_DIR}/include/qkd/module/module.h     ${CMAKE_CURRENT_BINARY_DIR}/module.xml)
+QT5_GENERATE_DBUS_INTERFACE(${CMAKE_SOURCE_DIR}/include/qkd/q3p/engine.h        ${CMAKE_CURRENT_BINARY_DIR}/engine.xml)
+QT5_GENERATE_DBUS_INTERFACE(${CMAKE_SOURCE_DIR}/include/qkd/q3p/mq.h            ${CMAKE_CURRENT_BINARY_DIR}/mq.xml)
+QT5_GENERATE_DBUS_INTERFACE(${CMAKE_SOURCE_DIR}/include/qkd/q3p/nic.h           ${CMAKE_CURRENT_BINARY_DIR}/nic.xml)
+QT5_ADD_DBUS_ADAPTOR(DB_DBUS_SRC 
     ${CMAKE_CURRENT_BINARY_DIR}/db.xml 
     ${CMAKE_SOURCE_DIR}/include/qkd/q3p/db.h
     qkd::q3p::db
     db_dbus)
-QT4_ADD_DBUS_ADAPTOR(MODULE_DBUS_SRC 
+QT5_ADD_DBUS_ADAPTOR(MODULE_DBUS_SRC 
     ${CMAKE_CURRENT_BINARY_DIR}/module.xml 
     ${CMAKE_SOURCE_DIR}/include/qkd/module/module.h
     qkd::module::module
     module_dbus)
-QT4_ADD_DBUS_ADAPTOR(ENGINE_DBUS_SRC 
+QT5_ADD_DBUS_ADAPTOR(ENGINE_DBUS_SRC 
     ${CMAKE_CURRENT_BINARY_DIR}/engine.xml 
     ${CMAKE_SOURCE_DIR}/include/qkd/q3p/engine.h
     qkd::q3p::engine_instance
     engine_dbus)
-QT4_ADD_DBUS_ADAPTOR(MQ_DBUS_SRC 
+QT5_ADD_DBUS_ADAPTOR(MQ_DBUS_SRC 
     ${CMAKE_CURRENT_BINARY_DIR}/mq.xml 
     ${CMAKE_SOURCE_DIR}/include/qkd/q3p/mq.h
     qkd::q3p::mq_instance
     mq_dbus)
-QT4_ADD_DBUS_ADAPTOR(NIC_DBUS_SRC 
+QT5_ADD_DBUS_ADAPTOR(NIC_DBUS_SRC 
     ${CMAKE_CURRENT_BINARY_DIR}/nic.xml 
     ${CMAKE_SOURCE_DIR}/include/qkd/q3p/nic.h
     qkd::q3p::nic_instance

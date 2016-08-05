@@ -73,15 +73,15 @@ set(QKD_SIMULATE_SRC
 
 
 # Qt UIC
-QT4_WRAP_UI(${CMAKE_CURRENT_BINARY_DIR}/ui_main_widget.h main_widget.ui)
+QT5_WRAP_UI(${CMAKE_CURRENT_BINARY_DIR}/ui_main_widget.h main_widget.ui)
 set(QKD_SIMULATE_UIC
     ui_main_widget.h
 )
 
 # Qt MOC
-QT4_GENERATE_MOC(about_dialog.h             ${CMAKE_CURRENT_BINARY_DIR}/simulate_about_dialog.moc.cpp) 
-QT4_GENERATE_MOC(main_widget.h              ${CMAKE_CURRENT_BINARY_DIR}/simulate_main_widget.moc.cpp) 
-QT4_GENERATE_MOC(main_window.h              ${CMAKE_CURRENT_BINARY_DIR}/simulate_main_window.moc.cpp)
+QT5_GENERATE_MOC(about_dialog.h             ${CMAKE_CURRENT_BINARY_DIR}/simulate_about_dialog.moc.cpp) 
+QT5_GENERATE_MOC(main_widget.h              ${CMAKE_CURRENT_BINARY_DIR}/simulate_main_widget.moc.cpp) 
+QT5_GENERATE_MOC(main_window.h              ${CMAKE_CURRENT_BINARY_DIR}/simulate_main_window.moc.cpp)
 set(QKD_SIMULATE_MOC
     simulate_about_dialog.moc.cpp
     simulate_main_widget.moc.cpp

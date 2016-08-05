@@ -38,7 +38,7 @@
 #include <chrono>
 
 // Qt
-#include <QtGui/QWidget>
+#include <QtWidgets/QWidget>
 
 
 // ------------------------------------------------------------

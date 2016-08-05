@@ -41,14 +41,14 @@ set(QKD_CAT_SRC
 )
 
 # Qt MOC
-QT4_GENERATE_MOC(qkd-cat.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-cat.moc.cpp) 
+QT5_GENERATE_MOC(qkd-cat.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-cat.moc.cpp) 
 set(QKD_CAT_MOC
     qkd-cat.moc.cpp
 )
 
 # DBus Integration
-QT4_GENERATE_DBUS_INTERFACE(qkd-cat.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-cat.xml)
-QT4_ADD_DBUS_ADAPTOR(QKD_CAT_DBUS_SRC
+QT5_GENERATE_DBUS_INTERFACE(qkd-cat.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-cat.xml)
+QT5_ADD_DBUS_ADAPTOR(QKD_CAT_DBUS_SRC
     ${CMAKE_CURRENT_BINARY_DIR}/qkd-cat.xml 
     ${CMAKE_CURRENT_SOURCE_DIR}/qkd-cat.h 
     qkd_cat

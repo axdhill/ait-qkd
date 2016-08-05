@@ -41,14 +41,14 @@ set(QKD_CONFIRMATION_SRC
 )
 
 # Qt MOC
-QT4_GENERATE_MOC(qkd-confirmation.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-confirmation.moc.cpp) 
+QT5_GENERATE_MOC(qkd-confirmation.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-confirmation.moc.cpp) 
 set(QKD_CONFIRMATION_MOC
     qkd-confirmation.moc.cpp
 )
 
 # DBus Integration
-QT4_GENERATE_DBUS_INTERFACE(qkd-confirmation.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-confirmation.xml)
-QT4_ADD_DBUS_ADAPTOR(QKD_CONFIRMATION_DBUS_SRC
+QT5_GENERATE_DBUS_INTERFACE(qkd-confirmation.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-confirmation.xml)
+QT5_ADD_DBUS_ADAPTOR(QKD_CONFIRMATION_DBUS_SRC
     ${CMAKE_CURRENT_BINARY_DIR}/qkd-confirmation.xml 
     ${CMAKE_CURRENT_SOURCE_DIR}/qkd-confirmation.h 
     qkd_confirmation

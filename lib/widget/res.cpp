@@ -34,10 +34,10 @@
 #include <iostream>
 
 // Qt
-#include <QtGui/QBoxLayout>
 #include <QtGui/QFontDatabase>
 #include <QtGui/QPixmapCache>
-#include <QtGui/QWidget>
+#include <QtWidgets/QBoxLayout>
+#include <QtWidgets/QWidget>
 
 // ait
 #include <qkd/widget/res.h>

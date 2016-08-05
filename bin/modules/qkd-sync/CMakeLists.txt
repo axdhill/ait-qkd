@@ -41,7 +41,7 @@ set(QKD_RESIZE_SRC
 )
 
 # Qt MOC
-QT4_GENERATE_MOC(qkd-sync.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-sync.moc.cpp) 
+QT5_GENERATE_MOC(qkd-sync.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-sync.moc.cpp) 
 set(QKD_RESIZE_MOC
     qkd-sync.moc.cpp
 )

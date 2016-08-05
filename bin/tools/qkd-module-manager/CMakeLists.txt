@@ -44,14 +44,14 @@ set(QKD_MODULE_MANAGER_SRC
 
 
 # Qt UIC
-QT4_WRAP_UI(${CMAKE_CURRENT_BINARY_DIR}/ui_main_widget.h main_widget.ui)
+QT5_WRAP_UI(${CMAKE_CURRENT_BINARY_DIR}/ui_main_widget.h main_widget.ui)
 set(QKD_MODULE_MANAGER_UIC
     ui_main_widget.h
 )
 
 # Qt MOC
-QT4_GENERATE_MOC(main_widget.h              ${CMAKE_CURRENT_BINARY_DIR}/module_manager_main_widget.moc.cpp) 
-QT4_GENERATE_MOC(main_window.h              ${CMAKE_CURRENT_BINARY_DIR}/module_manager_main_window.moc.cpp)
+QT5_GENERATE_MOC(main_widget.h              ${CMAKE_CURRENT_BINARY_DIR}/module_manager_main_widget.moc.cpp) 
+QT5_GENERATE_MOC(main_window.h              ${CMAKE_CURRENT_BINARY_DIR}/module_manager_main_window.moc.cpp)
 set(QKD_MODULE_MANAGER_MOC
     module_manager_main_widget.moc.cpp
     module_manager_main_window.moc.cpp

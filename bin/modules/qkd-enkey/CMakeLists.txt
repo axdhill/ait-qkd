@@ -41,14 +41,14 @@ set(QKD_ENKEY_SRC
 )
 
 # Qt MOC
-QT4_GENERATE_MOC(qkd-enkey.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-enkey.moc.cpp) 
+QT5_GENERATE_MOC(qkd-enkey.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-enkey.moc.cpp) 
 set(QKD_ENKEY_MOC
     qkd-enkey.moc.cpp
 )
 
 # DBus Integration
-QT4_GENERATE_DBUS_INTERFACE(qkd-enkey.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-enkey.xml)
-QT4_ADD_DBUS_ADAPTOR(QKD_ENKEY_DBUS_SRC
+QT5_GENERATE_DBUS_INTERFACE(qkd-enkey.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-enkey.xml)
+QT5_ADD_DBUS_ADAPTOR(QKD_ENKEY_DBUS_SRC
     ${CMAKE_CURRENT_BINARY_DIR}/qkd-enkey.xml 
     ${CMAKE_CURRENT_SOURCE_DIR}/qkd-enkey.h 
     qkd_enkey

@@ -134,8 +134,8 @@ if (CMAKE_COMPILER_IS_GNUCC)
 
     endif (${CMAKE_C_COMPILER_VERSION} LESS 4.8)
     
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -Wall -Wextra -pedantic -g -ggdb3 -rdynamic")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -pedantic -g -ggdb3 -rdynamic")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -Wall -Wextra -pedantic -g -ggdb3 -rdynamic ")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -pedantic -g -ggdb3 -rdynamic ")
     
     # performance
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-builtin")
@@ -146,7 +146,7 @@ endif (CMAKE_COMPILER_IS_GNUCC)
 # set compile flags: clang
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -Wall -Wextra -g -ggdb3 ")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -g -ggdb3")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -g -ggdb3 ")
 endif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
 
 # additional debug and profiling options
@@ -334,16 +334,32 @@ else (ZLIB_FOUND)
     message(FATAL_ERROR "ZLIB library not found.")
 endif (ZLIB_FOUND)
 
+# Qt5
+find_package(Qt5Core)
+find_package(Qt5Gui)
+find_package(Qt5Network)
+find_package(Qt5Xml)
+find_package(Qt5DBus)
+find_package(Qt5Widgets)
+include_directories(${Qt5Core_INCLUDE_DIRS})
+include_directories(${Qt5Gui_INCLUDE_DIRS})
+include_directories(${Qt5Network_INCLUDE_DIRS})
+include_directories(${Qt5Xml_INCLUDE_DIRS})
+include_directories(${Qt5Dbus_INCLUDE_DIRS})
+include_directories(${Qt5Widgets_INCLUDE_DIRS})
+add_definitions(${Qt5Core_DEFINITIONS})
+add_definitions(${Qt5Gui_DEFINITIONS})
+add_definitions(${Qt5Network_DEFINITIONS})
+add_definitions(${Qt5Xml_DEFINITIONS})
+add_definitions(${Qt5Dbus_DEFINITIONS})
+add_definitions(${Qt5Widgets_DEFINITIONS})
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Gui_EXECUTABLE_COMPILE_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Network_EXECUTABLE_COMPILE_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Xml_EXECUTABLE_COMPILE_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5DBus_EXECUTABLE_COMPILE_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 
-# Qt4
-find_package(Qt4 COMPONENTS QtCore QtGui QtNetwork QtXml QtDbus)
-if (NOT QT4_FOUND)
-    message(FATAL_ERROR "Qt4 not found! Is QTDIR environment variable set?")
-else (NOT QT4_FOUND)
-    include(${QT_USE_FILE})
-    set(CMAKE_REQUIRED_LIBRARIES "${QT_LIBRARIES};${CMAKE_REQUIRED_LIBRARIES}")
-    set(HAVE_QT4_PKG 1)
-endif (NOT QT4_FOUND)
 
 # Qwt
 include(${CMAKE_SOURCE_DIR}/cmake/FindQwt.cmake)

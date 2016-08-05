@@ -41,14 +41,14 @@ set(QKD_DEBUG_SRC
 )
 
 # Qt MOC
-QT4_GENERATE_MOC(qkd-debug.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-debug.moc.cpp) 
+QT5_GENERATE_MOC(qkd-debug.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-debug.moc.cpp) 
 set(QKD_DEBUG_MOC
     qkd-debug.moc.cpp
 )
 
 # DBus Integration
-QT4_GENERATE_DBUS_INTERFACE(qkd-debug.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-debug.xml)
-QT4_ADD_DBUS_ADAPTOR(QKD_DEBUG_DBUS_SRC
+QT5_GENERATE_DBUS_INTERFACE(qkd-debug.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-debug.xml)
+QT5_ADD_DBUS_ADAPTOR(QKD_DEBUG_DBUS_SRC
     ${CMAKE_CURRENT_BINARY_DIR}/qkd-debug.xml 
     ${CMAKE_CURRENT_SOURCE_DIR}/qkd-debug.h 
     qkd_debug

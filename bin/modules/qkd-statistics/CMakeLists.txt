@@ -41,14 +41,14 @@ set(QKD_STATISTICS_SRC
 )
 
 # Qt MOC
-QT4_GENERATE_MOC(qkd-statistics.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-statistics.moc.cpp) 
+QT5_GENERATE_MOC(qkd-statistics.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-statistics.moc.cpp) 
 set(QKD_STATISTICS_MOC
     qkd-statistics.moc.cpp
 )
 
 # DBus Integration
-QT4_GENERATE_DBUS_INTERFACE(qkd-statistics.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-statistics.xml)
-QT4_ADD_DBUS_ADAPTOR(QKD_STATISTICS_DBUS_SRC
+QT5_GENERATE_DBUS_INTERFACE(qkd-statistics.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-statistics.xml)
+QT5_ADD_DBUS_ADAPTOR(QKD_STATISTICS_DBUS_SRC
     ${CMAKE_CURRENT_BINARY_DIR}/qkd-statistics.xml 
     ${CMAKE_CURRENT_SOURCE_DIR}/qkd-statistics.h 
     qkd_statistics

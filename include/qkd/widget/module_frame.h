@@ -40,7 +40,7 @@
 
 // Qt
 #include <QtDBus/QDBusConnection>
-#include <QtGui/QFrame>
+#include <QtWidgets/QFrame>
 
 
 // ------------------------------------------------------------

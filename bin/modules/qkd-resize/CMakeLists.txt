@@ -41,14 +41,14 @@ set(QKD_RESIZE_SRC
 )
 
 # Qt MOC
-QT4_GENERATE_MOC(qkd-resize.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-resize.moc.cpp) 
+QT5_GENERATE_MOC(qkd-resize.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-resize.moc.cpp) 
 set(QKD_RESIZE_MOC
     qkd-resize.moc.cpp
 )
 
 # DBus Integration
-QT4_GENERATE_DBUS_INTERFACE(qkd-resize.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-resize.xml)
-QT4_ADD_DBUS_ADAPTOR(QKD_RESIZE_DBUS_SRC
+QT5_GENERATE_DBUS_INTERFACE(qkd-resize.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-resize.xml)
+QT5_ADD_DBUS_ADAPTOR(QKD_RESIZE_DBUS_SRC
     ${CMAKE_CURRENT_BINARY_DIR}/qkd-resize.xml 
     ${CMAKE_CURRENT_SOURCE_DIR}/qkd-resize.h 
     qkd_resize

@@ -42,14 +42,14 @@ set(QKD_PRIVACY_AMPLIFICATION_SRC
 )
 
 # Qt MOC
-QT4_GENERATE_MOC(qkd-privacy-amplification.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-privacy-amplification.moc.cpp) 
+QT5_GENERATE_MOC(qkd-privacy-amplification.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-privacy-amplification.moc.cpp) 
 set(QKD_PRIVACY_AMPLIFICATION_MOC
     qkd-privacy-amplification.moc.cpp
 )
 
 # DBus Integration
-QT4_GENERATE_DBUS_INTERFACE(qkd-privacy-amplification.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-privacy-amplification.xml)
-QT4_ADD_DBUS_ADAPTOR(QKD_PRIVACY_AMPLIFICATION_DBUS_SRC
+QT5_GENERATE_DBUS_INTERFACE(qkd-privacy-amplification.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-privacy-amplification.xml)
+QT5_ADD_DBUS_ADAPTOR(QKD_PRIVACY_AMPLIFICATION_DBUS_SRC
     ${CMAKE_CURRENT_BINARY_DIR}/qkd-privacy-amplification.xml 
     ${CMAKE_CURRENT_SOURCE_DIR}/qkd-privacy-amplification.h 
     qkd_privacy_amplification

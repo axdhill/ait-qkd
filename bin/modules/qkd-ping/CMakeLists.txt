@@ -42,14 +42,14 @@ set(QKD_PING_SRC
 )
 
 # Qt MOC
-QT4_GENERATE_MOC(qkd-ping.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-ping.moc.cpp) 
+QT5_GENERATE_MOC(qkd-ping.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-ping.moc.cpp) 
 set(QKD_PING_MOC
     qkd-ping.moc.cpp
 )
 
 # DBus Integration
-QT4_GENERATE_DBUS_INTERFACE(qkd-ping.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-ping.xml)
-QT4_ADD_DBUS_ADAPTOR(QKD_PING_DBUS_SRC
+QT5_GENERATE_DBUS_INTERFACE(qkd-ping.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-ping.xml)
+QT5_ADD_DBUS_ADAPTOR(QKD_PING_DBUS_SRC
     ${CMAKE_CURRENT_BINARY_DIR}/qkd-ping.xml 
     ${CMAKE_CURRENT_SOURCE_DIR}/qkd-ping.h 
     qkd_ping
