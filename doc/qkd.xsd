@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" version="1.0">
+    <!-- Begin of type definitions -->
+    <xs:simpleType name="stateTypes">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="other"/>
+            <xs:enumeration value="raw"/>
+            <xs:enumeration value="sifted"/>
+            <xs:enumeration value="corrected"/>
+            <xs:enumeration value="uncorrected"/>
+            <xs:enumeration value="confirmed"/>
+            <xs:enumeration value="unconfirmed"/>
+            <xs:enumeration value="amplified"/>
+            <xs:enumeration value="authenticated"/>
+            <xs:enumeration value="disclosed"/>
+        </xs:restriction>
+    </xs:simpleType>
+    
+    <xs:simpleType name="moduleTypes">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="presifting"></xs:enumeration>
+            <xs:enumeration value="sifting"></xs:enumeration>
+            <xs:enumeration value="error_estimation"></xs:enumeration>
+            <xs:enumeration value="error_correction"></xs:enumeration>
+            <xs:enumeration value="confirmation"></xs:enumeration>
+            <xs:enumeration value="privacy_amplification"></xs:enumeration>
+            <xs:enumeration value="keystore"></xs:enumeration>
+            <xs:enumeration value="other"></xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    
+    <xs:complexType name="generalMetaType">
+        <xs:sequence>
+            <xs:element name="bits" type="xs:nonNegativeInteger"/>
+            <xs:element name="disclosed" type="xs:nonNegativeInteger"/>
+            <xs:element name="state" type="stateTypes"/>
+            <xs:element name="qber" type="xs:decimal"/>
+            <xs:any maxOccurs="unbounded" minOccurs="0" processContents="lax"/>
+        </xs:sequence>
+    </xs:complexType>
+    
+    <xs:complexType name="moduleMetaType">
+        <xs:sequence>
+            <xs:any maxOccurs="unbounded" minOccurs="0" processContents="lax"/>
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:string" use="required"/>
+        <xs:attribute name="type" type="moduleTypes" use="required"/>
+    </xs:complexType>
+    
+    <xs:complexType name="keyType">
+        <xs:sequence>
+            <xs:element name="general" type="generalMetaType"/>
+            <xs:element name="module" type="moduleMetaType" minOccurs="0" maxOccurs="unbounded"></xs:element>
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:integer" use="required"/>
+    </xs:complexType>
+    
+    <!-- Begin of elements -->
+    <xs:element name="key" type="keyType"/>
+</xs:schema>
