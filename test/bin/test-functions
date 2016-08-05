@@ -53,6 +53,7 @@ else
     alias qkd_qdbus='qdbus --address ${QKD_DBUS_SESSION_ADDRESS}'
 fi
 
+
 # --------------------------------------------------
 # ensure there is a clean environment to test
 # 

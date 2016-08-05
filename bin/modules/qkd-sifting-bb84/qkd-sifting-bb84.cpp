@@ -149,6 +149,37 @@ qkd_sifting_bb84::qkd_sifting_bb84() : qkd::module::module("bb84",
 
 
 /**
+ * add the module's data to a key's metadata on incoming
+ * 
+ * This method is invoked for every new key entering the
+ * module's space.
+ * 
+ * The given property_tree already points to the current module
+ * node inside the tree. You may add any value like this:
+ * 
+ *      cPropertyTree.put("alpha", 1234);
+ *      cPropertyTree.put("beta", 3.1415);
+ *      cPropertyTree.put("beta.<xmlattr>.math", "pi");
+ *      cPropertyTree.put("some_group_name.sub_group.gamma", "this is a string value");
+ * 
+ * You can retrieve such values like:
+ * 
+ *      int a = cPropertyTree.get<int>("alpha");
+ *      double b = cPropertyTree.get<double>("beta")
+ *      std::string g = cPropertyTree.get<std::string>("some_group_name.sub_group.gamma");
+ * 
+ * Overwrite this method to add your own module's values to the key's meta-data.
+ * 
+ * @param   cPropertyTree       the key's current module data
+ * @param   cKey                the new key
+ */
+void qkd_sifting_bb84::add_metadata_in(boost::property_tree::ptree & cPropertyTree, UNUSED qkd::key::key const & cKey) const {
+    cPropertyTree.put("key_id_pattern", key_id_pattern().toStdString());
+    cPropertyTree.put("rawkey_length", rawkey_length());
+}
+
+
+/**
  * apply the loaded key value map to the module
  * 
  * @param   sURL            URL of config file loaded
@@ -351,6 +382,7 @@ bool qkd_sifting_bb84::process_alice(qkd::key::key & cKey,
         qkd::utility::memory cKeyBits = d->cBits.memory();
         cKeyBits.resize(d->nCurrentPosition / 8);
         cKey = qkd::key::key(d->nKeyId, cKeyBits);
+        create_metadata_module_node(cKey);
         
         cKey.set_state(qkd::key::key_state::KEY_STATE_SIFTED);
         d->nKeyId = qkd::key::key::counter().inc();
@@ -450,6 +482,7 @@ bool qkd_sifting_bb84::process_bob(qkd::key::key & cKey,
         qkd::utility::memory cKeyBits = d->cBits.memory();
         cKeyBits.resize(d->nCurrentPosition / 8);
         cKey = qkd::key::key(d->nKeyId, cKeyBits);
+        create_metadata_module_node(cKey);
         
         cKey.set_state(qkd::key::key_state::KEY_STATE_SIFTED);
         d->nKeyId = qkd::key::key::counter().inc();

@@ -104,6 +104,9 @@ set(QKD_SRC
     # properties
     utility/properties/properties.cpp
     
+    # ptree
+    utility/ptree/ptree.cpp
+    
     # random number sources
     utility/random/random.cpp
     utility/random/random_c_api.cpp

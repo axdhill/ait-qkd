@@ -242,6 +242,8 @@ bool qkd_cat::process(qkd::key::key & cKey, qkd::crypto::crypto_context & cIncom
     
     d->cKeyFile >> cKey;
     if (cKey.size() == 0) return false;
+    
+    create_metadata_module_node(cKey);
 
     return true;
 }

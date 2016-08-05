@@ -79,12 +79,12 @@ if [ "${DROPPED_KEYS}" -gt "3600" ]; then
     exit 1
 fi
 
-if [[ $(md5sum cat_keys.alice) != 47cc415adb0324c01038387c8c395788* ]]; then
+if [[ $(${TEST_BASE}/bin/tools/qkd-key-dump/qkd-key-dump --md5sum-all cat_keys.alice) != 138ebf1ca48ce984c2a252681ba006aa ]]; then
     echo "Alice is using unexpected keys (cat_keys.alice) - failed"
     exit 1
 fi
 
-if [[ $(md5sum cat_keys.bob) != e8efe36b601a6205be984b4dbe9e399d* ]]; then
+if [[ $(${TEST_BASE}/bin/tools/qkd-key-dump/qkd-key-dump --md5sum-all cat_keys.bob) != 807ffd9a165d70adaefe24487feb8aa3 ]]; then
     echo "Bob is using unexpected keys (cat_keys.bob) - failed"
     exit 1
 fi

@@ -56,6 +56,7 @@
 #include <qkd/utility/memory.h>
 #include <qkd/utility/queue.h>
 #include <qkd/utility/properties.h>
+#include <qkd/utility/ptree.h>
 #include <qkd/utility/random.h>
 #include <qkd/utility/shannon.h>
 #include <qkd/utility/si_units.h>

@@ -72,15 +72,16 @@ wait_idle
 echo "got keys"
 
 # the MD5 of all keys-files MUST be equal
-if [[ $(md5sum tcp-keys.alice) != 84689ed1310c3c12ab37d32d0a1916fb* ]]; then
-    echo "Unexpected output, ipc-keys.alice does not match the expected value - failed"
+MD5SUM=$(${TEST_BASE}/bin/tools/qkd-key-dump --md5sum tcp-keys.alice | md5sum | awk '{ print $1 }')
+if [[ ${MD5SUM} != "d41d8cd98f00b204e9800998ecf8427e" ]]; then
+    echo "Unexpected output, tcp-keys.alice does not match the expected value - failed"
     exit 1
 fi
 
 for CURRENT_FILE in {1..10}
 do
-    if [[ $(cmp tcp-keys.alice "tcp-keys.${CURRENT_FILE}") != "" ]]; then
-        echo "tcp-keys.$CURRENT_FILE does not match the expected (tcp-keys.alice's) value - failed"
+    if [[ $(${TEST_BASE}/bin/tools/qkd-key-dump --md5sum "ipc-keys.${CURRENT_FILE}" | md5sum | awk '{ print $1 }') != "d41d8cd98f00b204e9800998ecf8427e" ]]; then
+        echo "ipc-keys.$CURRENT_FILE does not match the expected (tcp-keys.alice's) value - failed"
         exit 1
     fi
 done

@@ -100,10 +100,18 @@ while :; do
     
 done
 
-# we have read 10 keys now compare result files: all of them should have the very same MD5
-DIFFERENT_FILES=$(md5sum stdin-stdout-keys.alice stdin-stdout-keys.charly stdin-stdout-keys.daisy  | awk '{ print $1; }' | uniq | wc -l)
-if [ "${DIFFERENT_FILES}" != "1" ]; then
-    echo "qkd-tee generates flawed files"
+${TEST_BASE}/bin/tools/qkd-key-compare/qkd-key-compare --brief stdin-stdout-keys.alice stdin-stdout-keys.charly
+DIFF_ALICE_TO_CHARLY=$?
+${TEST_BASE}/bin/tools/qkd-key-compare/qkd-key-compare --brief stdin-stdout-keys.alice stdin-stdout-keys.daisy
+DIFF_ALICE_TO_DAISY=$?
+
+if [ ${DIFF_ALICE_TO_CHARLY} != "0" ]; then
+    echo "qkd-tee spawned flawed file"
+    exit 1
+fi
+
+if [ ${DIFF_ALICE_TO_DAISY} != "0" ]; then
+    echo "qkd-tee pushed flawed file"
     exit 1
 fi
 

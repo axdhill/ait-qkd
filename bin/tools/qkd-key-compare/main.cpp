@@ -66,6 +66,8 @@ typedef struct {
     std::ifstream cStreamIn1;       /**< input stream 1 */
     std::ifstream cStreamIn2;       /**< input stream 2 */
     
+    bool bBrief;                    /**< if true, just compare key data values and state result */
+    
     
     /**
      * set to default values
@@ -75,6 +77,7 @@ typedef struct {
         nSkip2 = 0;
         bCompareAll = true;
         nCompare = 0;
+        bBrief = false;
     }
     
     
@@ -173,7 +176,11 @@ bool check_file(std::string const & sFile) {
  */
 int compare(compare_config & cConfig, std::ostream & cStreamOut) {
     
-    cStreamOut << "comparing keys..." << "\nfile 1: " << cConfig.sFile1 << "\nfile 2: " << cConfig.sFile2 << std::endl;
+    bool bDifferent = false;
+    
+    if (!cConfig.bBrief) {
+        cStreamOut << "comparing keys..." << "\nfile 1: " << cConfig.sFile1 << "\nfile 2: " << cConfig.sFile2 << std::endl;
+    }
     
     uint64_t nCompare = cConfig.nCompare;
     if (!fast_forward(cConfig, cStreamOut)) {
@@ -192,29 +199,43 @@ int compare(compare_config & cConfig, std::ostream & cStreamOut) {
         if (cConfig.cStreamIn1.eof()) break;
         if (cConfig.cStreamIn2.eof()) break;
         
-        if (!bHeaderShown) {
+        if (!cConfig.bBrief && !bHeaderShown) {
             std::string sHeading = "key        bits     disclosed bits error rate state         crc      - key        bits     disclosed bits error rate state         crc      - diff. bits  diff. rate";
             cStreamOut << sHeading << std::endl;
             bHeaderShown = true;
         }
         
         compare_result cResult = compare_keys(cKey1, cKey2);
+        bDifferent = bDifferent | (cResult.bSizeDiffer | (cResult.nBitsDiffer > 0));
         
-        std::string sFormat = "%010lu %08lu %08lu      %7.4f     %-13s %8s - %010lu %08lu %08lu      %7.4f     %-13s %8s - %010lu %7.4f\n";
-        boost::format cFormat(sFormat);
-        cFormat 
-            % cKey1.id() % (cKey1.size() * 8) % cKey1.disclosed() % cKey1.qber() % cKey1.state_string() % cKey1.data().crc32()
-            % cKey2.id() % (cKey2.size() * 8) % cKey2.disclosed() % cKey2.qber() % cKey2.state_string() % cKey2.data().crc32()
-            % cResult.nBitsDiffer % cResult.nBitsDifferRate;
-        cStreamOut << cFormat.str();
-        
+        if (!cConfig.bBrief) {
+            std::string sFormat = "%010lu %08lu %08lu      %7.4f     %-13s %8s - %010lu %08lu %08lu      %7.4f     %-13s %8s - %010lu %7.4f\n";
+            boost::format cFormat(sFormat);
+            cFormat 
+                % cKey1.id() % (cKey1.size() * 8) % cKey1.disclosed() % cKey1.qber() % cKey1.state_string() % cKey1.data().crc32()
+                % cKey2.id() % (cKey2.size() * 8) % cKey2.disclosed() % cKey2.qber() % cKey2.state_string() % cKey2.data().crc32()
+                % cResult.nBitsDiffer % cResult.nBitsDifferRate;
+            cStreamOut << cFormat.str();
+        }
+        else {
+            if (bDifferent) break;
+        }
         
         if (!cConfig.bCompareAll) {
             --nCompare;
         }
     }
     
-    return 0;
+    if (cConfig.bBrief) {
+        if (bDifferent) {
+            cStreamOut << "keys differ in files" << std::endl;
+        }
+        else {
+            cStreamOut << "keys in files are equal" << std::endl;
+        }
+    }
+    
+    return (bDifferent ? 1 : 0);
 }
 
 
@@ -294,7 +315,7 @@ bool fast_forward(compare_config & cConfig, std::ostream & cStreamOut) {
 int main(int argc, char ** argv) {
     
     std::string sApplication = std::string("qkd-key-compare - AIT QKD Key Compare Tool V") + qkd::version();
-    std::string sDescription = std::string("\nThis tools let you compare the content of two key files and writes a human readable result.\n\nCopyright 2016 AIT Austrian Institute of Technology GmbH");
+    std::string sDescription = std::string("\nThis tool lets you compare the content of two key files and writes a human readable result.\nIf the key files differ this command exists with 1 else 0.\n\nCopyright 2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS] KEY-FILE1 KEY-FILE2";
     
     boost::program_options::options_description cOptions(sApplication + "\n" + sDescription + "\n\n\t" + sSynopsis + "\n\nAllowed Options");
@@ -302,6 +323,7 @@ int main(int argc, char ** argv) {
     cOptions.add_options()("skip1", boost::program_options::value<uint64_t>(), "number of keys to skip in first stream");
     cOptions.add_options()("skip2", boost::program_options::value<uint64_t>(), "number of keys to skip in second stream");
     cOptions.add_options()("count,c", boost::program_options::value<uint64_t>(), "number of compares");
+    cOptions.add_options()("brief,b", "just check if the key data is equal or not");
     cOptions.add_options()("version,v", "print version string");
     
     boost::program_options::options_description cArgs("Arguments");
@@ -375,6 +397,7 @@ int main(int argc, char ** argv) {
         cConfig.bCompareAll = false;
         cConfig.nCompare = cVariableMap["count"].as<uint64_t>();
     }
+    cConfig.bBrief = (cVariableMap.count("brief") > 0);
     
     return compare(cConfig, std::cout);
 }

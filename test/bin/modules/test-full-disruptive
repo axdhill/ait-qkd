@@ -121,7 +121,7 @@ if [ ! -s auth_keys.bob ]; then
     echo "bob has not pushed keys"
     exit 1
 fi
-diff -q auth_keys.alice auth_keys.bob
+${TEST_BASE}/bin/tools/qkd-key-compare/qkd-key-compare --brief auth_keys.alice auth_keys.bob
 if [ "$?" != "0" ]; then
     echo "pipeline created different results - failed"
     exit 1

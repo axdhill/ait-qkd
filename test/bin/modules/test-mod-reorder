@@ -77,11 +77,11 @@ if [ "$?" == "0" ]; then
 fi
 
 echo "Verifying MD5 hashes of generated data"
-if [[ $(md5sum "cat_keys.alice") != 77863e546e843d86fb97b07e8d2bd76e* ]]; then
+if [[ $(${TEST_BASE}/bin/tools/qkd-key-dump/qkd-key-dump --md5sum-all cat_keys.alice) != 3ffc269b8d15425951a7b92c80a963cc ]]; then
     echo "Alice used unexpected original keys - failed"
     exit 1
 fi
-if [[ $(md5sum "reorder_keys.alice") != b377655cce3e48690c0eedc10e1848f9* ]]; then
+if [[ $(${TEST_BASE}/bin/tools/qkd-key-dump/qkd-key-dump --md5sum-all reorder_keys.alice) != 5e63e28696419c8a0f3c49ada7266d8c ]]; then
     echo "Alice used unexpected reordered keys - failed"
     exit 1
 fi

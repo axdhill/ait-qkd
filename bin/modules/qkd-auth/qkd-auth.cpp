@@ -314,6 +314,8 @@ bool qkd_auth::authenticate(qkd::key::key & cKey,
                 && (cTagOutgoingAlice.equal(cPeerTagIncoming));
     }
 
+    cKey.set_state(bAuthentic ? qkd::key::key_state::KEY_STATE_AUTHENTICATED : qkd::key::key_state::KEY_STATE_TAINTED);
+
     // if it is authentic we have to kick the keys from the databases
     if (bAuthentic) {
 

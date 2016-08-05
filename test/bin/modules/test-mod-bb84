@@ -50,7 +50,7 @@ ${TEST_BASE}/bin/qkd-key-gen --silent --size 2048 --keys ${KEYS_TO_PROCESS} --qu
 PIPELINE_CONFIG="${TEST_BASE}/test/test-data/modules/qkd-sifting-bb84/pipeline.conf"
 
 ( ${TEST_BASE}/bin/qkd-cat --debug --run --config ${PIPELINE_CONFIG} 2>> cat_debug.alice ) &
-( ${TEST_BASE}/bin/qkd-cat --debug --bob --run --config ${PIPELINE_CONFIG} 2>> cat_debug.alice ) &
+( ${TEST_BASE}/bin/qkd-cat --debug --bob --run --config ${PIPELINE_CONFIG} 2>> cat_debug.bob ) &
 ( ${TEST_BASE}/bin/qkd-sifting-bb84 --debug --run --config ${PIPELINE_CONFIG} 1> bb84_keys.alice 2>> bb84_debug.alice ) &
 ( ${TEST_BASE}/bin/qkd-sifting-bb84 --debug --bob --run --config ${PIPELINE_CONFIG} 1> bb84_keys.bob 2>> bb84_debug.bob ) &
 

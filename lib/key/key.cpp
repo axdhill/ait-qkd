@@ -109,12 +109,52 @@ void qkd::key::key::init_metadata() {
     m_cMetaData.put("key.<xmlattr>.id", m_nId);
     m_cMetaData.put("key.general.state", static_cast<int>(qkd::key::key_state::KEY_STATE_NEW));
     m_cMetaData.put("key.general.state_name", state_string(qkd::key::key_state::KEY_STATE_NEW));
-    m_cMetaData.put("key.general.crypto.incoming", "");
-    m_cMetaData.put("key.general.crypto.outgoing", "");
+    m_cMetaData.put("key.general.crypto.incoming", "null");
+    m_cMetaData.put("key.general.crypto.outgoing", "null");
     m_cMetaData.put("key.general.bits", data().size() * 8);
     m_cMetaData.put("key.general.qber", 0.0);
     m_cMetaData.put("key.general.disclosed", 0);
     m_cMetaData.put("key.modules", std::string());
+}
+
+
+/**
+ * get current module section of the key's metadata
+ * 
+ * @return  the metadata property tree for the key's current module
+ */
+boost::property_tree::ptree & qkd::key::key::metadata_current_module() { 
+    return metadata_modules().rbegin()->second; 
+}
+
+
+/**
+ * get current module section of the key's metadata
+ * 
+ * @return  the metadata property tree for the key's current module
+ */
+boost::property_tree::ptree const & qkd::key::key::metadata_current_module() const { 
+    return metadata_modules().rbegin()->second; 
+}
+
+
+/**
+ * get modules metadata of the key
+ * 
+ * @return  the metadata property tree for the key's modules
+ */
+boost::property_tree::ptree & qkd::key::key::metadata_modules() { 
+    return m_cMetaData.get_child("key.modules");
+}
+
+
+/**
+ * get modules metadata of the key
+ * 
+ * @return  the metadata property tree for the key's modules
+ */
+boost::property_tree::ptree const & qkd::key::key::metadata_modules() const { 
+    return m_cMetaData.get_child("key.modules");
 }
 
 
@@ -229,6 +269,17 @@ void qkd::key::key::set_disclosed(uint64_t nDisclosed) {
 
 
 /**
+ * set a new key id
+ * 
+ * @param   nId         the new key id
+ */
+void key::set_id(key_id nId) { 
+    m_nId = nId; 
+    m_cMetaData.put("key.<xmlattr>.id", nId);
+}
+
+
+/**
  * set the key's QBER
  * 
  * @param   nQBER       the new key's QBER
@@ -298,6 +349,10 @@ std::string qkd::key::key::state_string(qkd::key::key_state eKeyState) {
 
     case qkd::key::key_state::KEY_STATE_DISCLOSED:
         sState = "disclosed";
+        break;
+        
+    case qkd::key::key_state::KEY_STATE_TAINTED:
+        sState = "tainted";
         break;
         
     case qkd::key::key_state::KEY_STATE_NEW:

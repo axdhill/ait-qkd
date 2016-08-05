@@ -80,7 +80,7 @@ if [ ! -s cascade_keys.bob ]; then
     echo "bob has not pushed keys"
     exit 1
 fi
-diff -q cascade_keys.alice cascade_keys.bob
+${TEST_BASE}/bin/tools/qkd-key-compare/qkd-key-compare --brief cascade_keys.alice cascade_keys.bob
 if [ "$?" != "0" ]; then
     echo "cascade created different results when dirsruptive reorder present - failed"
     exit 1

@@ -5,7 +5,212 @@ This file holds the changes of the AIT QKD R10 throughout the versions
 Changes from 9.9999.7 to 9.9999.8
 ---------------------------------
 
+* new key states:
 
+    KEY_STATE_NEW: a brand new key.
+    KEY_STATE_TAINTED: a key for which authentication failed.
+
+* qkd-key-dump new option: "--md5sum" and "--md5sum-all"
+
+    The new "--md5sum" option dumps the MD5 hash sum of each
+    key material to stdout (a single MD5 for _each_ key).
+
+    The new "--md5sum-all" option generates the MD5 hash sum
+    of all key material in the key stream file (a single
+    MD5 for _all_ keys).
+
+* qkd-key-dump new option: "--metadata"
+
+    The new "--metadata" option dumps the content of each key
+    metadata as XML to stdout.
+    
+    This can be used to make the history of key visible.
+
+* qkd-key-compare new option: "--brief"
+
+    The new "--brief" option compares only the content of 
+    the key material of two key files, i.e. it does not check
+    each key metadata.
+    
+    If both key data sets are equal qkd-key-compare exits now with 0,
+    if key data material differ it exits with 1.
+
+* new key metadata concept
+
+    WARNING: MASSIVE API CHANGE!
+    
+    We changed the key's metadata concept. Instead having a fixed
+    static number of values, we turned into a flexible metadata
+    model.
+    
+    A key's metadata is now stored as XML structure. It has this
+    shape (example):
+    
+            <?xml version="1.0" encoding="utf-8"?>
+            <key id="2">
+                <general>
+                    <state>8</state>
+                    <state_name>authenticated</state_name>
+                    <crypto>
+                        <incoming>null</incoming>
+                        <outgoing>null</outgoing>
+                    </crypto>
+                    <bits>17888</bits>
+                    <qber>0.0027708537345321818</qber>
+                    <disclosed>2679</disclosed>
+                </general>
+                <modules>
+                    <module id="bb84" type="sifting">
+                        <key>
+                            <outgoing>
+                                <state>2</state>
+                                <state_name>sifted</state_name>
+                                <bits>17888</bits>
+                                <qber>0</qber>
+                                <disclosed>0</disclosed>
+                            </outgoing>
+                        </key>
+                    </module>
+                    <module id="cascade" type="error correction">
+                        <key>
+                            <incoming>
+                                <state>2</state>
+                                <state_name>sifted</state_name>
+                                <bits>17888</bits>
+                                <qber>0</qber>
+                                <disclosed>0</disclosed>
+                            </incoming>
+                            <outgoing>
+                                <state>3</state>
+                                <state_name>corrected</state_name>
+                                <bits>17888</bits>
+                                <qber>0.0021243291592128802</qber>
+                                <disclosed>429</disclosed>
+                            </outgoing>
+                        </key>
+                        <passes>14</passes>
+                        <shannon-efficiency>1.093947763981544</shannon-efficiency>
+                    </module>
+                    <module id="confirmation" type="confirmation">
+                        <key>
+                            <incoming>
+                                <state>3</state>
+                                <state_name>corrected</state_name>
+                                <bits>17888</bits>
+                                <qber>0.0021243291592128802</qber>
+                                <disclosed>429</disclosed>
+                            </incoming>
+                            <outgoing>
+                                <state>5</state>
+                                <state_name>confirmed</state_name>
+                                <bits>17888</bits>
+                                <qber>0.0021243291592128802</qber>
+                                <disclosed>429</disclosed>
+                            </outgoing>
+                        </key>
+                        <rounds>10</rounds>
+                    </module>
+                    <module id="resize" type="other">
+                        <key>
+                            <incoming>
+                                <state>5</state>
+                                <state_name>confirmed</state_name>
+                                <bits>17888</bits>
+                                <qber>0.0021243291592128802</qber>
+                                <disclosed>429</disclosed>
+                            </incoming>
+                            <outgoing>
+                                <state>5</state>
+                                <state_name>confirmed</state_name>
+                                <bits>89864</bits>
+                                <qber>0.0027708537345321818</qber>
+                                <disclosed>2679</disclosed>
+                            </outgoing>
+                        </key>
+                        <exact_key_size>0</exact_key_size>
+                        <minimum_key_size>10000</minimum_key_size>
+                        <key-add id="10" bits="18000"/>
+                        <reassign-id new-id="2" old-id="6"/>
+                    </module>
+                    <module id="privacy-amplification" type="privacy amplification">
+                        <key>
+                            <incoming>
+                                <state>5</state>
+                                <state_name>confirmed</state_name>
+                                <bits>89864</bits>
+                                <qber>0.0027708537345321818</qber>
+                                <disclosed>2679</disclosed>
+                            </incoming>
+                            <outgoing>
+                                <state>7</state>
+                                <state_name>amplified</state_name>
+                                <bits>84608</bits>
+                                <qber>0.0027708537345321818</qber>
+                                <disclosed>2679</disclosed>
+                            </outgoing>
+                        </key>
+                        <reduction_rate>1</reduction_rate>
+                        <security_bits>100</security_bits>
+                    </module>
+                    <module id="auth" type="other">
+                        <key>
+                            <incoming>
+                                <state>7</state>
+                                <state_name>amplified</state_name>
+                                <bits>84608</bits>
+                                <qber>0.0027708537345321818</qber>
+                                <disclosed>2679</disclosed>
+                            </incoming>
+                            <outgoing>
+                                <state>8</state>
+                                <state_name>authenticated</state_name>
+                                <bits>84608</bits>
+                                <qber>0.0027708537345321818</qber>
+                                <disclosed>2679</disclosed>
+                            </outgoing>
+                        </key>
+                    </module>
+                </modules>
+            </key>
+
+    Besides the typical metadata this structure also contains a key's history.
+    The way a key has passed through the modules can be read by expanding the
+    'modules' XML-tag and read the 'module' XML-tag entries from top to bottom.
+    
+    We use boost::property_tree implementation for this. Have a look
+    at http://www.boost.org/doc/libs/1_61_0/doc/html/property_tree.html.
+    
+    We completely dropped the old qkd::key::key::meta structure for this!
+    
+    Alongside some new methods have been added to qkd::key::key
+    
+    * metadata() ... this returns the full XML tree now. Starting at the
+                     <key> tag.
+ 
+    * metadata_modules() ... this returns all nodes under the <modules> tag.
+    
+    * metadata_current_module() ... returns the node in the key's metadata
+                                    for the current module.
+                                    
+    * metadata_xml() ... return key metadata as XML string.
+                                    
+    Some methods have been added like:
+    
+    * state() ... current state of the key
+    * crypto_context_incoming() ... crypto context scheme string incoming
+    * crypto_context_outgoing() ... crypto context scheme string outgoing
+    * qber() ... QBER
+    * disclosed() ... number of disclosed information bits
+    
+    These getters do also have their accompanying setter methods with a 
+    prefixed "set_".
+    
+    Also the qkd::module::module class has new methods:
+    
+    * add_metadata_in() ... add module's metadata to incoming key
+    * add_metadata_out() ... add module's metadata to outgoing key
+    
+    This change is massive but introduces most felxibilty.
 
 
 Changes from 9.9999.6 to 9.9999.7

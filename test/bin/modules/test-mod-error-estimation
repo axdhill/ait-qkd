@@ -85,15 +85,28 @@ if [ "$?" != "0" ]; then
     exit 1
 fi
 
-if [[ $(md5sum cat_keys.alice) != 21272a95192ec196cfb00b7c9877f0d5* ]]; then
+if [[ $(${TEST_BASE}/bin/tools/qkd-key-dump/qkd-key-dump --md5sum-all cat_keys.alice) != "7ee4f39ca954e98d08f1647e4f603eb0" ]]; then
     echo "Alice is using unexpected keys (cat_keys.alice) - failed"
     exit 1
 fi
-
-if [[ $(md5sum cat_keys.bob) != e5db4f8fa5f201b06fd64635627492ac* ]]; then
+if [[ $(${TEST_BASE}/bin/tools/qkd-key-dump/qkd-key-dump --md5sum-all cat_keys.bob) != "2aaaf2e5bd774151b59a580e273806a1" ]]; then
     echo "Bob is using unexpected keys (cat_keys.bob) - failed"
     exit 1
 fi
+
+${TEST_BASE}/bin/tools/qkd-key-dump/qkd-key-dump --metadata error_estimation_keys.alice | grep qber | grep -v '<qber>0</qber>' > qber.alice
+${TEST_BASE}/bin/tools/qkd-key-dump/qkd-key-dump --metadata error_estimation_keys.bob | grep qber | grep -v '<qber>0</qber>' > qber.bob
+if [ $(wc -c qber.alice | awk '{ print $1 }') = "0" ]; then
+    echo "Alice did not find any errors - failed"
+    exit 1
+fi
+
+diff -q qber.alice qber.bob &> /dev/null
+if [ "${?}" != "0" ]; then
+    echo "Alice and Bob detected different errors - failed"
+    exit 1
+fi
+
 
 echo "qkd-error-estimation works as expected"
 

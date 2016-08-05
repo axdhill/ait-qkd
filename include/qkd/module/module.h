@@ -1435,7 +1435,21 @@ protected:
      * This method is invoked for every new key entering the
      * module's space.
      * 
-     * Overwrite this to add your own module's metadata to the key!
+     * The given property_tree already points to the current module
+     * node inside the tree. You may add any value like this:
+     * 
+     *      cPropertyTree.put("alpha", 1234);
+     *      cPropertyTree.put("beta", 3.1415);
+     *      cPropertyTree.put("beta.<xmlattr>.math", "pi");
+     *      cPropertyTree.put("some_group_name.sub_group.gamma", "this is a string value");
+     * 
+     * You can retrieve such values like:
+     * 
+     *      int a = cPropertyTree.get<int>("alpha");
+     *      double b = cPropertyTree.get<double>("beta")
+     *      std::string g = cPropertyTree.get<std::string>("some_group_name.sub_group.gamma");
+     * 
+     * Overwrite this method to add your own module's values to the key's meta-data.
      * 
      * @param   cPropertyTree       the key's current module data
      * @param   cKey                the new key
@@ -1449,7 +1463,21 @@ protected:
      * This method is invoked for every key leaving the
      * module's space.
      * 
-     * Overwrite this to add your own module's metadata to the key!
+     * The given property_tree already points to the current module
+     * node inside the tree. You may add any value like this:
+     * 
+     *      cPropertyTree.put("alpha", 1234);
+     *      cPropertyTree.put("beta", 3.1415);
+     *      cPropertyTree.put("beta.<xmlattr>.math", "pi");
+     *      cPropertyTree.put("some_group_name.sub_group.gamma", "this is a string value");
+     * 
+     * You can retrieve such values like:
+     * 
+     *      int a = cPropertyTree.get<int>("alpha");
+     *      double b = cPropertyTree.get<double>("beta")
+     *      std::string g = cPropertyTree.get<std::string>("some_group_name.sub_group.gamma");
+     * 
+     * Overwrite this method to add your own module's values to the key's meta-data.
      * 
      * @param   cPropertyTree       the key's current module data
      * @param   cKey                the new key
@@ -1502,6 +1530,16 @@ protected:
     bool apply_standard_config(std::string const & sKey, std::string const & sValue);
     
    
+    /**
+     * create the metadata module's node
+     * 
+     * This method creates an entry in the key's metadata for the current module.
+     * 
+     * @param   cKey                the key for which to modify the metadata
+     */
+    void create_metadata_module_node(qkd::key::key & cKey) const;
+    
+    
     /**
      * get the next key from the previous module
      * 

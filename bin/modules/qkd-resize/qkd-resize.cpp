@@ -91,6 +91,37 @@ qkd_resize::qkd_resize() : qkd::module::module("resize", qkd::module::module_typ
 
 
 /**
+ * add the module's data to a key's metadata on incoming
+ * 
+ * This method is invoked for every new key entering the
+ * module's space.
+ * 
+ * The given property_tree already points to the current module
+ * node inside the tree. You may add any value like this:
+ * 
+ *      cPropertyTree.put("alpha", 1234);
+ *      cPropertyTree.put("beta", 3.1415);
+ *      cPropertyTree.put("beta.<xmlattr>.math", "pi");
+ *      cPropertyTree.put("some_group_name.sub_group.gamma", "this is a string value");
+ * 
+ * You can retrieve such values like:
+ * 
+ *      int a = cPropertyTree.get<int>("alpha");
+ *      double b = cPropertyTree.get<double>("beta")
+ *      std::string g = cPropertyTree.get<std::string>("some_group_name.sub_group.gamma");
+ * 
+ * Overwrite this method to add your own module's values to the key's meta-data.
+ * 
+ * @param   cPropertyTree       the key's current module data
+ * @param   cKey                the new key
+ */
+void qkd_resize::add_metadata_in(boost::property_tree::ptree & cPropertyTree, UNUSED qkd::key::key const & cKey) const {
+    cPropertyTree.put("exact_key_size", exact_key_size());
+    cPropertyTree.put("minimum_key_size", minimum_key_size());
+}
+
+
+/**
  * apply the loaded key value map to the module
  * 
  * @param   sURL            URL of config file loaded
@@ -195,21 +226,27 @@ void qkd_resize::pick_exact_keys(qkd::module::workload & cWorkload) {
 
             // first half
             auto new_it = d->cWorkReceived.emplace(it);
+            create_metadata_module_node((*new_it).cKey);
             (*new_it).cKey.data() = qkd::utility::memory(nCut);
             memcpy((*new_it).cKey.data().get(), (*it).cKey.data().get(), nCut);
             (*new_it).cKey.set_qber((*it).cKey.qber());
             (*new_it).cKey.set_disclosed((*it).cKey.disclosed() * nPart);
             (*new_it).cIncomingContext = (*it).cIncomingContext;
             (*new_it).cOutgoingContext = (*it).cOutgoingContext;
+            (*new_it).cKey.metadata_current_module().put("key-split.<xmlattr>.id", static_cast<int>((*it).cKey.id()));
+            (*new_it).cKey.metadata_current_module().put("key-split.<xmlattr>.left", nCut * 8);
 
             // second half (right in workload list)
             new_it = d->cWorkReceived.emplace(it);
+            create_metadata_module_node((*new_it).cKey);
             (*new_it).cKey.data() = qkd::utility::memory((*it).cKey.data().size() - nCut);
             memcpy((*new_it).cKey.data().get(), (*it).cKey.data().get() + nCut, (*it).cKey.data().size() - nCut);
             (*new_it).cKey.set_qber((*it).cKey.qber());
             (*new_it).cKey.set_disclosed((*it).cKey.disclosed() * (1.0 - nPart));
             (*new_it).cIncomingContext = (*it).cIncomingContext;
             (*new_it).cOutgoingContext = (*it).cOutgoingContext;
+            (*new_it).cKey.metadata_current_module().put("key-split.<xmlattr>.id", static_cast<int>((*it).cKey.id()));
+            (*new_it).cKey.metadata_current_module().put("key-split.<xmlattr>.right", ((*it).cKey.data().size() - nCut) * 8);
             
             // kick the old key
             d->cWorkReceived.erase(it);
@@ -237,6 +274,8 @@ void qkd_resize::pick_exact_keys(qkd::module::workload & cWorkload) {
         }
         else {
             cForwardWork.cKey.data().add((*it).cKey.data());
+            cForwardWork.cKey.metadata_current_module().put("key-add.<xmlattr>.id", static_cast<int>((*it).cKey.id()));
+            cForwardWork.cKey.metadata_current_module().put("key-add.<xmlattr>.bits", (*it).cKey.data().size() * 8);
             cForwardWork.cIncomingContext << (*it).cIncomingContext;
             cForwardWork.cOutgoingContext << (*it).cOutgoingContext;
         }
@@ -247,7 +286,8 @@ void qkd_resize::pick_exact_keys(qkd::module::workload & cWorkload) {
         if (cForwardWork.cKey.data().size() == nExactKeySize) {
             
             d->cKeyIdCounter.inc();
-            cForwardWork.cKey.set_id(d->cKeyIdCounter.count());
+            
+            set_key_id(cForwardWork.cKey, d->cKeyIdCounter.count());
             cForwardWork.cKey.set_qber(nErrorBits / nTotalBits);
             cForwardWork.cKey.set_disclosed(nDisclosedBits);
             cForwardWork.bForward = true;
@@ -308,6 +348,8 @@ void qkd_resize::pick_minimum_key(qkd::module::workload & cWorkload) {
         }
         else {
             cForwardWork.cKey.data().add(w.cKey.data());
+            cForwardWork.cKey.metadata_current_module().put("key-add.<xmlattr>.id", static_cast<int>(w.cKey.id()));
+            cForwardWork.cKey.metadata_current_module().put("key-add.<xmlattr>.bits", w.cKey.data().size() * 8);
             cForwardWork.cIncomingContext << w.cIncomingContext;
             cForwardWork.cOutgoingContext << w.cOutgoingContext;
         }
@@ -335,7 +377,7 @@ void qkd_resize::pick_minimum_key(qkd::module::workload & cWorkload) {
     
     // finalize key
     d->cKeyIdCounter.inc();
-    cForwardWork.cKey.set_id(d->cKeyIdCounter.count());
+    set_key_id(cForwardWork.cKey, d->cKeyIdCounter.count());
     cForwardWork.cKey.set_qber(nErrorBits / nTotalBits);
     cForwardWork.cKey.set_disclosed(nDisclosedBits);
     cForwardWork.bForward = true;
@@ -400,6 +442,23 @@ void qkd_resize::set_exact_key_size(qulonglong nSize) {
     std::lock_guard<std::recursive_mutex> cLock(d->cPropertyMutex);
     d->nExactKeySize = nSize;
     d->nMinimumKeySize = 0;
+}
+
+
+/**
+ * set a new key id
+ * 
+ * @param   cKey            the key to set a new id to
+ * @param   nId             the new key id
+ */
+void qkd_resize::set_key_id(qkd::key::key & cKey, qkd::key::key_id nId) const {
+    
+    qkd::key::key_id nOldId = cKey.id();
+    if (nOldId == nId) return;
+    
+    cKey.set_id(nId);
+    cKey.metadata_current_module().put("reassign-id.<xmlattr>.new-id", static_cast<int>(nId));
+    cKey.metadata_current_module().put("reassign-id.<xmlattr>.old-id", static_cast<int>(nOldId));
 }
 
 

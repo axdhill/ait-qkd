@@ -102,6 +102,36 @@ qkd_reorder::qkd_reorder() : qkd::module::module("reorder", qkd::module::module_
 
 
 /**
+ * add the module's data to a key's metadata on incoming
+ * 
+ * This method is invoked for every new key entering the
+ * module's space.
+ * 
+ * The given property_tree already points to the current module
+ * node inside the tree. You may add any value like this:
+ * 
+ *      cPropertyTree.put("alpha", 1234);
+ *      cPropertyTree.put("beta", 3.1415);
+ *      cPropertyTree.put("beta.<xmlattr>.math", "pi");
+ *      cPropertyTree.put("some_group_name.sub_group.gamma", "this is a string value");
+ * 
+ * You can retrieve such values like:
+ * 
+ *      int a = cPropertyTree.get<int>("alpha");
+ *      double b = cPropertyTree.get<double>("beta")
+ *      std::string g = cPropertyTree.get<std::string>("some_group_name.sub_group.gamma");
+ * 
+ * Overwrite this method to add your own module's values to the key's meta-data.
+ * 
+ * @param   cPropertyTree       the key's current module data
+ * @param   cKey                the new key
+ */
+void qkd_reorder::add_metadata_in(boost::property_tree::ptree & cPropertyTree, UNUSED qkd::key::key const & cKey) const {
+    cPropertyTree.put("buffer_size", buffer_size());
+}
+
+
+/**
  * apply the loaded key value map to the module
  * 
  * @param   sURL            URL of config file loaded

@@ -39,6 +39,7 @@
 
 // ait
 #include <qkd/key/key.h>
+#include <qkd/utility/checksum.h>
 #include <qkd/version.h>
 
 
@@ -93,6 +94,51 @@ int dump(std::istream & cIn, std::ostream & cOut) {
 }
 
     
+/**
+ * key dump loop md5sum version
+ * 
+ * @param   cIn         input stream
+ * @param   cOut        output stream
+ * @param   bTotal      print only the total MD5 of all key material
+ * @return  0 = success, else failure
+ */
+int dump_md5sum(std::istream & cIn, std::ostream & cOut, bool bTotal) {
+    
+    qkd::utility::checksum cMD5AlgorithmAll = qkd::utility::checksum_algorithm::create("md5");
+    
+    // loop until we are eof
+    while (!cIn.eof()) {
+
+        // read key
+        qkd::key::key cKey;
+        cIn >> cKey;
+        
+        // check if valid
+        if (cKey == qkd::key::key::null()) continue;
+        
+        if (!bTotal) {
+        
+            qkd::utility::checksum cMD5Algorithm = qkd::utility::checksum_algorithm::create("md5");
+            cMD5Algorithm << cKey.data();
+            qkd::utility::memory cMD5Sum;
+            cMD5Algorithm >> cMD5Sum;
+            cOut << cMD5Sum.as_hex() << std::endl;
+        }
+        else {
+            cMD5AlgorithmAll << cKey.data();
+        }
+    }
+    
+    if (bTotal) {
+        qkd::utility::memory cMD5Sum;
+        cMD5AlgorithmAll >> cMD5Sum;
+        cOut << cMD5Sum.as_hex() << std::endl;
+    }
+    
+    return 0;
+}
+
+
 /**
  * key dump loop metadata version
  * 
@@ -178,6 +224,8 @@ int main(int argc, char ** argv) {
     cOptions.add_options()("output-file,o", boost::program_options::value<std::string>(), "output file (if omitted stdout is used)");
     cOptions.add_options()("short,s", "short version omitting data itself");
     cOptions.add_options()("metadata,m", "print full XML metadata of each key");
+    cOptions.add_options()("md5sum", "print only MD5 checksum of each key material (without metadata)");
+    cOptions.add_options()("md5sum-all", "print the overall MD5 checksum of all key material (without metadata)");
     cOptions.add_options()("version,v", "print version string");
     
     // final arguments
@@ -220,8 +268,11 @@ int main(int argc, char ** argv) {
 
     bool bShort = (cVariableMap.count("short") > 0);
     bool bMetadata = (cVariableMap.count("metadata") > 0);
-    if (bShort && bMetadata) {
-        std::cerr << "please choose either --short or --metadata" << std::endl;
+    bool bMD5Sum = (cVariableMap.count("md5sum") > 0);
+    bool bMD5SumAll = (cVariableMap.count("md5sum-all") > 0);
+    int nMutualOptions = (bShort ? 1 : 0) + (bMetadata ? 1 : 0) + (bMD5Sum ? 1 : 0) + (bMD5SumAll ? 1 : 0);
+    if (nMutualOptions > 1) {
+        std::cerr << "please choose either --short, --metadata, --md5sum or --md5sum-all but not a combination of them" << std::endl;
         return 1;
     }
     
@@ -251,6 +302,9 @@ int main(int argc, char ** argv) {
     }
     if (bMetadata) {
         return dump_metadata((cInFile.is_open() ? cInFile : std::cin), (cOutFile.is_open() ? cOutFile : std::cout));
+    }
+    if (bMD5Sum || bMD5SumAll) {
+        return dump_md5sum((cInFile.is_open() ? cInFile : std::cin), (cOutFile.is_open() ? cOutFile : std::cout), bMD5SumAll);
     }
     
     return dump((cInFile.is_open() ? cInFile : std::cin), (cOutFile.is_open() ? cOutFile : std::cout));

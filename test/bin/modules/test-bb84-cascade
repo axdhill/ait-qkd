@@ -75,22 +75,22 @@ ${TEST_BASE}/bin/qkd-pipeline stop ${TEST_BASE}/test/test-data/bb84-cascade/pipe
 sleep 1
 
 echo "Verifying MD5 hashes of generated data"
-if [[ $(md5sum "cat_keys.alice") != 3f426579163afdc1caac77e29939ae4d* ]]; then
+if [[ $(${TEST_BASE}/bin/tools/qkd-key-dump/qkd-key-dump --md5sum-all cat_keys.alice) != 12cd4e18ae2bb3643d10631de5949181 ]]; then
     echo "Alice used unexpected keys - failed"
     exit 1
 fi
-if [[ $(md5sum "cat_keys.bob") != 9c0fcc80ce2bbd8fd79e977e883ed599* ]]; then
+if [[ $(${TEST_BASE}/bin/tools/qkd-key-dump/qkd-key-dump --md5sum-all cat_keys.bob) != 3008133606aefad10a1ac24b6d90577f ]]; then
     echo "Bob used unexpected keys - failed"
     exit 1
 fi
 
-cmp -s "confirmed-keys.alice" "confirmed-keys.bob"
+${TEST_BASE}/bin/tools/qkd-key-compare/qkd-key-compare --brief "confirmed-keys.alice" "confirmed-keys.bob"
 if [[ $? -ne 0 ]]; then
     echo "Alice and Bob have an unexpected set of confirmed keys - failed"
     exit 1
 fi
 
-cmp -s "corrected-keys.alice" "corrected-keys.bob"
+${TEST_BASE}/bin/tools/qkd-key-compare/qkd-key-compare --brief "corrected-keys.alice" "corrected-keys.bob"
 if [[ $? -ne 0 ]]; then
     echo "Alice and Bob have an unexpected set of corrected keys - failed"
     exit 1

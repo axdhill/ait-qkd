@@ -94,6 +94,8 @@ enum class key_state : uint8_t {
 
     KEY_STATE_DISCLOSED,            /**< this key has been disclosed */
     
+    KEY_STATE_TAINTED,              /**< this key may be tainted: authentication failed */
+    
     KEY_STATE_NEW = 99              /**< this is a new key */
 };
 
@@ -104,16 +106,11 @@ enum class key_state : uint8_t {
  * A QKD Key has an
  * 
  *  - ID
- *  - Key Data
  *  - Meta Data
+ *  - Key Data
  *      
- * The meta data consist of:
+ * The metadata itself is represented as an XML structure.
  * 
- *  - key state
- *  - incoming crypto scheme
- *  - outgoing crypto scheme
- *  - absolute number of disclosed bits
- *  - timestamp of acquaintance (when this key has been read/created in the local process)
  * 
  * A QKD Key is read by a QKD Module, processed upon and then written to 
  * the next QKD Module in the QKD Post Processing Pipeline.
@@ -128,43 +125,10 @@ enum class key_state : uint8_t {
  * The particles of a keystream are streamed keys which each is a record of:
  * 
  *  - key id                    (uint32_t)  [network byte ordering]
- *  - key state                 (uint8_t)   [network byte ordering]
- *  - disclosed bits            (uint64_t)  [network byte ordering]
- *  - error rate                (double)
- *  - crypto scheme incoming    (various: size (uint64_t)[network byte ordering] + string)
- *  - crypto scheme outgoing    (various: size (uint64_t)[network byte ordering] + string)
+ *  - size of metadata          (uint64_t)  [network byte ordering]
+ *  - key metadata as XML       (char)
  *  - key-size in bytes         (uint64_t)  [network byte ordering]
  *  - key-data                  (BLOB)
- * 
- *      0                   1                   2                   3
- *      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
- *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *      |                             key-Id                            |
- *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *      |  key-state    |             disclosed bits                    
- *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *                                    disclosed bits                     
- *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *       disclosed bits |             error rate                                  
- *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *                                    error rate                         
- *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *       error rate     |             crypto scheme incoming                      
- *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *                        ... crypto scheme incoming ...                
- *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *      |                  ... crypto scheme outgoing ...                
- *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *      |                         key-size ...                           
- *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *                               ... key-size                           |
- *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *      |                         key-data ...                           
- *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *                            ... key-data ...                           
- *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *                               ... key-data                           |
- *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  */
 class key {
 
@@ -262,81 +226,6 @@ public:
     };
     
     
-#if 0
-    /**
-     * additional information for the key
-     */
-    class meta_data {
-        
-        
-    public:
-        
-        
-        /**
-         * ctor
-         */
-        meta_data() : eKeyState(qkd::key::key_state::KEY_STATE_RAW), nDisclosedBits(0), nErrorRate(0.0) { cTimestampRead = std::chrono::high_resolution_clock::now(); };
-        
-        
-        /**
-         * copy ctor
-         * 
-         * @param   rhs     right hand side
-         */
-        meta_data(meta_data const & rhs) : 
-            eKeyState(rhs.eKeyState), 
-            sCryptoSchemeIncoming(rhs.sCryptoSchemeIncoming), 
-            sCryptoSchemeOutgoing(rhs.sCryptoSchemeOutgoing), 
-            nDisclosedBits(rhs.nDisclosedBits), 
-            nErrorRate(rhs.nErrorRate), 
-            cTimestampRead(rhs.cTimestampRead) {};
-        
-        key_state eKeyState;                        /**< current key state */
-        
-        std::string sCryptoSchemeIncoming;          /**< crypto context scheme string for this key for incoming communication during key distillation */
-        std::string sCryptoSchemeOutgoing;          /**< crypto context scheme string for this key for outgoing communication during key distillation */
-        
-        uint64_t nDisclosedBits;                    /**< number of disclosed bits during key distillation  */
-        double nErrorRate;                          /**< error rate  */
-        
-        std::chrono::high_resolution_clock::time_point cTimestampRead;     /**< timestamp when this key has come into the current process via a read action - this is *NOT* saved */
-        
-        
-        /**
-         * read from a buffer
-         * 
-         * @param   cBuffer     the buffer to read from
-         */
-        void read(qkd::utility::buffer & cBuffer);
-
-
-        /**
-         * read from stream
-         * 
-         * @param   cStream     the stream to read from
-         */
-        void read(std::istream & cStream);
-
-
-        /**
-         * write to a buffer
-         * 
-         * @param   cBuffer     the buffer to write to
-         */
-        void write(qkd::utility::buffer & cBuffer) const;
-        
-        
-        /**
-         * write to stream
-         * 
-         * @param   cStream     the stream to write to
-         */
-        void write(std::ostream & cStream) const;
-        
-    };
-#endif
-    
-
     /**
      * ctor
      */
@@ -613,7 +502,7 @@ public:
      * 
      * @return  the metadata property tree for the key's current module
      */
-    boost::property_tree::ptree & metadata_current_module() { return metadata_modules().rbegin()->second; }
+    boost::property_tree::ptree & metadata_current_module();
     
     
     /**
@@ -621,7 +510,7 @@ public:
      * 
      * @return  the metadata property tree for the key's current module
      */
-    boost::property_tree::ptree const & metadata_current_module() const { return metadata_modules().rbegin()->second; }
+    boost::property_tree::ptree const & metadata_current_module() const;
     
     
     /**
@@ -629,7 +518,7 @@ public:
      * 
      * @return  the metadata property tree for the key's modules
      */
-    boost::property_tree::ptree & metadata_modules() { return m_cMetaData.find("key.modules")->second; }
+    boost::property_tree::ptree & metadata_modules();
     
     
     /**
@@ -637,7 +526,7 @@ public:
      * 
      * @return  the metadata property tree for the key's modules
      */
-    boost::property_tree::ptree const & metadata_modules() const { return m_cMetaData.find("key.modules")->second; }
+    boost::property_tree::ptree const & metadata_modules() const;
     
     
     /**
@@ -741,7 +630,7 @@ public:
      * 
      * @param   nId         the new key id
      */
-    void set_id(key_id nId) { m_nId = nId; }
+    void set_id(key_id nId);
 
 
     /**

@@ -68,8 +68,8 @@ int test() {
         <state>99</state>\n\
         <state_name>new</state_name>\n\
         <crypto>\n\
-            <incoming/>\n\
-            <outgoing/>\n\
+            <incoming>null</incoming>\n\
+            <outgoing>null</outgoing>\n\
         </crypto>\n\
         <bits>32</bits>\n\
         <qber>0</qber>\n\

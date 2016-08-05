@@ -63,6 +63,7 @@
 #include <qkd/exception/protocol_error.h>
 #include <qkd/utility/dbus.h>
 #include <qkd/utility/debug.h>
+#include <qkd/utility/ptree.h>
 #include <qkd/utility/syslog.h>
 
 #include <qkd/module/module.h>
@@ -167,14 +168,11 @@ void module::apply_config(UNUSED std::string const & sURL, UNUSED qkd::utility::
  */
 void module::add_metadata_in(qkd::key::key & cKey) const {
     
-    cKey.metadata_modules().put("module", "");
     boost::property_tree::ptree & cPT = cKey.metadata_current_module();
     
-    cPT.put("<xmlattr>.id", id().toLongLong());
-    cPT.put("<xmlattr>.type", type_name().toStdString());
-    cPT.put("key.incoming.bits", cKey.data().size() * 8);
     cPT.put("key.incoming.state", static_cast<int>(cKey.state()));
     cPT.put("key.incoming.state_name", cKey.state_string());
+    cPT.put("key.incoming.bits", cKey.data().size() * 8);
     cPT.put("key.incoming.qber", cKey.qber());
     cPT.put("key.incoming.disclosed", cKey.disclosed());
     
@@ -189,7 +187,21 @@ void module::add_metadata_in(qkd::key::key & cKey) const {
  * This method is invoked for every new key entering the
  * module's space.
  * 
- * Overwrite this to add your own module's metadata to the key!
+ * The given property_tree already points to the current module
+ * node inside the tree. You may add any value like this:
+ * 
+ *      cPropertyTree.put("alpha", 1234);
+ *      cPropertyTree.put("beta", 3.1415);
+ *      cPropertyTree.put("beta.<xmlattr>.math", "pi");
+ *      cPropertyTree.put("some_group_name.sub_group.gamma", "this is a string value");
+ * 
+ * You can retrieve such values like:
+ * 
+ *      int a = cPropertyTree.get<int>("alpha");
+ *      double b = cPropertyTree.get<double>("beta")
+ *      std::string g = cPropertyTree.get<std::string>("some_group_name.sub_group.gamma");
+ * 
+ * Overwrite this method to add your own module's values to the key's meta-data.
  * 
  * @param   cPropertyTree       the key's current module data
  * @param   cKey                the new key
@@ -211,9 +223,9 @@ void module::add_metadata_out(qkd::key::key & cKey) const {
     
     boost::property_tree::ptree & cPT = cKey.metadata_current_module();
     
-    cPT.put("key.outgoing.bits", cKey.data().size() * 8);
     cPT.put("key.outgoing.state", static_cast<int>(cKey.state()));
     cPT.put("key.outgoing.state_name", cKey.state_string());
+    cPT.put("key.outgoing.bits", cKey.data().size() * 8);
     cPT.put("key.outgoing.qber", cKey.qber());
     cPT.put("key.outgoing.disclosed", cKey.disclosed());
     
@@ -228,7 +240,21 @@ void module::add_metadata_out(qkd::key::key & cKey) const {
  * This method is invoked for every key leaving the
  * module's space.
  * 
- * Overwrite this to add your own module's metadata to the key!
+ * The given property_tree already points to the current module
+ * node inside the tree. You may add any value like this:
+ * 
+ *      cPropertyTree.put("alpha", 1234);
+ *      cPropertyTree.put("beta", 3.1415);
+ *      cPropertyTree.put("beta.<xmlattr>.math", "pi");
+ *      cPropertyTree.put("some_group_name.sub_group.gamma", "this is a string value");
+ * 
+ * You can retrieve such values like:
+ * 
+ *      int a = cPropertyTree.get<int>("alpha");
+ *      double b = cPropertyTree.get<double>("beta")
+ *      std::string g = cPropertyTree.get<std::string>("some_group_name.sub_group.gamma");
+ * 
+ * Overwrite this method to add your own module's values to the key's meta-data.
  * 
  * @param   cPropertyTree       the key's current module data
  * @param   cKey                the new key
@@ -523,6 +549,23 @@ bool module::configure(QString sConfigURL, bool bRequired) {
  */
 void module::configure(QString sConfigURL) {
     configure(sConfigURL, false);
+}
+
+
+/**
+ * create the metadata module's node
+ * 
+ * This method creates an entry in the key's metadata for the current module.
+ * 
+ * @param   cKey                the key for which to modify the metadata
+ */
+void module::create_metadata_module_node(qkd::key::key & cKey) const {
+
+    boost::property_tree::ptree cPT;
+    cPT.put("<xmlattr>.id", id().toStdString());
+    cPT.put("<xmlattr>.type", type_name().toStdString());
+    
+    cKey.metadata().get_child("key.modules").push_back(boost::property_tree::ptree::value_type("module", cPT));
 }
 
 
@@ -823,6 +866,7 @@ bool module::read(qkd::key::key & cKey) {
         return false;
     }
     
+    create_metadata_module_node(cKey);
     add_metadata_in(cKey);
     
     // do not add stat if we received on a void connection
@@ -1723,10 +1767,10 @@ void module::work() {
         for (auto & w : cWorkload) {
             if (w.bForward) {
                 
-                w.cKey.crypto_scheme_incoming() = w.cIncomingContext->scheme().str();
-                w.cKey.crypto_scheme_outgoing() = w.cOutgoingContext->scheme().str();
-                if (w.cKey.crypto_scheme_incoming() == "null") w.cKey.crypto_scheme_incoming() = "";
-                if (w.cKey.crypto_scheme_outgoing() == "null") w.cKey.crypto_scheme_outgoing() = "";
+                w.cKey.set_crypto_scheme_incoming(w.cIncomingContext->scheme().str());
+                w.cKey.set_crypto_scheme_outgoing(w.cOutgoingContext->scheme().str());
+                if (w.cKey.crypto_scheme_incoming() == "null") w.cKey.set_crypto_scheme_incoming("null");
+                if (w.cKey.crypto_scheme_outgoing() == "null") w.cKey.set_crypto_scheme_outgoing("null");
 
                 bool bWrittenToNextModule = false;
                 do {
@@ -1789,13 +1833,14 @@ void module::work() {
  */
 bool module::write(qkd::key::key & cKey, int nPath) {
 
+    add_metadata_out(cKey);
+    
     if (!d->cConPipeOut->write_key(cKey, nPath)) {
         qkd::utility::syslog::warning() << __FILENAME__ << '@' << __LINE__ 
                 << ": failed to send key to next module - key-id: " << cKey.id();
         return false;
     }
     
-    add_metadata_out(cKey);
     d->add_stats_outgoing(cKey);
     if (qkd::utility::debug::enabled()) d->debug_key_push(cKey);
     
