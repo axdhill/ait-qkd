@@ -52,9 +52,10 @@ set(QKD_CASCACDE_MOC
 
 # bin definition
 add_executable(qkd-cascade ${QKD_CASCACDE_SRC} ${QKD_CASCACDE_MOC})
+add_dependencies(qkd-cascade qkd)
 
 # linkage
-target_link_libraries(qkd-cascade ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(qkd-cascade qkd ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
 install(TARGETS qkd-cascade RUNTIME DESTINATION bin COMPONENT modules)

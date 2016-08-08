@@ -56,9 +56,10 @@ QT5_ADD_DBUS_ADAPTOR(QKD_REORDER_DBUS_SRC
 
 # bin definition
 add_executable(qkd-reorder ${QKD_REORDER_SRC} ${QKD_REORDER_MOC} ${QKD_REORDER_DBUS_SRC})
+add_dependencies(qkd-reorder qkd)
 
 # linkage
-target_link_libraries(qkd-reorder ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(qkd-reorder qkd ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
 install(TARGETS qkd-reorder RUNTIME DESTINATION bin COMPONENT modules)

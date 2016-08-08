@@ -97,7 +97,7 @@ void dump(QString sMQ, bool bHexOutput, uint64_t nMessages) {
     bool bLoopInfinite = (nMessages == 0);
     
     // open the MQ in read mode
-    mqd_t nMQD = mq_open(sMQ.toAscii(), O_RDONLY);
+    mqd_t nMQD = mq_open(sMQ.toLatin1(), O_RDONLY);
     if (nMQD == -1) {
         std::cerr << "failed to open message queue: " << strerror(errno) << std::endl;
         std::cerr << "please check if '" << sMQ.toStdString() << "' really names a valid message queue." << std::endl;

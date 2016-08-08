@@ -40,9 +40,10 @@ set(QKD_KEY_GEN_SRC
 
 # bin definition
 add_executable(qkd-pipeline ${QKD_KEY_GEN_SRC})
+add_dependencies(qkd-pipeline qkd)
 
 # linkage
-target_link_libraries(qkd-pipeline ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(qkd-pipeline Qt5::Xml qkd ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
 install(TARGETS qkd-pipeline RUNTIME DESTINATION bin COMPONENT tools)

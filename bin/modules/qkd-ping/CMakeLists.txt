@@ -57,9 +57,10 @@ QT5_ADD_DBUS_ADAPTOR(QKD_PING_DBUS_SRC
 
 # bin definition
 add_executable(qkd-ping ${QKD_PING_SRC} ${QKD_PING_MOC} ${QKD_PING_DBUS_SRC})
+add_dependencies(qkd-ping qkd)
 
 # linkage
-target_link_libraries(qkd-ping ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(qkd-ping qkd ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
 install(TARGETS qkd-ping RUNTIME DESTINATION bin COMPONENT modules)

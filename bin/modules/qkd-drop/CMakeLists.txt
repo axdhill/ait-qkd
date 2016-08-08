@@ -56,9 +56,10 @@ QT5_ADD_DBUS_ADAPTOR(QKD_DROP_DBUS_SRC
 
 # bin definition
 add_executable(qkd-drop ${QKD_DROP_SRC} ${QKD_DROP_MOC} ${QKD_DROP_DBUS_SRC})
+add_dependencies(qkd-drop qkd)
 
 # linkage
-target_link_libraries(qkd-drop ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(qkd-drop qkd ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
 install(TARGETS qkd-drop RUNTIME DESTINATION bin COMPONENT modules)

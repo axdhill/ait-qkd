@@ -56,9 +56,10 @@ QT5_ADD_DBUS_ADAPTOR(QKD_TEE_DBUS_SRC
 
 # bin definition
 add_executable(qkd-tee ${QKD_TEE_SRC} ${QKD_TEE_MOC} ${QKD_TEE_DBUS_SRC})
+add_dependencies(qkd-tee qkd)
 
 # linkage
-target_link_libraries(qkd-tee ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(qkd-tee qkd ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
 install(TARGETS qkd-tee RUNTIME DESTINATION bin COMPONENT modules)

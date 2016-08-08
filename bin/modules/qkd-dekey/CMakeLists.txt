@@ -56,9 +56,10 @@ QT5_ADD_DBUS_ADAPTOR(QKD_DEKEY_DBUS_SRC
 
 # bin definition
 add_executable(qkd-dekey ${QKD_DEKEY_SRC} ${QKD_DEKEY_MOC} ${QKD_DEKEY_DBUS_SRC})
+add_dependencies(qkd-dekey qkd)
 
 # linkage
-target_link_libraries(qkd-dekey ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(qkd-dekey qkd ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
 install(TARGETS qkd-dekey RUNTIME DESTINATION bin COMPONENT modules)

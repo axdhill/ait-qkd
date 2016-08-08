@@ -56,9 +56,10 @@ QT5_ADD_DBUS_ADAPTOR(QKD_CAT_DBUS_SRC
 
 # bin definition
 add_executable(qkd-cat ${QKD_CAT_SRC} ${QKD_CAT_MOC} ${QKD_CAT_DBUS_SRC})
+add_dependencies(qkd-cat qkd)
 
 # linkage
-target_link_libraries(qkd-cat ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(qkd-cat qkd ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
 install(TARGETS qkd-cat RUNTIME DESTINATION bin COMPONENT modules)

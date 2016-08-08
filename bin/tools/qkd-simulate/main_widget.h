@@ -37,9 +37,9 @@
 // incs
 
 // Qt
-#include <QtGui/QFrame>
-#include <QtGui/QFileDialog>
-#include <QtGui/QMainWindow>
+#include <QtWidgets/QFrame>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMainWindow>
 #include <QtXml/QDomDocument>
 #include <QtXml/QDomElement>
 

@@ -36,8 +36,8 @@
 #include <boost/program_options.hpp>
 
 // Qt
-#include <QtGui/QApplication>
 #include <QtGui/QFontDatabase>
+#include <QtWidgets/QApplication>
 
 // ait
 #include <qkd/version.h>

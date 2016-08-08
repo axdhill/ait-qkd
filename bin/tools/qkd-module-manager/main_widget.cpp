@@ -31,8 +31,8 @@
 // ------------------------------------------------------------
 // incs
 
-#include <QtGui/QFileDialog>
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
 
 // ait
 #include <qkd/module/module.h>
@@ -61,12 +61,12 @@ main_widget::main_widget(QMainWindow * cParent) : QFrame(cParent) {
     setupUi(this);
     
     QStringList cHeaderLabels;
-    cHeaderLabels << QApplication::translate("main_widget", "ID", 0, QApplication::UnicodeUTF8);
-    cHeaderLabels << QApplication::translate("main_widget", "DBus", 0, QApplication::UnicodeUTF8);
-    cHeaderLabels << QApplication::translate("main_widget", "Type", 0, QApplication::UnicodeUTF8);    
-    cHeaderLabels << QApplication::translate("main_widget", "Status", 0, QApplication::UnicodeUTF8);
-    cHeaderLabels << QApplication::translate("main_widget", "Pipeline", 0, QApplication::UnicodeUTF8);
-    cHeaderLabels << QApplication::translate("main_widget", "Role", 0, QApplication::UnicodeUTF8);
+    cHeaderLabels << QApplication::translate("main_widget", "ID", 0);
+    cHeaderLabels << QApplication::translate("main_widget", "DBus", 0);
+    cHeaderLabels << QApplication::translate("main_widget", "Type", 0);    
+    cHeaderLabels << QApplication::translate("main_widget", "Status", 0);
+    cHeaderLabels << QApplication::translate("main_widget", "Pipeline", 0);
+    cHeaderLabels << QApplication::translate("main_widget", "Role", 0);
     cTvModules->setHeaderLabels(cHeaderLabels);
     
     m_cTypeIcon[(uint8_t)qkd::module::module_type::TYPE_PRESIFTING]             = qkd::widget::res::pixmap("module_presifting").scaledToHeight(22);

@@ -41,24 +41,25 @@ set(QKD_SIFTING_BB84_SRC
 )
 
 # Qt MOC
-QT5_GENERATE_MOC(qkd-sifting-bb85.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-sifting-bb85.moc.cpp) 
-set(QKD_SIFTING_BB85_MOC
-    qkd-sifting-bb85.moc.cpp
+QT5_GENERATE_MOC(qkd-sifting-bb84.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-sifting-bb84.moc.cpp) 
+set(QKD_SIFTING_BB84_MOC
+    qkd-sifting-bb84.moc.cpp
 )
 
 # DBus Integration
-QT5_GENERATE_DBUS_INTERFACE(qkd-sifting-bb85.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-sifting-bb85.xml)
-QT5_ADD_DBUS_ADAPTOR(QKD_SIFTING_BB85_DBUS_SRC
-    ${CMAKE_CURRENT_BINARY_DIR}/qkd-sifting-bb85.xml 
+QT5_GENERATE_DBUS_INTERFACE(qkd-sifting-bb84.h ${CMAKE_CURRENT_BINARY_DIR}/qkd-sifting-bb84.xml)
+QT5_ADD_DBUS_ADAPTOR(QKD_SIFTING_BB84_DBUS_SRC
+    ${CMAKE_CURRENT_BINARY_DIR}/qkd-sifting-bb84.xml 
     ${CMAKE_CURRENT_SOURCE_DIR}/qkd-sifting-bb84.h 
     qkd_sifting_bb84
     qkd_sifting_bb84_dbus)
 
 # bin definition
 add_executable(qkd-sifting-bb84 ${QKD_SIFTING_BB84_SRC} ${QKD_SIFTING_BB84_MOC} ${QKD_SIFTING_BB84_DBUS_SRC})
+add_dependencies(qkd-sifting-bb84 qkd)
 
 # linkage
-target_link_libraries(qkd-sifting-bb84 ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(qkd-sifting-bb84 qkd ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
 install(TARGETS qkd-sifting-bb84 RUNTIME DESTINATION bin COMPONENT modules)

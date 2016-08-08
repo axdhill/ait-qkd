@@ -38,9 +38,10 @@ set(QKD_KEY_COMPARE_SRC
 
 # bin definition
 add_executable(qkd-key-compare ${QKD_KEY_COMPARE_SRC})
+add_dependencies(qkd-key-compare qkd)
 
 # linkage
-target_link_libraries(qkd-key-compare ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(qkd-key-compare qkd ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
 install(TARGETS qkd-key-compare RUNTIME DESTINATION bin COMPONENT tools)

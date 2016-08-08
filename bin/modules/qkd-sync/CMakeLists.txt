@@ -48,9 +48,10 @@ set(QKD_RESIZE_MOC
 
 # bin definition
 add_executable(qkd-sync ${QKD_RESIZE_SRC} ${QKD_RESIZE_MOC} ${QKD_RESIZE_DBUS_SRC})
+add_dependencies(qkd-sync qkd)
 
 # linkage
-target_link_libraries(qkd-sync ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(qkd-sync qkd ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
 install(TARGETS qkd-sync RUNTIME DESTINATION bin COMPONENT modules)

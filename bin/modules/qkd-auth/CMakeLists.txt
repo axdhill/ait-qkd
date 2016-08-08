@@ -56,9 +56,10 @@ QT5_ADD_DBUS_ADAPTOR(QKD_AUTH_DBUS_SRC
 
 # bin definition
 add_executable(qkd-auth ${QKD_AUTH_SRC} ${QKD_AUTH_MOC} ${QKD_AUTH_DBUS_SRC})
+add_dependencies(qkd-auth qkd)
 
 # linkage
-target_link_libraries(qkd-auth ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(qkd-auth qkd ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
 install(TARGETS qkd-auth RUNTIME DESTINATION bin COMPONENT modules)

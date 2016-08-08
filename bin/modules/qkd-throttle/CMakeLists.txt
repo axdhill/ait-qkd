@@ -56,9 +56,10 @@ QT5_ADD_DBUS_ADAPTOR(QKD_THROTTLE_DBUS_SRC
 
 # bin definition
 add_executable(qkd-throttle ${QKD_THROTTLE_SRC} ${QKD_THROTTLE_MOC} ${QKD_THROTTLE_DBUS_SRC})
+add_dependencies(qkd-throttle qkd)
 
 # linkage
-target_link_libraries(qkd-throttle ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(qkd-throttle qkd ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
 install(TARGETS qkd-throttle RUNTIME DESTINATION bin COMPONENT modules)

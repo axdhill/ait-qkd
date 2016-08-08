@@ -34,9 +34,6 @@
 # additional includes
 include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/include)
 
-# libs
-set(CMAKE_REQUIRED_LIBRARIES "qkd;${CMAKE_REQUIRED_LIBRARIES}")
-
 # ------------------------------------------------------------
 # go through the subs
 

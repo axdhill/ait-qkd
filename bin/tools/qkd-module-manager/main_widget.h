@@ -37,8 +37,8 @@
 
 // Qt
 #include <QtCore/QSettings>
-#include <QtGui/QFrame>
-#include <QtGui/QMainWindow>
+#include <QtWidgets/QFrame>
+#include <QtWidgets/QMainWindow>
 
 // ait
 #include "ui_main_widget.h"

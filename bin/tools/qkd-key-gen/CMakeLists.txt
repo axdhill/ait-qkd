@@ -38,9 +38,10 @@ set(QKD_KEY_GEN_SRC
 
 # bin definition
 add_executable(qkd-key-gen ${QKD_KEY_GEN_SRC})
+add_dependencies(qkd-key-gen qkd)
 
 # linkage
-target_link_libraries(qkd-key-gen ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(qkd-key-gen qkd ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
 install(TARGETS qkd-key-gen RUNTIME DESTINATION bin COMPONENT tools)

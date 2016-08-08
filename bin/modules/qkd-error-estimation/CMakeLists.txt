@@ -56,9 +56,10 @@ QT5_ADD_DBUS_ADAPTOR(QKD_ERROR_ESTIMATION_DBUS_SRC
 
 # bin definition
 add_executable(qkd-error-estimation ${QKD_ERROR_ESTIMATION_SRC} ${QKD_ERROR_ESTIMATION_MOC} ${QKD_ERROR_ESTIMATION_DBUS_SRC})
+add_dependencies(qkd-error-estimation qkd)
 
 # linkage
-target_link_libraries(qkd-error-estimation ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(qkd-error-estimation qkd ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
 install(TARGETS qkd-error-estimation RUNTIME DESTINATION bin COMPONENT modules)

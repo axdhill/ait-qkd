@@ -57,9 +57,10 @@ QT5_ADD_DBUS_ADAPTOR(QKD_PRIVACY_AMPLIFICATION_DBUS_SRC
 
 # bin definition
 add_executable(qkd-privacy-amplification ${QKD_PRIVACY_AMPLIFICATION_SRC} ${QKD_PRIVACY_AMPLIFICATION_MOC} ${QKD_PRIVACY_AMPLIFICATION_DBUS_SRC})
+add_dependencies(qkd-privacy-amplification qkd)
 
 # linkage
-target_link_libraries(qkd-privacy-amplification ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(qkd-privacy-amplification qkd ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
 install(TARGETS qkd-privacy-amplification RUNTIME DESTINATION bin COMPONENT modules)

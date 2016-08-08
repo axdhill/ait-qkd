@@ -373,8 +373,17 @@ set(QKD_RES
     
     
 # define executables
-add_library(qkd SHARED ${QKD_SRC} ${QKD_UIC} ${QKD_MOC} ${QKD_RES} ${MODULE_DBUS_SRC} ${ENGINE_DBUS_SRC} ${DB_DBUS_SRC} ${MQ_DBUS_SRC} ${NIC_DBUS_SRC})
-target_link_libraries(qkd ${CMAKE_REQUIRED_LIBRARIES})
+add_library(qkd SHARED 
+    ${QKD_SRC} 
+    ${QKD_UIC} 
+    ${QKD_MOC} 
+    ${QKD_RES} 
+    ${MODULE_DBUS_SRC} 
+    ${ENGINE_DBUS_SRC} 
+    ${DB_DBUS_SRC} 
+    ${MQ_DBUS_SRC} 
+    ${NIC_DBUS_SRC})
+target_link_libraries(qkd Qt5::DBus Qt5::Network Qt5::Widgets Qt5::Gui Qt5::Core ${CMAKE_REQUIRED_LIBRARIES})
 set_target_properties(qkd PROPERTIES VERSION ${VERSION})
 
 
@@ -384,4 +393,3 @@ set_target_properties(qkd PROPERTIES VERSION ${VERSION})
 # install
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/qkd DESTINATION include COMPONENT header)
 install(TARGETS qkd LIBRARY DESTINATION lib COMPONENT library)
-

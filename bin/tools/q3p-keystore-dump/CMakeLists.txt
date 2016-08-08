@@ -38,9 +38,10 @@ set(Q3P_KEYSTORE_DUMP_SRC
 
 # bin definition
 add_executable(q3p-keystore-dump ${Q3P_KEYSTORE_DUMP_SRC})
+add_dependencies(q3p-keystore-dump qkd)
 
 # linkage
-target_link_libraries(q3p-keystore-dump ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(q3p-keystore-dump qkd ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
 install(TARGETS q3p-keystore-dump RUNTIME DESTINATION bin COMPONENT tools)

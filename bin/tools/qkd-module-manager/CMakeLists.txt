@@ -59,9 +59,10 @@ set(QKD_MODULE_MANAGER_MOC
 
 # bin definition
 add_executable(qkd-module-manager ${QKD_MODULE_MANAGER_SRC} ${QKD_MODULE_MANAGER_MOC} ${QKD_MODULE_MANAGER_UIC})
+add_dependencies(qkd-module-manager qkd)
 
 # linkage
-target_link_libraries(qkd-module-manager ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(qkd-module-manager Qt5::Widgets qkd ${CMAKE_REQUIRED_LIBRARIES})
 
 # copy share/qkd-module-manager stuff for convenient testing
 configure_file(${CMAKE_SOURCE_DIR}/share/qkd-module-manager/ait_logo.png                  ${CMAKE_BINARY_DIR}/bin/tools/share/qkd-module-manager/ait_logo.png               COPYONLY)

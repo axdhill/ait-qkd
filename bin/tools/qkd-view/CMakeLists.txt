@@ -42,9 +42,10 @@ set(QKD_VIEW_SRC
 
 # bin definition
 add_executable(qkd-view ${QKD_VIEW_SRC})
+add_dependencies(qkd-view qkd)
 
 # linkage
-target_link_libraries(qkd-view ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(qkd-view qkd ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
 install(TARGETS qkd-view RUNTIME DESTINATION bin COMPONENT tools)

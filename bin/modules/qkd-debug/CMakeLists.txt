@@ -56,9 +56,10 @@ QT5_ADD_DBUS_ADAPTOR(QKD_DEBUG_DBUS_SRC
 
 # bin definition
 add_executable(qkd-debug ${QKD_DEBUG_SRC} ${QKD_DEBUG_MOC} ${QKD_DEBUG_DBUS_SRC})
+add_dependencies(qkd-debug qkd)
 
 # linkage
-target_link_libraries(qkd-debug ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(qkd-debug qkd ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
 install(TARGETS qkd-debug RUNTIME DESTINATION bin COMPONENT modules)

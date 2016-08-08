@@ -90,9 +90,10 @@ set(QKD_SIMULATE_MOC
 
 # bin definition
 add_executable(qkd-simulate ${QKD_SIMULATE_SRC} ${QKD_SIMULATE_MOC} ${QKD_SIMULATE_UIC})
+add_dependencies(qkd-simulate qkd)
 
 # linkage
-target_link_libraries(qkd-simulate ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(qkd-simulate Qt5::Xml Qt5::Widgets qkd ${CMAKE_REQUIRED_LIBRARIES})
 
 # copy share/qkd-simulate stuff for convenient testing
 configure_file(${CMAKE_SOURCE_DIR}/share/qkd-simulate/ait_logo.png                      ${CMAKE_BINARY_DIR}/bin/tools/share/qkd-simulate/ait_logo.png               COPYONLY)

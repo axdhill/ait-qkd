@@ -56,9 +56,10 @@ QT5_ADD_DBUS_ADAPTOR(QKD_STATISTICS_DBUS_SRC
 
 # bin definition
 add_executable(qkd-statistics ${QKD_STATISTICS_SRC} ${QKD_STATISTICS_MOC} ${QKD_STATISTICS_DBUS_SRC})
+add_dependencies(qkd-statistics qkd)
 
 # linkage
-target_link_libraries(qkd-statistics ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(qkd-statistics qkd ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
 install(TARGETS qkd-statistics RUNTIME DESTINATION bin COMPONENT modules)

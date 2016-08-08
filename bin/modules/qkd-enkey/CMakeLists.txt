@@ -56,9 +56,10 @@ QT5_ADD_DBUS_ADAPTOR(QKD_ENKEY_DBUS_SRC
 
 # bin definition
 add_executable(qkd-enkey ${QKD_ENKEY_SRC} ${QKD_ENKEY_MOC} ${QKD_ENKEY_DBUS_SRC})
+add_dependencies(qkd-enkey qkd)
 
 # linkage
-target_link_libraries(qkd-enkey ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(qkd-enkey qkd ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
 install(TARGETS qkd-enkey RUNTIME DESTINATION bin COMPONENT modules)

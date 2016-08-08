@@ -56,9 +56,10 @@ QT5_ADD_DBUS_ADAPTOR(QKD_CONFIRMATION_DBUS_SRC
 
 # bin definition
 add_executable(qkd-confirmation ${QKD_CONFIRMATION_SRC} ${QKD_CONFIRMATION_MOC} ${QKD_CONFIRMATION_DBUS_SRC})
+add_dependencies(qkd-confirmation qkd)
 
 # linkage
-target_link_libraries(qkd-confirmation ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(qkd-confirmation qkd ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
 install(TARGETS qkd-confirmation RUNTIME DESTINATION bin COMPONENT modules)

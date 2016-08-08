@@ -38,9 +38,10 @@ set(Q3P_MQ_READER_SRC
 
 # bin definition
 add_executable(q3p-mq-reader ${Q3P_MQ_READER_SRC})
+add_dependencies(q3p-mq-reader qkd)
 
 # linkage
-target_link_libraries(q3p-mq-reader ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(q3p-mq-reader qkd ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
 install(TARGETS q3p-mq-reader RUNTIME DESTINATION bin COMPONENT tools)

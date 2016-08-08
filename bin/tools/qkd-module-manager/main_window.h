@@ -36,7 +36,7 @@
 // incs
 
 // Qt
-#include <QtGui/QMainWindow>
+#include <QtWidgets/QMainWindow>
 
 
 // ------------------------------------------------------------

@@ -56,6 +56,7 @@ QT5_ADD_DBUS_ADAPTOR(Q3P_DAEMON_DBUS_SRC
 
 # bin definition
 add_executable(q3pd ${Q3P_DAEMON_SRC} ${Q3P_DAEMON_MOC} ${Q3P_DAEMON_DBUS_SRC})
+add_dependencies(q3pd qkd)
 
 # just a nice text to show warning about capabilities for TUN/TAP
 add_custom_command(TARGET q3pd 
@@ -64,7 +65,7 @@ add_custom_command(TARGET q3pd
     COMMAND echo "EXECUTE: $$ sudo setcap cap_net_admin=ep ${CMAKE_CURRENT_BINARY_DIR}/q3pd" )
 
 # linkage
-target_link_libraries(q3pd ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(q3pd qkd ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
 install(TARGETS q3pd RUNTIME DESTINATION bin COMPONENT node)

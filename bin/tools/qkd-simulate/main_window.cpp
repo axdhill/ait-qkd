@@ -35,11 +35,11 @@
 
 // Qt
 #include <QtCore/QSettings>
-#include <QtGui/QApplication>
-#include <QtGui/QDesktopWidget>
-#include <QtGui/QStatusBar>
-#include <QtGui/QScrollArea>
-#include <QtGui/QScrollBar>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QDesktopWidget>
+#include <QtWidgets/QStatusBar>
+#include <QtWidgets/QScrollArea>
+#include <QtWidgets/QScrollBar>
 
 // ait
 #include <qkd/utility/environment.h>

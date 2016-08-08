@@ -38,9 +38,10 @@ set(QKD_KEY_DUMP_SRC
 
 # bin definition
 add_executable(qkd-key-dump ${QKD_KEY_DUMP_SRC})
+add_dependencies(qkd-key-dump qkd)
 
 # linkage
-target_link_libraries(qkd-key-dump ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(qkd-key-dump qkd ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
 install(TARGETS qkd-key-dump RUNTIME DESTINATION bin COMPONENT tools)

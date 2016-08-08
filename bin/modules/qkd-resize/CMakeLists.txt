@@ -56,9 +56,10 @@ QT5_ADD_DBUS_ADAPTOR(QKD_RESIZE_DBUS_SRC
 
 # bin definition
 add_executable(qkd-resize ${QKD_RESIZE_SRC} ${QKD_RESIZE_MOC} ${QKD_RESIZE_DBUS_SRC})
+add_dependencies(qkd-resize qkd)
 
 # linkage
-target_link_libraries(qkd-resize ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(qkd-resize qkd ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
 install(TARGETS qkd-resize RUNTIME DESTINATION bin COMPONENT modules)
