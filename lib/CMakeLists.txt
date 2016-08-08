@@ -185,11 +185,12 @@ set(QKD_SRC
     module/workload.cpp
     
     # widgets
-    widget/lcd.cpp
-    widget/led.cpp
-    widget/module_frame.cpp
-    widget/plot.cpp
-    widget/res.cpp
+# TODO: move this elsewhere! This is not a proper place (inside the QKD lib)
+#     widget/lcd.cpp
+#     widget/led.cpp
+#     widget/module_frame.cpp
+#     widget/plot.cpp
+#     widget/res.cpp
     
     # versioning
     version/version.cpp
@@ -218,10 +219,10 @@ QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/q3p/engine.h               ${CM
 QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/q3p/mq.h                   ${CMAKE_CURRENT_BINARY_DIR}/q3p_mq.moc.cpp) 
 QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/q3p/nic.h                  ${CMAKE_CURRENT_BINARY_DIR}/q3p_nic.moc.cpp) 
 QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/module/module.h            ${CMAKE_CURRENT_BINARY_DIR}/qkd_module.moc.cpp) 
-QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/widget/lcd.h               ${CMAKE_CURRENT_BINARY_DIR}/qkd_widget_lcd.moc.cpp) 
-QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/widget/led.h               ${CMAKE_CURRENT_BINARY_DIR}/qkd_widget_led.moc.cpp) 
-QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/widget/module_frame.h      ${CMAKE_CURRENT_BINARY_DIR}/qkd_widget_module_frame.moc.cpp) 
-QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/widget/plot.h              ${CMAKE_CURRENT_BINARY_DIR}/qkd_widget_plot.moc.cpp) 
+# QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/widget/lcd.h               ${CMAKE_CURRENT_BINARY_DIR}/qkd_widget_lcd.moc.cpp) 
+# QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/widget/led.h               ${CMAKE_CURRENT_BINARY_DIR}/qkd_widget_led.moc.cpp) 
+# QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/widget/module_frame.h      ${CMAKE_CURRENT_BINARY_DIR}/qkd_widget_module_frame.moc.cpp) 
+# QT5_GENERATE_MOC(${CMAKE_SOURCE_DIR}/include/qkd/widget/plot.h              ${CMAKE_CURRENT_BINARY_DIR}/qkd_widget_plot.moc.cpp) 
 set(QKD_MOC
     
     q3p_engine_protocol_data.moc.cpp
@@ -243,10 +244,10 @@ set(QKD_MOC
     
     qkd_module.moc.cpp
     
-    qkd_widget_lcd.moc.cpp
-    qkd_widget_led.moc.cpp
-    qkd_widget_module_frame.moc.cpp
-    qkd_widget_plot.moc.cpp
+#     qkd_widget_lcd.moc.cpp
+#     qkd_widget_led.moc.cpp
+#     qkd_widget_module_frame.moc.cpp
+#     qkd_widget_plot.moc.cpp
 )
 
 
@@ -283,93 +284,93 @@ QT5_ADD_DBUS_ADAPTOR(NIC_DBUS_SRC
     nic_dbus)
 
 
-# a macro to convert any binary to a source file
-macro(CONVERT_TO_HEADER infile outfile)
-
-    # ensure full absolute paths
-    get_filename_component(abs_infile ${infile} ABSOLUTE)
-    get_filename_component(name_infile ${infile} NAME)
-    set(abs_outfile "${outfile}")
-    if (NOT IS_ABSOLUTE "${outfile}")
-        set(abs_outfile "${CMAKE_CURRENT_BINARY_DIR}/${outfile}")
-    endif(NOT IS_ABSOLUTE "${outfile}")
-   
-    # this is the command
-    add_custom_command(OUTPUT ${abs_outfile}
-        COMMAND ln
-        ARGS -s ${abs_infile} ${name_infile}
-        COMMAND xxd
-        ARGS -i ${name_infile} ${abs_outfile}
-        COMMAND rm
-        ARGS ${name_infile}
-        DEPENDS ${abs_infile} VERBATIM)
-   
-    set_source_files_properties(${abs_outfile} PROPERTIES HEADER_FILE_ONLY (true))
-    
-endmacro(CONVERT_TO_HEADER)
+# # a macro to convert any binary to a source file
+# macro(CONVERT_TO_HEADER infile outfile)
+# 
+#     # ensure full absolute paths
+#     get_filename_component(abs_infile ${infile} ABSOLUTE)
+#     get_filename_component(name_infile ${infile} NAME)
+#     set(abs_outfile "${outfile}")
+#     if (NOT IS_ABSOLUTE "${outfile}")
+#         set(abs_outfile "${CMAKE_CURRENT_BINARY_DIR}/${outfile}")
+#     endif(NOT IS_ABSOLUTE "${outfile}")
+#    
+#     # this is the command
+#     add_custom_command(OUTPUT ${abs_outfile}
+#         COMMAND ln
+#         ARGS -s ${abs_infile} ${name_infile}
+#         COMMAND xxd
+#         ARGS -i ${name_infile} ${abs_outfile}
+#         COMMAND rm
+#         ARGS ${name_infile}
+#         DEPENDS ${abs_infile} VERBATIM)
+#    
+#     set_source_files_properties(${abs_outfile} PROPERTIES HEADER_FILE_ONLY (true))
+#     
+# endmacro(CONVERT_TO_HEADER)
 
 
 # collect resources as binary
-
-CONVERT_TO_HEADER(widget/res/alice.png                          ${CMAKE_CURRENT_BINARY_DIR}/res_alice.png.h)
-CONVERT_TO_HEADER(widget/res/bob.png                            ${CMAKE_CURRENT_BINARY_DIR}/res_bob.png.h)
-CONVERT_TO_HEADER(widget/res/glass_button_green.png             ${CMAKE_CURRENT_BINARY_DIR}/res_glass_button_green.png.h)
-CONVERT_TO_HEADER(widget/res/glass_button_green_small.png       ${CMAKE_CURRENT_BINARY_DIR}/res_glass_button_green_small.png.h)
-CONVERT_TO_HEADER(widget/res/glass_button_grey.png              ${CMAKE_CURRENT_BINARY_DIR}/res_glass_button_grey.png.h)
-CONVERT_TO_HEADER(widget/res/glass_button_grey_small.png        ${CMAKE_CURRENT_BINARY_DIR}/res_glass_button_grey_small.png.h)
-CONVERT_TO_HEADER(widget/res/glass_button_red.png               ${CMAKE_CURRENT_BINARY_DIR}/res_glass_button_red.png.h)
-CONVERT_TO_HEADER(widget/res/glass_button_red_small.png         ${CMAKE_CURRENT_BINARY_DIR}/res_glass_button_red_small.png.h)
-CONVERT_TO_HEADER(widget/res/glass_button_yellow.png            ${CMAKE_CURRENT_BINARY_DIR}/res_glass_button_yellow.png.h)
-CONVERT_TO_HEADER(widget/res/glass_button_yellow_small.png      ${CMAKE_CURRENT_BINARY_DIR}/res_glass_button_yellow_small.png.h)
-CONVERT_TO_HEADER(widget/res/media_eject.png                    ${CMAKE_CURRENT_BINARY_DIR}/res_media_eject.png.h)
-CONVERT_TO_HEADER(widget/res/media_playback_pause.png           ${CMAKE_CURRENT_BINARY_DIR}/res_media_playback_pause.png.h)
-CONVERT_TO_HEADER(widget/res/media_playback_start.png           ${CMAKE_CURRENT_BINARY_DIR}/res_media_playback_start.png.h)
-CONVERT_TO_HEADER(widget/res/media_playback_stop.png            ${CMAKE_CURRENT_BINARY_DIR}/res_media_playback_stop.png.h)
-CONVERT_TO_HEADER(widget/res/media_record.png                   ${CMAKE_CURRENT_BINARY_DIR}/res_media_record.png.h)
-CONVERT_TO_HEADER(widget/res/module_confirmation.png            ${CMAKE_CURRENT_BINARY_DIR}/res_module_confirmation.png.h)
-CONVERT_TO_HEADER(widget/res/module_error_correction.png        ${CMAKE_CURRENT_BINARY_DIR}/res_module_error_correction.png.h)
-CONVERT_TO_HEADER(widget/res/module_error_estimation.png        ${CMAKE_CURRENT_BINARY_DIR}/res_module_error_estimation.png.h)
-CONVERT_TO_HEADER(widget/res/module_keystore.png                ${CMAKE_CURRENT_BINARY_DIR}/res_module_keystore.png.h)
-CONVERT_TO_HEADER(widget/res/module_other.png                   ${CMAKE_CURRENT_BINARY_DIR}/res_module_other.png.h)
-CONVERT_TO_HEADER(widget/res/module_peer.png                    ${CMAKE_CURRENT_BINARY_DIR}/res_module_peer.png.h)
-CONVERT_TO_HEADER(widget/res/module_pipe_in.png                 ${CMAKE_CURRENT_BINARY_DIR}/res_module_pipe_in.png.h)
-CONVERT_TO_HEADER(widget/res/module_pipe_out.png                ${CMAKE_CURRENT_BINARY_DIR}/res_module_pipe_out.png.h)
-CONVERT_TO_HEADER(widget/res/module_presifting.png              ${CMAKE_CURRENT_BINARY_DIR}/res_module_presifting.png.h)
-CONVERT_TO_HEADER(widget/res/module_privacy_amplification.png   ${CMAKE_CURRENT_BINARY_DIR}/res_module_privacy_amplification.png.h)
-CONVERT_TO_HEADER(widget/res/module_sifting.png                 ${CMAKE_CURRENT_BINARY_DIR}/res_module_sifting.png.h)
-CONVERT_TO_HEADER(widget/res/module.png                         ${CMAKE_CURRENT_BINARY_DIR}/res_module.png.h)
-CONVERT_TO_HEADER(widget/res/wwDigital.ttf                      ${CMAKE_CURRENT_BINARY_DIR}/res_wwDigital.ttf.h)
-set(QKD_RES
-    res_alice.png.h
-    res_bob.png.h
-    res_glass_button_green.png.h
-    res_glass_button_green_small.png.h
-    res_glass_button_grey.png.h
-    res_glass_button_grey_small.png.h
-    res_glass_button_red.png.h
-    res_glass_button_red_small.png.h
-    res_glass_button_yellow.png.h
-    res_glass_button_yellow_small.png.h
-    res_media_eject.png.h
-    res_media_playback_pause.png.h
-    res_media_playback_start.png.h
-    res_media_playback_stop.png.h
-    res_media_record.png.h
-    res_module_confirmation.png.h
-    res_module_error_correction.png.h
-    res_module_error_estimation.png.h
-    res_module_keystore.png.h
-    res_module_other.png.h
-    res_module_peer.png.h
-    res_module_peer.png.h
-    res_module_pipe_in.png.h
-    res_module_pipe_out.png.h
-    res_module_presifting.png.h
-    res_module_privacy_amplification.png.h
-    res_module_sifting.png.h
-    res_module.png.h
-    res_wwDigital.ttf.h
-)
+# TODO: place this elsewhere (not inside qkd library)
+# CONVERT_TO_HEADER(widget/res/alice.png                          ${CMAKE_CURRENT_BINARY_DIR}/res_alice.png.h)
+# CONVERT_TO_HEADER(widget/res/bob.png                            ${CMAKE_CURRENT_BINARY_DIR}/res_bob.png.h)
+# CONVERT_TO_HEADER(widget/res/glass_button_green.png             ${CMAKE_CURRENT_BINARY_DIR}/res_glass_button_green.png.h)
+# CONVERT_TO_HEADER(widget/res/glass_button_green_small.png       ${CMAKE_CURRENT_BINARY_DIR}/res_glass_button_green_small.png.h)
+# CONVERT_TO_HEADER(widget/res/glass_button_grey.png              ${CMAKE_CURRENT_BINARY_DIR}/res_glass_button_grey.png.h)
+# CONVERT_TO_HEADER(widget/res/glass_button_grey_small.png        ${CMAKE_CURRENT_BINARY_DIR}/res_glass_button_grey_small.png.h)
+# CONVERT_TO_HEADER(widget/res/glass_button_red.png               ${CMAKE_CURRENT_BINARY_DIR}/res_glass_button_red.png.h)
+# CONVERT_TO_HEADER(widget/res/glass_button_red_small.png         ${CMAKE_CURRENT_BINARY_DIR}/res_glass_button_red_small.png.h)
+# CONVERT_TO_HEADER(widget/res/glass_button_yellow.png            ${CMAKE_CURRENT_BINARY_DIR}/res_glass_button_yellow.png.h)
+# CONVERT_TO_HEADER(widget/res/glass_button_yellow_small.png      ${CMAKE_CURRENT_BINARY_DIR}/res_glass_button_yellow_small.png.h)
+# CONVERT_TO_HEADER(widget/res/media_eject.png                    ${CMAKE_CURRENT_BINARY_DIR}/res_media_eject.png.h)
+# CONVERT_TO_HEADER(widget/res/media_playback_pause.png           ${CMAKE_CURRENT_BINARY_DIR}/res_media_playback_pause.png.h)
+# CONVERT_TO_HEADER(widget/res/media_playback_start.png           ${CMAKE_CURRENT_BINARY_DIR}/res_media_playback_start.png.h)
+# CONVERT_TO_HEADER(widget/res/media_playback_stop.png            ${CMAKE_CURRENT_BINARY_DIR}/res_media_playback_stop.png.h)
+# CONVERT_TO_HEADER(widget/res/media_record.png                   ${CMAKE_CURRENT_BINARY_DIR}/res_media_record.png.h)
+# CONVERT_TO_HEADER(widget/res/module_confirmation.png            ${CMAKE_CURRENT_BINARY_DIR}/res_module_confirmation.png.h)
+# CONVERT_TO_HEADER(widget/res/module_error_correction.png        ${CMAKE_CURRENT_BINARY_DIR}/res_module_error_correction.png.h)
+# CONVERT_TO_HEADER(widget/res/module_error_estimation.png        ${CMAKE_CURRENT_BINARY_DIR}/res_module_error_estimation.png.h)
+# CONVERT_TO_HEADER(widget/res/module_keystore.png                ${CMAKE_CURRENT_BINARY_DIR}/res_module_keystore.png.h)
+# CONVERT_TO_HEADER(widget/res/module_other.png                   ${CMAKE_CURRENT_BINARY_DIR}/res_module_other.png.h)
+# CONVERT_TO_HEADER(widget/res/module_peer.png                    ${CMAKE_CURRENT_BINARY_DIR}/res_module_peer.png.h)
+# CONVERT_TO_HEADER(widget/res/module_pipe_in.png                 ${CMAKE_CURRENT_BINARY_DIR}/res_module_pipe_in.png.h)
+# CONVERT_TO_HEADER(widget/res/module_pipe_out.png                ${CMAKE_CURRENT_BINARY_DIR}/res_module_pipe_out.png.h)
+# CONVERT_TO_HEADER(widget/res/module_presifting.png              ${CMAKE_CURRENT_BINARY_DIR}/res_module_presifting.png.h)
+# CONVERT_TO_HEADER(widget/res/module_privacy_amplification.png   ${CMAKE_CURRENT_BINARY_DIR}/res_module_privacy_amplification.png.h)
+# CONVERT_TO_HEADER(widget/res/module_sifting.png                 ${CMAKE_CURRENT_BINARY_DIR}/res_module_sifting.png.h)
+# CONVERT_TO_HEADER(widget/res/module.png                         ${CMAKE_CURRENT_BINARY_DIR}/res_module.png.h)
+# CONVERT_TO_HEADER(widget/res/wwDigital.ttf                      ${CMAKE_CURRENT_BINARY_DIR}/res_wwDigital.ttf.h)
+# set(QKD_RES
+#     res_alice.png.h
+#     res_bob.png.h
+#     res_glass_button_green.png.h
+#     res_glass_button_green_small.png.h
+#     res_glass_button_grey.png.h
+#     res_glass_button_grey_small.png.h
+#     res_glass_button_red.png.h
+#     res_glass_button_red_small.png.h
+#     res_glass_button_yellow.png.h
+#     res_glass_button_yellow_small.png.h
+#     res_media_eject.png.h
+#     res_media_playback_pause.png.h
+#     res_media_playback_start.png.h
+#     res_media_playback_stop.png.h
+#     res_media_record.png.h
+#     res_module_confirmation.png.h
+#     res_module_error_correction.png.h
+#     res_module_error_estimation.png.h
+#     res_module_keystore.png.h
+#     res_module_other.png.h
+#     res_module_peer.png.h
+#     res_module_peer.png.h
+#     res_module_pipe_in.png.h
+#     res_module_pipe_out.png.h
+#     res_module_presifting.png.h
+#     res_module_privacy_amplification.png.h
+#     res_module_sifting.png.h
+#     res_module.png.h
+#     res_wwDigital.ttf.h
+# )
     
     
 # define executables
@@ -377,7 +378,6 @@ add_library(qkd SHARED
     ${QKD_SRC} 
     ${QKD_UIC} 
     ${QKD_MOC} 
-    ${QKD_RES} 
     ${MODULE_DBUS_SRC} 
     ${ENGINE_DBUS_SRC} 
     ${DB_DBUS_SRC} 

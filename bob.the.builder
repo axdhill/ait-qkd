@@ -52,7 +52,6 @@ function setup_debian() {
         libzmq3-dev \
         libdbus-1-dev \
         qtbase5-dev \
-        libqt4-dev \
         libqwt-dev \
         doxygen \
         texlive-latex-base \
