@@ -5,6 +5,7 @@
     <xs:simpleType name="stateTypes">
         <xs:restriction base="xs:string">
             <xs:enumeration value="other"/>
+            <xs:enumeration value="new"/>
             <xs:enumeration value="raw"/>
             <xs:enumeration value="sifted"/>
             <xs:enumeration value="corrected"/>
@@ -14,6 +15,7 @@
             <xs:enumeration value="amplified"/>
             <xs:enumeration value="authenticated"/>
             <xs:enumeration value="disclosed"/>
+            <xs:enumeration value="tainted"/>
         </xs:restriction>
     </xs:simpleType>
     
