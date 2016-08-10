@@ -44,8 +44,6 @@
 
 #include "db_file.h"
 
-        #include <qkd/utility/debug.h>
-
 using namespace qkd;
 using namespace qkd::q3p;
 

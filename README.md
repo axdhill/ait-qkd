@@ -92,8 +92,8 @@ The whole project compiles in one single step, meaning no subprojects. This resu
 
 In order to compile the QKD sources we need at least the developer versions of:
 
-* gcc and g++ at least version 4.8 or higher
-* boost at least version 1.49 (recommended: 1.55.0)
+* gcc and g++ at least version 4.8 or higher (recommended 5.4.0)
+* boost at least version 1.49 (recommended: 1.58.0)
 * OpenSSL
 * UUID
 * CMake
@@ -105,7 +105,7 @@ In order to compile the QKD sources we need at least the developer versions of:
 
 Here are the steps which help you to setup a build system capable of compiling the sources on a pure Debian Wheezy/Jessie system.
 
-    $ sudo apt-get install build-essential g++ gcc libboost-all-dev libssl-dev uuid-dev cmake libssl-dev libgmp3-dev libzmq3-dev libdbus-1-dev qtbase5-dev qtbase5-dev-tools doxygen texlive-latex-base texlive-latex-extra texlive-font-utils dbus-x11 libcap2-bin python3
+    $ sudo apt-get install build-essential g++ gcc libboost-all-dev libssl-dev uuid-dev cmake libssl-dev libgmp3-dev libzmq3-dev libdbus-1-dev qtbase5-dev qtbase5-dev-tools qdbus-qt5 doxygen texlive-latex-base texlive-latex-extra texlive-font-utils dbus-x11 libcap2-bin python3
 
 
 To clone the sources from the AIT servers:
@@ -298,7 +298,16 @@ Clang 3.6 seems to have problems with boost-1.58. Especially the boost Program O
     
 then most likely your boost-1.58 is incompatible with your clang. Try to change to a newer Clang compiler or switch to gcc.
 
-    
+
+**6.4 qkd-module-manager**
+
+Due to the recent switch to Qt5 the qkd-module-manager (bin/tools) is currently not working.
+
+**6.5 Q3P encryption and authentication**
+
+Q3P is currently not fully implemented
+
+   
 7. License
 ----------
 
