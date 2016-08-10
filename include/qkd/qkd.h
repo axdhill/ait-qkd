@@ -86,13 +86,6 @@
 #include <qkd/module/path.h>
 #include <qkd/module/workload.h>
 
-// QKD widgets
-#include <qkd/widget/lcd.h>
-#include <qkd/widget/led.h>
-#include <qkd/widget/module_frame.h>
-#include <qkd/widget/plot.h>
-#include <qkd/widget/res.h>
-
 // QKD versioning
 #include <qkd/version.h>
 
