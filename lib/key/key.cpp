@@ -33,6 +33,7 @@
 
 #include <iostream>
 
+#include <boost/version.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
 // ait
@@ -166,7 +167,11 @@ boost::property_tree::ptree const & qkd::key::key::metadata_modules() const {
  */
 std::string qkd::key::key::metadata_xml(bool bPretty) const {
     std::stringstream ss;
+#if BOOST_VERSION < 105800    
+    boost::property_tree::xml_writer_settings<char> cSettings(' ', (bPretty ? 4 : 0));
+#else
     boost::property_tree::xml_writer_settings<std::string> cSettings(' ', (bPretty ? 4 : 0));
+#endif
     boost::property_tree::write_xml(ss, m_cMetaData, cSettings);
     return ss.str();
 }
