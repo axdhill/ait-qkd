@@ -44,6 +44,7 @@
 
 #include "db_file.h"
 
+        #include <qkd/utility/debug.h>
 
 using namespace qkd;
 using namespace qkd::q3p;
@@ -111,11 +112,22 @@ void db_file::init(QString sURL) {
     
     m_nFD = 0;
     
-    std::string sFileName = QUrl(sURL, QUrl::TolerantMode).toLocalFile().toStdString();
+    std::string sFileName;
+    QUrl cURL(sURL, QUrl::TolerantMode);
+    if (cURL.isLocalFile()) {
+        sFileName = cURL.toLocalFile().toStdString();
+    }
+    else
+    if (cURL.scheme() == "") {
+        sFileName = sURL.toStdString();
+    }
+    else {
+        throw qkd::exception::db_error("can't parse file URL for opening key database.");
+    }
 
     qkd::utility::syslog::info() << "opening file DB at \"" << sURL.toStdString() << "\"";
 
-    m_nFD = ::open(sFileName.c_str(), O_RDWR | O_CREAT, 0666);
+    m_nFD = ::open(sFileName.c_str(), O_RDWR | O_CREAT, 0660);
     if (m_nFD == -1) {
         std::string sError = strerror(errno);
         qkd::utility::syslog::crit() << __FILENAME__ << '@' << __LINE__ << ": " << "failed opening file DB at \"" << sURL.toStdString() << "\": " << sError;
