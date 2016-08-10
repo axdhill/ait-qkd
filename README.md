@@ -305,7 +305,7 @@ Due to the recent switch to Qt5 the qkd-module-manager (bin/tools) is currently 
 
 **6.5 Q3P encryption and authentication**
 
-Q3P is currently not fully implemented
+Q3P is currently not fully implemented.
 
    
 7. License
