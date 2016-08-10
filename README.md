@@ -105,7 +105,7 @@ In order to compile the QKD sources we need at least the developer versions of:
 
 Here are the steps which help you to setup a build system capable of compiling the sources on a pure Debian Wheezy/Jessie system.
 
-    $ sudo apt-get install build-essential g++ gcc libboost-all-dev libssl-dev uuid-dev cmake libssl-dev libgmp3-dev libzmq3-dev libdbus-1-dev qt5base-dev doxygen texlive-latex-base texlive-latex-extra texlive-font-utils dbus-x11 libcap2-bin python3
+    $ sudo apt-get install build-essential g++ gcc libboost-all-dev libssl-dev uuid-dev cmake libssl-dev libgmp3-dev libzmq3-dev libdbus-1-dev qtbase5-dev qtbase5-dev-tools doxygen texlive-latex-base texlive-latex-extra texlive-font-utils dbus-x11 libcap2-bin python3
 
 
 To clone the sources from the AIT servers:
