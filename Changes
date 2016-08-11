@@ -5,6 +5,11 @@ This file holds the changes of the AIT QKD R10 throughout the versions
 Changes from 9.9999.7 to 9.9999.8
 ---------------------------------
 
+* switch from Qt4 to Qt5
+
+    We switched from Qt4 to Qt5, thus disabling temporarily the
+    qkd-module-manager fully.
+
 * new key states:
 
     KEY_STATE_NEW: a brand new key.
@@ -18,6 +23,9 @@ Changes from 9.9999.7 to 9.9999.8
     The new "--md5sum-all" option generates the MD5 hash sum
     of all key material in the key stream file (a single
     MD5 for _all_ keys).
+    
+    Hence, only the key material itself is taken into account
+    and not the key id, the metadata or else.
 
 * qkd-key-dump new option: "--metadata"
 
@@ -211,6 +219,25 @@ Changes from 9.9999.7 to 9.9999.8
     * add_metadata_out() ... add module's metadata to outgoing key
     
     This change is massive but introduces most felxibilty.
+    
+    Example to set and get arbitary values into/from a key's metadata 
+    inside a running QKD module:
+    
+        // place a text and a value like
+        //      <alpha>This is a text</alpha>
+        //      <beta>
+        //          <gamma>0.05</gamma>
+        //      </beta>
+        
+        boost::property_tree::ptree & x = cKey.metadata_current_module();
+        x.put("alpha", "This is a text");
+        x.put("beta.gamma", 0.05);
+        
+        // read these values
+        boost::property_tree::ptree & y = cKey.metadata_current_module();
+        std::string a = y.get<std::string>("alpha");
+        // ... with a default value
+        double b = y.get("beta.gamma", 0.01);
 
 
 Changes from 9.9999.6 to 9.9999.7
