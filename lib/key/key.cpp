@@ -62,7 +62,12 @@ qkd::key::key::key() : m_nId(0) {
  * 
  * @param   rhs     right hand side
  */
-qkd::key::key::key(key const & rhs) : m_nId(rhs.m_nId), m_cData(rhs.m_cData), m_cMetaData(rhs.m_cMetaData) {
+qkd::key::key::key(key const & rhs) : 
+        m_nId(rhs.m_nId), 
+        m_cData(rhs.m_cData), 
+        m_cMetaData(rhs.m_cMetaData), 
+        m_cTimestampRead(rhs.m_cTimestampRead) 
+{
 }
 
 
@@ -74,7 +79,11 @@ qkd::key::key::key(key const & rhs) : m_nId(rhs.m_nId), m_cData(rhs.m_cData), m_
  * @param   nId         ID of the key
  * @param   cMemory     memory holding the key bits
  */
-qkd::key::key::key(key_id nId, qkd::utility::memory & cMemory) : m_nId(nId), m_cData(cMemory) { 
+qkd::key::key::key(key_id nId, qkd::utility::memory & cMemory) : 
+        m_nId(nId), 
+        m_cData(cMemory), 
+        m_cTimestampRead(std::chrono::high_resolution_clock::now()) 
+{ 
     init_metadata(); 
 }
 
@@ -87,7 +96,11 @@ qkd::key::key::key(key_id nId, qkd::utility::memory & cMemory) : m_nId(nId), m_c
  * @param   nId         ID of the key
  * @param   cMemory     memory holding the key bits
  */
-qkd::key::key::key(key_id nId, qkd::utility::memory const & cMemory) : m_nId(nId), m_cData(cMemory.clone()) { 
+qkd::key::key::key(key_id nId, qkd::utility::memory const & cMemory) : 
+        m_nId(nId), 
+        m_cData(cMemory.clone()), 
+        m_cTimestampRead(std::chrono::high_resolution_clock::now()) 
+{ 
     init_metadata(); 
 }
 
