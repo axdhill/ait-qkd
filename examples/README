@@ -12,13 +12,12 @@ All samples do share the same requirements as building the AIT QKD RX software. 
     - CMake
     - GMP
     - 0MQ (Zero Message Queue) version 2.2 (NOT version 3)
-    - Qt4 at least version 4.4
-    - Qwt5
+    - Qt5
     - Doxygen
 
 You can get these by copy-paste the line below into a shell with root privileges if you are running on a Debian-like Linux distribution - mind the leading shell prompt '#':
 
-    # apt-get install g++ libqt4-dev libboost-all-dev libqwt-dev libgmp3-dev libzmq-dev libdbus-1-dev libssl-dev cmake
+    # apt-get install g++ qtbase5-dev qtbase5-dev-tools libboost-all-dev libqwt-dev libgmp3-dev libzmq-dev libdbus-1-dev libssl-dev cmake
 
 
 

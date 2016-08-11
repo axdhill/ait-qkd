@@ -334,6 +334,7 @@ else (ZLIB_FOUND)
     message(FATAL_ERROR "ZLIB library not found.")
 endif (ZLIB_FOUND)
 
+
 # Qt5
 find_package(Qt5Core)
 message(STATUS "Found Qt5Core: ${Qt5Core_VERSION}")
@@ -362,17 +363,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Network_EXECUTABLE_COMPILE_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Xml_EXECUTABLE_COMPILE_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5DBus_EXECUTABLE_COMPILE_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
-
-
-# # Qwt
-# include(${CMAKE_SOURCE_DIR}/cmake/FindQwt.cmake)
-# if (NOT QWT_FOUND)
-#     message(FATAL_ERROR "QWT not found!")
-# else (NOT QWT_FOUND)
-#     include_directories(${QWT_INCLUDE_DIRS})
-#     set(CMAKE_REQUIRED_LIBRARIES "${QWT_LIBRARIES};${CMAKE_REQUIRED_LIBRARIES}")
-#     set(HAVE_QWT_PKG 1)
-# endif (NOT QWT_FOUND)
 
 
 # Doxygen

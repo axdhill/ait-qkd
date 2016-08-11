@@ -26,15 +26,6 @@
 # ------------------------------------------------------------
 
 
-# ------------------------------------------------------------
-# basic
-
-# add libqkd to the libs
-set(CMAKE_REQUIRED_LIBRARIES "qkd;${CMAKE_REQUIRED_LIBRARIES}")
-
-
-# ------------------------------------------------------------
-
 # sources
 set(MY_MODULE_SRC
     main.cpp
@@ -45,7 +36,7 @@ set(MY_MODULE_SRC
 add_executable(module-2 ${MY_MODULE_SRC})
 
 # linkage
-target_link_libraries(module-2 ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(module-2 qkd Qt5::DBus Qt5::Network Qt5::Widgets Qt5::Gui Qt5::Core ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
 install(TARGETS module-2 RUNTIME DESTINATION bin)

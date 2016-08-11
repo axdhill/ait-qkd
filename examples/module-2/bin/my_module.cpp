@@ -35,6 +35,8 @@
 // ------------------------------------------------------------
 // incs
 
+#include <iostream>
+
 // the module
 #include "my_module.h"
 

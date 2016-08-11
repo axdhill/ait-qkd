@@ -32,28 +32,18 @@
 # ------------------------------------------------------------
 
 
-# ------------------------------------------------------------
-# basic
-
-# add libqkd to the libs
-set(CMAKE_REQUIRED_LIBRARIES "qkd;${CMAKE_REQUIRED_LIBRARIES}")
-
 # additional includes
 include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
-
-# ------------------------------------------------------------
-
-
 # Qt MOC
-QT4_GENERATE_MOC(my_module.h ${CMAKE_CURRENT_BINARY_DIR}/my_module.moc.cpp) 
+QT5_GENERATE_MOC(my_module.h ${CMAKE_CURRENT_BINARY_DIR}/my_module.moc.cpp) 
 set(MY_MODULE_MOC
     my_module.moc.cpp
 )
 
 # DBus Integration
-QT4_GENERATE_DBUS_INTERFACE(my_module.h ${CMAKE_CURRENT_BINARY_DIR}/my_module.xml)
-QT4_ADD_DBUS_ADAPTOR(MY_MODULE_DBUS_SRC
+QT5_GENERATE_DBUS_INTERFACE(my_module.h ${CMAKE_CURRENT_BINARY_DIR}/my_module.xml)
+QT5_ADD_DBUS_ADAPTOR(MY_MODULE_DBUS_SRC
     ${CMAKE_CURRENT_BINARY_DIR}/my_module.xml 
     ${CMAKE_CURRENT_SOURCE_DIR}/my_module.h 
     my_module
@@ -70,7 +60,7 @@ set(MY_MODULE_SRC
 add_executable(my_module_exe ${MY_MODULE_SRC} ${MY_MODULE_MOC} ${MY_MODULE_DBUS_SRC})
 
 # linkage
-target_link_libraries(my_module_exe ${CMAKE_REQUIRED_LIBRARIES})
+target_link_libraries(my_module_exe qkd Qt5::DBus Qt5::Network Qt5::Widgets Qt5::Gui Qt5::Core ${CMAKE_REQUIRED_LIBRARIES})
 
 # install
 install(TARGETS my_module_exe RUNTIME DESTINATION bin)
