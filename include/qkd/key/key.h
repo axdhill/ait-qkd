@@ -662,7 +662,7 @@ public:
      * 
      * @return  current state of the key
      */
-    inline key_state state() const { return static_cast<key_state>(m_cMetaData.get<int>("key.general.state")); }
+    inline key_state state() const { return static_cast<key_state>(m_cMetaData.get<int>("key.general.state.<xmlattr>.id")); }
     
     
     /**

@@ -170,8 +170,8 @@ void module::add_metadata_in(qkd::key::key & cKey) const {
     
     boost::property_tree::ptree & cPT = cKey.metadata_current_module();
     
-    cPT.put("key.incoming.state", static_cast<int>(cKey.state()));
-    cPT.put("key.incoming.state_name", cKey.state_string());
+    cPT.put("key.incoming.state", cKey.state_string());
+    cPT.put("key.incoming.state.<xmlattr>.id", static_cast<int>(cKey.state()));
     cPT.put("key.incoming.bits", cKey.data().size() * 8);
     cPT.put("key.incoming.qber", cKey.qber());
     cPT.put("key.incoming.disclosed", cKey.disclosed());
@@ -223,8 +223,8 @@ void module::add_metadata_out(qkd::key::key & cKey) const {
     
     boost::property_tree::ptree & cPT = cKey.metadata_current_module();
     
-    cPT.put("key.outgoing.state", static_cast<int>(cKey.state()));
-    cPT.put("key.outgoing.state_name", cKey.state_string());
+    cPT.put("key.outgoing.state", cKey.state_string());
+    cPT.put("key.outgoing.state.<xmlattr>.id", static_cast<int>(cKey.state()));
     cPT.put("key.outgoing.bits", cKey.data().size() * 8);
     cPT.put("key.outgoing.qber", cKey.qber());
     cPT.put("key.outgoing.disclosed", cKey.disclosed());

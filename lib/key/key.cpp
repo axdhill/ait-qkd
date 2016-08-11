@@ -121,8 +121,8 @@ qkd::key::key::key_id_counter & qkd::key::key::counter() {
  */
 void qkd::key::key::init_metadata() {
     m_cMetaData.put("key.<xmlattr>.id", m_nId);
-    m_cMetaData.put("key.general.state", static_cast<int>(qkd::key::key_state::KEY_STATE_NEW));
-    m_cMetaData.put("key.general.state_name", state_string(qkd::key::key_state::KEY_STATE_NEW));
+    m_cMetaData.put("key.general.state", state_string(qkd::key::key_state::KEY_STATE_NEW));
+    m_cMetaData.put("key.general.state.<xmlattr>.id", static_cast<int>(qkd::key::key_state::KEY_STATE_NEW));
     m_cMetaData.put("key.general.crypto.incoming", "null");
     m_cMetaData.put("key.general.crypto.outgoing", "null");
     m_cMetaData.put("key.general.bits", data().size() * 8);
@@ -313,8 +313,8 @@ void qkd::key::key::set_qber(double nQBER) {
  * @param   eKeyState   the new key state
  */
 void qkd::key::key::set_state(key_state eKeyState) {
-    m_cMetaData.put("key.general.state", static_cast<int>(eKeyState));
-    m_cMetaData.put("key.general.state_name", state_string(eKeyState));
+    m_cMetaData.put("key.general.state", state_string(eKeyState));
+    m_cMetaData.put("key.general.state.<xmlattr>.id", static_cast<int>(eKeyState));
 }
 
 
