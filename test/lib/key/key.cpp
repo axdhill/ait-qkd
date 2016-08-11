@@ -65,8 +65,7 @@ int test() {
 <?xml version=\"1.0\" encoding=\"utf-8\"?>\n\
 <key id=\"1\">\n\
     <general>\n\
-        <state>99</state>\n\
-        <state_name>new</state_name>\n\
+        <state id=\"99\">new</state>\n\
         <crypto>\n\
             <incoming>null</incoming>\n\
             <outgoing>null</outgoing>\n\
