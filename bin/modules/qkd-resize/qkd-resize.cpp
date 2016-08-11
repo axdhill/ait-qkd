@@ -234,7 +234,7 @@ void qkd_resize::pick_exact_keys(qkd::module::workload & cWorkload) {
             (*new_it).cIncomingContext = (*it).cIncomingContext;
             (*new_it).cOutgoingContext = (*it).cOutgoingContext;
             (*new_it).cKey.metadata_current_module().put("key-split.<xmlattr>.id", static_cast<int>((*it).cKey.id()));
-            (*new_it).cKey.metadata_current_module().put("key-split.<xmlattr>.left", nCut * 8);
+            (*new_it).cKey.metadata_current_module().put("key-split.<xmlattr>.left-bits", nCut * 8);
 
             // second half (right in workload list)
             new_it = d->cWorkReceived.emplace(it);
@@ -246,7 +246,7 @@ void qkd_resize::pick_exact_keys(qkd::module::workload & cWorkload) {
             (*new_it).cIncomingContext = (*it).cIncomingContext;
             (*new_it).cOutgoingContext = (*it).cOutgoingContext;
             (*new_it).cKey.metadata_current_module().put("key-split.<xmlattr>.id", static_cast<int>((*it).cKey.id()));
-            (*new_it).cKey.metadata_current_module().put("key-split.<xmlattr>.right", ((*it).cKey.data().size() - nCut) * 8);
+            (*new_it).cKey.metadata_current_module().put("key-split.<xmlattr>.right-bits", ((*it).cKey.data().size() - nCut) * 8);
             
             // kick the old key
             d->cWorkReceived.erase(it);
