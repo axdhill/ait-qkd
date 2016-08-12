@@ -7,7 +7,7 @@ Changes from 9.9999.7 to 9.9999.8
 
 * switch from Qt4 to Qt5
 
-    We switched from Qt4 to Qt5, thus disabling temporarily the
+    We switched from Qt4 to Qt5, thus temporarily disabling the
     qkd-module-manager fully.
 
 * new key states:
@@ -25,14 +25,14 @@ Changes from 9.9999.7 to 9.9999.8
     MD5 for _all_ keys).
     
     Hence, only the key material itself is taken into account
-    and not the key id, the metadata or else.
+    and not the key id, the metadata or anything else.
 
 * qkd-key-dump new option: "--metadata"
 
     The new "--metadata" option dumps the content of each key
     metadata as XML to stdout.
     
-    This can be used to make the history of key visible.
+    This can be used to make the history of the key visible.
 
 * qkd-key-compare new option: "--brief"
 
@@ -51,7 +51,7 @@ Changes from 9.9999.7 to 9.9999.8
     static number of values, we turned into a flexible metadata
     model.
     
-    A key's metadata is now stored as XML structure. It has this
+    A key's metadata is now stored as a XML document. It has this
     shape (example):
     
             <?xml version="1.0" encoding="utf-8"?>
@@ -181,7 +181,7 @@ Changes from 9.9999.7 to 9.9999.8
                 </modules>
             </key>
 
-    Besides the typical metadata this structure also contains a key's history.
+    Besides the typical metadata, this structure also contains a key's history.
     The way a key has passed through the modules can be read by expanding the
     'modules' XML-tag and read the 'module' XML-tag entries from top to bottom.
     
@@ -193,8 +193,8 @@ Changes from 9.9999.7 to 9.9999.8
     Alongside some new methods have been added to qkd::key::key
     
     * metadata() ... this returns the full XML tree now. Starting at the
-                     <key> tag.
- 
+                     outermost <key> tag.
+
     * metadata_modules() ... this returns all nodes under the <modules> tag.
     
     * metadata_current_module() ... returns the node in the key's metadata
@@ -218,7 +218,7 @@ Changes from 9.9999.7 to 9.9999.8
     * add_metadata_in() ... add module's metadata to incoming key
     * add_metadata_out() ... add module's metadata to outgoing key
     
-    This change is massive but introduces most felxibilty.
+    This change is massive but introduces most flexibilty.
     
     Example to set and get arbitary values into/from a key's metadata 
     inside a running QKD module:
@@ -238,6 +238,10 @@ Changes from 9.9999.7 to 9.9999.8
         std::string a = y.get<std::string>("alpha");
         // ... with a default value
         double b = y.get("beta.gamma", 0.01);
+
+    For validation purposes, the new XML metadata format also comes with
+    a formal schema definition. The schema (qkd.xsd) can be used to check
+    if a given XML document is conforming.
 
 
 Changes from 9.9999.6 to 9.9999.7
