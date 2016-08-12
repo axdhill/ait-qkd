@@ -267,7 +267,7 @@ function wait_idle() {
     while :; do
 
         # wait until there is no working module anymore (no single module having "idle" == false)
-        ${TEST_BASE}/bin/qkd-view --short | grep "module: *${MODULE}.*false *$" &> /dev/null
+        ${TEST_BASE}/bin/qkd-view --short | grep "module:.*false *$" &> /dev/null
         if [ "$?" != "0" ]; then
             break
         fi
