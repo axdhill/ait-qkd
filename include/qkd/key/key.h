@@ -101,6 +101,15 @@ enum class key_state : uint8_t {
 
 
 /**
+ * the default key data encoding
+ * 
+ * each bit of the memory block returned by data() is 
+ * a single shared secret bit with the peer.
+ */
+static std::string const DEFAULT_DATA_ENCODING = "shared secret bits";
+
+
+/**
  * this is a QKD key
  * 
  * A QKD Key has an
@@ -110,7 +119,6 @@ enum class key_state : uint8_t {
  *  - Key Data
  *      
  * The metadata itself is represented as an XML structure.
- * 
  * 
  * A QKD Key is read by a QKD Module, processed upon and then written to 
  * the next QKD Module in the QKD Post Processing Pipeline.
@@ -129,12 +137,15 @@ enum class key_state : uint8_t {
  *  - key metadata as XML       (char)
  *  - key-size in bytes         (uint64_t)  [network byte ordering]
  *  - key-data                  (BLOB)
+ * 
+ * The format of the key-data is described by the "encoding" value.
+ * The standard encoding is 'shared secret bit'. Other encodings do exist
+ * e.g. discrete detector clicks, continuous values, ...
  */
 class key {
 
     
 public:
-    
     
     
     /**
@@ -438,6 +449,14 @@ public:
         return (std::chrono::high_resolution_clock::now() - m_cTimestampRead); 
     }
    
+    
+    /**
+     * return key bit encoding description
+     * 
+     * @return  a string describing the key bit encoding format
+     */
+    std::string encoding() const { return m_cMetaData.get<std::string>("key.general.encoding"); }
+    
 
     /**
      * return a key bit
@@ -625,6 +644,14 @@ public:
     void set_disclosed(uint64_t nDisclosed);
     
     
+    /**
+     * sets the key bit encoding description
+     * 
+     * @param   sEncoding       a string describing the key bit encoding format
+     */
+    void set_encoding(std::string sEncoding);
+    
+
     /**
      * set a new key id
      * 

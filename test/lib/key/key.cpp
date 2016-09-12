@@ -73,6 +73,7 @@ int test() {
         <bits>32</bits>\n\
         <qber>0</qber>\n\
         <disclosed>0</disclosed>\n\
+        <encoding>shared secret bits</encoding>\n\
     </general>\n\
     <modules/>\n\
 </key>\n"));

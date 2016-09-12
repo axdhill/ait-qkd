@@ -128,6 +128,7 @@ void qkd::key::key::init_metadata() {
     m_cMetaData.put("key.general.bits", data().size() * 8);
     m_cMetaData.put("key.general.qber", 0.0);
     m_cMetaData.put("key.general.disclosed", 0);
+    m_cMetaData.put("key.general.encoding", DEFAULT_DATA_ENCODING);
     m_cMetaData.put("key.modules", std::string());
 }
 
@@ -283,6 +284,16 @@ void qkd::key::key::set_crypto_scheme_outgoing(std::string sScheme) {
  */
 void qkd::key::key::set_disclosed(uint64_t nDisclosed) {
     m_cMetaData.put("key.general.disclosed", nDisclosed);
+}
+
+
+/**
+ * sets the key bit encoding description
+ * 
+ * @param   sEncoding       a string describing the key bit encoding format
+ */
+void qkd::key::key::set_encoding(std::string sEncoding) {
+    m_cMetaData.put("key.general.encoding", sEncoding);
 }
 
 
@@ -466,5 +477,3 @@ qkd::key::key_vector qkd::key::sub(qkd::key::key_vector const & lhs, qkd::key::k
     
     return res;
 }
-  
-
