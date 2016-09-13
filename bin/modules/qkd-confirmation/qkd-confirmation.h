@@ -124,14 +124,17 @@ protected:
     /**
      * accept a key for processing
      * 
-     * we accept all keys (also the disclosed ones)
+     * we accept all keys (also the disclosed ones) but of
+     * shared secret bits encoding.
      *
      * However, disclosed keys are not confirmed.
      * 
      * @param   cKey            the key to check
      * @return  true, if the key should be processed by this module
      */
-    bool accept(UNUSED qkd::key::key const & cKey) const { return true; }
+    bool accept(UNUSED qkd::key::key const & cKey) const { 
+        return (cKey.encoding() == qkd::key::ENCODING_SHARED_SECRET_BITS);
+    }
     
     
     /**

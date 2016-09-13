@@ -149,22 +149,17 @@ void channel::detector_thread() {
  * 
  * @param   cMeasurement    the measurement made
  */
-void channel::flush_measurement(qkd::simulate::measurement const &cMeasurement) {
+void channel::flush_measurement(qkd::simulate::measurement const & cMeasurement) {
     
-    // only proceed if we are entitled to run
     if (!is_simulation_running()) return;
     
-    
-    // pipe?
     if (is_piping()) {
         
-        // pipe: alice
         if (!m_cPipeAlice) return;
         
         qkd::utility::buffer cBufferAlice;
         cBufferAlice << cMeasurement->key_alice();
 
-        // send
         int nSentAlice = zmq_send(m_cPipeAlice, cBufferAlice.get(), cBufferAlice.size(), 0);
         if (nSentAlice == -1) {
             std::stringstream ss;
@@ -172,13 +167,11 @@ void channel::flush_measurement(qkd::simulate::measurement const &cMeasurement) 
             throw std::runtime_error(ss.str());
         }
             
-        // pipe: bob
         if (!m_cPipeBob) return;
         
         qkd::utility::buffer cBufferBob;
         cBufferBob << cMeasurement->key_bob();
 
-        // send
         int nSentBob = zmq_send(m_cPipeBob, cBufferBob.get(), cBufferBob.size(), 0);
         if (nSentBob == -1) {
             std::stringstream ss;
@@ -189,14 +182,12 @@ void channel::flush_measurement(qkd::simulate::measurement const &cMeasurement) 
     }
     else {
         
-        // file: alice
         std::ofstream cFileAlice(get_file_alice(), std::ios_base::out | std::ios_base::app);
         if (cFileAlice.good()) cFileAlice << cMeasurement->key_alice();
         cFileAlice.close();
         
-        // file: bob
         std::ofstream cFileBob(get_file_bob(), std::ios_base::out | std::ios_base::app);
-        if (cFileBob.good()) cFileBob << cMeasurement->key_alice();
+        if (cFileBob.good()) cFileBob << cMeasurement->key_bob();
         cFileBob.close();
     }
 }

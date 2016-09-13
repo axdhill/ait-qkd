@@ -89,6 +89,7 @@ typedef struct {
  */
 typedef struct {
     
+    bool bEncodingDiffer;           /**< key data encoding differs */
     bool bSizeDiffer;               /**< key lengths do differ  */
     uint64_t nCompareLength;        /**< length of keys taken for comparison (if key lengths do differ) */
     uint64_t nBitsDiffer;           /**< how many bits differ */
@@ -179,7 +180,8 @@ int compare(compare_config & cConfig, std::ostream & cStreamOut) {
     bool bDifferent = false;
     
     if (!cConfig.bBrief) {
-        cStreamOut << "comparing keys..." << "\nfile 1: " << cConfig.sFile1 << "\nfile 2: " << cConfig.sFile2 << std::endl;
+        cStreamOut << "comparing keys..." << "\nfile 1: " 
+                   << cConfig.sFile1 << "\nfile 2: " << cConfig.sFile2 << std::endl;
     }
     
     uint64_t nCompare = cConfig.nCompare;
@@ -200,7 +202,7 @@ int compare(compare_config & cConfig, std::ostream & cStreamOut) {
         if (cConfig.cStreamIn2.eof()) break;
         
         if (!cConfig.bBrief && !bHeaderShown) {
-            std::string sHeading = "key        bits     disclosed bits error rate state         crc      - key        bits     disclosed bits error rate state         crc      - diff. bits  diff. rate";
+            std::string sHeading = "key        bits     disclosed bits error rate state         crc      encoding             - key        bits     disclosed bits error rate state         crc      encoding             - diff. bits  diff. rate";
             cStreamOut << sHeading << std::endl;
             bHeaderShown = true;
         }
@@ -209,11 +211,11 @@ int compare(compare_config & cConfig, std::ostream & cStreamOut) {
         bDifferent = bDifferent | (cResult.bSizeDiffer | (cResult.nBitsDiffer > 0));
         
         if (!cConfig.bBrief) {
-            std::string sFormat = "%010lu %08lu %08lu      %7.4f     %-13s %8s - %010lu %08lu %08lu      %7.4f     %-13s %8s - %010lu %7.4f\n";
+            std::string sFormat = "%010lu %08lu %08lu      %7.4f     %-13s %8s %-20s - %010lu %08lu %08lu      %7.4f     %-13s %8s %-20s - %010lu %7.4f\n";
             boost::format cFormat(sFormat);
             cFormat 
-                % cKey1.id() % (cKey1.size() * 8) % cKey1.disclosed() % cKey1.qber() % cKey1.state_string() % cKey1.data().crc32()
-                % cKey2.id() % (cKey2.size() * 8) % cKey2.disclosed() % cKey2.qber() % cKey2.state_string() % cKey2.data().crc32()
+                % cKey1.id() % (cKey1.size() * 8) % cKey1.disclosed() % cKey1.qber() % cKey1.state_string() % cKey1.data().crc32() % cKey1.encoding()
+                % cKey2.id() % (cKey2.size() * 8) % cKey2.disclosed() % cKey2.qber() % cKey2.state_string() % cKey2.data().crc32() % cKey2.encoding()
                 % cResult.nBitsDiffer % cResult.nBitsDifferRate;
             cStreamOut << cFormat.str();
         }
@@ -249,6 +251,7 @@ int compare(compare_config & cConfig, std::ostream & cStreamOut) {
 compare_result compare_keys(qkd::key::key const & cKey1, qkd::key::key const & cKey2) {
     
     compare_result res;
+    res.bEncodingDiffer = (cKey1.encoding() != cKey2.encoding());
     res.bSizeDiffer = (cKey1.size() != cKey2.size());
     res.nCompareLength = cKey1.size() * 8;
     if (res.bSizeDiffer) {

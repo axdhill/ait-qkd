@@ -52,7 +52,7 @@ wait_idle
 
 # check expected with actual result
 xxd -ps -g 1 blob.alice | while read LINE; do echo -n ${LINE}; done > enkey_expected
-${TEST_BASE}/bin/qkd-key-dump enkey_keys.alice | grep 'data:' | sed "s/\t *data: *\t//" | while read LINE; do echo -n ${LINE}; done > enkey_actual
+${TEST_BASE}/bin/qkd-key-dump --flat enkey_keys.alice | grep 'data:' | sed "s/\t *data: *\t//" | while read LINE; do echo -n ${LINE}; done > enkey_actual
 
 diff -q enkey_expected enkey_actual
 if [ "$?" != "0" ]; then

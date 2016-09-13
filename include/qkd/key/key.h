@@ -100,13 +100,23 @@ enum class key_state : uint8_t {
 };
 
 
+#define     DEFAULT_DATA_ENCODING       ENCODING_SHARED_SECRET_BITS
+
 /**
  * the default key data encoding
  * 
  * each bit of the memory block returned by data() is 
  * a single shared secret bit with the peer.
  */
-static std::string const DEFAULT_DATA_ENCODING = "shared secret bits";
+static std::string const ENCODING_SHARED_SECRET_BITS = "shared secret bits";
+
+/**
+ * data encoding for 4 detector clicks as a single event
+ * 
+ * 4 bits are denoted to 4 detectors clicks. Per byte then
+ * there are two events.
+ */
+static std::string const ENCODING_4_DETECTOR_CLICKS = "4 detector clicks";
 
 
 /**
@@ -260,8 +270,9 @@ public:
      * 
      * @param   nId         ID of the key
      * @param   cMemory     memory holding the key bits
+     * @param   sEncoding   key data encoding
      */
-    explicit key(key_id nId, qkd::utility::memory & cMemory);
+    explicit key(key_id nId, qkd::utility::memory & cMemory, std::string const & sEncoding = ENCODING_SHARED_SECRET_BITS);
     
     
     /**
@@ -271,8 +282,9 @@ public:
      * 
      * @param   nId         ID of the key
      * @param   cMemory     memory holding the key bits
+     * @param   sEncoding   key data encoding
      */
-    explicit key(key_id nId, qkd::utility::memory const & cMemory);
+    explicit key(key_id nId, qkd::utility::memory const & cMemory, std::string const & sEncoding = ENCODING_SHARED_SECRET_BITS);
     
     
     /**

@@ -41,3 +41,12 @@ using namespace qkd::simulate;
 // -----------------------------------------------------------------
 // code
 
+
+/** 
+ * ctor
+ */
+measurement_bb84::measurement_bb84() {
+    m_cKeyAlice.set_encoding(qkd::key::ENCODING_4_DETECTOR_CLICKS);
+    m_cKeyBob.set_encoding(qkd::key::ENCODING_4_DETECTOR_CLICKS);
+}
+  

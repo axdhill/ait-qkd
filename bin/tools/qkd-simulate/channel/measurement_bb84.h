@@ -64,13 +64,13 @@ public:
     /** 
      * ctor
      */
-    explicit measurement_bb84() {};
+    explicit measurement_bb84();
     
     
     /** 
      * dtor
      */
-    virtual ~measurement_bb84() {};
+    virtual ~measurement_bb84() {}
 
     
     /**
@@ -141,7 +141,7 @@ public:
 
 private:
 
-    
+
     double m_nAcquisitionDuration;      /**< the measurement acquisition duration in [ns] */
     bool m_bFreeRunning;                /**< measurement with free running detectors flag */
     qkd::key::key m_cKeyAlice;          /**< alice key */

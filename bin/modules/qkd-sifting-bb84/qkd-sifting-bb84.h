@@ -179,6 +179,22 @@ protected:
     
     
     /**
+     * accept a key for processing
+     * 
+     * We accept keys of shared secret bit data encoding and which
+     * have not been yet disclosed (hint: we do change the state and
+     * therefore a once disclosed key will drop this state information).
+     * 
+     * @param   cKey            the key to check
+     * @return  true, if the key should be processed by this module
+     */
+    bool accept(qkd::key::key const & cKey) const { 
+        return (cKey.encoding() == qkd::key::ENCODING_4_DETECTOR_CLICKS) && 
+                (cKey.state() != qkd::key::key_state::KEY_STATE_DISCLOSED);
+    }
+    
+    
+    /**
      * add the module's data to a key's metadata on incoming
      * 
      * This method is invoked for every new key entering the

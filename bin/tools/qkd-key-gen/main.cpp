@@ -91,7 +91,6 @@ public:
 // ------------------------------------------------------------
 // fwd
 
-
 qkd::key::key create(qkd::key::key_id nKeyId, config const & cConfig);
 qkd::key::key disturb(qkd::key::key const & cKey, config const & cConfig, uint64_t & nErrorBits);
 qkd::key::key disturb_exact(qkd::key::key const & cKey, config const & cConfig, uint64_t & nErrorBits);
@@ -105,6 +104,8 @@ void show_config(config const & cConfig);
 
 /**
  * create a key based on the config values
+ * 
+ * This creates the final, "clean" key.
  * 
  * @param   nKeyId      the new key id
  * @param   cConfig     the config values (relevant: size and zero)
@@ -133,7 +134,7 @@ qkd::key::key create(qkd::key::key_id nKeyId, config const & cConfig) {
     else {
         
         // quantum tables
-        for (uint64_t i = 0; i < cMemory.size(); i++) {
+        for (uint64_t i = 0; i < cMemory.size(); ++i) {
             
             unsigned int nRandom1 = 0;
             unsigned int nRandom2 = 0;
@@ -146,7 +147,7 @@ qkd::key::key create(qkd::key::key_id nKeyId, config const & cConfig) {
         }
     }
     
-    return qkd::key::key(nKeyId, cMemory);
+    return qkd::key::key(nKeyId, cMemory, qkd::key::ENCODING_SHARED_SECRET_BITS);
 }
 
 
@@ -162,35 +163,26 @@ qkd::key::key disturb(qkd::key::key const & cKey, config const & cConfig, uint64
     
     qkd::key::key cResultKey;
     
-    // when exact, we flip a concrete number of bits
     if (cConfig.bExact) return disturb_exact(cKey, cConfig, nErrorBits);
     
-    // normal keys or quantum tables
     if (!cConfig.bQuantumTables) {
     
-        // extract a bigint
         qkd::utility::bigint cBI = qkd::utility::bigint(cKey.data());
-
-        // walk over all bits
         nErrorBits = 0;
-        for (uint64_t i = 0; i < cBI.bits(); i++) {
+        for (uint64_t i = 0; i < cBI.bits(); ++i) {
             
             double nRandom = 0.0;
             qkd::utility::random_source::source() >> nRandom;
-            
-            // flip or no flip?
             if (nRandom <= cConfig.nRate) {
                 cBI.set(i, !cBI.get(i));
                 nErrorBits++;
             }
         }
         
-        // create the key with the same id but from the disturbed bigint
-        cResultKey = qkd::key::key(cKey.id(), cBI.memory());
+        cResultKey = qkd::key::key(cKey.id(), cBI.memory(), qkd::key::ENCODING_SHARED_SECRET_BITS);
     }
     else {
 
-        // quantum tables: copy the quantum events accordingly
         qkd::utility::memory cMemory(cKey.size());
         for (uint64_t i = 0; i < cMemory.size(); i++) {
             
@@ -198,7 +190,6 @@ qkd::key::key disturb(qkd::key::key const & cKey, config const & cConfig, uint64
             unsigned nLowerHalf = cKey.data()[i] & 0x0F;
             unsigned nUpperHalf = cKey.data()[i] & 0xF0;
             
-            // map alice's detector clicks to bob's
             if (nLowerHalf == 0x01) nValue = 0x02;
             if (nLowerHalf == 0x02) nValue = 0x01;
             if (nLowerHalf == 0x04) nValue = 0x08;
@@ -206,7 +197,6 @@ qkd::key::key disturb(qkd::key::key const & cKey, config const & cConfig, uint64
             
             cMemory.get()[i] = nValue;
             
-            // map alice's detector clicks to bob's
             if (nUpperHalf == 0x10) nValue = 0x20;
             if (nUpperHalf == 0x20) nValue = 0x10;
             if (nUpperHalf == 0x40) nValue = 0x80;
@@ -215,14 +205,11 @@ qkd::key::key disturb(qkd::key::key const & cKey, config const & cConfig, uint64
             cMemory.get()[i] |= nValue;
         }
         
-        // walk over all event-doubles
         nErrorBits = 0;
         for (uint64_t i = 0; i < cMemory.size(); i++) {
             
-            // an error has any bits set (or unset)
             double nRandom = 0.0;
             
-            // lower half of byte
             qkd::utility::random_source::source() >> nRandom;
             if (nRandom <= cConfig.nRate) {
                 
@@ -235,7 +222,6 @@ qkd::key::key disturb(qkd::key::key const & cKey, config const & cConfig, uint64
                 nErrorBits++;
             }
             
-            // upper half of byte
             qkd::utility::random_source::source() >> nRandom;
             if (nRandom <= cConfig.nRate) {
                 
@@ -249,10 +235,9 @@ qkd::key::key disturb(qkd::key::key const & cKey, config const & cConfig, uint64
             }
         }
         
-        cResultKey = qkd::key::key(cKey.id(), cMemory);
+        cResultKey = qkd::key::key(cKey.id(), cMemory, qkd::key::ENCODING_4_DETECTOR_CLICKS);
     }
 
-    // get the state
     cResultKey.set_state(cKey.state());
     
     return cResultKey;
@@ -271,12 +256,10 @@ qkd::key::key disturb_exact(qkd::key::key const & cKey, config const & cConfig, 
     
     qkd::key::key cResultKey;
     
-    // extract a bigint
     qkd::utility::bigint cBI = qkd::utility::bigint(cKey.data());
     if (cConfig.bQuantumTables) {
         cBI = qkd::utility::bigint(cKey.size() * 2);
         
-        // quantum tables: copy the quantum events accordingly
         qkd::utility::memory cMemory(cKey.size());
         for (uint64_t i = 0; i < cMemory.size(); i++) {
             
@@ -328,78 +311,67 @@ qkd::key::key disturb_exact(qkd::key::key const & cKey, config const & cConfig, 
     
         // create the not-yet-flipped-bits 
         std::vector<uint64_t> cBitsPossible;
-        for (uint64_t i = 0; i < cBI.bits(); i++) cBitsPossible.push_back(i);
+        for (uint64_t i = 0; i < cBI.bits(); ++i) {
+            cBitsPossible.push_back(i);
+        }
         
-        // fetch bits
-        for (uint64_t i = 0; i < nBitsToFlip; i++) {
+        for (uint64_t i = 0; i < nBitsToFlip; ++i) {
             
-            // choose a bit
             uint64_t nPossibleIndex;
             qkd::utility::random_source::source() >> nPossibleIndex;
             nPossibleIndex %= cBitsPossible.size();
             auto iter = cBitsPossible.begin() + nPossibleIndex;
             
-            // put the bits into the set and out of the list
             cBits.insert(*iter);
             cBitsPossible.erase(iter);
         }
     }
     else {
         
-        // fetch bits (more stupid)
         for (uint64_t i = 0; i < nBitsToFlip; ) {
             
-            // choose a bit
             uint64_t nBit;
             qkd::utility::random_source::source() >> nBit;
             nBit %= cBI.bits();
             
-            // if we chose that in the past ... retry
             if (cBits.find(nBit) != cBits.end()) continue;
             
-            // put the bits into the set
             cBits.insert(nBit);
-            i++;
+            ++i;
         }
     }
 
     
     // now the cBits set holds the positions to flip
         
-    // walk over the set of bits and flip them
     for (auto & iter : cBits) {
         
-        if (!cConfig.bQuantumTables) cBI.set(iter, !cBI.get(iter));
+        if (!cConfig.bQuantumTables) {
+            cBI.set(iter, !cBI.get(iter));
+        }
         else {
             
-            // quantum table mode
             unsigned char nValue;
             qkd::utility::random_source::source() >> nValue;
             nValue &= 0x0F;
             
             uint64_t nPosition = iter / 2;
             if (iter % 2) {
-                
-                // upper half
                 cResultKey.data()[nPosition] = (nValue << 4) | (cResultKey.data()[nPosition] & 0x0F);
             }
             else {
-                
-                // lower half
                 cResultKey.data()[nPosition] = (cResultKey.data()[nPosition] & 0xF0) | nValue;
             }
         }
     }
     
-    // record number of errors
     nErrorBits = cBits.size();
     
-    if (!cConfig.bQuantumTables) cResultKey = qkd::key::key(cKey.id(), cBI.memory());
+    if (!cConfig.bQuantumTables) {
+        cResultKey = qkd::key::key(cKey.id(), cBI.memory(), qkd::key::ENCODING_SHARED_SECRET_BITS);
+    }
 
-    // get the state
     cResultKey.set_state(cKey.state());
-    
-    // create the key with the same id but from the bigint
     return cResultKey;
 }
 
@@ -412,7 +384,6 @@ qkd::key::key disturb_exact(qkd::key::key const & cKey, config const & cConfig, 
  */
 int generate(config const & cConfig) {
     
-    // sanity checks
     if (cConfig.nRate > 1.0) {
         std::cerr << "rate is " << cConfig.nRate << " which is quite impossible to fulfill." << std::endl;
         return 1;
@@ -434,22 +405,16 @@ int generate(config const & cConfig) {
         return 2;
     }
 
-    // prepare random number generator if necessary
     if (!cConfig.sRandomSource.empty()) {
         qkd::utility::random cRandomSource = qkd::utility::random_source::create(cConfig.sRandomSource);
         qkd::utility::random_source::set_source(cRandomSource);
     }
     
-    // generate key by key
-    for (qkd::key::key_id nKeyId = cConfig.nId; nKeyId < (cConfig.nId + cConfig.nKeys); nKeyId++) {
+    for (qkd::key::key_id nKeyId = cConfig.nId; nKeyId < (cConfig.nId + cConfig.nKeys); ++nKeyId) {
         
-        // generation
         uint64_t nErrorBits = 0;
-        
-        // create alice's key
+
         qkd::key::key cKeyAlice = create(nKeyId, cConfig);
-    
-        // bob's key is a disturbed version of alice's key
         qkd::key::key cKeyBob = disturb(cKeyAlice, cConfig, nErrorBits);
         
         // in quantum table mode we have to artificially introduce about 50% error
@@ -493,20 +458,20 @@ int generate(config const & cConfig) {
             }
         }
         
-        // check for setting error bits
         if (cConfig.bSetErrorBits) {
             cKeyAlice.set_qber((double)nErrorBits / (double)(cKeyAlice.data().size() * 8));
             cKeyBob.set_qber((double)nErrorBits / (double)(cKeyBob.data().size() * 8));
         }
         
-        // set disclosed bits
         double nDisclosedRate = cConfig.nDisclosedRate;
         if (nDisclosedRate < 0.0) nDisclosedRate = 0.0;
         if (nDisclosedRate > 1.0) nDisclosedRate = 1.0;
         cKeyAlice.set_disclosed(cKeyAlice.size() * 8 * nDisclosedRate);
         cKeyBob.set_disclosed(cKeyBob.size() * 8 * nDisclosedRate);
         
-        // write to file
+        cKeyAlice.set_encoding(cConfig.bQuantumTables ? qkd::key::ENCODING_4_DETECTOR_CLICKS : qkd::key::ENCODING_SHARED_SECRET_BITS);
+        cKeyBob.set_encoding(cConfig.bQuantumTables ? qkd::key::ENCODING_4_DETECTOR_CLICKS : qkd::key::ENCODING_SHARED_SECRET_BITS);
+        
         cFileAlice << cKeyAlice;
         cFileBob << cKeyBob;
         
@@ -526,12 +491,10 @@ int generate(config const & cConfig) {
  */
 int main(int argc, char ** argv) {
     
-    // create the command line header
     std::string sApplication = std::string("qkd-key-gen - AIT QKD Test Key Generator Tool V") + qkd::version();
     std::string sDescription = std::string("\nThis lets one create a pair of key files to feed a pipeline with.\nThese are keys for testing ONLY.\n\nCopyright 2012-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS] FILE";
     
-    // define program options
     boost::program_options::options_description cOptions(sApplication + "\n" + sDescription + "\n\n\t" + sSynopsis + "\n\nAllowed Options");
     cOptions.add_options()("errorbits,e", "set number error bits in the key");
     cOptions.add_options()("disclosed,d", boost::program_options::value<double>()->default_value(0.0, "0.0"), "set rate of disclosed bits in the key");
@@ -548,22 +511,17 @@ int main(int argc, char ** argv) {
     cOptions.add_options()("exact,x", "produce exact amount of errors");
     cOptions.add_options()("zero,z", "instead of random bits, start with all 0");
     
-    // final arguments
     boost::program_options::options_description cArgs("Arguments");
     cArgs.add_options()("FILE", "FILE is the name of files to create. There will be 2 files created: \none with suffix '.alice' and one with suffix '.bob'. \n\nWhen creating quantum tables the --errorbits and --disclosed flags are ignored.");
     boost::program_options::positional_options_description cPositionalDescription; 
     cPositionalDescription.add("FILE", 1);
     
-    // construct overall options
     boost::program_options::options_description cCmdLineOptions("Command Line");
     cCmdLineOptions.add(cOptions);
     cCmdLineOptions.add(cArgs);
 
-    // option variable map
     boost::program_options::variables_map cVariableMap;
-    
     try {
-        // parse action
         boost::program_options::command_line_parser cParser(argc, argv);
         boost::program_options::store(cParser.options(cCmdLineOptions).positional(cPositionalDescription).run(), cVariableMap);
         boost::program_options::notify(cVariableMap);        
@@ -572,27 +530,21 @@ int main(int argc, char ** argv) {
         std::cerr << "error parsing command line: " << cException.what() << "\ntype '--help' for help" << std::endl;        
         return 1;
     }
-    
-    // check for "help" set
     if (cVariableMap.count("help")) {
         std::cout << cOptions << std::endl;
         std::cout << cArgs.find("FILE", false).description() << "\n" << std::endl;      
         return 0;
     }
-    
-    // check for "version" set
     if (cVariableMap.count("version")) {
         std::cout << sApplication << std::endl;
         return 0;
     }
     
-    // we need a file
     if (cVariableMap.count("FILE") != 1) {
         std::cerr << "need exactly one FILE argument" << "\ntype '--help' for help" << std::endl;
         return 1;
     }
     
-    // construct the config
     config cConfig;
     cConfig.sFile = cVariableMap["FILE"].as<std::string>();
     cConfig.nId = cVariableMap["id"].as<qkd::key::key_id>();
@@ -609,10 +561,8 @@ int main(int argc, char ** argv) {
     cConfig.bSilent = (cVariableMap.count("silent") > 0);
     cConfig.sRandomSource = cVariableMap["random-url"].as<std::string>();
     
-    // show config to user
     show_config(cConfig);
     
-    // on with it
     return generate(cConfig);
 }
 

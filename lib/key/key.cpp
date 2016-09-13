@@ -78,13 +78,15 @@ qkd::key::key::key(key const & rhs) :
  * 
  * @param   nId         ID of the key
  * @param   cMemory     memory holding the key bits
+ * @param   sEncoding   key data encoding
  */
-qkd::key::key::key(key_id nId, qkd::utility::memory & cMemory) : 
+qkd::key::key::key(key_id nId, qkd::utility::memory & cMemory, std::string const & sEncoding) : 
         m_nId(nId), 
         m_cData(cMemory), 
         m_cTimestampRead(std::chrono::high_resolution_clock::now()) 
 { 
     init_metadata(); 
+    set_encoding(sEncoding);
 }
 
 
@@ -95,13 +97,15 @@ qkd::key::key::key(key_id nId, qkd::utility::memory & cMemory) :
  * 
  * @param   nId         ID of the key
  * @param   cMemory     memory holding the key bits
+ * @param   sEncoding   key data encoding
  */
-qkd::key::key::key(key_id nId, qkd::utility::memory const & cMemory) : 
+qkd::key::key::key(key_id nId, qkd::utility::memory const & cMemory, std::string const & sEncoding) : 
         m_nId(nId), 
         m_cData(cMemory.clone()), 
         m_cTimestampRead(std::chrono::high_resolution_clock::now()) 
 { 
     init_metadata(); 
+    set_encoding(sEncoding);
 }
 
 
