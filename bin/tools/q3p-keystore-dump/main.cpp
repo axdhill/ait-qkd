@@ -66,7 +66,8 @@ void dump(QString sURL);
  */
 void dump(QString sURL) {
     
-    // measure time
+    // TODO: Switch to stream output
+    
     auto nStart = std::chrono::high_resolution_clock::now();
     qkd::q3p::key_db cDB;
     
@@ -83,7 +84,6 @@ void dump(QString sURL) {
             sURL = QString::fromStdString(sNewURL.str());
         }
         
-        // open the DB
         cDB = qkd::q3p::db::open(sURL);
     }
     catch (qkd::exception::db_error const & cException) {
@@ -91,7 +91,6 @@ void dump(QString sURL) {
         return;
     }
     
-    // header
     std::cout << "dumping Q3P keystore DB" << std::endl;
     std::cout << "url: " << sURL.toStdString() << std::endl;
     std::cout << "description: " << cDB->describe().toStdString() << std::endl;
@@ -102,55 +101,42 @@ void dump(QString sURL) {
     // plus the space in between for every 8th byte
     unsigned int nFill = cDB->quantum() * 2 + cDB->quantum() / 8;
     
-    // construct a proper header format strings
     std::stringstream sFormat;
-    sFormat << "%-10s ";                    // key-id
-    sFormat << "%-5s ";                     // flags
-    sFormat << "%-" << nFill << "s ";       // key-data
-    sFormat << "%s\n";                      // ascii
-
-    // print the header
+    sFormat << "%-10s ";
+    sFormat << "%-5s ";
+    sFormat << "%-" << nFill << "s ";
+    sFormat << "%s\n";
     fprintf(stdout, sFormat.str().c_str(), "key-id", "flags", "key-data", "ascii");
 
-    // walk over all keys
     for (qkd::key::key_id nID = cDB->min_id(); nID < cDB->max_id(); nID++) {
         
-        // don't dump invalid keys
         if (!cDB->valid(nID)) continue;
         
-        // get the key
         qkd::key::key cKey = cDB->get(nID);
         fprintf(stdout, "%010u ", cKey.id());
         
-        // key flags
         if (cDB->injected(nID)) fprintf(stdout, "I");
         else fprintf(stdout, " ");
         if (cDB->eventual_sync(nID)) fprintf(stdout, "E");
         else fprintf(stdout, " ");
         if (cDB->real_sync(nID)) fprintf(stdout, "R");
         else fprintf(stdout, " ");
-
         fprintf(stdout, "   ");
         
-        // key bits
         for (uint64_t i = 0; i < cKey.size(); i++) {
             fprintf(stdout, "%02x", cKey.data()[i]);
             if ((i % 8) == 7) fprintf(stdout, " ");
         }
-            
         fprintf(stdout, " |");
         
-        // key chars
         for (uint64_t i = 0; i < cKey.size(); i++) {
             char c = (char)cKey.data()[i];
             if ((c < ' ') || (c > 'z')) c = '.';
             fprintf(stdout, "%c", c);
         }
-
         fprintf(stdout, "|\n");
     }
 
-    // measure time
     auto nStop = std::chrono::high_resolution_clock::now();
     auto nTimeDiff = std::chrono::duration_cast<std::chrono::milliseconds>(nStop - nStart);
 
@@ -167,32 +153,25 @@ void dump(QString sURL) {
  */
 int main(int argc, char ** argv) {
     
-    // create the command line header
     std::string sApplication = std::string("q3p-keystore-dump - AIT Q3P KeyStore Dump Tool V") + qkd::version();
     std::string sDescription = std::string("\nThis prints the content of an AIT Q3P KeyStore.\n\nCopyright 2012-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS] URL";
     
-    // define program options
     boost::program_options::options_description cOptions(sApplication + "\n" + sDescription + "\n\n\t" + sSynopsis + "\n\nAllowed Options");
     cOptions.add_options()("help,h", "this page");
     cOptions.add_options()("version,v", "print version string");
     
-    // final arguments
     boost::program_options::options_description cArgs("Arguments");
     cArgs.add_options()("URL", "URL is the url of database to access.");
     boost::program_options::positional_options_description cPositionalDescription; 
     cPositionalDescription.add("URL", 1);
     
-    // construct overall options
     boost::program_options::options_description cCmdLineOptions("Command Line");
     cCmdLineOptions.add(cOptions);
     cCmdLineOptions.add(cArgs);
 
-    // option variable map
     boost::program_options::variables_map cVariableMap;
-    
     try {
-        // parse action
         boost::program_options::command_line_parser cParser(argc, argv);
         boost::program_options::store(cParser.options(cCmdLineOptions).positional(cPositionalDescription).run(), cVariableMap);
         boost::program_options::notify(cVariableMap);        
@@ -202,7 +181,6 @@ int main(int argc, char ** argv) {
         return 1;
     }
     
-    // check for "help" set
     if (cVariableMap.count("help")) {
         std::cout << cOptions << std::endl;
         std::cout << cArgs.find("URL", false).description() << "\n" << std::endl;      
@@ -217,23 +195,17 @@ int main(int argc, char ** argv) {
         std::cout << std::endl;
         return 0;
     }
-    
-    // check for "version" set
     if (cVariableMap.count("version")) {
         std::cout << sApplication << std::endl;
         return 0;
     }
     
-    // we need a url
     if (cVariableMap.count("URL") != 1) {
         std::cerr << "need exactly one URL argument" << "\ntype '--help' for help" << std::endl;
         return 1;
     }
     
-    // extract the URL
     QString sURL = QString::fromStdString(cVariableMap["URL"].as<std::string>());
-
-    // dump the url
     dump(sURL);
     
     return 0;

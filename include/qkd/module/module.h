@@ -1417,7 +1417,8 @@ protected:
      * method is called. if this method returns false the key is
      * discarded
      * 
-     * The default implementation discards DISCLOSED keys.
+     * The default implementation discards DISCLOSED keys regardless
+     * of a key's data encoding.
      * 
      * @param   cKey            the key to check
      * @return  true, if the key should be processed by this module

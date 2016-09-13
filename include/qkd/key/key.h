@@ -100,6 +100,25 @@ enum class key_state : uint8_t {
 };
 
 
+#define     DEFAULT_DATA_ENCODING       ENCODING_SHARED_SECRET_BITS
+
+/**
+ * the default key data encoding
+ * 
+ * each bit of the memory block returned by data() is 
+ * a single shared secret bit with the peer.
+ */
+static std::string const ENCODING_SHARED_SECRET_BITS = "shared secret bits";
+
+/**
+ * data encoding for 4 detector clicks as a single event
+ * 
+ * 4 bits are denoted to 4 detectors clicks. Per byte then
+ * there are two events.
+ */
+static std::string const ENCODING_4_DETECTOR_CLICKS = "4 detector clicks";
+
+
 /**
  * this is a QKD key
  * 
@@ -110,7 +129,6 @@ enum class key_state : uint8_t {
  *  - Key Data
  *      
  * The metadata itself is represented as an XML structure.
- * 
  * 
  * A QKD Key is read by a QKD Module, processed upon and then written to 
  * the next QKD Module in the QKD Post Processing Pipeline.
@@ -129,12 +147,36 @@ enum class key_state : uint8_t {
  *  - key metadata as XML       (char)
  *  - key-size in bytes         (uint64_t)  [network byte ordering]
  *  - key-data                  (BLOB)
+ * 
+ * The format of the key-data is described by the "encoding" value
+ * (part of the key XML metadata). This property holds an arbitrary 
+ * human readable string describing the key's data format.
+ * 
+ * The framework currently understands:
+ * 
+ * - ENCODING_SHARED_SECRET_BITS = "shared secret bits"
+ * 
+ *      Each bit in the bytes of the memory blob returned by key::data() 
+ *      is meant to be a shared secret bit. However, due to the key's
+ *      state these bits may not yet be corrected, confirmed, or else.
+ *      So please check the key's state if the key data encoding is
+ *      set to "shared secret bits".
+ * 
+ * - ENCODING_4_DETECTOR_CLICKS = "4 detector clicks"
+ * 
+ *      Each byte of the key::data() memory blob holds 2 quantum events.
+ *      Each event is a concatination of 4 detector clicks.
+ *      This encoding is used when doing BB84.
+ * 
+ * The list of encoding is not fixed. You may add/insert *any* encoding
+ * you like. However, most of the core modules do expect the key's data
+ * in a certain encoding. E.g. qkd-cascade, qkd-confirmation and such
+ * will not accept keys with an other encoding but ENCODING_SHARED_SECRET_BITS.
  */
 class key {
 
     
 public:
-    
     
     
     /**
@@ -249,8 +291,9 @@ public:
      * 
      * @param   nId         ID of the key
      * @param   cMemory     memory holding the key bits
+     * @param   sEncoding   key data encoding
      */
-    explicit key(key_id nId, qkd::utility::memory & cMemory);
+    explicit key(key_id nId, qkd::utility::memory & cMemory, std::string const & sEncoding = ENCODING_SHARED_SECRET_BITS);
     
     
     /**
@@ -260,8 +303,9 @@ public:
      * 
      * @param   nId         ID of the key
      * @param   cMemory     memory holding the key bits
+     * @param   sEncoding   key data encoding
      */
-    explicit key(key_id nId, qkd::utility::memory const & cMemory);
+    explicit key(key_id nId, qkd::utility::memory const & cMemory, std::string const & sEncoding = ENCODING_SHARED_SECRET_BITS);
     
     
     /**
@@ -438,6 +482,14 @@ public:
         return (std::chrono::high_resolution_clock::now() - m_cTimestampRead); 
     }
    
+    
+    /**
+     * return key bit encoding description
+     * 
+     * @return  a string describing the key bit encoding format
+     */
+    std::string encoding() const { return m_cMetaData.get<std::string>("key.general.encoding"); }
+    
 
     /**
      * return a key bit
@@ -625,6 +677,14 @@ public:
     void set_disclosed(uint64_t nDisclosed);
     
     
+    /**
+     * sets the key bit encoding description
+     * 
+     * @param   sEncoding       a string describing the key bit encoding format
+     */
+    void set_encoding(std::string sEncoding);
+    
+
     /**
      * set a new key id
      * 

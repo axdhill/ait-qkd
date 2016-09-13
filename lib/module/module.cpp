@@ -1714,7 +1714,7 @@ void module::work() {
             }
             
             if (!accept(cKey)) {
-                qkd::utility::debug() << "key " << cKey.id() << " is not accepted by this module";
+                qkd::utility::debug() << "key " << cKey.id() << " is not accepted by this module (check key state and key data encoding)";
                 continue;
             }
             

@@ -149,6 +149,17 @@ protected:
     
     
     /**
+     * accept a key for processing
+     * 
+     * qkd-cat accepts all keys (even disclosed ones).
+     * 
+     * @param   cKey            the key to check
+     * @return  true, if the key should be processed by this module
+     */
+    bool accept(UNUSED qkd::key::key const & cKey) const { return true; }
+    
+    
+    /**
      * apply the loaded key value map to the module
      * 
      * @param   sURL            URL of config file loaded

@@ -58,6 +58,20 @@ public:
      */
     qkd_sync();
     
+
+protected:
+    
+    
+    /**
+     * accept a key for processing
+     * 
+     * qkd-dekey accepts all keys (even disclosed ones).
+     * 
+     * @param   cKey            the key to check
+     * @return  true, if the key should be processed by this module
+     */
+    bool accept(UNUSED qkd::key::key const & cKey) const { return true; }
+    
     
 private:
     
