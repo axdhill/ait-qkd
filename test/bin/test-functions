@@ -140,6 +140,7 @@ function test_init() {
         ln -f -s tools/qkd-key-dump/qkd-key-dump;
         ln -f -s tools/qkd-key-gen/qkd-key-gen;
         ln -f -s tools/qkd-pipeline/qkd-pipeline;
+        ln -f -s tools/qkd-key-slice/qkd-key-slice;
         ln -f -s tools/qkd-view/qkd-view;
         
     )
