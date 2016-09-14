@@ -64,11 +64,7 @@ public:
             nSize(0), 
             bRandomizeSize(false), 
             nStandardDeviation(0.0), 
-            nRate(0.0), 
-            bExact(false), 
-            bZero(false), 
-            bSetErrorBits(false), 
-            nDisclosedRate(0.0) {};
+            nRate(0.0) {};
     
     std::string sFile;              /**< file name */
     std::string sRandomSource;      /**< random source */
@@ -78,10 +74,6 @@ public:
     bool bRandomizeSize;            /**< randomize the size */
     double nStandardDeviation;      /**< standard deviation when randomizing key size */
     double nRate;                   /**< error rate of each key */
-    bool bExact;                    /**< error rate must match exactly */
-    bool bZero;                     /**< start if zero key instead of random key */
-    bool bSetErrorBits;             /**< set error bits in the key */
-    double nDisclosedRate;          /**< set disclosed bits in the key */
     bool bSilent;                   /**< no console output */
 };
 
@@ -90,10 +82,11 @@ public:
 // fwd
 
 qkd::key::key create(qkd::key::key_id nKeyId, config const & cConfig);
-qkd::key::key disturb(qkd::key::key const & cKey, config const & cConfig, uint64_t & nErrorBits);
-qkd::key::key disturb_exact(qkd::key::key const & cKey, config const & cConfig, uint64_t & nErrorBits);
+qkd::key::key convert_to_bob(qkd::key::key const & cKey);
+void disturb(qkd::key::key & cKey, config const & cConfig);
 int generate(config const & cConfig);
 void show_config(config const & cConfig);
+unsigned char swap_base(unsigned char nBase, double nRandom);
 
 
 // ------------------------------------------------------------
@@ -111,6 +104,8 @@ void show_config(config const & cConfig);
  */
 qkd::key::key create(qkd::key::key_id nKeyId, config const & cConfig) {
     
+    static const unsigned char g_nQuantum[4] = { 0x1, 0x02, 0x04, 0x08 };
+    
     static std::random_device cRandomDevice;
     static std::mt19937 cRandomNumberGenerator(cRandomDevice());
 
@@ -122,127 +117,101 @@ qkd::key::key create(qkd::key::key_id nKeyId, config const & cConfig) {
     }
     qkd::utility::memory cMemory(nSize);
     
-    if (!cConfig.bZero) {
-        qkd::utility::random_source::source() >> cMemory;
-    }
-    else {
-        cMemory.fill(0);
+    for (uint64_t i = 0; i < cMemory.size(); ++i) {
+        
+        unsigned int nRandom1 = 0;
+        unsigned int nRandom2 = 0;
+        qkd::utility::random_source::source() >> nRandom1;
+        qkd::utility::random_source::source() >> nRandom2;
+        nRandom1 %= 4;
+        nRandom2 %= 4;
+
+        cMemory.get()[i] = (g_nQuantum[nRandom1] << 4) | g_nQuantum[nRandom2];
     }
     
-    return qkd::key::key(nKeyId, cMemory, qkd::key::ENCODING_SHARED_SECRET_BITS);
+    return qkd::key::key(nKeyId, cMemory, qkd::key::ENCODING_4_DETECTOR_CLICKS);
+}
+
+
+/**
+ * convert an alice key to a bob key by switching the bases
+ * 
+ * In half the cases the bases are mismatched.
+ * 
+ * @param   cKey        alice key
+ * @return  a key with switched bases
+ */
+qkd::key::key convert_to_bob(qkd::key::key const & cKey) {
+    
+    qkd::utility::memory cMemory(cKey.size());
+    for (uint64_t i = 0; i < cMemory.size(); i++) {
+        
+        double nRandomLow = 0.0;
+        double nRandomHigh = 0.0;
+        qkd::utility::random_source::source() >> nRandomLow;
+        qkd::utility::random_source::source() >> nRandomHigh;
+        
+        unsigned nLowerHalf = cKey.data()[i] & 0x0F;
+        unsigned nUpperHalf = cKey.data()[i] & 0xF0;
+        cMemory.get()[i] = swap_base(nLowerHalf, nRandomLow) | (swap_base(nUpperHalf >> 4, nRandomHigh) << 4);
+    }
+    
+    return qkd::key::key(cKey.id(), cMemory, qkd::key::ENCODING_4_DETECTOR_CLICKS);
 }
 
 
 /**
  * disturb a key as specified by config
  * 
- * @param   cKey            the input key
+ * @param   cKey            the key to disturb
  * @param   cConfig         the config values (relevant: rate and exact)
- * @param   nErrorBits      [out] will receive the number of error bits
  * @return  a disturbed key
  */
-qkd::key::key disturb(qkd::key::key const & cKey, config const & cConfig, uint64_t & nErrorBits) {
+void disturb(qkd::key::key & cKey, config const & cConfig) {
     
-    qkd::key::key cResultKey;
-    
-    if (cConfig.bExact) return disturb_exact(cKey, cConfig, nErrorBits);
-    
-    qkd::utility::bigint cBI = qkd::utility::bigint(cKey.data());
-    nErrorBits = 0;
-    for (uint64_t i = 0; i < cBI.bits(); ++i) {
+    unsigned char * d = cKey.data().get();
+    for (uint64_t i = 0; i < cKey.data().size(); ++i, ++d) {
         
         double nRandom = 0.0;
+        
         qkd::utility::random_source::source() >> nRandom;
         if (nRandom <= cConfig.nRate) {
-            cBI.set(i, !cBI.get(i));
-            nErrorBits++;
+            
+            switch ((*d) & 0x0F) {
+            case 0x01:
+                (*d) = ((*d) & 0xF0) | 0x02;
+                break;
+            case 0x02:
+                (*d) = ((*d) & 0xF0) | 0x01;
+                break;
+            case 0x04:
+                (*d) = ((*d) & 0xF0) | 0x08;
+                break;
+            case 0x08:
+                (*d) = ((*d) & 0xF0) | 0x04;
+                break;
+            }
+        }
+            
+        qkd::utility::random_source::source() >> nRandom;
+        if (nRandom <= cConfig.nRate) {
+            
+            switch ((*d) & 0xF0) {
+            case 0x10:
+                (*d) = ((*d) & 0x0F) | 0x20;
+                break;
+            case 0x20:
+                (*d) = ((*d) & 0x0F) | 0x10;
+                break;
+            case 0x40:
+                (*d) = ((*d) & 0x0F) | 0x80;
+                break;
+            case 0x80:
+                (*d) = ((*d) & 0x0F) | 0x40;
+                break;
+            }
         }
     }
-    
-    cResultKey = qkd::key::key(cKey.id(), cBI.memory(), qkd::key::ENCODING_SHARED_SECRET_BITS);
-    cResultKey.set_state(cKey.state());
-    
-    return cResultKey;
-}
-
-
-/**
- * disturb a key as specified by config
- * 
- * @param   cKey            the input key
- * @param   cConfig         the config values (relevant: rate and exact)
- * @param   nErrorBits      [out] will receive the number of error bits
- * @return  a disturbed key
- */
-qkd::key::key disturb_exact(qkd::key::key const & cKey, config const & cConfig, uint64_t & nErrorBits) {
-    
-    qkd::key::key cResultKey;
-    
-    qkd::utility::bigint cBI = qkd::utility::bigint(cKey.data());
-    uint64_t nBitsToFlip = cBI.bits() * cConfig.nRate;
-    
-    // this is the idea:
-    //  - we have a set of bits to be flipped
-    //  - and we have a list of bits not yet touched
-    //  from the list of not-yet-touched bits (possible bits)
-    //  we randomly pick one and add it to the set of bits to
-    //  flip.
-    //
-    //  advantage: picking exact bits is quite easy
-    //  drawback: creating the list of possible bits is expensive
-    //
-    //  if we not create such possible bit list, the algorithm
-    //  may find it hard to find possible not-yet-flipped bits when
-    //  the error rate is rather high
-    //
-    // therefore: below a rate of 20% we guess the bits in a more stupid fashion
-    // this might be faster than the possible bit list on low error rates.
-    
-    // collect bits to flip
-    std::set<uint64_t> cBits;
-    
-    if (cConfig.nRate > 0.2) {
-    
-        // create the not-yet-flipped-bits 
-        std::vector<uint64_t> cBitsPossible;
-        for (uint64_t i = 0; i < cBI.bits(); ++i) {
-            cBitsPossible.push_back(i);
-        }
-        
-        for (uint64_t i = 0; i < nBitsToFlip; ++i) {
-            
-            uint64_t nPossibleIndex;
-            qkd::utility::random_source::source() >> nPossibleIndex;
-            nPossibleIndex %= cBitsPossible.size();
-            auto iter = cBitsPossible.begin() + nPossibleIndex;
-            
-            cBits.insert(*iter);
-            cBitsPossible.erase(iter);
-        }
-    }
-    else {
-        
-        for (uint64_t i = 0; i < nBitsToFlip; ) {
-            
-            uint64_t nBit;
-            qkd::utility::random_source::source() >> nBit;
-            nBit %= cBI.bits();
-            
-            if (cBits.find(nBit) != cBits.end()) continue;
-            
-            cBits.insert(nBit);
-            ++i;
-        }
-    }
-
-    for (auto & iter : cBits) {
-        cBI.set(iter, !cBI.get(iter));
-    }
-    nErrorBits = cBits.size();
-    cResultKey = qkd::key::key(cKey.id(), cBI.memory(), qkd::key::ENCODING_SHARED_SECRET_BITS);
-    cResultKey.set_state(cKey.state());
-    
-    return cResultKey;
 }
 
 
@@ -282,24 +251,9 @@ int generate(config const & cConfig) {
     
     for (qkd::key::key_id nKeyId = cConfig.nId; nKeyId < (cConfig.nId + cConfig.nKeys); ++nKeyId) {
         
-        uint64_t nErrorBits = 0;
-
         qkd::key::key cKeyAlice = create(nKeyId, cConfig);
-        qkd::key::key cKeyBob = disturb(cKeyAlice, cConfig, nErrorBits);
-        
-        if (cConfig.bSetErrorBits) {
-            cKeyAlice.set_qber((double)nErrorBits / (double)(cKeyAlice.data().size() * 8));
-            cKeyBob.set_qber((double)nErrorBits / (double)(cKeyBob.data().size() * 8));
-        }
-        
-        double nDisclosedRate = cConfig.nDisclosedRate;
-        if (nDisclosedRate < 0.0) nDisclosedRate = 0.0;
-        if (nDisclosedRate > 1.0) nDisclosedRate = 1.0;
-        cKeyAlice.set_disclosed(cKeyAlice.size() * 8 * nDisclosedRate);
-        cKeyBob.set_disclosed(cKeyBob.size() * 8 * nDisclosedRate);
-        
-        cKeyAlice.set_encoding(qkd::key::ENCODING_SHARED_SECRET_BITS);
-        cKeyBob.set_encoding(qkd::key::ENCODING_SHARED_SECRET_BITS);
+        qkd::key::key cKeyBob = convert_to_bob(cKeyAlice);
+        disturb(cKeyBob, cConfig);
         
         cFileAlice << cKeyAlice;
         cFileBob << cKeyBob;
@@ -325,8 +279,6 @@ int main(int argc, char ** argv) {
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS] FILE";
     
     boost::program_options::options_description cOptions(sApplication + "\n" + sDescription + "\n\n\t" + sSynopsis + "\n\nAllowed Options");
-    cOptions.add_options()("errorbits,e", "set number error bits in the key");
-    cOptions.add_options()("disclosed,d", boost::program_options::value<double>()->default_value(0.0, "0.0"), "set rate of disclosed bits in the key");
     cOptions.add_options()("help,h", "this page");
     cOptions.add_options()("id,i", boost::program_options::value<qkd::key::key_id>()->default_value(1), "first key id");
     cOptions.add_options()("keys,k", boost::program_options::value<uint64_t>()->default_value(10), "number of keys to produce");
@@ -336,8 +288,6 @@ int main(int argc, char ** argv) {
     cOptions.add_options()("random-url", boost::program_options::value<std::string>()->default_value(""), "force the random number generator to use a specific algorithm.");
     cOptions.add_options()("silent", "don't be so chatty");
     cOptions.add_options()("version,v", "print version string");
-    cOptions.add_options()("exact,x", "produce exact amount of errors");
-    cOptions.add_options()("zero,z", "instead of random bits, start with all 0");
     
     boost::program_options::options_description cArgs("Arguments");
     cArgs.add_options()("FILE", "FILE is the name of files to create. There will be 2 files created: \none with suffix '.alice' and one with suffix '.bob'. \n\nWhen creating quantum tables the --errorbits and --disclosed flags are ignored.");
@@ -381,10 +331,6 @@ int main(int argc, char ** argv) {
     cConfig.bRandomizeSize = (cVariableMap.count("randomize-size") > 0);
     cConfig.nStandardDeviation = sqrt(cConfig.nSize);
     cConfig.nRate = cVariableMap["rate"].as<double>();
-    cConfig.bExact = (cVariableMap.count("exact") > 0);
-    cConfig.bZero = (cVariableMap.count("zero") > 0);
-    cConfig.bSetErrorBits = (cVariableMap.count("errorbits") > 0);
-    cConfig.nDisclosedRate = cVariableMap["disclosed"].as<double>();
     cConfig.bSilent = (cVariableMap.count("silent") > 0);
     cConfig.sRandomSource = cVariableMap["random-url"].as<std::string>();
     
@@ -411,8 +357,36 @@ void show_config(config const & cConfig) {
     std::cout << "\tsize:               " << cConfig.nSize << std::endl;
     std::cout << "\trandomize-size:     " << (cConfig.bRandomizeSize ? "yes" : "no") << std::endl;
     std::cout << "\trate:               " << cConfig.nRate << std::endl;
-    std::cout << "\texact:              " << cConfig.bExact << std::endl;
-    std::cout << "\tzero:               " << cConfig.bZero << std::endl;
-    std::cout << "\tset error bits:     " << cConfig.bSetErrorBits << std::endl;
-    std::cout << "\tdisclosed bit rate: " << cConfig.nDisclosedRate << std::endl;
+}
+
+
+/**
+ * swap a base randomly from alice to bob
+ * 
+ * @param   nBase       the base (lower 4 bits)
+ * @param   nRandom     random value
+ * @return  bases are swaped if random is < 0.5
+ */
+unsigned char swap_base(unsigned char nBase, double nRandom) {
+
+    if (nRandom < 0.5) {
+        
+        // same base measurment case
+        if (nBase == 0x01) return 0x02;
+        if (nBase == 0x02) return 0x01;
+        if (nBase == 0x04) return 0x08;
+        if (nBase == 0x08) return 0x04;
+    }
+    
+    // different base measurment
+    if ((nBase == 0x01) && (nRandom < 0.75)) return 0x08;
+    if ((nBase == 0x01) && (nRandom >= 0.75)) return 0x04;
+    if ((nBase == 0x02) && (nRandom < 0.75)) return 0x08;
+    if ((nBase == 0x02) && (nRandom >= 0.75)) return 0x04;
+    if ((nBase == 0x04) && (nRandom < 0.75)) return 0x01;
+    if ((nBase == 0x04) && (nRandom >= 0.75)) return 0x02;
+    if ((nBase == 0x08) && (nRandom < 0.75)) return 0x01;
+    if ((nBase == 0x08) && (nRandom >= 0.75)) return 0x02;
+    
+    return 0x00;
 }

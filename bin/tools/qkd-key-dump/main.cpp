@@ -92,6 +92,8 @@ std::string key_data(qkd::key::key const & cKey, dump_configuration const & cCon
 /**
  * key dump loop
  * 
+ * @param   cIn                 incoming stream
+ * @param   cOut                outgoing stream
  * @param   cConfig             dump configuration
  * @return  0 = success, else failure
  */
@@ -137,10 +139,11 @@ int dump(std::istream & cIn, std::ostream & cOut, dump_configuration & cConfig) 
  * 
  * @param   cIn         input stream
  * @param   cOut        output stream
+ * @param   cConfig     dump configuration
  * @param   bTotal      print only the total MD5 of all key material
  * @return  0 = success, else failure
  */
-int dump_md5sum(std::istream & cIn, std::ostream & cOut, bool bTotal) {
+int dump_md5sum(std::istream & cIn, std::ostream & cOut, dump_configuration & cConfig, bool bTotal) {
     
     qkd::utility::checksum cMD5AlgorithmAll = qkd::utility::checksum_algorithm::create("md5");
     
@@ -152,11 +155,21 @@ int dump_md5sum(std::istream & cIn, std::ostream & cOut, bool bTotal) {
         
         if (!bTotal) {
         
+            if (cConfig.nSkip > 0) {
+                --cConfig.nSkip;
+                continue;
+            }
+            
             qkd::utility::checksum cMD5Algorithm = qkd::utility::checksum_algorithm::create("md5");
             cMD5Algorithm << cKey.data();
             qkd::utility::memory cMD5Sum;
             cMD5Algorithm >> cMD5Sum;
             cOut << cMD5Sum.as_hex() << std::endl;
+            
+            if (cConfig.nKeys > 0) {
+                --cConfig.nKeys;
+                if (!cConfig.nKeys) break;
+            }
         }
         else {
             cMD5AlgorithmAll << cKey.data();
@@ -178,9 +191,10 @@ int dump_md5sum(std::istream & cIn, std::ostream & cOut, bool bTotal) {
  * 
  * @param   cIn         input stream
  * @param   cOut        output stream
+ * @param   cConfig     dump configuration
  * @return  0 = success, else failure
  */
-int dump_metadata(std::istream & cIn, std::ostream & cOut) {
+int dump_metadata(std::istream & cIn, std::ostream & cOut, dump_configuration & cConfig) {
     
     while (!cIn.eof()) {
 
@@ -188,8 +202,18 @@ int dump_metadata(std::istream & cIn, std::ostream & cOut) {
         cIn >> cKey;
         if (cKey == qkd::key::key::null()) continue;
         
+        if (cConfig.nSkip > 0) {
+            --cConfig.nSkip;
+            continue;
+        }
+        
         cOut << "key# " << cKey.id() << std::endl;
         cOut << cKey.metadata_xml(true) << "\n" << std::endl;
+        
+        if (cConfig.nKeys > 0) {
+            --cConfig.nKeys;
+            if (!cConfig.nKeys) break;
+        }
     }
     
     return 0;
@@ -201,9 +225,10 @@ int dump_metadata(std::istream & cIn, std::ostream & cOut) {
  * 
  * @param   cIn         input stream
  * @param   cOut        output stream
+ * @param   cConfig     dump configuration
  * @return  0 = success, else failure
  */
-int dump_short(std::istream & cIn, std::ostream & cOut) {
+int dump_short(std::istream & cIn, std::ostream & cOut, dump_configuration & cConfig) {
 
     std::string sHeading = "key        bits     disclosed bits error rate state         crc\n";
     std::string sFormat = "%010lu %08lu %08lu      %7.4f     %-13s %8s\n";
@@ -215,6 +240,11 @@ int dump_short(std::istream & cIn, std::ostream & cOut) {
         cIn >> cKey;
         if (cKey == qkd::key::key::null()) continue;
 
+        if (cConfig.nSkip > 0) {
+            --cConfig.nSkip;
+            continue;
+        }
+        
         if (bPrintHeading) {
             cOut << sHeading;
             bPrintHeading = false;
@@ -222,6 +252,11 @@ int dump_short(std::istream & cIn, std::ostream & cOut) {
         
         uint64_t nBits = cKey.size() * 8;
         cOut << boost::format(sFormat) % cKey.id() % nBits % cKey.disclosed() % cKey.qber() % cKey.state_string() % cKey.data().crc32();
+        
+        if (cConfig.nKeys > 0) {
+            --cConfig.nKeys;
+            if (!cConfig.nKeys) break;
+        }
     }
     
     return 0;
@@ -362,13 +397,13 @@ int main(int argc, char ** argv) {
     cConfig.bFlatData = cVariableMap.count("flat") > 0;
     
     if (bShort) {
-        return dump_short(cInFile.is_open() ? cInFile : std::cin, cOutFile.is_open() ? cOutFile : std::cout);
+        return dump_short(cInFile.is_open() ? cInFile : std::cin, cOutFile.is_open() ? cOutFile : std::cout, cConfig);
     }
     if (bMetadata) {
-        return dump_metadata(cInFile.is_open() ? cInFile : std::cin, cOutFile.is_open() ? cOutFile : std::cout);
+        return dump_metadata(cInFile.is_open() ? cInFile : std::cin, cOutFile.is_open() ? cOutFile : std::cout, cConfig);
     }
     if (bMD5Sum || bMD5SumAll) {
-        return dump_md5sum(cInFile.is_open() ? cInFile : std::cin, cOutFile.is_open() ? cOutFile : std::cout, bMD5SumAll);
+        return dump_md5sum(cInFile.is_open() ? cInFile : std::cin, cOutFile.is_open() ? cOutFile : std::cout, cConfig, bMD5SumAll);
     }
 
     if (cConfig.bCanonical && cConfig.bFlatData) {

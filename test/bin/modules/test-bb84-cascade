@@ -40,7 +40,7 @@ test_init "$(basename $0).d"
 
 rm -rf cat_keys.* &> /dev/null
 KEYS_TO_PROCESS="1000"
-${TEST_BASE}/bin/qkd-key-gen --silent --size 2048 --keys ${KEYS_TO_PROCESS} --quantum --rate 0.03 --random-url=linear-congruential:42 cat_keys
+${TEST_BASE}/bin/qkd-key-gen-dv --silent --size 2048 --keys ${KEYS_TO_PROCESS} --rate 0.03 --random-url=linear-congruential:43 cat_keys
 
 LOG_FOLDER="$(pwd)/log"
 mkdir -p ${LOG_FOLDER} &> /dev/null
@@ -68,18 +68,17 @@ while :; do
     
 done
 
-
 ${TEST_BASE}/bin/qkd-pipeline stop ${TEST_BASE}/test/test-data/bb84-cascade/pipeline-alice.xml
 ${TEST_BASE}/bin/qkd-pipeline stop ${TEST_BASE}/test/test-data/bb84-cascade/pipeline-bob.xml
 
 sleep 1
 
 echo "Verifying MD5 hashes of generated data"
-if [[ $(${TEST_BASE}/bin/tools/qkd-key-dump/qkd-key-dump --md5sum-all cat_keys.alice) != 12cd4e18ae2bb3643d10631de5949181 ]]; then
+if [[ $(${TEST_BASE}/bin/tools/qkd-key-dump/qkd-key-dump --md5sum-all cat_keys.alice) != e1b533f464fc99b0d55ec0af9f53cfda ]]; then
     echo "Alice used unexpected keys - failed"
     exit 1
 fi
-if [[ $(${TEST_BASE}/bin/tools/qkd-key-dump/qkd-key-dump --md5sum-all cat_keys.bob) != 3008133606aefad10a1ac24b6d90577f ]]; then
+if [[ $(${TEST_BASE}/bin/tools/qkd-key-dump/qkd-key-dump --md5sum-all cat_keys.bob) != f088dfcb7969bf5e82067b9da4511b92 ]]; then
     echo "Bob used unexpected keys - failed"
     exit 1
 fi

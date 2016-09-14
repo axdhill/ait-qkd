@@ -64,3 +64,5 @@ configure_file(test-pipeline-sifting            ${CMAKE_CURRENT_BINARY_DIR}/test
 add_test(qkd-pipeline                           ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-pipeline)
 add_test(qkd-pipeline-autoconnect               ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-pipeline-autoconnect)
 add_test(qkd-qkd-statistics-average             ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-statistics-average)
+add_test(qkd-key-gen                            ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-key-gen)
+add_test(qkd-key-compare                        ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-key-compare)

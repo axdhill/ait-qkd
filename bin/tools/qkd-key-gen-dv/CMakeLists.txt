@@ -1,7 +1,7 @@
 # ------------------------------------------------------------
 # CMakeLists.txt 
 # 
-# make: qkd/bin/tools
+# make: qkd/bin/tools/qkd-key-gen-dv
 #
 # Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
 #
@@ -29,19 +29,19 @@
 
 
 # ------------------------------------------------------------
-# go through the subs
+# tools/qkd-key-gen
 
-add_subdirectory(q3p-keystore-dump)
-add_subdirectory(q3p-mq-reader)
-add_subdirectory(qkd-blob-keystream)
-add_subdirectory(qkd-key-compare)
-add_subdirectory(qkd-key-dump)
-add_subdirectory(qkd-key-gen)
-add_subdirectory(qkd-key-gen-dv)
-add_subdirectory(qkd-key-slice)
-add_subdirectory(qkd-pipeline)
-# TODO: qkd-module-manager needs a full wrapup in Qt5
-#add_subdirectory(qkd-module-manager)
-add_subdirectory(qkd-statistics-average)
-add_subdirectory(qkd-simulate)
-add_subdirectory(qkd-view)
+# sources
+set(QKD_KEY_GEN_DV_SRC
+    main.cpp
+)
+
+# bin definition
+add_executable(qkd-key-gen-dv ${QKD_KEY_GEN_DV_SRC})
+add_dependencies(qkd-key-gen-dv qkd)
+
+# linkage
+target_link_libraries(qkd-key-gen-dv qkd ${CMAKE_REQUIRED_LIBRARIES})
+
+# install
+install(TARGETS qkd-key-gen-dv RUNTIME DESTINATION bin COMPONENT tools)

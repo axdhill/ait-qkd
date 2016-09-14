@@ -5,6 +5,15 @@ This file holds the changes of the AIT QKD R10 throughout the versions
 Changes from 9.9999.7 to 9.9999.8
 ---------------------------------
 
+* qkd-key-gen capability for quantumtable has been separated
+
+    qkd-key-gen does not solely produce shared secret bits but no
+    quantum table events any longer.
+    
+    The former funtionality to create quantum event tables suitable
+    for qkd-mod-sifting-bb84 has been moved to the new tool
+    qkd-key-gen-dv.
+
 * added qkd-key-slice tool
 
     The qkd-key-slice tool can extract amount of keys

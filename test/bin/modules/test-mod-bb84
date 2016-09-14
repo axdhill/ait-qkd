@@ -45,7 +45,7 @@ echo -n > bb84_debug.bob
 
 # create keys
 KEYS_TO_PROCESS="1000"
-${TEST_BASE}/bin/qkd-key-gen --silent --size 2048 --keys ${KEYS_TO_PROCESS} --quantum --rate 0.05 cat_keys
+${TEST_BASE}/bin/qkd-key-gen-dv --silent --size 2048 --keys ${KEYS_TO_PROCESS} --rate 0.05 cat_keys
 
 PIPELINE_CONFIG="${TEST_BASE}/test/test-data/modules/qkd-sifting-bb84/pipeline.conf"
 

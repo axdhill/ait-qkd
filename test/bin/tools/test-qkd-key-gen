@@ -46,10 +46,10 @@ cd ${TEST_BASE}
 rm -rf cat_keys.* &> /dev/null
 
 # create keys
-KEYS_TO_PROCESS="1000"
-${TEST_BASE}/bin/qkd-key-gen --silent --size 2048 --keys ${KEYS_TO_PROCESS} --quantum --rate 0.03 --random-url=linear-congruential:42 set1
-${TEST_BASE}/bin/qkd-key-gen --silent --size 2048 --keys ${KEYS_TO_PROCESS} --quantum --rate 0.03 --random-url=linear-congruential:42 set2
-${TEST_BASE}/bin/qkd-key-gen --silent --size 2048 --keys ${KEYS_TO_PROCESS} --quantum --rate 0.03 --random-url=linear-congruential:43 set3
+KEYS_TO_PROCESS="100"
+${TEST_BASE}/bin/qkd-key-gen --silent --size 2048 --keys ${KEYS_TO_PROCESS} --rate 0.03 --random-url=linear-congruential:42 set1
+${TEST_BASE}/bin/qkd-key-gen --silent --size 2048 --keys ${KEYS_TO_PROCESS} --rate 0.03 --random-url=linear-congruential:42 set2
+${TEST_BASE}/bin/qkd-key-gen --silent --size 2048 --keys ${KEYS_TO_PROCESS} --rate 0.03 --random-url=linear-congruential:43 set3
 
 # compare created final authenticated keys    
 diff "${TEST_BASE}/set1.alice" "${TEST_BASE}/set2.alice" &>/dev/null
