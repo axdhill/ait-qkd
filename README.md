@@ -58,6 +58,8 @@ The whole project compiles in one single step, meaning no subprojects. This resu
     |       +-- qkd-blob-keystream                              wrapper around qkd-enkey, BASH-Script
     |       +-- qkd-key-dump                                    dump a keystream file human readable to stdout
     |       +-- qkd-key-gen                                     create pairs of pseudo random input keys
+    |       +-- qkd-key-gen-dv                                  create pairs of pseudo random input keys of discrete variables (e.g. for BB84)
+    |       +-- qkd-key-slice                                   extract/slice number of keys from a keystream file
     |       +-- qkd-module-manager                              GUI for qkd post processing
     |       +-- qkd-pipeline                                    high level qkd post processing admin (start/stop pipeline)
     |       +-- qkd-statistics-average                          makes average analysis of files dumped by qkd-statistic
