@@ -120,6 +120,28 @@ static std::string const ENCODING_4_DETECTOR_CLICKS = "4 detector clicks";
 
 
 /**
+ * data encoding as base and float 
+ * 
+ * this is a continous variable encoding: one base and a float
+ * 
+ *      The first 32 Bits contain either
+ *          0 ---> measurement in Q
+ *          1 ---> measurement in P
+ * 
+ *      The second 32 Bits contain the measurement value as float
+ */
+static std::string const ENCODING_BASE_FLOAT = "base and float";
+
+
+/**
+ * data encoding as float Q value and float P value
+ * 
+ * this is a continous variable encoding for heterodyne measurements
+ */
+static std::string const ENCODING_FLOAT_Q_FLOAT_P = "float-q and float-p";
+
+
+/**
  * this is a QKD key
  * 
  * A QKD Key has an

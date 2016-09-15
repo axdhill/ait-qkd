@@ -1,0 +1,76 @@
+#!/bin/bash
+
+# ------------------------------------------------------------
+# test-qkd-key-gen-cv
+# 
+# This is a test file.
+#
+# TEST: tests different qkd-key-gen-cv modes
+#
+# Author: Manuel Warum, <manuel.warum@ait.ac.at>
+#
+# Copyright (C) 2013-2016 AIT Austrian Institute of Technology
+# AIT Austrian Institute of Technology GmbH
+# Donau-City-Strasse 1 | 1220 Vienna | Austria
+# http://www.ait.ac.at
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation version 2.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+# Boston, MA  02110-1301, USA.
+# ------------------------------------------------------------
+
+
+# base source
+export TEST_BASE="@CMAKE_BINARY_DIR@"
+source ${TEST_BASE}/test/bin/test-functions
+
+# ------------------------------------------------------------
+
+# init test environment
+test_init "$(basename $0).d"
+
+# we need to replace ourselves in the build folder
+cd ${TEST_BASE}
+
+# zap previous keys
+rm -rf entangled_keys.* &> /dev/null
+rm -rf homodyne_keys.* &> /dev/null
+rm -rf heterodyne_keys.* &> /dev/null
+
+# create keys
+KEYS_TO_PROCESS="100"
+${TEST_BASE}/bin/qkd-key-gen-cv --silent --size 100 --keys ${KEYS_TO_PROCESS} --random-url=linear-congruential:42 --mode entangled entangled_keys
+${TEST_BASE}/bin/qkd-key-gen-cv --silent --size 100 --keys ${KEYS_TO_PROCESS} --random-url=linear-congruential:42 --mode prepare_measure_homodyne homodyne_keys
+${TEST_BASE}/bin/qkd-key-gen-cv --silent --size 100 --keys ${KEYS_TO_PROCESS} --random-url=linear-congruential:43 --mode prepare_measure_heterodyne heterodyne_keys
+
+# # compare created final authenticated keys    
+# diff "${TEST_BASE}/set1.alice" "${TEST_BASE}/set2.alice" &>/dev/null
+# if [ "$?" != "0" ]; then
+#     echo "keys generated with identical seeds should not differ - failed"
+#     test_cleanup
+#     exit 1
+# fi
+# 
+# diff "${TEST_BASE}/set2.alice" "${TEST_BASE}/set3.alice" &>/dev/null
+# if [ "$?" == "0" ]; then
+#     echo "keys generated with different seeds should differ - failed"
+#     test_cleanup
+#     exit 1
+# fi
+
+# stop modules
+test_cleanup
+    
+# state that test ok
+echo "=== TEST SUCCESS ==="
+

@@ -50,6 +50,7 @@ target_link_libraries(test-tabular-writer       ${CMAKE_REQUIRED_LIBRARIES})
 # tools test
 configure_file(test-qkd-key-compare             ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-key-compare            @ONLY)
 configure_file(test-qkd-key-gen                 ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-key-gen                @ONLY)
+configure_file(test-qkd-key-gen-cv              ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-key-gen-cv             @ONLY)
 configure_file(test-qkd-key-slice               ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-key-slice              @ONLY)
 configure_file(test-qkd-pipeline                ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-pipeline               @ONLY)
 configure_file(test-qkd-pipeline-autoconnect    ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-pipeline-autoconnect   @ONLY)
@@ -65,4 +66,5 @@ add_test(qkd-pipeline                           ${CMAKE_CURRENT_BINARY_DIR}/test
 add_test(qkd-pipeline-autoconnect               ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-pipeline-autoconnect)
 add_test(qkd-qkd-statistics-average             ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-statistics-average)
 add_test(qkd-key-gen                            ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-key-gen)
+add_test(qkd-key-gen-cv                         ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-key-gen-cv)
 add_test(qkd-key-compare                        ${CMAKE_CURRENT_BINARY_DIR}/test-qkd-key-compare)

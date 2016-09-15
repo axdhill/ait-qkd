@@ -1,7 +1,7 @@
 /*
  * main.cpp
  * 
- * This is the qkd key generator
+ * This is the qkd key generator for entanlged discrete variables
  *
  * Author: Oliver Maurhart, <oliver.maurhart@ait.ac.at>
  *

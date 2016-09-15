@@ -139,6 +139,8 @@ function test_init() {
         ln -f -s tools/qkd-key-compare/qkd-key-compare;
         ln -f -s tools/qkd-key-dump/qkd-key-dump;
         ln -f -s tools/qkd-key-gen/qkd-key-gen;
+        ln -f -s tools/qkd-key-gen/qkd-key-gen-cv;
+        ln -f -s tools/qkd-key-gen/qkd-key-gen-dv;
         ln -f -s tools/qkd-key-gen-dv/qkd-key-gen-dv;
         ln -f -s tools/qkd-pipeline/qkd-pipeline;
         ln -f -s tools/qkd-key-slice/qkd-key-slice;
