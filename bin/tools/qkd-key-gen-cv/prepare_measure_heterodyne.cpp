@@ -31,6 +31,7 @@
 // ------------------------------------------------------------
 // incs
 
+#include <iostream>
 #include <sstream>
 
 // ait
@@ -51,9 +52,115 @@ using namespace qkd::cv;
  * @param   cArguments      the arguments as passed from the command line
  * @return  true, if all arguments are ok
  */
-bool prepare_measure_heterodyne::consume_arguments(UNUSED boost::program_options::variables_map const & cArguments) {
+bool prepare_measure_heterodyne::consume_arguments(boost::program_options::variables_map const & cArguments) {
+    
+    unsigned int nQValues = 0;
+    bool bSigmaAliceQ = cArguments.count("sigma-alice-q") ? true : false;
+    if (bSigmaAliceQ) {
+        ++nQValues;
+        m_nSigmaAliceQ = cArguments["sigma-alice-q"].as<float>();
+    }
+    bool bSigmaNoiseQ = cArguments.count("sigma-noise-q") ? true : false;
+    if (bSigmaNoiseQ) {
+        ++nQValues;
+        m_nSigmaNoiseQ = cArguments["sigma-noise-q"].as<float>();
+    }
+    bool bSNRQ = cArguments.count("snr-q") ? true : false;
+    if (bSNRQ) {
+        ++nQValues;
+        m_nSNRQ = cArguments["snr-q"].as<float>();
+    }
+    
+    if (nQValues != 2) {
+        std::cerr << "please specify two out from sigma-alice-q, sigma-noise-q and snr-q" << std::endl;
+        return false;
+    }
+    
+    if (!bSigmaAliceQ) {
+        m_nSigmaAliceQ = m_nSigmaNoiseQ * m_nSNRQ;
+    }
+    if (!bSigmaNoiseQ) {
+        m_nSigmaNoiseQ = m_nSigmaAliceQ / m_nSNRQ;
+    }
+    if (!bSNRQ) {
+        m_nSNRQ = m_nSigmaAliceQ / m_nSigmaNoiseQ;
+    }
+    
+    unsigned int nPValues = 0;
+    bool bSigmaAliceP = cArguments.count("sigma-alice-p") ? true : false;
+    if (bSigmaAliceP) {
+        ++nPValues;
+        m_nSigmaAliceP = cArguments["sigma-alice-p"].as<float>();
+    }
+    bool bSigmaNoiseP = cArguments.count("sigma-noise-p") ? true : false;
+    if (bSigmaNoiseP) {
+        ++nPValues;
+        m_nSigmaNoiseP = cArguments["sigma-noise-p"].as<float>();
+    }
+    bool bSNRP = cArguments.count("snr-p") ? true : false;
+    if (bSNRP) {
+        ++nPValues;
+        m_nSNRP = cArguments["snr-p"].as<float>();
+    }
+    
+    if (nPValues != 2) {
+        std::cerr << "please specify two out from sigma-alice-p, sigma-noise-p and snr-p" << std::endl;
+        return false;
+    }
+
+    if (!bSigmaAliceP) {
+        m_nSigmaAliceP = m_nSigmaNoiseP * m_nSNRP;
+    }
+    if (!bSigmaNoiseP) {
+        m_nSigmaNoiseP = m_nSigmaAliceP / m_nSNRP;
+    }
+    if (!bSNRP) {
+        m_nSNRP = m_nSigmaAliceP / m_nSigmaNoiseP;
+    }
+    
+    m_nSigmaAliceQPow2 = m_nSigmaAliceQ * m_nSigmaAliceQ;
+    m_nSigmaAlicePPow2 = m_nSigmaAliceP * m_nSigmaAliceP;
+    m_nSigmaNoiseQPow2 = m_nSigmaNoiseQ * m_nSigmaNoiseQ;
+    m_nSigmaNoisePPow2 = m_nSigmaNoiseP * m_nSigmaNoiseP;
+    
+    if (cArguments.count("transmission") < 1) {
+        std::cerr << "missing transmission" << std::endl;
+        return false;
+    }
+    m_nTransmission = cArguments["transmission"].as<float>();
+    if ((m_nTransmission < 0.0) || (m_nTransmission > 1.0)) {
+        std::cerr << "transmission must be between 0.0 and 1.0" << std::endl;
+        return false;
+    }
     
     return true;
+}
+
+
+/**
+ * dump a string about the mode's configuration
+ * 
+ * @return  a string describing the mode's settings
+ */
+std::string prepare_measure_heterodyne::dump_configuration() const {
+    
+    std::stringstream ss;
+    
+    ss << "\tsigma alice Q:      " << m_nSigmaAliceQ << "\n";
+    ss << "\tsigma alice P:      " << m_nSigmaAliceP << "\n";
+    ss << "\t(sigma alice Q)^2:  " << m_nSigmaAliceQPow2 << "\n";
+    ss << "\t(sigma alice P)^2:  " << m_nSigmaAlicePPow2 << "\n";
+    
+    ss << "\tsigma noise Q:      " << m_nSigmaNoiseQ << "\n";
+    ss << "\tsigma noise P:      " << m_nSigmaNoiseP << "\n";
+    ss << "\t(sigma noise Q)^2:  " << m_nSigmaNoiseQPow2 << "\n";
+    ss << "\t(sigma noise P)^2:  " << m_nSigmaNoisePPow2 << "\n";
+    
+    ss << "\ttransmission:       " << m_nTransmission << "\n";
+    ss << "\tSNR Q:              " << m_nSNRQ << "\n";
+    ss << "\tSNR P:              " << m_nSNRP << "\n";
+    
+    return ss.str();
 }
 
 
@@ -92,3 +199,4 @@ std::string prepare_measure_heterodyne::help() {
  */
 void prepare_measure_heterodyne::produce(UNUSED qkd::key::key & cKeyAlice, UNUSED qkd::key::key & cKeyBob) {
 }
+

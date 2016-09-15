@@ -69,6 +69,14 @@ public:
     
     
     /**
+     * dump a string about the mode's configuration
+     * 
+     * @return  a string describing the mode's settings
+     */
+    virtual std::string dump_configuration() const = 0;
+    
+    
+    /**
      * produce a set of pseudo random cv-keys
      * 
      * @param   cKeyAlice       alice key

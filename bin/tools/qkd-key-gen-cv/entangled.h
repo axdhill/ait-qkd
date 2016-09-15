@@ -67,6 +67,14 @@ public:
     
     
     /**
+     * dump a string about the mode's configuration
+     * 
+     * @return  a string describing the mode's settings
+     */
+    std::string dump_configuration() const;
+    
+    
+    /**
      * report some help on this key generation mode
      * 
      * @return  help shown to the user on stdout about this mode
@@ -82,6 +90,22 @@ public:
      */
     void produce(qkd::key::key & cKeyAlice, qkd::key::key & cKeyBob);
     
+    
+private:
+    
+    
+    float m_nSigmaAliceQ;           /**< sigma alice Q */
+    float m_nSigmaAliceP;           /**< sigma alice P */
+    float m_nSigmaAliceQPow2;       /**< (sigma alice Q)^2 */
+    float m_nSigmaAlicePPow2;       /**< (sigma alice P)^2 */
+    
+    float m_nSigmaBobQ;             /**< sigma bob Q */
+    float m_nSigmaBobP;             /**< sigma bob P */
+    float m_nSigmaBobQPow2;         /**< (sigma bob Q)^2 */
+    float m_nSigmaBobPPow2;         /**< (sigma bob P)^2 */
+    
+    float m_nRho;                   /**< correlation coefficient */
+    float m_nSqrt_1Rho2;            /**< sqrt(1 - rho^2) */
 };
 
 

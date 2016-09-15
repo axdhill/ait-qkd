@@ -112,7 +112,7 @@ void create(qkd::key::key & cKeyAlice, qkd::key::key & cKeyBob, config const & c
 // qkd::key::key convert_to_bob(qkd::key::key const & cKey);
 // void disturb(qkd::key::key & cKey, config const & cConfig);
 // int generate(config const & cConfig);
-void show_config(config const & cConfig);
+void show_config(config const & cConfig, std::shared_ptr<qkd::cv::mode> const & cMode);
 // unsigned char swap_base(unsigned char nBase, double nRandom);
 
 
@@ -307,7 +307,8 @@ int main(int argc, char ** argv) {
     
     cOptions.add_options()("transmission", boost::program_options::value<double>()->default_value(0.9, "0.9"), "transmission value for bob's measurements");
     cOptions.add_options()("rho", boost::program_options::value<double>()->default_value(0.9, "0.9"), "correlation coefficient");
-    cOptions.add_options()("snr", boost::program_options::value<double>(), "signal noise ratio");
+    cOptions.add_options()("snr-q", boost::program_options::value<double>(), "signal noise ratio Q");
+    cOptions.add_options()("snr-p", boost::program_options::value<double>(), "signal noise ratio P");
     
     cOptions.add_options()("silent", "don't be so chatty");
     cOptions.add_options()("version,v", "print version string");
@@ -381,7 +382,9 @@ int main(int argc, char ** argv) {
         return 1;
     }
     
-    cMode->consume_arguments(cVariableMap);
+    if (!cMode->consume_arguments(cVariableMap)) {
+        return 1;
+    }
     
     
     
@@ -449,7 +452,7 @@ int main(int argc, char ** argv) {
         cConfig.nSNR = cConfig.nSigmaAlicePOW2 / cConfig.nSigmaNoisePOW2;
     }*/
     
-    show_config(cConfig);
+    show_config(cConfig, cMode);
     
 //     return generate(cConfig);
     return 0;
@@ -460,8 +463,9 @@ int main(int argc, char ** argv) {
  * tell the config to the user
  * 
  * @param   cConfig     the config to show
+ * @param   cMode       the current generation mode
  */
-void show_config(config const & cConfig) {
+void show_config(config const & cConfig, std::shared_ptr<qkd::cv::mode> const & cMode) {
     
     if (cConfig.bSilent) return;
     
@@ -472,13 +476,6 @@ void show_config(config const & cConfig) {
     std::cout << "\tfirst id:           " << cConfig.nId << std::endl;
     std::cout << "\tsize:               " << cConfig.nSize << std::endl;
     std::cout << "\trandomize-size:     " << (cConfig.bRandomizeSize ? "yes" : "no") << std::endl;
-//     std::cout << "\tsigma alice:        " << cConfig.nSigmaAlice << std::endl;
-//     std::cout << "\t(sigma alice)^2:    " << cConfig.nSigmaAlicePOW2 << std::endl;
-//     std::cout << "\tsigma noise:        " << cConfig.nSigmaNoise << std::endl;
-//     std::cout << "\t(sigma noise)^2:    " << cConfig.nSigmaNoisePOW2 << std::endl;
-//     std::cout << "\ttranspose:          " << cConfig.nTranspose << std::endl;
-//     std::cout << "\tsignal noise ratio: " << cConfig.nSNR << std::endl;
     
-    
-    
+    std::cout << cMode->dump_configuration() << std::endl;
 }
