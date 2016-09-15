@@ -340,7 +340,7 @@ int main(int argc, char ** argv) {
     cOptions.add_options()("zero,z", "instead of random bits, start with all 0");
     
     boost::program_options::options_description cArgs("Arguments");
-    cArgs.add_options()("FILE", "FILE is the name of files to create. There will be 2 files created: \none with suffix '.alice' and one with suffix '.bob'. \n\nWhen creating quantum tables the --errorbits and --disclosed flags are ignored.");
+    cArgs.add_options()("FILE", "FILE is the name of files to create. There will be 2 files created: \none with suffix '.alice' and one with suffix '.bob'.");
     boost::program_options::positional_options_description cPositionalDescription; 
     cPositionalDescription.add("FILE", 1);
     

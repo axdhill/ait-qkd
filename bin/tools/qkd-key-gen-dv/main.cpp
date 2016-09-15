@@ -275,7 +275,7 @@ int generate(config const & cConfig) {
 int main(int argc, char ** argv) {
     
     std::string sApplication = std::string("qkd-key-gen - AIT QKD Test Key Generator Tool V") + qkd::version();
-    std::string sDescription = std::string("\nThis lets one create a pair of key files to feed a pipeline with.\nThese are keys for testing ONLY.\n\nCopyright 2012-2016 AIT Austrian Institute of Technology GmbH");
+    std::string sDescription = std::string("\nThis lets one create a pair of key files to feed a pipeline with.\nThis tool creates keys with 4 bit detector click encoding suitable for entangled BB84.\nThese are keys for testing ONLY.\n\nCopyright 2012-2016 AIT Austrian Institute of Technology GmbH");
     std::string sSynopsis = std::string("Usage: ") + argv[0] + " [OPTIONS] FILE";
     
     boost::program_options::options_description cOptions(sApplication + "\n" + sDescription + "\n\n\t" + sSynopsis + "\n\nAllowed Options");
@@ -290,7 +290,7 @@ int main(int argc, char ** argv) {
     cOptions.add_options()("version,v", "print version string");
     
     boost::program_options::options_description cArgs("Arguments");
-    cArgs.add_options()("FILE", "FILE is the name of files to create. There will be 2 files created: \none with suffix '.alice' and one with suffix '.bob'. \n\nWhen creating quantum tables the --errorbits and --disclosed flags are ignored.");
+    cArgs.add_options()("FILE", "FILE is the name of files to create. There will be 2 files created: \none with suffix '.alice' and one with suffix '.bob'.");
     boost::program_options::positional_options_description cPositionalDescription; 
     cPositionalDescription.add("FILE", 1);
     
