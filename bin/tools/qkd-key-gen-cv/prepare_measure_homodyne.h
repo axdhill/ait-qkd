@@ -104,20 +104,21 @@ public:
 private:
 
 
-    float m_nSigmaAliceQ;           /**< sigma alice Q */
-    float m_nSigmaAliceP;           /**< sigma alice P */
-    float m_nSigmaAliceQPow2;       /**< (sigma alice Q)^2 */
-    float m_nSigmaAlicePPow2;       /**< (sigma alice P)^2 */
+    float m_nSigmaAliceQ;               /**< sigma alice Q */
+    float m_nSigmaAliceP;               /**< sigma alice P */
+    float m_nSigmaAliceQPow2;           /**< (sigma alice Q)^2 */
+    float m_nSigmaAlicePPow2;           /**< (sigma alice P)^2 */
     
-    float m_nSigmaNoiseQ;           /**< sigma noise Q */
-    float m_nSigmaNoiseP;           /**< sigma noise P */
-    float m_nSigmaNoiseQPow2;       /**< (sigma noise Q)^2 */
-    float m_nSigmaNoisePPow2;       /**< (sigma noise P)^2 */
+    float m_nSigmaNoiseQ;               /**< sigma noise Q */
+    float m_nSigmaNoiseP;               /**< sigma noise P */
+    float m_nSigmaNoiseQPow2;           /**< (sigma noise Q)^2 */
+    float m_nSigmaNoisePPow2;           /**< (sigma noise P)^2 */
     
-    float m_nTransmission;          /**< transmission */
-    float m_nSNRQ;                  /**< signal noise ration Q */
-    float m_nSNRP;                  /**< signal noise ration P */
+    float m_nTransmission;              /**< transmission */
+    float m_nSNRQ;                      /**< signal noise ration Q */
+    float m_nSNRP;                      /**< signal noise ration P */
     
+    std::mt19937 m_cRandomGenerator;    /** random generator used for normal distribution */
 };
 
 

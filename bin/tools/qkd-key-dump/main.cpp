@@ -83,6 +83,17 @@ typedef struct {
 } base_and_float;
 
 
+/**
+ * helper struct for key data
+ */
+typedef struct {
+    
+    float q;
+    float p;
+    
+} float_and_float;
+
+
 // ------------------------------------------------------------
 // fwd
 
@@ -91,6 +102,7 @@ std::string key_data(qkd::key::key const & cKey, dump_configuration const & cCon
 std::string key_data_shared_secret_bits(qkd::key::key const & cKey, dump_configuration const & cConfig, std::string sIndent);
 std::string key_data_4_detector_clicks(qkd::key::key const & cKey, dump_configuration const & cConfig, std::string sIndent);
 std::string key_data_base_and_float(qkd::key::key const & cKey, dump_configuration const & cConfig, std::string sIndent);
+std::string key_data_float_q_and_float_p(qkd::key::key const & cKey, dump_configuration const & cConfig, std::string sIndent);
 
 
 // ------------------------------------------------------------
@@ -297,6 +309,10 @@ std::string key_data(qkd::key::key const & cKey, dump_configuration const & cCon
         return key_data_base_and_float(cKey, cConfig, sIndent);
     }
     
+    if (cKey.encoding() == qkd::key::ENCODING_FLOAT_Q_FLOAT_P) {
+        return key_data_float_q_and_float_p(cKey, cConfig, sIndent);
+    }
+    
     return "don't know how to represent this key data encoding";
 }
 
@@ -377,6 +393,53 @@ std::string key_data_base_and_float(qkd::key::key const & cKey, UNUSED dump_conf
         }
         
         ss << std::fixed << std::showpos << std::setprecision(8) << d->nMeasurement;
+        ++d;
+    }
+    
+    if (i != nSize) {
+        
+        if (!(j % 8)) {
+            ss << "\n" << sIndent;
+        }
+        else {
+            ss << " - ";
+        }
+        
+        ss << "corrupted data left";
+    }
+    
+    return ss.str();
+}
+
+
+/**
+ * get the key data as string as float Q and float P
+ * 
+ * @param   cKey                the key whose data is to be stringified
+ * @param   cConfig             dump output config
+ * @param   sIndent             indent of every line
+ * @return  a string holding the key's data representation
+ */
+std::string key_data_float_q_and_float_p(qkd::key::key const & cKey, UNUSED dump_configuration const & cConfig, std::string sIndent) {
+
+    std::stringstream ss;
+    
+    float_and_float const * d = reinterpret_cast<float_and_float const *>(cKey.data().get());
+    uint64_t nSize = cKey.data().size();
+    uint64_t i = 0;
+    uint64_t j = 0;
+    for (i = 0, j = 0; i < nSize; i += sizeof(float_and_float), ++j) {
+        
+        if (!(j % 4)) {
+            ss << "\n" << sIndent;
+        }
+        else {
+            ss << " - ";
+        }
+        
+        ss << "(" << std::fixed << std::showpos << std::setprecision(8) << d->q;
+        ss << ", ";
+        ss << std::fixed << std::showpos << std::setprecision(8) << d->p << ")";
         ++d;
     }
     

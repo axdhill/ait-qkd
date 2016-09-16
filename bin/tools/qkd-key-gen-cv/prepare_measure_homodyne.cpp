@@ -35,11 +35,36 @@
 #include <sstream>
 
 // ait
-#include <qkd/common_macros.h>
+#include <qkd/utility/random.h>
 
 #include "prepare_measure_homodyne.h"
 
 using namespace qkd::cv;
+
+
+// ------------------------------------------------------------
+// code
+
+/**
+ * helper struct for key data
+ */
+typedef struct {
+    
+    uint32_t nBase;
+    float nMeasurement;
+    
+} base_and_float;
+
+
+/**
+ * helper struct for key data
+ */
+typedef struct {
+    
+    float q;
+    float p;
+    
+} float_and_float;
 
 
 // ------------------------------------------------------------
@@ -58,17 +83,17 @@ bool prepare_measure_homodyne::consume_arguments(boost::program_options::variabl
     bool bSigmaAliceQ = cArguments.count("sigma-alice-q") ? true : false;
     if (bSigmaAliceQ) {
         ++nQValues;
-        m_nSigmaAliceQ = cArguments["sigma-alice-q"].as<float>();
+        m_nSigmaAliceQ = cArguments["sigma-alice-q"].as<double>();
     }
     bool bSigmaNoiseQ = cArguments.count("sigma-noise-q") ? true : false;
     if (bSigmaNoiseQ) {
         ++nQValues;
-        m_nSigmaNoiseQ = cArguments["sigma-noise-q"].as<float>();
+        m_nSigmaNoiseQ = cArguments["sigma-noise-q"].as<double>();
     }
     bool bSNRQ = cArguments.count("snr-q") ? true : false;
     if (bSNRQ) {
         ++nQValues;
-        m_nSNRQ = cArguments["snr-q"].as<float>();
+        m_nSNRQ = cArguments["snr-q"].as<double>();
     }
     
     if (nQValues != 2) {
@@ -90,17 +115,17 @@ bool prepare_measure_homodyne::consume_arguments(boost::program_options::variabl
     bool bSigmaAliceP = cArguments.count("sigma-alice-p") ? true : false;
     if (bSigmaAliceP) {
         ++nPValues;
-        m_nSigmaAliceP = cArguments["sigma-alice-p"].as<float>();
+        m_nSigmaAliceP = cArguments["sigma-alice-p"].as<double>();
     }
     bool bSigmaNoiseP = cArguments.count("sigma-noise-p") ? true : false;
     if (bSigmaNoiseP) {
         ++nPValues;
-        m_nSigmaNoiseP = cArguments["sigma-noise-p"].as<float>();
+        m_nSigmaNoiseP = cArguments["sigma-noise-p"].as<double>();
     }
     bool bSNRP = cArguments.count("snr-p") ? true : false;
     if (bSNRP) {
         ++nPValues;
-        m_nSNRP = cArguments["snr-p"].as<float>();
+        m_nSNRP = cArguments["snr-p"].as<double>();
     }
     
     if (nPValues != 2) {
@@ -122,7 +147,7 @@ bool prepare_measure_homodyne::consume_arguments(boost::program_options::variabl
         std::cerr << "missing transmission" << std::endl;
         return false;
     }
-    m_nTransmission = cArguments["transmission"].as<float>();
+    m_nTransmission = cArguments["transmission"].as<double>();
     if ((m_nTransmission < 0.0) || (m_nTransmission > 1.0)) {
         std::cerr << "transmission must be between 0.0 and 1.0" << std::endl;
         return false;
@@ -209,6 +234,46 @@ void prepare_measure_homodyne::init() {
  * @param   cKeyBob         bob key
  * @param   nEvents         number of events for each key 
  */
-void prepare_measure_homodyne::produce(UNUSED qkd::key::key & cKeyAlice, UNUSED qkd::key::key & cKeyBob, UNUSED uint64_t nEvents) {
+void prepare_measure_homodyne::produce(qkd::key::key & cKeyAlice, qkd::key::key & cKeyBob, uint64_t nEvents) {
+    
+    cKeyAlice.data() = qkd::utility::memory(nEvents * sizeof(float_and_float));
+    cKeyBob.data() = qkd::utility::memory(nEvents * sizeof(base_and_float));
+    float_and_float * a = reinterpret_cast<float_and_float *>(cKeyAlice.data().get());
+    base_and_float * b = reinterpret_cast<base_and_float *>(cKeyBob.data().get());
+    
+    std::normal_distribution<> cNormalDistAliceQ(0, m_nSigmaAliceQ);
+    std::normal_distribution<> cNormalDistAliceP(0, m_nSigmaAliceP);
+    std::normal_distribution<> cNormalDistNoiseQ(0, m_nSigmaNoiseQ);
+    std::normal_distribution<> cNormalDistNoiseP(0, m_nSigmaNoiseP);
+    qkd::utility::random r = qkd::utility::random_source::source();
+    
+    while (nEvents > 0) {
+        
+        a->q = cNormalDistAliceQ(m_cRandomGenerator);
+        a->p = cNormalDistAliceP(m_cRandomGenerator);
+        
+        float nNoiseQ = cNormalDistNoiseQ(m_cRandomGenerator);
+        float nNoiseP = cNormalDistNoiseP(m_cRandomGenerator);
+        float b_q = m_nTransmission * a->q + nNoiseQ;
+        float b_p = m_nTransmission * a->p + nNoiseP;
+        
+        double nBaseBob = 0.0;
+        r >> nBaseBob;
+        b->nBase = (nBaseBob < 0.5 ? 0 : 1);
+        
+        if (!b->nBase) {
+            b->nMeasurement = b_q;
+        }
+        else {
+            b->nMeasurement = b_p;
+        }
+     
+        ++a;
+        ++b;
+        --nEvents;
+    }
+    
+    cKeyAlice.set_encoding(qkd::key::ENCODING_FLOAT_Q_FLOAT_P);
+    cKeyBob.set_encoding(qkd::key::ENCODING_BASE_FLOAT);
 }
 
