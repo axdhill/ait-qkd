@@ -49,7 +49,11 @@ ${TEST_BASE}/bin/qkd-key-gen-cv \
     --mode entangled \
     --sigma-alice-q 1.1 --sigma-alice-p 1.2 --sigma-bob-q 1.3 --sigma-bob-p 1.4 --rho 0.9 \
         entangled_keys
-        
+if [ "$?" != "0" ]; then
+    echo "qkd-key-gen-cv for entangled failed"
+    exit 1
+fi
+                
 ${TEST_BASE}/bin/qkd-key-gen-cv \
     --size 1024 \
     --keys ${KEYS_TO_PROCESS} \
@@ -61,6 +65,10 @@ ${TEST_BASE}/bin/qkd-key-gen-cv \
     --sigma-noise-p 1.4 \
     --transmission 0.8 \
         homodyne_keys
+if [ "$?" != "0" ]; then
+    echo "qkd-key-gen-cv for homodyne failed"
+    exit 1
+fi
         
 ${TEST_BASE}/bin/qkd-key-gen-cv \
     --size 1024 \
@@ -73,6 +81,10 @@ ${TEST_BASE}/bin/qkd-key-gen-cv \
     --sigma-noise-p 1.4 \
     --transmission 0.8 \
         hetero_keys
+if [ "$?" != "0" ]; then
+    echo "qkd-key-gen-cv for heterodyne failed"
+    exit 1
+fi
         
 
 test_cleanup
