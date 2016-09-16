@@ -77,12 +77,22 @@ public:
     
     
     /**
+     * init the genration mode
+     * 
+     * this inits the generation mode, adds all necessary precalculated values
+     * after argument consumation
+     */
+    virtual void init() = 0;
+    
+    
+    /**
      * produce a set of pseudo random cv-keys
      * 
      * @param   cKeyAlice       alice key
      * @param   cKeyBob         bob key
+     * @param   nEvents         number of events for each key
      */
-    virtual void produce(qkd::key::key & cKeyAlice, qkd::key::key & cKeyBob) = 0;
+    virtual void produce(qkd::key::key & cKeyAlice, qkd::key::key & cKeyBob, uint64_t nEvents) = 0;
     
 };
 

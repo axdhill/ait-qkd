@@ -29,21 +29,17 @@
 # Boston, MA  02110-1301, USA.
 # ------------------------------------------------------------
 
-
-# base source
 export TEST_BASE="@CMAKE_BINARY_DIR@"
 source ${TEST_BASE}/test/bin/test-functions
 
 # ------------------------------------------------------------
 
-# init test environment
 test_init "$(basename $0).d"
 
 rm -rf cat_keys.* &> /dev/null
 KEYS_TO_PROCESS="100"
 ${TEST_BASE}/bin/qkd-key-gen --silent --size 2048 --keys ${KEYS_TO_PROCESS} --rate 0.03 cat_keys
 
-# test just verifies that qkd-key-compare does yield *some* results and does not crash
 ${TEST_BASE}/bin/qkd-key-compare cat_keys.alice cat_keys.bob
 
 echo "=== TEST SUCCESS ==="

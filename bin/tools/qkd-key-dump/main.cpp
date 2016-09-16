@@ -32,6 +32,7 @@
 // incs
 
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 
 #include <boost/format.hpp>
@@ -41,6 +42,7 @@
 #include <qkd/key/key.h>
 #include <qkd/utility/checksum.h>
 #include <qkd/version.h>
+#include <qkd/common_macros.h>
 
 
 // ------------------------------------------------------------
@@ -70,19 +72,25 @@ typedef struct {
 } dump_configuration;
 
 
+/**
+ * helper struct for key data
+ */
+typedef struct {
+    
+    uint32_t nBase;
+    float nMeasurement;
+    
+} base_and_float;
+
+
 // ------------------------------------------------------------
 // fwd
 
 
-/**
- * get the key data as string
- * 
- * @param   cKey                the key whose data is to be stringified
- * @param   cConfig             dump output config
- * @param   sIndent             indent of every line
- * @return  a string holding the key's data representation
- */
 std::string key_data(qkd::key::key const & cKey, dump_configuration const & cConfig, std::string sIndent = "\t");
+std::string key_data_shared_secret_bits(qkd::key::key const & cKey, dump_configuration const & cConfig, std::string sIndent);
+std::string key_data_4_detector_clicks(qkd::key::key const & cKey, dump_configuration const & cConfig, std::string sIndent);
+std::string key_data_base_and_float(qkd::key::key const & cKey, dump_configuration const & cConfig, std::string sIndent);
 
 
 // ------------------------------------------------------------
@@ -278,31 +286,113 @@ std::string key_data(qkd::key::key const & cKey, dump_configuration const & cCon
     }
     
     if (cConfig.bCanonical || (cKey.encoding() == qkd::key::ENCODING_SHARED_SECRET_BITS)) {
-        return "\n" + cKey.data().canonical(sIndent);
+        return key_data_shared_secret_bits(cKey, cConfig, sIndent);
     }
     
     if (cKey.encoding() == qkd::key::ENCODING_4_DETECTOR_CLICKS) {
-        
-        qkd::utility::memory::value_t const * d = cKey.data().get();
-        std::stringstream ss;
-        for (uint64_t i = 0; i < cKey.data().size(); ++i) {
-            
-            if (!(i % 8)) {
-                ss << "\n" << sIndent;
-            }
-            else {
-                ss << " - ";
-            }
-            
-            ss << g_c4DetectorBits[d[i] >> 4];
-            ss << " ";
-            ss << g_c4DetectorBits[d[i] & 0x0F];
-        }
-        
-        return ss.str();
+        return key_data_4_detector_clicks(cKey, cConfig, sIndent);
+    }
+    
+    if (cKey.encoding() == qkd::key::ENCODING_BASE_FLOAT) {
+        return key_data_base_and_float(cKey, cConfig, sIndent);
     }
     
     return "don't know how to represent this key data encoding";
+}
+
+
+/**
+ * get the key data as string as shared secret bits
+ * 
+ * @param   cKey                the key whose data is to be stringified
+ * @param   cConfig             dump output config
+ * @param   sIndent             indent of every line
+ * @return  a string holding the key's data representation
+ */
+std::string key_data_shared_secret_bits(qkd::key::key const & cKey, UNUSED dump_configuration const & cConfig, std::string sIndent) {
+    return "\n" + cKey.data().canonical(sIndent);
+}
+
+
+/**
+ * get the key data as string as 4 detector clicks
+ * 
+ * @param   cKey                the key whose data is to be stringified
+ * @param   cConfig             dump output config
+ * @param   sIndent             indent of every line
+ * @return  a string holding the key's data representation
+ */
+std::string key_data_4_detector_clicks(qkd::key::key const & cKey, UNUSED dump_configuration const & cConfig, std::string sIndent) {
+    
+    qkd::utility::memory::value_t const * d = cKey.data().get();
+    std::stringstream ss;
+    for (uint64_t i = 0; i < cKey.data().size(); ++i) {
+        
+        if (!(i % 8)) {
+            ss << "\n" << sIndent;
+        }
+        else {
+            ss << " - ";
+        }
+        
+        ss << g_c4DetectorBits[d[i] >> 4];
+        ss << " ";
+        ss << g_c4DetectorBits[d[i] & 0x0F];
+    }
+    
+    return ss.str();
+}
+
+
+/**
+ * get the key data as string as base and float
+ * 
+ * @param   cKey                the key whose data is to be stringified
+ * @param   cConfig             dump output config
+ * @param   sIndent             indent of every line
+ * @return  a string holding the key's data representation
+ */
+std::string key_data_base_and_float(qkd::key::key const & cKey, UNUSED dump_configuration const & cConfig, std::string sIndent) {
+    
+    std::stringstream ss;
+    
+    base_and_float const * d = reinterpret_cast<base_and_float const *>(cKey.data().get());
+    uint64_t nSize = cKey.data().size();
+    uint64_t i = 0;
+    uint64_t j = 0;
+    for (i = 0, j = 0; i < nSize; i += sizeof(base_and_float), ++j) {
+        
+        if (!(j % 8)) {
+            ss << "\n" << sIndent;
+        }
+        else {
+            ss << " - ";
+        }
+        
+        if (!d->nBase) {
+            ss << "Q: ";
+        }
+        else {
+            ss << "P: ";
+        }
+        
+        ss << std::fixed << std::showpos << std::setprecision(8) << d->nMeasurement;
+        ++d;
+    }
+    
+    if (i != nSize) {
+        
+        if (!(j % 8)) {
+            ss << "\n" << sIndent;
+        }
+        else {
+            ss << " - ";
+        }
+        
+        ss << "corrupted data left";
+    }
+    
+    return ss.str();
 }
 
 

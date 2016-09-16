@@ -118,11 +118,6 @@ bool prepare_measure_homodyne::consume_arguments(boost::program_options::variabl
         m_nSNRP = m_nSigmaAliceP / m_nSigmaNoiseP;
     }
     
-    m_nSigmaAliceQPow2 = m_nSigmaAliceQ * m_nSigmaAliceQ;
-    m_nSigmaAlicePPow2 = m_nSigmaAliceP * m_nSigmaAliceP;
-    m_nSigmaNoiseQPow2 = m_nSigmaNoiseQ * m_nSigmaNoiseQ;
-    m_nSigmaNoisePPow2 = m_nSigmaNoiseP * m_nSigmaNoiseP;
-    
     if (cArguments.count("transmission") < 1) {
         std::cerr << "missing transmission" << std::endl;
         return false;
@@ -194,11 +189,26 @@ std::string prepare_measure_homodyne::help() {
 
 
 /**
+ * init the genration mode
+ * 
+ * this inits the generation mode, adds all necessary precalculated values
+ * after argument consumation
+ */
+void prepare_measure_homodyne::init() {
+    m_nSigmaAliceQPow2 = m_nSigmaAliceQ * m_nSigmaAliceQ;
+    m_nSigmaAlicePPow2 = m_nSigmaAliceP * m_nSigmaAliceP;
+    m_nSigmaNoiseQPow2 = m_nSigmaNoiseQ * m_nSigmaNoiseQ;
+    m_nSigmaNoisePPow2 = m_nSigmaNoiseP * m_nSigmaNoiseP;
+}
+
+
+/**
  * produce a set of pseudo random cv-keys
  * 
  * @param   cKeyAlice       alice key
  * @param   cKeyBob         bob key
+ * @param   nEvents         number of events for each key 
  */
-void prepare_measure_homodyne::produce(UNUSED qkd::key::key & cKeyAlice, UNUSED qkd::key::key & cKeyBob) {
+void prepare_measure_homodyne::produce(UNUSED qkd::key::key & cKeyAlice, UNUSED qkd::key::key & cKeyBob, UNUSED uint64_t nEvents) {
 }
 

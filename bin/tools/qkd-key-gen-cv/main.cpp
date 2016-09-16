@@ -69,10 +69,6 @@ public:
         nSize = 0; 
         bRandomizeSize = false; 
         nSizeStandardDeviation = 0.0; 
-//         nSigmaAlice = 1.0;
-//         nSigmaNoise = 1.0;
-//         nTranspose = 0.8;
-//         nSNR = 1.0;
         bSilent = false;
     }
     
@@ -83,37 +79,15 @@ public:
     uint64_t nSize;                 /**< size of each key */
     bool bRandomizeSize;            /**< randomize the size */
     double nSizeStandardDeviation;  /**< standard deviation when randomizing key size */
-    
-//     double nSigmaAlice;             /**< sigma alice */
-//     double nSigmaNoise;             /**< sigma noise */
-//     double nTranspose;              /**< transpose */
-//     double nSNR;                    /**< signal noise ratio */
-//     
-//     double nSigmaAlicePOW2;         /**< (sigma alice)^2 */
-//     double nSigmaNoisePOW2;         /**< (sigma noise)^2 */
-    
     bool bSilent;                   /**< no console output */
 };
-
-
-/**
- * helper struct for base and float key data encoding
- */
-typedef struct {
-    uint32_t nBase;         /**< base value */
-    float nMeasurement;     /**< measurement */
-} base_and_float;
 
 
 // ------------------------------------------------------------
 // fwd
 
-void create(qkd::key::key & cKeyAlice, qkd::key::key & cKeyBob, config const & cConfig);
-// qkd::key::key convert_to_bob(qkd::key::key const & cKey);
-// void disturb(qkd::key::key & cKey, config const & cConfig);
-// int generate(config const & cConfig);
+int generate(config const & cConfig, std::shared_ptr<qkd::cv::mode> const & cMode);
 void show_config(config const & cConfig, std::shared_ptr<qkd::cv::mode> const & cMode);
-// unsigned char swap_base(unsigned char nBase, double nRandom);
 
 
 // ------------------------------------------------------------
@@ -121,158 +95,55 @@ void show_config(config const & cConfig, std::shared_ptr<qkd::cv::mode> const & 
 
 
 /**
- * create a pair of key data
- * 
- * @param   cKeyAlice   the alice key
- * @param   cKeyBob     the bob key
- * @param   cConfig     the config values
- */
-void create(qkd::key::key & cKeyAlice, qkd::key::key & cKeyBob, config const & cConfig) {
-    
-    static std::random_device cRandomDevice;
-    static std::mt19937 cRandomNumberGenerator(cRandomDevice());
-
-    // prepare key memory
-    uint64_t nSize = cConfig.nSize;
-    if (cConfig.bRandomizeSize) {
-        std::normal_distribution<double> cDistribution(cConfig.nSize, cConfig.nSizeStandardDeviation);
-        nSize = cDistribution(cRandomNumberGenerator);
-    }
-    qkd::utility::memory cMemoryAlice(nSize * sizeof(base_and_float));
-    UNUSED base_and_float * d_alice = reinterpret_cast<base_and_float *>(cMemoryAlice.get());
-    qkd::utility::memory cMemoryBob(nSize * sizeof(base_and_float));
-    UNUSED base_and_float * d_bob = reinterpret_cast<base_and_float *>(cMemoryBob.get());
-    
-    
-    
-    cKeyAlice.data() = cMemoryAlice;
-    cKeyBob.data() = cMemoryBob;
-}
-
-
-/**
- * convert an alice key to a bob key by switching the bases
- * 
- * In half the cases the bases are mismatched.
- * 
- * @param   cKey        alice key
- * @return  a key with switched bases
- */
-// qkd::key::key convert_to_bob(qkd::key::key const & cKey) {
-//     
-//     qkd::utility::memory cMemory(cKey.size());
-//     for (uint64_t i = 0; i < cMemory.size(); i++) {
-//         
-//         double nRandomLow = 0.0;
-//         double nRandomHigh = 0.0;
-//         qkd::utility::random_source::source() >> nRandomLow;
-//         qkd::utility::random_source::source() >> nRandomHigh;
-//         
-//         unsigned nLowerHalf = cKey.data()[i] & 0x0F;
-//         unsigned nUpperHalf = cKey.data()[i] & 0xF0;
-//         cMemory.get()[i] = swap_base(nLowerHalf, nRandomLow) | (swap_base(nUpperHalf >> 4, nRandomHigh) << 4);
-//     }
-//     
-//     return qkd::key::key(cKey.id(), cMemory, qkd::key::ENCODING_4_DETECTOR_CLICKS);
-// }
-
-
-/**
- * disturb a key as specified by config
- * 
- * @param   cKey            the key to disturb
- * @param   cConfig         the config values (relevant: rate and exact)
- * @return  a disturbed key
- */
-// void disturb(qkd::key::key & cKey, config const & cConfig) {
-//     
-//     unsigned char * d = cKey.data().get();
-//     for (uint64_t i = 0; i < cKey.data().size(); ++i, ++d) {
-//         
-//         double nRandom = 0.0;
-//         
-//         qkd::utility::random_source::source() >> nRandom;
-//         if (nRandom <= cConfig.nRate) {
-//             
-//             switch ((*d) & 0x0F) {
-//             case 0x01:
-//                 (*d) = ((*d) & 0xF0) | 0x02;
-//                 break;
-//             case 0x02:
-//                 (*d) = ((*d) & 0xF0) | 0x01;
-//                 break;
-//             case 0x04:
-//                 (*d) = ((*d) & 0xF0) | 0x08;
-//                 break;
-//             case 0x08:
-//                 (*d) = ((*d) & 0xF0) | 0x04;
-//                 break;
-//             }
-//         }
-//             
-//         qkd::utility::random_source::source() >> nRandom;
-//         if (nRandom <= cConfig.nRate) {
-//             
-//             switch ((*d) & 0xF0) {
-//             case 0x10:
-//                 (*d) = ((*d) & 0x0F) | 0x20;
-//                 break;
-//             case 0x20:
-//                 (*d) = ((*d) & 0x0F) | 0x10;
-//                 break;
-//             case 0x40:
-//                 (*d) = ((*d) & 0x0F) | 0x80;
-//                 break;
-//             case 0x80:
-//                 (*d) = ((*d) & 0x0F) | 0x40;
-//                 break;
-//             }
-//         }
-//     }
-// }
-
-
-/**
  * generate the keys
  * 
  * @param   cConfig     the config setting, holding all necessary data
+ * @param   cMode       cv generation mode
  * @return  exitcode: 0 success, else error
  */
-// int generate(config const & cConfig) {
-//     
-//     // files
-//     std::ofstream cFileAlice(cConfig.sFile + ".alice");
-//     if (!cFileAlice.is_open()) {
-//         std::cerr << "failed to open Alice's file '" << cConfig.sFile << ".alice': " << strerror(errno) << std::endl;
-//         return 2;
-//     }
-//     std::ofstream cFileBob(cConfig.sFile + ".bob");
-//     if (!cFileBob.is_open()) {
-//         std::cerr << "failed to open Bob's file '" << cConfig.sFile << ".bob': " << strerror(errno) << std::endl;
-//         return 2;
-//     }
-// 
-//     if (!cConfig.sRandomSource.empty()) {
-//         qkd::utility::random cRandomSource = qkd::utility::random_source::create(cConfig.sRandomSource);
-//         qkd::utility::random_source::set_source(cRandomSource);
-//     }
-//     
-//     for (qkd::key::key_id nKeyId = cConfig.nId; nKeyId < (cConfig.nId + cConfig.nKeys); ++nKeyId) {
-//         
-//         qkd::key::key cKeyAlice(nKeyId, qkd::utility::memory(0), qkd::key::ENCODING_BASE_FLOAT);
-//         qkd::key::key cKeyBob(nKeyId, qkd::utility::memory(0), qkd::key::ENCODING_BASE_FLOAT);
-//         create(cKeyAlice, cKeyBob, cConfig);
-//         
-// //         disturb(cKeyBob, cConfig);
-//         
-//         cFileAlice << cKeyAlice;
-//         cFileBob << cKeyBob;
-//         
-//         if (!cConfig.bSilent) std::cout << "created key #" << cKeyAlice.id() << std::endl;
-//     }
-//     
-//     return 0;        
-// }
+int generate(config const & cConfig, std::shared_ptr<qkd::cv::mode> const & cMode) {
+    
+    // files
+    std::ofstream cFileAlice(cConfig.sFile + ".alice");
+    if (!cFileAlice.is_open()) {
+        std::cerr << "failed to open Alice's file '" << cConfig.sFile << ".alice': " << strerror(errno) << std::endl;
+        return 2;
+    }
+    std::ofstream cFileBob(cConfig.sFile + ".bob");
+    if (!cFileBob.is_open()) {
+        std::cerr << "failed to open Bob's file '" << cConfig.sFile << ".bob': " << strerror(errno) << std::endl;
+        return 2;
+    }
+
+    static std::random_device cRandomDevice;
+    static std::mt19937 cRandomNumberGenerator(cRandomDevice());
+    std::normal_distribution<double> cDistribution(cConfig.nSize, cConfig.nSizeStandardDeviation);
+
+    if (!cConfig.sRandomSource.empty()) {
+        qkd::utility::random cRandomSource = qkd::utility::random_source::create(cConfig.sRandomSource);
+        qkd::utility::random_source::set_source(cRandomSource);
+    }
+    
+    for (qkd::key::key_id nKeyId = cConfig.nId; nKeyId < (cConfig.nId + cConfig.nKeys); ++nKeyId) {
+        
+        qkd::key::key cKeyAlice(nKeyId, qkd::utility::memory(0));
+        qkd::key::key cKeyBob(nKeyId, qkd::utility::memory(0));
+        
+        uint64_t nEvents = cConfig.nSize;
+        if (cConfig.bRandomizeSize) {
+            nEvents = cDistribution(cRandomNumberGenerator);
+        }
+        
+        cMode->produce(cKeyAlice, cKeyBob, nEvents);
+        
+        cFileAlice << cKeyAlice;
+        cFileBob << cKeyBob;
+        
+        if (!cConfig.bSilent) std::cout << "created key #" << cKeyAlice.id() << std::endl;
+    }
+    
+    return 0;        
+}
 
 
 /**
@@ -351,7 +222,7 @@ int main(int argc, char ** argv) {
         std::cerr << "need exactly one FILE argument" << "\ntype '--help' for help" << std::endl;
         return 1;
     }
-    
+
     config cConfig;
     cConfig.sFile = cVariableMap["FILE"].as<std::string>();
     cConfig.nId = cVariableMap["id"].as<qkd::key::key_id>();
@@ -381,81 +252,14 @@ int main(int argc, char ** argv) {
         std::cerr << "unknown generation mode." << std::endl;
         return 1;
     }
-    
+
     if (!cMode->consume_arguments(cVariableMap)) {
         return 1;
     }
     
-    
-    
-/*    
-    
-//     cConfig.nTranspose = cVariableMap["transpose"].as<double>();
-    
-    
-    
-    unsigned int nPresentArguments = 0;
-    
-    bool bSigmaAlicePresent = (cVariableMap.count("sigma-alice") > 0);
-    if (bSigmaAlicePresent) {
-        cConfig.nSigmaAlice = cVariableMap["sigma-alice"].as<double>();
-        if (cConfig.nSigmaAlice <= 0.0) {
-            std::cerr << "sigma-alice must be greater than 0." << std::endl;
-            return 1;
-        }
-        cConfig.nSigmaAlicePOW2 = cConfig.nSigmaAlice * cConfig.nSigmaAlice;
-        ++nPresentArguments;
-    }
-    
-    bool bSigmaNoisePresent = (cVariableMap.count("sigma-noise") > 0);
-    if (bSigmaNoisePresent) {
-        cConfig.nSigmaNoise = cVariableMap["sigma-noise"].as<double>();
-        if (cConfig.nSigmaNoise <= 0.0) {
-            std::cerr << "sigma-noise must be greater than 0." << std::endl;
-            return 1;
-        }
-        cConfig.nSigmaNoisePOW2 = cConfig.nSigmaNoise * cConfig.nSigmaNoise;
-        ++nPresentArguments;
-    }
-    
-    bool bSNRPresent = (cVariableMap.count("snr") > 0);
-    if (bSNRPresent) {
-        cConfig.nSNR = cVariableMap["snr"].as<double>();
-        if (cConfig.nSNR <= 0.0) {
-            std::cerr << "signal noise ratio must be greater than 0." << std::endl;
-            return 1;
-        }
-        ++nPresentArguments;
-    }
-    
-    if (nPresentArguments != 2) {
-        
-        if (nPresentArguments == 3) {
-            std::cerr << "From sigma-alice, sigma-noise and snr are all 3 present, which is invalid.\n";
-            std::cerr << "Please choose exactly two out of this set.\n";
-            return 1;
-        }
-        
-        std::cerr << "From sigma-alice, sigma-noise and snr too few are present, which is invalid.\n";
-        std::cerr << "Please choose exactly two out of this set.\n";
-        return 1;
-    }
-    if (!bSigmaAlicePresent) {
-        cConfig.nSigmaAlicePOW2 = cConfig.nSNR * cConfig.nSigmaNoisePOW2;
-        cConfig.nSigmaAlice = sqrt(cConfig.nSigmaAlicePOW2);
-    }
-    if (!bSigmaNoisePresent) {
-        cConfig.nSigmaNoisePOW2 = cConfig.nSigmaAlicePOW2 / cConfig.nSNR;
-        cConfig.nSigmaNoise = sqrt(cConfig.nSigmaNoisePOW2);
-    }
-    if (!bSNRPresent) {
-        cConfig.nSNR = cConfig.nSigmaAlicePOW2 / cConfig.nSigmaNoisePOW2;
-    }*/
-    
     show_config(cConfig, cMode);
     
-//     return generate(cConfig);
-    return 0;
+    return generate(cConfig, cMode);
 }
 
 

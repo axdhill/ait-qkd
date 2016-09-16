@@ -29,29 +29,29 @@
 # Boston, MA  02110-1301, USA.
 # ------------------------------------------------------------
 
-
-# base source
 export TEST_BASE="@CMAKE_BINARY_DIR@"
 source ${TEST_BASE}/test/bin/test-functions
 
 # ------------------------------------------------------------
 
-# init test environment
 test_init "$(basename $0).d"
 
-# we need to replace ourselves in the build folder
-cd ${TEST_BASE}
-
-# zap previous keys
 rm -rf entangled_keys.* &> /dev/null
 rm -rf homodyne_keys.* &> /dev/null
 rm -rf heterodyne_keys.* &> /dev/null
 
-# create keys
 KEYS_TO_PROCESS="100"
-${TEST_BASE}/bin/qkd-key-gen-cv --silent --size 100 --keys ${KEYS_TO_PROCESS} --random-url=linear-congruential:42 --mode entangled entangled_keys
-${TEST_BASE}/bin/qkd-key-gen-cv --silent --size 100 --keys ${KEYS_TO_PROCESS} --random-url=linear-congruential:42 --mode prepare_measure_homodyne homodyne_keys
-${TEST_BASE}/bin/qkd-key-gen-cv --silent --size 100 --keys ${KEYS_TO_PROCESS} --random-url=linear-congruential:43 --mode prepare_measure_heterodyne heterodyne_keys
+
+${TEST_BASE}/bin/qkd-key-gen-cv \
+    --size 1024 \
+    --keys ${KEYS_TO_PROCESS} \
+    --random-url=linear-congruential:42 \
+    --mode entangled \
+    --sigma-alice-q 1.1 --sigma-alice-p 1.2 --sigma-bob-q 1.3 --sigma-bob-p 1.4 --rho 0.9 \
+        entangled_keys
+        
+#${TEST_BASE}/bin/qkd-key-gen-cv --silent --size 100 --keys ${KEYS_TO_PROCESS} --random-url=linear-congruential:42 --mode prepare_measure_homodyne homodyne_keys
+#${TEST_BASE}/bin/qkd-key-gen-cv --silent --size 100 --keys ${KEYS_TO_PROCESS} --random-url=linear-congruential:43 --mode prepare_measure_heterodyne heterodyne_keys
 
 # # compare created final authenticated keys    
 # diff "${TEST_BASE}/set1.alice" "${TEST_BASE}/set2.alice" &>/dev/null

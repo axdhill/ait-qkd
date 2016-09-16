@@ -32,14 +32,30 @@
 // incs
 
 #include <iostream>
+#include <random>
 #include <sstream>
 
 // ait
-#include <qkd/common_macros.h>
+#include <qkd/utility/random.h>
 
 #include "entangled.h"
 
 using namespace qkd::cv;
+
+
+// ------------------------------------------------------------
+// decl
+
+
+/**
+ * helper struct for key data
+ */
+typedef struct {
+    
+    uint32_t nBase;
+    float nMeasurement;
+    
+} base_and_float;
 
 
 // ------------------------------------------------------------
@@ -58,51 +74,47 @@ bool entangled::consume_arguments(boost::program_options::variables_map const & 
         std::cerr << "missing sigma-alice-q" << std::endl;
         return false;
     }
-    m_nSigmaAliceQ = cArguments["sigma-alice-q"].as<float>();
+    m_nSigmaAliceQ = cArguments["sigma-alice-q"].as<double>();
     if (m_nSigmaAliceQ <= 0.0) {
         std::cerr << "sigma-alice-q must not be less or euqal than 0.0" << std::endl;
         return false;
     }
-    m_nSigmaAliceQPow2 = m_nSigmaAliceQ * m_nSigmaAliceQ;
     
     if (cArguments.count("sigma-alice-p") < 1) {
         std::cerr << "missing sigma-alice-p" << std::endl;
         return false;
     }
-    m_nSigmaAliceP = cArguments["sigma-alice-p"].as<float>();
+    m_nSigmaAliceP = cArguments["sigma-alice-p"].as<double>();
     if (m_nSigmaAliceP <= 0.0) {
         std::cerr << "sigma-alice-p must not be less or euqal than 0.0" << std::endl;
         return false;
     }
-    m_nSigmaAlicePPow2 = m_nSigmaAliceP * m_nSigmaAliceP;
     
     if (cArguments.count("sigma-bob-q") < 1) {
         std::cerr << "missing sigma-bob-q" << std::endl;
         return false;
     }
-    m_nSigmaBobQ = cArguments["sigma-bob-q"].as<float>();
+    m_nSigmaBobQ = cArguments["sigma-bob-q"].as<double>();
     if (m_nSigmaBobQ <= 0.0) {
         std::cerr << "sigma-bob-q must not be less or euqal than 0.0" << std::endl;
         return false;
     }
-    m_nSigmaBobQPow2 = m_nSigmaBobQ * m_nSigmaBobQ;
     
     if (cArguments.count("sigma-bob-p") < 1) {
         std::cerr << "missing sigma-bob-p" << std::endl;
         return false;
     }
-    m_nSigmaBobP = cArguments["sigma-bob-p"].as<float>();
+    m_nSigmaBobP = cArguments["sigma-bob-p"].as<double>();
     if (m_nSigmaBobP <= 0.0) {
         std::cerr << "sigma-bob-p must not be less or euqal than 0.0" << std::endl;
         return false;
     }
-    m_nSigmaBobPPow2 = m_nSigmaBobP * m_nSigmaBobP;
     
     if (cArguments.count("rho") < 1) {
         std::cerr << "missing rho" << std::endl;
         return false;
     }
-    m_nRho = cArguments["rho"].as<float>();
+    m_nRho = cArguments["rho"].as<double>();
     if ((m_nRho < 0.0) || (m_nRho > 1.0)) {
         std::cerr << "rho must be between 0.0 and 1.0" << std::endl;
         return false;
@@ -124,14 +136,8 @@ std::string entangled::dump_configuration() const {
     
     ss << "\tsigma alice Q:      " << m_nSigmaAliceQ << "\n";
     ss << "\tsigma alice P:      " << m_nSigmaAliceP << "\n";
-    ss << "\t(sigma alice Q)^2:  " << m_nSigmaAliceQPow2 << "\n";
-    ss << "\t(sigma alice P)^2:  " << m_nSigmaAlicePPow2 << "\n";
-    
     ss << "\tsigma bob Q:        " << m_nSigmaBobQ << "\n";
     ss << "\tsigma bob P:        " << m_nSigmaBobP << "\n";
-    ss << "\t(sigma bob Q)^2:    " << m_nSigmaBobQPow2 << "\n";
-    ss << "\t(sigma bob P)^2:    " << m_nSigmaBobPPow2 << "\n";
-    
     ss << "\trho:                " << m_nRho << "\n";
     
     return ss.str();
@@ -165,10 +171,94 @@ std::string entangled::help() {
 
 
 /**
+ * init the genration mode
+ * 
+ * this inits the generation mode, adds all necessary precalculated values
+ * after argument consumation
+ */
+void entangled::init() {
+    
+    // the c++11 normal_distribution needs a UniformRandomBitGenerator
+    // as input to draw random numbers
+    // we do currently not support this directly
+    // so we simply seed the standard mt19937 generator
+    // with a value from our own random number genrator
+    double nSeed = 0.0;
+    qkd::utility::random_source::source() >> nSeed;
+    m_cRandomGenerator = std::mt19937(nSeed);
+}
+
+
+/**
  * produce a set of pseudo random cv-keys
  * 
  * @param   cKeyAlice       alice key
  * @param   cKeyBob         bob key
+ * @param   nEvents         number of events for each key 
  */
-void entangled::produce(UNUSED qkd::key::key & cKeyAlice, UNUSED qkd::key::key & cKeyBob) {
+void entangled::produce(qkd::key::key & cKeyAlice, qkd::key::key & cKeyBob, uint64_t nEvents) {
+    
+    cKeyAlice.data() = qkd::utility::memory(nEvents * sizeof(base_and_float));
+    cKeyBob.data() = qkd::utility::memory(nEvents * sizeof(base_and_float));
+    base_and_float * a = reinterpret_cast<base_and_float *>(cKeyAlice.data().get());
+    base_and_float * b = reinterpret_cast<base_and_float *>(cKeyBob.data().get());
+    
+    std::normal_distribution<> cNormalDistribution(0, 1.0);
+    qkd::utility::random r = qkd::utility::random_source::source();
+    
+    double nBaseAlice = 0.0;
+    double nBaseBob = 0.0;
+    
+    while (nEvents > 0) {
+        
+        r >> nBaseAlice;
+        r >> nBaseBob;
+        a->nBase = (nBaseAlice < 0.5 ? 0 : 1);
+        b->nBase = (nBaseBob < 0.5 ? 0 : 1);
+     
+        double y1 = cNormalDistribution(m_cRandomGenerator);
+        double y2 = cNormalDistribution(m_cRandomGenerator);
+        
+        if (a->nBase == b->nBase) {
+            
+            // same base measurment
+            double y_a = y1;
+            double y_b = m_nRho * y1 + m_nSqrt_1Rho2 * y2;
+            
+            if (a->nBase == 0) {
+                a->nMeasurement = m_nSigmaAliceQ * y_a;
+                b->nMeasurement = m_nSigmaBobQ * y_b;
+            }
+            else {
+                a->nMeasurement = m_nSigmaAliceP * y_a;
+                b->nMeasurement = -m_nSigmaBobP * y_b;
+            }
+        }
+        else {
+            
+            // different base measurment
+            double y_a = y1;
+            double y_b = y2;
+            
+            if (a->nBase == 0) {
+                a->nMeasurement = m_nSigmaAliceQ * y_a;
+            }
+            else {
+                a->nMeasurement = m_nSigmaAliceP * y_a;
+            }
+            if (b->nBase == 0) {
+                b->nMeasurement = m_nSigmaBobQ * y_b;
+            }
+            else {
+                b->nMeasurement = m_nSigmaBobP * y_b;
+            }
+        }
+    
+        ++a;
+        ++b;
+        --nEvents;
+    }
+    
+    cKeyAlice.set_encoding(qkd::key::ENCODING_BASE_FLOAT);
+    cKeyBob.set_encoding(qkd::key::ENCODING_BASE_FLOAT);
 }

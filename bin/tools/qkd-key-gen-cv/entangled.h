@@ -83,29 +83,37 @@ public:
     
     
     /**
+     * init the genration mode
+     * 
+     * this inits the generation mode, adds all necessary precalculated values
+     * after argument consumation
+     */
+    void init();
+    
+    
+    /**
      * produce a set of pseudo random cv-keys
      * 
      * @param   cKeyAlice       alice key
      * @param   cKeyBob         bob key
+     * @param   nEvents         number of events for each key
      */
-    void produce(qkd::key::key & cKeyAlice, qkd::key::key & cKeyBob);
+    void produce(qkd::key::key & cKeyAlice, qkd::key::key & cKeyBob, uint64_t nEvents);
     
     
 private:
     
     
-    float m_nSigmaAliceQ;           /**< sigma alice Q */
-    float m_nSigmaAliceP;           /**< sigma alice P */
-    float m_nSigmaAliceQPow2;       /**< (sigma alice Q)^2 */
-    float m_nSigmaAlicePPow2;       /**< (sigma alice P)^2 */
+    float m_nSigmaAliceQ;               /**< sigma alice Q */
+    float m_nSigmaAliceP;               /**< sigma alice P */
     
-    float m_nSigmaBobQ;             /**< sigma bob Q */
-    float m_nSigmaBobP;             /**< sigma bob P */
-    float m_nSigmaBobQPow2;         /**< (sigma bob Q)^2 */
-    float m_nSigmaBobPPow2;         /**< (sigma bob P)^2 */
+    float m_nSigmaBobQ;                 /**< sigma bob Q */
+    float m_nSigmaBobP;                 /**< sigma bob P */
     
-    float m_nRho;                   /**< correlation coefficient */
-    float m_nSqrt_1Rho2;            /**< sqrt(1 - rho^2) */
+    float m_nRho;                       /**< correlation coefficient */
+    float m_nSqrt_1Rho2;                /**< sqrt(1 - rho^2) */
+    
+    std::mt19937 m_cRandomGenerator;    /** random generator used for normal distribution */
 };
 
 
